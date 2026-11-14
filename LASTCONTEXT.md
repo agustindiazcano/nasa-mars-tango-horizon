@@ -22,6 +22,8 @@
   - Writing style: direct, concise, no adjectives; the words "honest", "honestly" and "rigorous" are banned.
 - Translated all existing project documents to English.
 - Added `.gitignore` (env files, OS, editor and log files) and `.env.example` (no variables yet). Each developer keeps a local `.env`, ignored by git.
+- Work goes directly on `main` (user decision, time-limited). Branch/worktree rule replaced in `AGENTS.md`.
+- Created `NASA_APIS.md` (table of NASA/USGS sources; endpoints untested) and referenced it in `AGENTS.md`.
 - Created `BLUEPRINT.md` (empty; it will hold the plan for the whole project) and the `docs/` folder (with `.gitkeep`). Both are referenced in `AGENTS.md`.
 
 ## Decisions

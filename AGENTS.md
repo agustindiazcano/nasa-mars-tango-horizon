@@ -32,19 +32,19 @@ Applies to everything you write: chat replies, reasoning, documents, code commen
 
 Several people and several agents work on this project at the same time.
 
-1. Never assume you can work on the current branch. Check the branch and its state first (`git branch --show-current`, `git status`, `git worktree list`).
-2. For every new task, create a new branch in a new worktree, based on the updated `main`:
-   `git fetch origin` then `git worktree add ../nasa-mars-tango-horizon-<task> -b <task> origin/main`
-3. Work only inside that worktree. Do not edit files in the main checkout or in another agent's worktree.
-4. After the commit and push, remove the worktree: `git worktree remove ../nasa-mars-tango-horizon-<task>`.
+Time is limited: work directly on `main`. No task branches or worktrees unless the user asks for them.
+
+1. Before editing, run `git branch --show-current` and `git status`. Confirm you are on `main`.
+2. Run `git pull --rebase origin main` before starting and before each push, to pick up other people's and agents' commits.
+3. Commit small and push to `origin main` right after each task.
+4. On a conflict, resolve it without discarding the other side's changes. Ask the user if unsure.
 
 ## Mandatory rule: when a task is finished
 
 1. Update `PENDING.md` and `LASTCONTEXT.md`.
 2. Commit the changes for that task, including those two files (one commit per task, with a message that describes it).
-3. Push the task branch to `origin`.
-4. Remove the worktree used for the task.
-5. **Ask the user for permission** before opening the PR and before moving on to the next task. Do not open a PR or start another task without their confirmation.
+3. Push to `origin main`.
+4. **Ask the user for permission** before moving on to the next task. Do not start another task without their confirmation.
 
 ## Mandatory rule: no project status in the README
 
@@ -59,6 +59,7 @@ Several people and several agents work on this project at the same time.
 | Path | Content |
 |---|---|
 | `BLUEPRINT.md` | The plan for the whole project. Read it before planning or starting a task. |
+| `NASA_APIS.md` | NASA and USGS data sources: endpoints, auth, fields used. Update it when a source is added or changed. |
 | `docs/` | Project documents. |
 
 ## Session memory
