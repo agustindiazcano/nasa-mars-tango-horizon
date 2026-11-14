@@ -1,5 +1,8 @@
+import { inject } from "@vercel/analytics";
 import { wsUrl } from "../api";
 import { setLang, t, type Lang, LANGS } from "../core/i18n";
+
+inject({ mode: import.meta.env.DEV ? "development" : "production" });
 
 const params = new URLSearchParams(window.location.search);
 const room = params.get("room") ?? "";

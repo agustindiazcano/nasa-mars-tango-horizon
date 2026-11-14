@@ -1,4 +1,5 @@
 import "./hud/hud.css";
+import { inject } from "@vercel/analytics";
 import * as THREE from "three";
 import { apiUrl } from "./api";
 import { getLang, t } from "./core/i18n";
@@ -15,6 +16,8 @@ import { FleetProc } from "./world/fleetProc";
 import { PodBallistics } from "./world/podBallistics";
 import { SkyDust } from "./world/skyDust";
 import { TerrainProc } from "./world/terrainProc";
+
+inject({ mode: import.meta.env.DEV ? "development" : "production" });
 
 const canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
