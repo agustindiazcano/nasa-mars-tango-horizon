@@ -15,7 +15,7 @@ function callTool(name: string, args: Record<string, unknown>, ctx: MissionConte
 function makeTestContext(): MissionContext {
   return {
     lang: "es",
-    scenario: "S2_SOLAR_STORM",
+    met_s: 1200,
     astronaut: { x: -600, z: -900, body_kg: 80, load_kg: 60, speed: 1.0 },
     suit: {
       heart_rate_bpm: 96,
@@ -39,21 +39,17 @@ function makeTestContext(): MissionContext {
       pressure_pa: 760,
       air_temp_k: 245,
       tau: 0.6,
-      dust_tau: 0.6,
       wind_ms: 6.5,
-      wind_dir_rad: 0.4,
-      wind_sigma_ms: 1.2,
-      rad_ugy_h: 22,
-      cum_dose_mgy: 1.4,
-      solar_area_m2: 400,
-      solar_efficiency: 0.22,
-      solar_demand_w: 18000,
+      wind_dir_deg: 23,
+      dose_rate_ugy_h: 22,
+      cumulative_dose_ugy: 1400,
     },
     fleet: [
       { id: "rover-1", kind: "rover_crew", x: 40, z: 30, battery: 0.88, busy: false },
       { id: "rover-2", kind: "rover_science", x: -80, z: 140, battery: 0.91, busy: false },
       { id: "drone-1", kind: "scout", x: 10, z: -20, battery: 0.75, busy: false },
     ],
+    hud: { layer: "optical", panel: null },
   };
 }
 
@@ -180,7 +176,7 @@ describe("8.0 kg pod, non-pyrotechnic beacons, and Mars GNSS-denied localization
     expect(pyroBlocked?.decision).toBe("deny");
     expect(pyroBlocked?.reason).toMatch(/Pyrotechnic flares are prohibited/i);
 
-    const stormCtx = { ...ctx, env: { ...ctx.env, tau: 2.3, dust_tau: 2.3 } };
+    const stormCtx = { ...ctx, env: { ...ctx.env, tau: 2.3 } };
     const droneBlocked = ruleCheck(
       { type: "deploy_beacons", args: { to_x: 0, to_z: 0, mode: "drone_drop", unit_id: "drone-1" }, proposedBy: "BASE" },
       stormCtx,
