@@ -1,5 +1,5 @@
 # GEMINI.md
 
-Las instrucciones del proyecto viven en `AGENTS.md`. No agregar reglas acá.
+Project instructions live in `AGENTS.md`. Do not add rules here.
 
 @AGENTS.md

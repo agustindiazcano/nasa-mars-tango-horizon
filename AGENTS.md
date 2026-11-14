@@ -1,43 +1,52 @@
 # AGENTS.md
 
-Instrucciones compartidas para todos los agentes de código (Claude Code, Gemini CLI, Codex, etc.).
-`CLAUDE.md` y `GEMINI.md` solo importan este archivo: cualquier regla nueva va acá.
+Shared instructions for all coding agents (Claude Code, Gemini CLI, Codex, etc.).
+`CLAUDE.md` and `GEMINI.md` only import this file: any new rule goes here.
 
-## Regla obligatoria: antes de cada sesión
+## Mandatory rule: before every session
 
-**SIEMPRE, antes de hacer cualquier otra cosa en una sesión, leer `PENDING.md` y `LASTCONTEXT.md`.** Sin excepciones, aunque la tarea pedida parezca no tener relación.
+**ALWAYS read `PENDING.md` and `LASTCONTEXT.md` before doing anything else in a session.** No exceptions, even if the requested task seems unrelated.
 
 @LASTCONTEXT.md
 @PENDING.md
 
-Si tu herramienta no resuelve los `@imports` de arriba, abrí los dos archivos a mano antes de responder.
+If your tool does not resolve the `@imports` above, open both files manually before answering.
 
-Si el usuario no indica otra cosa, continuar por la tarea de mayor prioridad de `PENDING.md`.
+Unless the user says otherwise, continue with the highest-priority task in `PENDING.md`.
 
-## Regla obligatoria: al terminar cada tarea
+## Mandatory rule: language
 
-1. Hacer commit de los cambios de esa tarea (un commit por tarea, con mensaje que la describa).
-2. Actualizar `PENDING.md` y `LASTCONTEXT.md` e incluirlos en ese commit.
-3. **Pedir permiso al usuario** antes de abrir el PR y antes de avanzar con la siguiente tarea. No hacer push/PR ni empezar otra tarea sin su confirmación.
+- **Always write your chain of thought / reasoning in English.**
+- **`AGENTS.md` and every project document must always be written in English**: Markdown files, code comments, commit messages, PR descriptions, and anything else stored in the repository.
+- Chat replies to the user are the only exception: answer in the language the user writes in (usually Spanish).
 
-## Proyecto
+## Mandatory rule: when a task is finished
 
-`nasa-mars-tango-horizon` — <!-- TODO: describir en 1-2 líneas el objetivo del proyecto, stack y comandos (instalar, correr, testear) -->
+1. Commit the changes for that task (one commit per task, with a message that describes it).
+2. Update `PENDING.md` and `LASTCONTEXT.md` and include them in that commit.
+3. **Ask the user for permission** before opening the PR and before moving on to the next task. Do not push, open a PR, or start another task without their confirmation.
 
-## Memoria entre sesiones
+## Mandatory rule: no project status in the README
 
-| Archivo | Contenido | Cuándo actualizarlo |
+**Never write project status in `README.md`**: no progress, roadmap, pending work, "work in progress" notes, or recent changes. Status belongs only in the status files (`PENDING.md`, `LASTCONTEXT.md`) and in dedicated documents.
+
+## Project
+
+`nasa-mars-tango-horizon` — <!-- TODO: describe in 1-2 lines the project goal, stack and commands (install, run, test) -->
+
+## Session memory
+
+| File | Content | When to update |
 |---|---|---|
-| `LASTCONTEXT.md` | Lo último que se hizo: resumen de la sesión anterior, decisiones y estado en que quedó el trabajo | Al terminar cada sesión (se sobrescribe, no se acumula) |
-| `PENDING.md` | Lista de tareas pendientes con prioridad | Cada vez que se completa, agrega o reprioriza una tarea |
+| `LASTCONTEXT.md` | What was done last: summary of the previous session, decisions, and the state the work was left in | At the end of every session (overwritten, not accumulated) |
+| `PENDING.md` | List of pending tasks with priority | Whenever a task is completed, added or reprioritized |
 
-### Al terminar una sesión (o un bloque de trabajo importante)
+### When a session ends (or after a significant block of work)
 
-1. Reescribir `LASTCONTEXT.md` con: fecha, qué se hizo, archivos tocados, decisiones tomadas y por qué, y en qué punto exacto quedó el trabajo.
-2. Actualizar `PENDING.md`: sacar lo completado, agregar lo nuevo, reordenar prioridades.
-3. No dejar en `LASTCONTEXT.md` nada que ya esté en `PENDING.md` (uno es historia reciente, el otro es lo que falta).
+1. Rewrite `LASTCONTEXT.md` with: date, what was done, files touched, decisions made and why, and the exact point where the work was left.
+2. Update `PENDING.md`: remove what is done, add what is new, reorder priorities.
+3. Do not keep in `LASTCONTEXT.md` anything that is already in `PENDING.md` (one is recent history, the other is what remains).
 
-## Convenciones
+## Conventions
 
-- Responder en el idioma en que escribe el usuario (normalmente español).
-- Prioridades con semáforo: 🔴 bloqueante/urgente, 🟡 siguiente, 🟢 después, ⚪ backlog.
+- Priorities use a traffic light: 🔴 blocking/urgent, 🟡 next, 🟢 later, ⚪ backlog.

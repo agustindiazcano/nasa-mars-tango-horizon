@@ -1,28 +1,34 @@
-# Último contexto
+# Last context
 
-> Resumen de la sesión anterior. Se sobrescribe al final de cada sesión.
+> Summary of the previous session. Overwritten at the end of every session.
 
-**Fecha:** 2026-11-14
-**Agente:** Claude Code
+**Date:** 2026-11-14
+**Agent:** Claude Code
 
-## Qué se hizo
+## What was done
 
-- Se creó la estructura de instrucciones para agentes en un directorio que estaba vacío:
-  - `AGENTS.md`: fuente única de instrucciones.
-  - `CLAUDE.md` y `GEMINI.md`: solo importan `AGENTS.md` con `@AGENTS.md`.
-  - `LASTCONTEXT.md` (este archivo) y `PENDING.md`, importados desde `AGENTS.md`.
-- Se agregó en `AGENTS.md` la regla obligatoria de leer siempre `PENDING.md` y `LASTCONTEXT.md` antes de cada sesión.
-- Se creó `README.md` (título "Tango Horizon", secciones Team, AI Usage y License) y el archivo `LICENSE` con la licencia MIT a nombre de Agustin Diaz-Cano y Baltazar Salerno.
-- Se inicializó git (rama `main`) y se configuró `origin` → https://github.com/agustindiazcano/nasa-mars-tango-horizon.git. El remoto está vacío; todavía no hay commits ni push.
-- Se agregó en `AGENTS.md` la regla de cierre de tarea: commit al terminar, y pedir permiso para el PR y para avanzar con la siguiente.
+- Created the agent instruction structure in a previously empty directory:
+  - `AGENTS.md`: single source of instructions.
+  - `CLAUDE.md` and `GEMINI.md`: only import `AGENTS.md` via `@AGENTS.md`.
+  - `LASTCONTEXT.md` (this file) and `PENDING.md`, imported from `AGENTS.md`.
+- Created `README.md` (title "Tango Horizon", sections Team, AI Usage and License) and the `LICENSE` file with the MIT license under Agustin Diaz-Cano and Baltazar Salerno.
+- Initialized git (branch `main`) and set `origin` → https://github.com/agustindiazcano/nasa-mars-tango-horizon.git.
+- Added the mandatory rules in `AGENTS.md`:
+  - Always read `PENDING.md` and `LASTCONTEXT.md` before every session.
+  - Chain of thought and all project documents always in English.
+  - On finishing a task: commit, then ask permission for the PR and for the next task.
+  - Never write project status in `README.md`.
+- Translated all existing project documents to English.
 
-## Decisiones
+## Decisions
 
-- Las reglas se escriben solo en `AGENTS.md` para no duplicarlas entre herramientas.
-- `LASTCONTEXT.md` se sobrescribe en cada sesión (no es un historial); lo que falta hacer va en `PENDING.md`.
-- Los dos archivos de memoria van en mayúsculas, igual que `AGENTS.md`.
+- Rules are written only in `AGENTS.md` so they are not duplicated across tools.
+- `LASTCONTEXT.md` is overwritten every session (it is not a history log); what remains to be done goes in `PENDING.md`.
+- The two memory files are uppercase, like `AGENTS.md`.
+- Chat replies to the user stay in the user's language; everything stored in the repo is in English.
 
-## Estado en que quedó
+## State the work was left in
 
-- El proyecto todavía no tiene código. Los 7 archivos de la raíz están sin commitear.
-- La sección "Proyecto" de `AGENTS.md` tiene un TODO: falta describir objetivo, stack y comandos.
+- The project has no code yet.
+- Work is committed locally on `main`; nothing has been pushed. The GitHub remote is empty, and the push is waiting for the user's permission.
+- The "Project" section of `AGENTS.md` has a TODO: goal, stack and commands still need to be described.

@@ -1,9 +1,9 @@
-# Tareas pendientes
+# Pending tasks
 
-> Prioridad: 🔴 bloqueante/urgente · 🟡 siguiente · 🟢 después · ⚪ backlog
-> Al completar una tarea, sacarla de la tabla y mencionarla en `LASTCONTEXT.md`.
+> Priority: 🔴 blocking/urgent · 🟡 next · 🟢 later · ⚪ backlog
+> When a task is completed, remove it from the table and mention it in `LASTCONTEXT.md`.
 
-| # | Prioridad | Tarea | Depende de | Notas |
+| # | Priority | Task | Depends on | Notes |
 |---|---|---|---|---|
-| 1 | 🔴 | Definir objetivo, stack y comandos del proyecto y completar la sección "Proyecto" de `AGENTS.md` | — | Sin esto los agentes no tienen contexto del proyecto |
-| 2 | 🟡 | Hacer el primer commit y `git push -u origin main` (agregar `.gitignore` cuando haya stack) | — | Repo local inicializado y `origin` configurado; el remoto en GitHub está vacío |
+| 1 | 🔴 | Define the project goal, stack and commands, and fill in the "Project" section of `AGENTS.md` | — | Without this, agents have no project context |
+| 2 | 🟡 | Push the initial commits with `git push -u origin main` (add a `.gitignore` once the stack is defined) | User permission | Local commits exist on `main`; the GitHub remote is empty |
