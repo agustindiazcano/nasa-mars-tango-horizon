@@ -6,5 +6,6 @@
 
 | # | Priority | Step | Task | Guides | Depends on |
 |---|---|---|---|---|---|
-| B8 | 🔴 | Step 11 | Deploy backend to Google Cloud Run (`deploy.sh` with `META_API_KEY` and `GEMINI_API_KEY` in Secret Manager) and frontend (`web/`) to Vercel (`VITE_API_URL` + `ALLOWED_ORIGINS`), then run post-deploy smoke checklist | `10_DEPLOY_SUBMISSION.md` | B7, F7 |
-| B15 | 🔴 | Step 19 | Finalize `README.md` (auto-generated data, physics, and constants tables + model validation metrics), run final deploy to Cloud Run and Vercel, and tag `submission` | `10_DEPLOY_SUBMISSION.md` | All |
+| B15 | 🔴 | Step 19 | Finalize `README.md` (auto-generated data, physics, and constants tables + model validation metrics), run final deploy to Cloud Run and Vercel once `web/` is merged, and tag `submission` | `10_DEPLOY_SUBMISSION.md` | All |
+| B16 | ⚪ | Backlog | Implement post-guardrail 3-model escalated voting (`gemini-4-carbon` `low`, `gemini-4-argon`, `muse-wonder` `medium`) and HUD trace card (nice-to-have) | `16_ESCALATED_MODEL_VOTING.md` | B8 |
+| B17 | ⚪ | Backlog | Implement bounded multi-turn conversational memory (`history`, max 6 turns) across separate voice orders | `17_MULTITURN_VOICE_MEMORY.md` | B8 |
