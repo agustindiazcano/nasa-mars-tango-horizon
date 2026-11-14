@@ -140,23 +140,23 @@ resource "google_cloud_run_v2_service" "backend" {
       }
       env {
         name  = "VERTEX_MODEL_LARGE"
-        value = "google/gemini-2.5-pro"
+        value = "google/gemini-4-carbon"
       }
       env {
         name  = "VERTEX_MODEL_MEDIUM"
-        value = "google/gemini-2.5-flash"
+        value = "google/gemini-4-argon"
       }
       env {
         name  = "VERTEX_MODEL_FAST"
-        value = "google/gemini-2.5-flash"
+        value = "google/gemini-4-hydrogen"
       }
       env {
         name  = "VERTEX_MODEL_JUDGE"
-        value = "google/gemini-2.5-flash"
+        value = "google/gemini-4-argon"
       }
       env {
         name  = "VERTEX_MODEL_VISION"
-        value = "google/gemini-2.5-flash"
+        value = "google/gemini-4-argon"
       }
     }
   }

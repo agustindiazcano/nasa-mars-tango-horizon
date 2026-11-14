@@ -33,24 +33,11 @@ const providers: Record<ProviderName, ProviderConfig> = {
     enabled: env("VERTEX_ENABLED", "1") !== "0" && Boolean(gcpProject),
     baseURL: `https://${vertexLoc}-aiplatform.googleapis.com/v1/projects/${gcpProject}/locations/${vertexLoc}/endpoints/openapi`,
     models: {
-      large: env("VERTEX_MODEL_LARGE", "google/gemini-2.5-pro"),
-      medium: env("VERTEX_MODEL_MEDIUM", "google/gemini-2.5-flash"),
-      fast: env("VERTEX_MODEL_FAST", "google/gemini-2.5-flash"),
-      judge: env("VERTEX_MODEL_JUDGE", "google/gemini-2.5-flash"),
-      vision: env("VERTEX_MODEL_VISION", "google/gemini-2.5-flash"),
-    },
-  },
-  meta: {
-    name: "meta",
-    enabled: Boolean(env("META_API_KEY")),
-    apiKey: env("META_API_KEY"),
-    baseURL: env("META_BASE_URL", "https://api.meta.ai/v1"),
-    models: {
-      large: env("LLM_MODEL_LARGE"),
-      medium: env("LLM_MODEL_MEDIUM"),
-      fast: env("LLM_MODEL_FAST"),
-      judge: env("LLM_MODEL_JUDGE"),
-      vision: env("LLM_MODEL_VISION"),
+      large: env("VERTEX_MODEL_LARGE", "google/gemini-4-carbon"),
+      medium: env("VERTEX_MODEL_MEDIUM", "google/gemini-4-argon"),
+      fast: env("VERTEX_MODEL_FAST", "google/gemini-4-hydrogen"),
+      judge: env("VERTEX_MODEL_JUDGE", "google/gemini-4-argon"),
+      vision: env("VERTEX_MODEL_VISION", "google/gemini-4-argon"),
     },
   },
   gemini: {
@@ -59,11 +46,24 @@ const providers: Record<ProviderName, ProviderConfig> = {
     apiKey: env("GEMINI_API_KEY") || env("FALLBACK_API_KEY"),
     baseURL: env("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/"),
     models: {
-      large: env("GEMINI_MODEL_LARGE", "gemini-2.5-pro"),
-      medium: env("GEMINI_MODEL_MEDIUM", "gemini-2.5-flash"),
-      fast: env("GEMINI_MODEL_FAST", "gemini-2.5-flash"),
-      judge: env("GEMINI_MODEL_JUDGE", "gemini-2.5-flash"),
-      vision: env("GEMINI_MODEL_VISION", "gemini-2.5-flash"),
+      large: env("GEMINI_MODEL_LARGE", "gemini-4-carbon"),
+      medium: env("GEMINI_MODEL_MEDIUM", "gemini-4-argon"),
+      fast: env("GEMINI_MODEL_FAST", "gemini-4-hydrogen"),
+      judge: env("GEMINI_MODEL_JUDGE", "gemini-4-argon"),
+      vision: env("GEMINI_MODEL_VISION", "gemini-4-argon"),
+    },
+  },
+  meta: {
+    name: "meta",
+    enabled: Boolean(env("META_API_KEY")),
+    apiKey: env("META_API_KEY"),
+    baseURL: env("META_BASE_URL", "https://api.meta.ai/v1"),
+    models: {
+      large: env("LLM_MODEL_LARGE", "muse-wonder"),
+      medium: env("LLM_MODEL_MEDIUM", "muse-wonder"),
+      fast: env("LLM_MODEL_FAST", "muse-spark"),
+      judge: env("LLM_MODEL_JUDGE", "muse-spark"),
+      vision: env("LLM_MODEL_VISION", "muse-wonder"),
     },
   },
 };
@@ -72,7 +72,7 @@ const rawPrimary = env("LLM_PROVIDER", "vertex") as ProviderName;
 const primary: ProviderName = rawPrimary in providers ? rawPrimary : "vertex";
 const providerOrder: ProviderName[] = [
   primary,
-  ...(["vertex", "meta", "gemini"] as ProviderName[]).filter((p) => p !== primary),
+  ...(["vertex", "gemini", "meta"] as ProviderName[]).filter((p) => p !== primary),
 ];
 
 export const config = {

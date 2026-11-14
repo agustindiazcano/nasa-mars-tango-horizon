@@ -7,23 +7,30 @@
 
 ## What was done
 
-- Added Milagros Sotelo to the Team list and Copyright notice in `README.md` and `LICENSE`.
-- Previously in this session:
-  - Linked `gcloud` and ADC to `nasa-tango-horizon` (`291271901218`) and provisioned GCP infrastructure with Terraform in `infra/terraform/` (APIs, `tango-horizon-sa`, IAM, Artifact Registry, Secret Manager).
-  - Created `docs/3D_AND_VISUAL_PLAN.md`, `docs/INFRASTRUCTURE_AND_VERTEX_AI.md`, and `PENDING_FRONT.md`.
-  - Updated `AGENTS.md`, `.env.example`, `.gitignore`, and `docs/impl/01`, `05`, `10` for the 3-provider LLM failover (`vertex` + `meta` + `gemini`) + `offline.ts` and Cloud Run + Vercel architecture.
+- Configured the model tier mapping across `.env.example`, `infra/terraform/main.tf`, `AGENTS.md`, `docs/INFRASTRUCTURE_AND_VERTEX_AI.md`, `docs/impl/05_SERVER.md`, and `docs/impl/10_DEPLOY_SUBMISSION.md`:
+  - **Primary (Google Vertex AI keyless ADC on `nasa-tango-horizon`, plus optional Google AI Studio `GEMINI_API_KEY`):**
+    - `large` (brain / `BASE` orchestrator): `google/gemini-4-carbon`
+    - `medium`, `judge`, `vision` (domain agents + `GUARDIAN` + rover vision): `google/gemini-4-argon`
+    - `fast` (lightweight / `SUIT.VOICE-EXEC`): `google/gemini-4-hydrogen`
+  - **Backup (Meta Muse `META_API_KEY`):**
+    - `large`, `medium`, `vision`: `muse-wonder`
+    - `fast`, `judge`: `muse-spark`
 
 ## Files touched
 
-- `README.md` (added Milagros Sotelo to Team and Copyright)
-- `LICENSE` (added Milagros Sotelo to Copyright)
-- `LASTCONTEXT.md` (updated)
+- `.env.example`
+- `infra/terraform/main.tf`
+- `AGENTS.md`
+- `docs/INFRASTRUCTURE_AND_VERTEX_AI.md`
+- `docs/impl/05_SERVER.md`
+- `docs/impl/10_DEPLOY_SUBMISSION.md`
+- `LASTCONTEXT.md`
 
 ## Decisions
 
-- Kept `README.md` and `LICENSE` copyright notices identical with all three team members (Agustin Diaz-Cano, Baltazar Salerno, Milagros Sotelo).
+- Set Google models (`gemini-4-carbon`, `gemini-4-argon`, `gemini-4-hydrogen`) via keyless Vertex AI as the primary provider for all 5 agent tiers, with Google AI Studio (`GEMINI_API_KEY`) as optional secondary path and Meta Muse (`muse-wonder` / `muse-spark` via `META_API_KEY`) as automatic failover backup before `offline.ts`.
 
 ## State the work was left in
 
-- All documentation, team credits, and GCP/Terraform setup are committed and pushed to `origin/main`.
+- All documentation, Terraform configuration, and model defaults are committed and pushed to `origin/main`.
 - Next step is `B1` / `F1` (Step 1: Project scaffold in `docs/impl/01_SCAFFOLD.md`) upon user confirmation.

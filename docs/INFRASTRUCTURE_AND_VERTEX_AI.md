@@ -35,11 +35,11 @@ Even though Vertex AI, Muse/Meta, and Google AI Studio run inference in the clou
 
 ### 2.2 4-Layer Resilience & Failover Chain (`server/src/llm/provider.ts`)
 
-| Order | Provider ID | Endpoint & Auth | Default Models (`large` / `fast` & `medium` & `judge` & `vision`) |
+| Order | Provider ID | Endpoint & Auth | Default Models (`large` Brain / `medium` & `judge` & `vision` / `fast` Lightweight) |
 |---|---|---|---|
-| **1 (Primary)** | `vertex` | Vertex AI OpenAI-compatible endpoint on `nasa-tango-horizon`. **Keyless ADC** via `google-auth-library` (`tango-horizon-sa` on Cloud Run, `gcloud auth application-default` locally). | `google/gemini-2.5-pro` / `google/gemini-2.5-flash` |
-| **2 (Failover 1)** | `meta` | Muse / Meta OpenAI-compatible API (`META_BASE_URL`), authenticated via `META_API_KEY` (Secret Manager `meta-api-key`). | Configured via `LLM_MODEL_*` in `.env` |
-| **3 (Failover 2)** | `gemini` | Google AI Studio OpenAI-compatible endpoint (`https://generativelanguage.googleapis.com/v1beta/openai/`), authenticated via `GEMINI_API_KEY` (Secret Manager `gemini-api-key`). | `gemini-2.5-pro` / `gemini-2.5-flash` |
+| **1 (Primary)** | `vertex` | Vertex AI OpenAI-compatible endpoint on `nasa-tango-horizon`. **Keyless ADC** via `google-auth-library` (`tango-horizon-sa` on Cloud Run, `gcloud auth application-default` locally). | `google/gemini-4-carbon` / `google/gemini-4-argon` / `google/gemini-4-hydrogen` |
+| **2 (Failover 1)** | `gemini` | Google AI Studio OpenAI-compatible endpoint (`https://generativelanguage.googleapis.com/v1beta/openai/`), authenticated via `GEMINI_API_KEY` (Secret Manager `gemini-api-key`). | `gemini-4-carbon` / `gemini-4-argon` / `gemini-4-hydrogen` |
+| **3 (Failover 2 / Backup)** | `meta` | Muse / Meta OpenAI-compatible API (`META_BASE_URL`), authenticated via `META_API_KEY` (Secret Manager `meta-api-key`). | `muse-wonder` (brain/medium/vision) / `muse-spark` (fast/judge) |
 | **4 (Offline Fallback)** | `offline.ts` | Deterministic rule engine inside `server/src/agents/offline.ts` calling the exact same `@th/shared` physics and MCP read tools in `0 ms` if all cloud providers time out or `AGENTS_OFFLINE=1`. | Rule-based + `GUARDIAN` `ruleCheck` |
 
 To switch the primary provider (for example, to prioritize `meta` or `gemini`), set `LLM_PROVIDER=meta` or `LLM_PROVIDER=gemini` in `.env`; the remaining enabled providers stay active as automatic failover within the same request whenever a call exceeds `LLM_FAST_TIMEOUT_MS` (`4000 ms`) or `LLM_DEFAULT_TIMEOUT_MS` (`12000 ms`).
