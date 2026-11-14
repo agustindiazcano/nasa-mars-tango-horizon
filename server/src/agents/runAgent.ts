@@ -159,9 +159,8 @@ export async function runAgent(
         ];
       } else {
         const finalText = (msg.content ?? "").trim();
-        if (finalText) {
-          trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
-        }
+        if (!finalText) break; // empty reply: use the forced-final path below (never return empty)
+        trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
         return { text: finalText, actions, trace };
       }
     }
