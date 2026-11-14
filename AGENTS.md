@@ -79,7 +79,7 @@ Several people and several agents work on this project at the same time.
    - **Agent orchestration (`server/src/agents/`):** Runs on the backend (`runAgent.ts`, `hierarchy.ts`). Voice orders hit `SUIT.VOICE-EXEC` (fast tier) first and escalate to `BASE` (large tier), which delegates to domain agents (`SUIT.HEALTH`, `EVA-PLANNER`, `SCIENCE`, `WEATHER-RAD`, `MAINTENANCE`, `ROBOT.<id>`).
    - **In-process MCP servers (`server/src/agents/tools/mcp.ts`):** 6 domain MCP servers (`mcp-terrain`, `mcp-suit`, `mcp-environment`, `mcp-fleet`, `mcp-hud`, `mcp-knowledge`) run inside the same Fastify process via `InMemoryTransport` (zero network hop), generated from one tool registry (`registry.ts`). Read tools compute exact numbers via `@th/shared`; effect tools propose `Action` objects.
    - **In-memory BM25 RAG (`server/src/agents/tools/knowledge.ts` + `server/corpus/chunks.json`):** Runs inside `server/` (exposed through `mcp-knowledge` tool `search_docs`). Searches ~800-char chunks extracted from `NASA-STD-3001` (Vol. 1 & 2) and OCHMO briefs in $<2\text{ ms}$ with no external vector database, returning exact document and page citations.
-   - **Safety Guardrail (`GUARDIAN`, `server/src/agents/guardian.ts`):** Every effect action passes deterministic hard limits (`ruleCheck`: vehicle slope limits, $15\text{ m}$ pod keep-out radius, $2\text{ m}$ manipulator arm keep-out from crew) followed by an LLM safety/prompt-injection judge (`judge`). Future roadmap plans (not yet implemented): post-guardrail 3-model escalated voting (`docs/impl/16_ESCALATED_MODEL_VOTING.md`: `gemini-4-carbon` `low` + `gemini-4-argon` + `muse-wonder` `medium`) and bounded multi-turn voice history (`docs/impl/17_MULTITURN_VOICE_MEMORY.md`).
+   - **Safety Guardrail (`GUARDIAN`, `server/src/agents/guardian.ts`):** Every effect action passes deterministic hard limits (`ruleCheck`: vehicle slope limits, $15\text{ m}$ pod keep-out radius, $2\text{ m}$ manipulator arm keep-out from crew) followed by an LLM safety/prompt-injection judge (`judge`). Future roadmap plans (not yet implemented): post-guardrail 3-model escalated voting (`docs/impl/16_ESCALATED_MODEL_VOTING.md`: `gemini-4-carbon` `low` + `gemini-4-argon` + `muse-wonder` `medium`), bounded multi-turn voice history (`docs/impl/17_MULTITURN_VOICE_MEMORY.md`), persistent chat/voice session storage (`docs/impl/18_CHAT_SESSION_PERSISTENCE.md`), and predictive biomedical monitoring with personal baselines (`docs/impl/19_PREDICTIVE_BIOMEDICAL_RAG.md`).
 3. **3-Provider LLM Failover (Vertex AI + Google AI Studio + Meta Muse) & Offline Resilience:**
    - **Primary + Automatic Failover (`server/src/llm/provider.ts`):**
      1. **Primary — Google Cloud Vertex AI (`vertex`, keyless via ADC / `tango-horizon-sa` on GCP project `nasa-tango-horizon`)**: `google/gemini-4-carbon` (`large` / brain: `BASE`), `google/gemini-4-argon` (`medium`, `judge`, `vision`: domain agents + `GUARDIAN`), `google/gemini-4-hydrogen` (`fast` / lightweight: `SUIT.VOICE-EXEC`).
@@ -100,8 +100,11 @@ Several people and several agents work on this project at the same time.
 | `NASA_APIS.md` | Title: "NASA APIs". NASA and USGS data sources: endpoints, auth, fields used, and the API validation report. Update it when a source is added or changed. |
 | `PENDING_FRONT.md` | Title: "Pending frontend tasks (`web/`)". Frontend reference plans and prioritized pending tasks for the `web/` workspace. |
 | `web/` | Frontend workspace (Vite + TypeScript + Three.js viewer, HUD, `index.html`, `remote.html`, and static processed datasets in `web/public/data/`). |
+| `web-test-3d/` | Standalone procedural 3D harness (Vite + Three.js + phone pointer + voice/agents integration, currently serving `tangohorizon.vercel.app` via `vercel.json` until `web/` merges). |
 | `server/` | Backend workspace (Fastify server, LLM/MCP agents, TTS proxy, WebSocket relay). |
 | `shared/` | Shared workspace (`@th/shared`: physics core, types, i18n). |
+| `deploy.sh` | Cloud Build + Cloud Run deploy script (`tangohorizon-api` on `us-central1`, Secret Manager + `ALLOWED_ORIGINS` wiring). |
+| `vercel.json` | Vercel build and `/remote` rewrite config for the frontend deployment (`tangohorizon.vercel.app`). |
 | `infra/terraform/` | Terraform Infrastructure-as-Code (`versions.tf`, `variables.tf`, `main.tf`, `outputs.tf`, `terraform.tfvars`) for GCP project `nasa-tango-horizon` (`291271901218`): APIs, `tango-horizon-sa`, IAM, Artifact Registry, Secret Manager, and Cloud Run. |
 | `data/` | Downloaded NASA/USGS data, one folder per group (`rover_photos`, `donki`, `horizons`, `orbits_comms`, `trek`, `topography`, `ai4mars`, `moxie`, `radiation`, `atmosphere`, `suits`, `medical`), plus `manifest.json` (download status) and `validation.json` (URL validation results). |
 | `docs/` | Project documents, listed below. |
@@ -113,6 +116,8 @@ Several people and several agents work on this project at the same time.
 | `docs/EXECUTION_PLAN_ORDER.md` | Execution plan order |
 | `docs/3D_AND_VISUAL_PLAN.md` | 3D and Visual Implementation Plan |
 | `docs/INFRASTRUCTURE_AND_VERTEX_AI.md` | Infrastructure, Terraform & Vertex AI Guide (`nasa-tango-horizon`) |
+| `docs/LLM_CHECK.md` | LLM Provider & Voice Benchmark (`check-llm.ts`) |
+| `docs/WEB_TEST_3D_PLAN.md` | Plan: `web-test-3d/` — Standalone Procedural 3D Harness |
 | `docs/impl/01_SCAFFOLD.md` | 01. Project scaffold |
 | `docs/impl/02_DATA_PIPELINE.md` | 02. Data pipeline |
 | `docs/impl/03_PHYSICS_CORE.md` | 03. Physics core |
@@ -130,6 +135,8 @@ Several people and several agents work on this project at the same time.
 | `docs/impl/15_VEIN_DETECTOR.md` | 15. Vein Detector: a vision model that finds evidence of past water in rover images |
 | `docs/impl/16_ESCALATED_MODEL_VOTING.md` | 16. Post-guardrail escalated multi-model voting decision system (future nice-to-have plan) |
 | `docs/impl/17_MULTITURN_VOICE_MEMORY.md` | 17. Bounded multi-turn conversational memory for voice orders (future plan) |
+| `docs/impl/18_CHAT_SESSION_PERSISTENCE.md` | 18. Persistent chat and voice session history (future plan) |
+| `docs/impl/19_PREDICTIVE_BIOMEDICAL_RAG.md` | 19. Predictive biomedical monitoring, personal baseline and standards RAG (future plan) |
 
 ## Session memory
 
