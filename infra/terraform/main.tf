@@ -94,7 +94,7 @@ resource "google_secret_manager_secret_iam_member" "gemini_secret_access" {
 resource "google_cloud_run_v2_service" "backend" {
   count    = var.deploy_cloud_run ? 1 : 0
   project  = var.project_id
-  name     = var.service_name
+  name     = var.cloud_run_service_name
   location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
 
