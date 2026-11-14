@@ -1,6 +1,6 @@
 # 12. Manipulator rover: a wheeled robot with a procedural arm driven by vision
 
-**Goal:** one specific robot, `manip-1` ("HANDS"), a wheeled rover with a robotic arm animated procedurally by inverse kinematics. An SI agent with vision decides what to do; the arm does it on screen: hand a tool to the astronaut, take a sample, drill, photograph.
+**Goal:** one specific robot, `manip-1` ("HANDS"), a wheeled rover with a robotic arm animated procedurally by inverse kinematics. An AI agent with vision decides what to do; the arm does it on screen: hand a tool to the astronaut, take a sample, drill, photograph.
 **Read first:** `NASA_SPACE_APPS_2026_PLAN.md` section 7.4; guide 08 (agents, guardrail); guide 09 (`Unit`, fleet).
 **Plan tasks:** 41 to 44.
 **Location:** `web/src/world/manipulator/`, plus tools in `server/src/agents/tools/`.

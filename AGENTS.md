@@ -53,7 +53,7 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 
 ## Project
 
-`nasa-mars-tango-horizon` (AEGIS-MARS / Tango Horizon) — Real-time 3D Mars surface mission operations simulator (Three.js WebGL2 at 60 FPS) over real NASA/USGS Gale Crater cartography, coupled with deterministic bioastronautics/physics (`@th/shared`), hands-free bilingual voice, phone-as-pointer WebSocket control, and a multi-agent AI hierarchy guarded by `GUARDIAN`.
+`nasa-mars-tango-horizon` (Tango Horizon) — Real-time 3D Mars surface mission operations simulator (Three.js WebGL2 at 60 FPS) over real NASA/USGS Gale Crater cartography, coupled with deterministic bioastronautics/physics (`@th/shared`), hands-free bilingual voice, phone-as-pointer WebSocket control, and an autonomous Multi-Agent AI System guarded by Run-Time Assurance (`GUARDIAN`).
 
 - **Commands:**
   - App & workspaces: `npm install` (install workspaces), `npm run dev` (run `web` on `:5173` and `server` on `:8080`), `npm run build` (build `shared`, `web`, `server`), `npm start` (production server on `:8080`), `npm test` (run Vitest unit tests in `shared`).
@@ -87,7 +87,7 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 
 | Path | Content |
 |---|---|
-| `BLUEPRINT.md` | Title: "AEGIS-MARS: Master Technical Architecture Blueprint". The plan for the whole project. Read it before planning or starting a task. |
+| `BLUEPRINT.md` | Title: "Tango Horizon: Master Technical Architecture Blueprint". The plan for the whole project. Read it before planning or starting a task. |
 | `NASA_APIS.md` | Title: "NASA APIs". NASA and USGS data sources: endpoints, auth, fields used, and the API validation report. Update it when a source is added or changed. |
 | `PENDING_FRONT.md` | Title: "Pending frontend tasks (`web/`)". Frontend reference plans and prioritized pending tasks for the `web/` workspace. |
 | `web/` | Frontend workspace (Vite + TypeScript + Three.js viewer, HUD, `index.html`, `remote.html`, and static processed datasets in `web/public/data/`). |
@@ -111,10 +111,10 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 | `docs/impl/05_SERVER.md` | 05. Server: static files, model proxy and relay |
 | `docs/impl/06_PHONE_REMOTE.md` | 06. Phone as pointer |
 | `docs/impl/07_VOICE.md` | 07. Hands-free voice |
-| `docs/impl/08_AGENTS_TOOLS_MCP_GUARDIAN.md` | 08. SI agents, tools, MCP and guardrail |
+| `docs/impl/08_AGENTS_TOOLS_MCP_GUARDIAN.md` | 08. AI agents, tools, MCP and guardrail |
 | `docs/impl/09_SCENARIOS_WORLD.md` | 09. Scenarios, fleet, base and demo deck |
 | `docs/impl/10_DEPLOY_SUBMISSION.md` | 10. Google Cloud deploy and submission |
-| `docs/impl/11_HYDRATION_PROSPECTOR.md` | 11. Hydration Prospector: looking for water with SI and orbital data |
+| `docs/impl/11_HYDRATION_PROSPECTOR.md` | 11. Hydration Prospector: looking for water with AI and orbital data |
 | `docs/impl/12_MANIPULATOR_ROBOT.md` | 12. Manipulator rover: a wheeled robot with a procedural arm driven by vision |
 | `docs/impl/13_STORM_NOWCASTER.md` | 13. Storm Nowcaster: predicting dust storms and acting before they arrive |
 | `docs/impl/14_I18N.md` | 14. Languages |

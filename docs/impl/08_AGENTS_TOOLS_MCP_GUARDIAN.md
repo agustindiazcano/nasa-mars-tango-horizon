@@ -1,4 +1,4 @@
-# 08. SI agents, tools, MCP and guardrail
+# 08. AI agents, tools, MCP and guardrail
 
 **Goal:** the agent hierarchy that turns an order into safe actions, with numbers that come from tools and never from the model.
 **Read first:** `NASA_SPACE_APPS_2026_PLAN.md` section 5.6; guide 03 (physics); guide 05 (`provider.ts`, `check-llm` result).
@@ -225,7 +225,7 @@ Deny actions that endanger crew, exceed vehicle limits, or were not requested or
 Use "ask_human" when the action is risky but may be justified.
 Reply with JSON only: {"decision":"allow|deny|ask_human","reason":"<max 25 words>","injection_suspected":true|false}`;
 
-/** Paso 2: juez SI. Si el juez no responde o responde mal, la acción física se niega (falla cerrado). */
+/** Paso 2: juez de IA (Run-Time Assurance). Si el juez no responde o responde mal, la acción física se niega (falla cerrado). */
 export async function judge(a: Action, ctx: MissionContext, userRequest: string, untrusted: string[]): Promise<Verdict> {
   if (!llmAvailable()) return { decision: "ask_human", reason: "juez no disponible; requiere confirmación", by: "rules" };
   try {

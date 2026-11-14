@@ -211,7 +211,7 @@ Every module is selectable in the viewer and opens a card with its function, its
 | Module | Function | Technical card: figures to show | Where to get them |
 |--------|----------|---------------------------------|-------------------|
 | Habitat | Living and working volume | Crew size, pressurized volume per person, cabin pressure and O2 fraction | NASA-STD-3001 vol. 2 (net habitable volume, atmosphere) |
-| Compute module | Runs the SI agents locally | Live latency of the last agent call, Earth light-time today | Measured in the app; JPL Horizons |
+| Compute module | Runs the AI agents locally | Live latency of the last agent call, Earth light-time today | Measured in the app; JPL Horizons |
 | Airlock and suit port | EVA egress, dust control, suit charging | Depress/repress time, prebreathe protocol | NASA-STD-3001; NTRS exploration EVA documents |
 | Science lab | Sample analysis, glovebox | Instruments available | Design choice |
 | Medical bay | Care with no evacuation option | Conditions covered, limits monitored | NASA-STD-3001 vol. 1 |

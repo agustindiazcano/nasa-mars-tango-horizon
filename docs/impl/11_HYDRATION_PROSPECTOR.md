@@ -1,4 +1,4 @@
-# 11. Hydration Prospector: looking for water with SI and orbital data
+# 11. Hydration Prospector: looking for water with AI and orbital data
 
 **Goal:** a light model, trained by the team, that learns from the subsurface hydrogen measurements Curiosity made and predicts from satellite data where sampling is most worthwhile. This is one of the two original science contributions of the project.
 **Read first:** `NASA_SPACE_APPS_2026_PLAN.md` section 12; guide 02 (terrain window and `provenance`).

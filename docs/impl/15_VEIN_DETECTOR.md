@@ -163,7 +163,7 @@ if __name__ == "__main__":
    - When the manipulator rover is at such a waypoint and is asked to look, the HUD shows the real Curiosity image with the heat map overlaid and the probability. New read tool `detect_veins(waypoint_id)` in `mcp-terrain` returns probability and peak. `SCIENCE` uses it together with `get_hydration_at` to recommend drilling, and the `arm_skill` target is the marker nearest the peak.
    - The detector is trained on real photographs. Do not run it on frames rendered by the 3D viewer: those are synthetic and the result would mean nothing. State this in the provenance entry.
    - Any sentence the agents speak about a detection says "vein candidate" and adds that composition needs a spectrometer.
-9. **Plan B (no classifier):** the vision-language model describes the real image and flags possible veins, labelled in the HUD as "SI description, not a validated detector". Target selection then relies on the hydration map alone.
+9. **Plan B (no classifier):** the vision-language model describes the real image and flags possible veins, labelled in the HUD as "AI description, not a validated detector". Target selection then relies on the hydration map alone.
 
 ## Acceptance criteria
 

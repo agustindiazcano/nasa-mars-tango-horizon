@@ -5,10 +5,10 @@ prompt_tokens: 3063
 candidate_tokens: 17994
 thinking_tokens: None
 date: 2026-11-11
-title: Plan Maestro Tecnico y Arquitectura de Mision AEGIS-MARS NASA Space Apps 2026
+title: Plan Maestro Tecnico y Arquitectura de Mision Tango Horizon NASA Space Apps 2026
 ---
 
-# AEGIS-MARS: MASTER TECHNICAL ARCHITECTURE BLUEPRINT
+# TANGO HORIZON: MASTER TECHNICAL ARCHITECTURE BLUEPRINT
 **NASA International Space Apps Challenge 2026 ("The Next Frontier")**  
 **Clasificación del Documento:** Especificación de Ingeniería de Sistemas / Propuesta Técnica de Misión  
 **Sede de Origen:** Nodo Oficial Argentina (Ecosistema CONAE / Universidades Nacionales)  
@@ -19,13 +19,13 @@ title: Plan Maestro Tecnico y Arquitectura de Mision AEGIS-MARS NASA Space Apps 
 ## 1. RESUMEN EJECUTIVO Y PROPUESTA TÉCNICA (THE NEXT FRONTIER 2026)
 
 ### 1.1 Definición del Sistema y Enfoque Técnico
-**AEGIS-MARS** (*Autonomous Extravehicular Guide, Intelligent Swarm & Bioastronautics Digital Twin*) es un gemelo digital táctico hiper-local en tiempo real (WebGL/Three.js a 60 FPS) diseñado para la supervivencia humana, exploración geológica y rescate autónomo cooperativo en la superficie marciana (Cráter Gale / Formaciones Boxwork de Aeolis Mons).
+**Tango Horizon** es un simulador de operaciones de superficie y gemelo digital táctico en tiempo real (WebGL/Three.js a 60 FPS) para actividades extravehiculares (EVA), exploración geológica y rescate autónomo cooperativo en la superficie marciana (Cráter Gale / Formaciones Boxwork de Aeolis Mons).
 
-**Enfoque de Ingeniería:** A diferencia de visualizadores pasivos (mapas 2D en Leaflet, dashboards estáticos en Streamlit o wrappers genéricos de LLMs sin validación física), **AEGIS-MARS opera como un Simulador de Operaciones de Misión (MOS) determinista**. Integra cartografía orbital cruda de la NASA sin mocks, motores de física diferencial acoplados (termodinámica de fluidos compresibles, reología sanguínea no-newtoniana, balística atmosférica y dosimetría topográfica), orquestación robótica multi-agente inspirada en **JPL CADRE** y comando acústico bidireccional con latencia sub-segundo.
+**Enfoque de Ingeniería:** A diferencia de visualizadores pasivos (mapas 2D en Leaflet, dashboards estáticos en Streamlit o wrappers genéricos de LLMs sin validación física), **Tango Horizon opera como un Simulador de Operaciones de Misión (MOS) determinista**. Integra cartografía orbital cruda de la NASA sin mocks, motores de física diferencial acoplados (termodinámica de fluidos compresibles, reología sanguínea no-newtoniana, balística atmosférica y dosimetría topográfica), orquestación robótica multi-agente inspirada en **JPL CADRE** y comando acústico bidireccional con latencia sub-segundo.
 
 ### 1.2 Mapeo Directo contra la Rúbrica Oficial de 5 Pilares (NASA Space Apps)
 
-| Pilar Oficial (20% c/u) | Implementación en AEGIS-MARS | Diferenciador Técnico |
+| Pilar Oficial (20% c/u) | Implementación en Tango Horizon | Diferenciador Técnico |
 | :--- | :--- | :--- |
 | **1. Impact (Impacto)** | Resuelve el cuello de botella crítico de la arquitectura *Moon-to-Mars* de NASA: la autonomía de supervivencia EVA ante latencias de comunicación Tierra-Marte de 4 a 24 minutos (OWLT) durante tormentas solares (SPE) o fallas catastróficas del traje xEMU. | Aplicabilidad dual inmediata: operaciones marcianas y telemedicina/rescate autónomo en entornos extremos terrestres (Puna argentina / bases antárticas en sinergia con CONAE). |
 | **2. Creativity (Creatividad)** | Fusión inédita entre **Inercia Térmica Orbital (THEMIS)**, **Física Ergonométrica Marciana**, **Reología Sanguínea** y **Rescate Cooperativo Multi-Robot (Sky-Crane + Rover 6x6)** resuelto mediante optimización combinatoria determinista con restricciones acopladas de recursos (RCSPP / Branch & Bound) y comandado por voz con tonos Quindar históricos. | Convierte un mapa estático en un entorno vivo de supervivencia en primera persona donde la geología orbital altera directamente la fisiología cardiovascular del astronauta. |
@@ -36,7 +36,7 @@ title: Plan Maestro Tecnico y Arquitectura de Mision AEGIS-MARS NASA Space Apps 
 ### 1.3 Justificación y Blindaje Técnico-Legal de la Estrategia de Doble Reto
 * **Inscripción Oficial Primaria:** *Interplanetary Survival Guide: Martian Map* (Categoría *Intermediate / Advanced*).
 * **Acoplamiento Transversal:** *Create Health Monitoring Software for Astronauts on Space Missions*.
-* **Blindaje Reglamentario:** Las reglas oficiales del NASA Space Apps Challenge estipulan que cada equipo se registra bajo un único *Challenge Statement* para la clasificación administrativa, pero los **10 Global Awards** se adjudican evaluando la excelencia transversal del sistema completo. En Marte, **el mapa ES la salud**: no existe ruta topográfica válida sin evaluar el costo metabólico de O2, la acumulación de $\text{CO}_2$ en el casco, la viscosidad hemática por deshidratación térmica y el blindaje topográfico contra radiación solar. Al acoplar ambos retos mediante ecuaciones físicas de estado, AEGIS-MARS invalida cualquier solución puramente cartográfica (sin bioastronáutica) y cualquier dashboard médico aislado (sin contexto topográfico/ambiental marciano).
+* **Blindaje Reglamentario:** Las reglas oficiales del NASA Space Apps Challenge estipulan que cada equipo se registra bajo un único *Challenge Statement* para la clasificación administrativa, pero los **10 Global Awards** se adjudican evaluando la excelencia transversal del sistema completo. En Marte, **el mapa ES la salud**: no existe ruta topográfica válida sin evaluar el costo metabólico de O2, la acumulación de $\text{CO}_2$ en el casco, la viscosidad hemática por deshidratación térmica y el blindaje topográfico contra radiación solar. Al acoplar ambos retos mediante ecuaciones físicas de estado, Tango Horizon invalida cualquier solución puramente cartográfica (sin bioastronáutica) y cualquier dashboard médico aislado (sin contexto topográfico/ambiental marciano).
 
 ---
 
@@ -57,7 +57,7 @@ El análisis de proyectos técnicos de misión demuestra que las soluciones que 
 3. **Fase 3 — Comité Ejecutivo Global de NASA:** Directores de división. Evalúan los finalistas con fatiga acumulada. **Qué buscan:** Impacto visual cinematográfico inmediato, narrativa de misión inspiradora (*Moon-to-Mars / CADRE*) y ejecución impecable en el video de 30 segundos.
 
 ### 2.4 La Regla de Oro de los 15 Segundos
-Cuando el juez abre la aplicación web de AEGIS-MARS:
+Cuando el juez abre la aplicación web de Tango Horizon:
 * **Segundo 0–3:** Carga instantánea del terreno real de Gale Crater en 3D (sin pantallas de login ni formularios previos), con audio opcional activable y el astronauta respirando en primera persona bajo cielo marciano butterscotch.
 * **Segundo 4–10:** Un botón rojo pulsante en el HUD superior: **`[ EJECUTAR SIMULACIÓN DE EMERGENCIA SPE + MICRO-PERFORACIÓN (DEMO 1-CLIC) ]`**.
 * **Segundo 11–15:** Al pulsarlo, suena un *Quindar Tone* real (2525 Hz), estalla una tormenta solar SPE de diseño extremo (escenario de referencia peor caso sin blindaje $\dot{D}_{\text{SPE,0}} = 5,840\text{ }\mu\text{Sv/h}$, tipo Carrington/Hu et al.), cae una cápsula COPV suborbital de $\text{O}_2$ ($3.8\text{ kg}$) desviada por viento, despega el dron Sky-Crane con láser verde LiDAR, el enjambre de 6 agentes delibera en paralelo en pantalla y el sistema traza la trayectoria óptima multi-agente hacia un cañón de alta protección topográfica. **La decisión de nominación ya está ganada antes de que el juez lea el README.**
@@ -289,7 +289,7 @@ $$T_{\text{tether}} = \begin{cases} k_{\text{kevlar}} (\|\mathbf{r}_P - \mathbf{
 El controlador del Dron implementa **Input-Shaping Anti-Sway** inyectando compensación de cabeceo proporcional al ángulo de oscilación $\varphi$ del cable para suprimir oscilaciones pendulares inducidas por ráfagas marcianas antes de depositar la cápsula a $< 1.5\text{ m}$ del astronauta.
 
 ### 5.4 Integración Científica Boxwork (Descubrimiento MSL Curiosity 2025–2026)
-Las redes de crestas minerales (*Boxwork*) en las laderas de *Mount Sharp* constituyen uno de los objetivos astrobiológicos más relevantes de la NASA en 2025–2026: fracturas antiguas por donde circuló agua subterránea cálida tardía precipitando sulfatos de calcio y magnesio resistentes a la erosión, potenciales preservadores de biofirmas microbianas. En AEGIS-MARS:
+Las redes de crestas minerales (*Boxwork*) en las laderas de *Mount Sharp* constituyen uno de los objetivos astrobiológicos más relevantes de la NASA en 2025–2026: fracturas antiguas por donde circuló agua subterránea cálida tardía precipitando sulfatos de calcio y magnesio resistentes a la erosión, potenciales preservadores de biofirmas microbianas. En Tango Horizon:
 1. Al activar la capa espectral **CRISM**, las venas enriquecidas en sulfatos polihidratados brillan sobre el terreno real.
 2. El Rover o el Astronauta ejecutan perforación percusiva + disparo láser **LIBS**, generando un espectro de emisión atómica simulado ($\text{Ca II } 393.4\text{ nm}$, $\text{S I } 545.4\text{ nm}$, $\text{Fe}$, $\text{H}_\alpha\text{ } 656.3\text{ nm}$ de hidratación).
 3. Cada núcleo recolectado suma $+2.5\text{ kg}$ a $m_{\text{geo}}$, retroalimentando instantáneamente la ecuación de Pandolf y obligando a gestionar el dilema real de misión: **ciencia astrobiológica máxima vs. margen de soporte vital**.
@@ -458,7 +458,7 @@ El terreno marciano se construye sobre una malla adaptativa `PlaneGeometry(512, 
 
 * **00:00 – 00:06 [EL PROBLEMA LETAL EN VIVO]:**
   * *Visual:* Vista `CAM-1 [EVA HELMET POV]` caminando sobre crestas reales de Boxwork en Gale Crater ($4.7182^\circ\text{S}, 137.3841^\circ\text{E}$). De golpe, destello carmesí de tormenta solar SPE de diseño extremo peor caso ($5,840\text{ }\mu\text{Sv/h}$), impacto de roca en el guante ($1.6\text{ mm}$, $P_{\text{suit}} = 21.4\text{ kPa}$) y alerta roja pulsante: **`CHOKED FLOW BREACH — CRITICAL HYPOXIA IN 03:01 (ARMSTRONG 11:45)`**.
-  * *Audio:* *Beep Quindar (2525 Hz)* + Voz filtrada intensa: *"On Mars, a 20-minute Earth delay during a suit breach and solar storm means certain death. Meet AEGIS-MARS."*
+  * *Audio:* *Beep Quindar (2525 Hz)* + Voz filtrada intensa: *"On Mars, a 20-minute Earth delay during a suit breach and solar storm means certain death. Meet Tango Horizon."*
 * **00:07 – 00:15 [INGESTA REAL NASA/USGS + FÍSICA MULTIESPECTRAL]:**
   * *Visual:* Transición rápida `CAM-2 [ORBITAL GOD-VIEW]`. El terreno barre las ventanas estáticas reales de NASA/USGS Astrogeology STAC y capas globales de `trek.nasa.gov`: elevación **HiRISE DTM ($1\text{ m/px}$)**, trampas de polvo infrarrojas **THEMIS** (Clase 0 en rojo), sulfatos **CRISM** y sombra de radiación topográfica ($\Omega = 0.19$, reduciendo $5,840\text{ }\mu\text{Sv/h}$ un $73.7\%$ a $1,535.3\text{ }\mu\text{Sv/h}$). Arriba a la derecha laten en vivo las curvas de **Pandolf**, viscosidad sanguínea de **Casson** y la matriz de poda táctica **RCSPP**.
   * *Audio:* *"Powered by real NASA HiRISE, THEMIS, and CRISM orbital datasets—zero mocks—coupling non-newtonian blood rheology, choked-flow thermodynamics, and deterministic multi-agent kinematic routing."*
@@ -467,7 +467,7 @@ El terreno marciano se construye sobre una malla adaptativa `PlaneGeometry(512, 
   * *Audio:* *"A parallel six-agent swarm and voice-commanded CADRE robotics rescue wind-drifted oxygen pods via Sky-Crane winch over lethal dust traps."*
 * **00:25 – 00:30 [RESOLUCIÓN Y CIERRE EJECUTIVO]:**
   * *Visual:* Presión del traje restaurada a $29.6\text{ kPa}$ (HUD vuelve a cian nominal `#00F0FF`), el Rover acopla al astronauta con las muestras de Boxwork aseguradas. Sobreimpresión limpia con URL jugable en 1 clic y badges: **`NASA/USGS REAL DATA | ZERO MOCKS | ARGENTINA -> MARS`**.
-  * *Audio:* *"AEGIS-MARS: Physics-grounded autonomy keeping humanity alive on the Next Frontier."* + *Outro Quindar Tone (2475 Hz)*.
+  * *Audio:* *"Tango Horizon: Physics-grounded autonomy keeping humanity alive on the Next Frontier."* + *Outro Quindar Tone (2475 Hz)*.
 
 ### 10.2 Arquitectura del Repositorio GitHub y Página Oficial Space Apps (Maximización de Rúbrica)
 1. **Botón Primario Arriba del Pliegue (*Above the Fold*):** En la primera línea de la página de Space Apps y del `README.md`, colocar el enlace directo **`🚀 LAUNCH LIVE 3D MISSION CONSOLE (NO INSTALL, 1-CLICK EMERGENCY DEMO)`** acompañado de un GIF de $4\text{ segundos}$ a alta velocidad de cuadros del rescate Sky-Crane.
