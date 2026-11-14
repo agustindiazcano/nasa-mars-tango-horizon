@@ -1,3 +1,5 @@
+<sub>This effort is supported by [NASA](https://www.nasa.gov/), [NASA Space Apps Challenge](https://www.spaceappschallenge.org/), [CONAE](https://www.argentina.gob.ar/ciencia/conae), [Universidad de Palermo](https://www.palermo.edu/) & [IBM Argentina](https://www.ibm.com/ar-es).</sub>
+
 # Tango Horizon: AI Systems for EVA and Mars Exploration
 
 **Autonomous Multi-Agent AI Systems for Extravehicular Activities (EVA)**
