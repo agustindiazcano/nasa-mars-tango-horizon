@@ -123,7 +123,7 @@ data/
     6. "Our models" section: the Hydration Prospector and the Storm Nowcaster, each with data, method, validation numbers and limits.
     7. Diagram of the agent hierarchy and the guardrail.
     8. "Limitations": everything that is an approximation or an assumption, stated plainly. Include the gravity scaling of the metabolic model, the thermal proxy and the geometric dose approximation.
-    9. "Use of AI": which models run in the app and that coding assistants were used to build it (confirm the event disclosure rule, plan task 1).
+    9. "AI-assisted development methodology (Software 3.0)": which models run in the app and the Software 3.0 agent contract methodology (`AGENTS.md`, `PENDING.md`, `LASTCONTEXT.md`) under human-in-the-loop verification.
     10. How to run it locally.
 11. **Video:** record with the deck hidden (`H`), 1080p at 60 FPS. Start already inside the helmet, no logos. Suggested order: phone moving the cursor (3 s) → voice order and drawn route (6 s) → manipulator rover handing over a tool (4 s) → storm forecast and the base reacting (5 s) → leak, pod and rescue (7 s) → hydration map and provenance panel with the URL (5 s). Fit the length to what the official 2026 guide requires.
 12. **Code freeze Sunday 18:00.** After that, only fixes for bugs that break the demo. Tag the submission commit (`git tag submission`).
