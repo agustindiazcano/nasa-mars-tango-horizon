@@ -128,6 +128,8 @@ Several people and several agents work on this project at the same time.
 | `docs/impl/13_STORM_NOWCASTER.md` | 13. Storm Nowcaster: predicting dust storms and acting before they arrive |
 | `docs/impl/14_I18N.md` | 14. Languages |
 | `docs/impl/15_VEIN_DETECTOR.md` | 15. Vein Detector: a vision model that finds evidence of past water in rover images |
+| `docs/impl/16_ESCALATED_MODEL_VOTING.md` | 16. Post-guardrail escalated multi-model voting decision system (future nice-to-have plan) |
+| `docs/impl/17_MULTITURN_VOICE_MEMORY.md` | 17. Bounded multi-turn conversational memory for voice orders (future plan) |
 
 ## Session memory
 
