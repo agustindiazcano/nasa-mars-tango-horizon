@@ -1,3 +1,4 @@
+import { apiUrl } from "../api";
 import { ASR_LOCALE, getLang, onLangChange, t } from "../core/i18n";
 import { C } from "../core/physics";
 import type { Action, TraceEvent } from "../core/types";
@@ -101,7 +102,7 @@ export class VoiceController {
     try {
       const lang = getLang();
       const apiLang = lang === "es" ? "es-AR" : "en-US";
-      const res = await fetch("/api/agent/voice", {
+      const res = await fetch(apiUrl("/api/agent/voice"), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

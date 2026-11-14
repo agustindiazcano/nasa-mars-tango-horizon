@@ -1,3 +1,4 @@
+import { wsUrl } from "../api";
 import { setLang, t, type Lang, LANGS } from "../core/i18n";
 
 const params = new URLSearchParams(window.location.search);
@@ -33,8 +34,7 @@ function send(msg: object): void {
 }
 
 function connect(): void {
-  const proto = window.location.protocol === "https:" ? "wss" : "ws";
-  ws = new WebSocket(`${proto}://${window.location.host}/ws/remote?room=${room}&role=remote`);
+  ws = new WebSocket(wsUrl(`/ws/remote?room=${room}&role=remote`));
   ws.onopen = () => {
     $("status").textContent = `ROOM ${room || "DEMO"} · CONNECTED`;
     $("status").style.color = "#35e0ff";

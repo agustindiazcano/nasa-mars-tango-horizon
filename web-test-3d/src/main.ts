@@ -1,5 +1,6 @@
 import "./hud/hud.css";
 import * as THREE from "three";
+import { apiUrl } from "./api";
 import { getLang, t } from "./core/i18n";
 import { C, leakTimeline, planRoute, stepSuitTelemetry } from "./core/physics";
 import type { ArmSkillId, LayerId, RouteDisplay } from "./core/types";
@@ -79,7 +80,7 @@ async function captureAndInspectVision(
 
   try {
     const apiLang = getLang() === "es" ? "es-AR" : "en-US";
-    const res = await fetch("/api/agent/vision", {
+    const res = await fetch(apiUrl("/api/agent/vision"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
