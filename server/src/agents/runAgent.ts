@@ -82,6 +82,7 @@ export async function runAgent(
   const actions: Action[] = [];
   const trace: TraceEvent[] = [];
   const untrusted: string[] = [];
+  const delegatedUnits = new Set<string>();
 
   const baseTools = toolsFor(spec.tools);
   const tools: ToolDef[] = [...baseTools];
@@ -160,67 +161,92 @@ export async function runAgent(
       }
     }
 
+    // Pre-scan: units delegated to ROBOT.<id> in this turn must not also be commanded directly by this agent.
     for (const call of toolCalls) {
-      const tool = tools.find((t) => t.name === call.function.name);
-      let result: unknown;
+      if (call.function.name !== "delegate") continue;
+      try {
+        const a = JSON.parse(call.function.arguments || "{}") as { agent?: string };
+        if (typeof a.agent === "string" && a.agent.startsWith("ROBOT.")) {
+          delegatedUnits.add(a.agent.slice("ROBOT.".length));
+        }
+      } catch {
+        /* invalid args are reported per call below */
+      }
+    }
 
-      if (!tool) {
-        result = { error: "Tool not permitted for this agent" };
-      } else {
+    // Independent calls (reads, reviews, delegations) run concurrently; results keep call order.
+    const outcomes = await Promise.all(
+      toolCalls.map(async (call): Promise<{ result: unknown; action?: Action }> => {
+        const tool = tools.find((t) => t.name === call.function.name);
+        if (!tool) return { result: { error: "Tool not permitted for this agent" } };
+
         let rawArgs: unknown = {};
-        let parseErr: string | null = null;
         try {
           rawArgs = JSON.parse(call.function.arguments || "{}");
         } catch {
-          parseErr = "Invalid JSON tool arguments";
+          return { result: { error: "Invalid JSON tool arguments" } };
         }
 
-        if (parseErr) {
-          result = { error: parseErr };
-        } else {
-          const parsed = tool.schema.safeParse(rawArgs);
-          if (!parsed.success) {
-            result = { error: parsed.error.issues[0]?.message ?? "Invalid tool arguments" };
-          } else if (tool.name === "delegate") {
-            result = await tool.run(parsed.data, ctx, spec.name);
-          } else {
-            result = await missionScope.run({ ctx, caller: spec.name }, () =>
-              callTool(tool, parsed.data),
-            );
-            trace.push({
-              t: Date.now(),
-              agent: spec.name,
-              kind: "tool",
-              detail: { tool: tool.name, args: parsed.data },
-            });
-            if (tool.effect) {
-              const action = result as Action;
-              action.verdict = await review(action, ctx, userRequest, untrusted);
-              trace.push({
-                t: Date.now(),
-                agent: "GUARDIAN",
-                kind: "verdict",
-                detail: action,
-              });
-              if (action.verdict.decision === "allow" || action.verdict.decision === "ask_human") {
-                actions.push(action);
-              }
-              result = { status: action.verdict.decision, reason: action.verdict.reason };
-            } else if (tool.server === "knowledge") {
-              untrusted.push(JSON.stringify(result));
-            }
-          }
+        const parsed = tool.schema.safeParse(rawArgs);
+        if (!parsed.success) {
+          return { result: { error: parsed.error.issues[0]?.message ?? "Invalid tool arguments" } };
         }
-      }
 
+        if (tool.name === "delegate") {
+          return { result: await tool.run(parsed.data, ctx, spec.name) };
+        }
+
+        const unitId = (parsed.data as { unit_id?: unknown }).unit_id;
+        if (
+          tool.effect &&
+          (tool.name === "dispatch" || tool.name === "arm_skill") &&
+          typeof unitId === "string" &&
+          delegatedUnits.has(unitId)
+        ) {
+          return {
+            result: {
+              status: "skipped",
+              reason: `Order for ${unitId} already delegated to ROBOT.${unitId}`,
+            },
+          };
+        }
+
+        const result = await missionScope.run({ ctx, caller: spec.name }, () =>
+          callTool(tool, parsed.data),
+        );
+        trace.push({
+          t: Date.now(),
+          agent: spec.name,
+          kind: "tool",
+          detail: { tool: tool.name, args: parsed.data },
+        });
+        if (tool.effect) {
+          const action = result as Action;
+          action.verdict = await review(action, ctx, userRequest, [...untrusted]);
+          trace.push({ t: Date.now(), agent: "GUARDIAN", kind: "verdict", detail: action });
+          return {
+            result: { status: action.verdict.decision, reason: action.verdict.reason },
+            action:
+              action.verdict.decision === "allow" || action.verdict.decision === "ask_human"
+                ? action
+                : undefined,
+          };
+        }
+        if (tool.server === "knowledge") untrusted.push(JSON.stringify(result));
+        return { result };
+      }),
+    );
+
+    toolCalls.forEach((call, i) => {
+      const { result, action } = outcomes[i];
+      if (action) actions.push(action);
       messages.push({
         role: "tool",
         tool_call_id: call.id,
         content: JSON.stringify(result),
       });
-    }
+    });
   }
-
   const finalMsg = await chat(spec.tier, [
     ...messages,
     {

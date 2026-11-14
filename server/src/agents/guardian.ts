@@ -14,6 +14,9 @@ export const MAX_SLOPE: Record<string, number> = {
 
 const POD_KEEPOUT_M = 15; // design assumption: exclusion radius around crew for pod landing
 const ARM_CREW_KEEPOUT_M = 2; // design assumption: minimum clearance around crew for non-handover arm skills
+const JUDGE_SKIP_TYPES = new Set(["dispatch", "arm_skill"]); // low risk once hard limits pass; launch_pod/deploy_beacons stay judged
+const INJECTION_RE =
+  /ignore (all |previous |prior )?(instructions|rules)|disregard|system prompt|override|disable (safety|guardian)|you are now|jailbreak|<\/?untrusted>|ignora (las |todas )?(instrucciones|reglas)|desactiva/i;
 const HUD_ONLY = new Set(["set_layer", "open_panel", "show_route", "show_alert"]);
 
 /** Step 1: deterministic hard safety limits. No model can bypass these. Returns null if LLM judge is required. */
@@ -225,5 +228,11 @@ export async function review(
   userRequest: string,
   untrusted: string[] = [],
 ): Promise<Verdict> {
-  return ruleCheck(a, ctx) ?? (await judge(a, ctx, userRequest, untrusted));
+  const hard = ruleCheck(a, ctx);
+  if (hard) return hard;
+  // Low-risk action already inside hard limits, with no document/agent text in context and a clean request: no LLM hop.
+  if (JUDGE_SKIP_TYPES.has(a.type) && untrusted.length === 0 && !INJECTION_RE.test(userRequest)) {
+    return { decision: "allow", reason: "Within hard limits; no untrusted input", by: "rules" };
+  }
+  return judge(a, ctx, userRequest, untrusted);
 }
