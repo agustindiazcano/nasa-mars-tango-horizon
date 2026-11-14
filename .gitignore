@@ -3,6 +3,24 @@
 .env.*
 !.env.example
 
+# Node / TypeScript / Vite / Vercel
+node_modules/
+dist/
+.vercel/
+*.tsbuildinfo
+
+# Python / ML pipeline artifacts
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.joblib
+*.npz
+*.parquet
+
+# Raw NASA/USGS downloads (processed outputs in web/public/data/ are tracked)
+data/raw/
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -13,8 +31,9 @@ desktop.ini
 .idea/
 *.swp
 
-# Logs
+# Logs & backups
 *.log
+*.bak.md
 
 # Agent local settings
 .claude/settings.local.json

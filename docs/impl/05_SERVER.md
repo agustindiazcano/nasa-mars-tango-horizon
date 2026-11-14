@@ -13,55 +13,112 @@
 import "dotenv/config";
 
 const env = (k: string, d = "") => process.env[k] ?? d;
-const useFallback = env("LLM_PROVIDER", "meta") === "fallback";
+export type ProviderName = "meta" | "gemini";
+export type Tier = "large" | "medium" | "fast" | "judge" | "vision";
+
+export interface ProviderConfig {
+  name: ProviderName;
+  apiKey: string;
+  baseURL: string;
+  models: Record<Tier, string>;
+}
+
+const providers: Record<ProviderName, ProviderConfig> = {
+  meta: {
+    name: "meta",
+    apiKey: env("META_API_KEY"),
+    baseURL: env("META_BASE_URL", "https://api.meta.ai/v1"),
+    models: {
+      large: env("LLM_MODEL_LARGE"),
+      medium: env("LLM_MODEL_MEDIUM"),
+      fast: env("LLM_MODEL_FAST"),
+      judge: env("LLM_MODEL_JUDGE"),
+      vision: env("LLM_MODEL_VISION"),
+    },
+  },
+  gemini: {
+    name: "gemini",
+    apiKey: env("GEMINI_API_KEY") || env("FALLBACK_API_KEY"),
+    baseURL: env("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/"),
+    models: {
+      large: env("GEMINI_MODEL_LARGE", "gemini-2.5-pro"),
+      medium: env("GEMINI_MODEL_MEDIUM", "gemini-2.5-flash"),
+      fast: env("GEMINI_MODEL_FAST", "gemini-2.5-flash"),
+      judge: env("GEMINI_MODEL_JUDGE", "gemini-2.5-flash"),
+      vision: env("GEMINI_MODEL_VISION", "gemini-2.5-flash"),
+    },
+  },
+};
+
+const primary: ProviderName = env("LLM_PROVIDER", "meta") === "gemini" ? "gemini" : "meta";
+const secondary: ProviderName = primary === "meta" ? "gemini" : "meta";
 
 export const config = {
   port: Number(env("PORT", "8080")),
   origins: env("ALLOWED_ORIGINS").split(",").map((s) => s.trim()).filter(Boolean),
   rateLimit: Number(env("RATE_LIMIT_PER_MIN", "30")),
   maxTokens: Number(env("LLM_MAX_OUTPUT_TOKENS", "400")),
+  fastTimeoutMs: Number(env("LLM_FAST_TIMEOUT_MS", "4000")),
+  defaultTimeoutMs: Number(env("LLM_DEFAULT_TIMEOUT_MS", "12000")),
   offline: env("AGENTS_OFFLINE", "0") === "1",
-  llm: {
-    apiKey: useFallback ? env("FALLBACK_API_KEY") : env("META_API_KEY"),
-    baseURL: useFallback ? env("FALLBACK_BASE_URL") : env("META_BASE_URL", "https://api.meta.ai/v1"),
-    models: {
-      large: env("LLM_MODEL_LARGE"), medium: env("LLM_MODEL_MEDIUM"), fast: env("LLM_MODEL_FAST"),
-      judge: env("LLM_MODEL_JUDGE"), vision: env("LLM_MODEL_VISION"),
-    },
-  },
+  primary,
+  secondary,
+  providers,
 };
-export type Tier = keyof typeof config.llm.models;
 ```
 
 `llm/provider.ts`:
 
 ```ts
 import OpenAI from "openai";
-import { config, type Tier } from "../config.js";
+import { config, type ProviderName, type Tier } from "../config.js";
 
-/** Cliente único. La API de Meta es compatible con OpenAI: cambiar de proveedor es cambiar baseURL, key y modelos. */
-export const client = new OpenAI({ apiKey: config.llm.apiKey || "missing", baseURL: config.llm.baseURL, timeout: 20_000, maxRetries: 1 });
+/** Dual-provider client (Muse/Meta + Google AI Studio Gemini) with automatic low-latency failover. */
+const clients: Record<ProviderName, OpenAI> = {
+  meta: new OpenAI({ apiKey: config.providers.meta.apiKey || "missing", baseURL: config.providers.meta.baseURL, maxRetries: 0 }),
+  gemini: new OpenAI({ apiKey: config.providers.gemini.apiKey || "missing", baseURL: config.providers.gemini.baseURL, maxRetries: 0 }),
+};
 
-export const modelFor = (tier: Tier): string => {
-  const m = config.llm.models[tier] || config.llm.models.medium;
-  if (!m) throw new Error(`Falta LLM_MODEL_${tier.toUpperCase()} en .env`);
+export const modelFor = (tier: Tier, provider: ProviderName = config.primary): string => {
+  const models = config.providers[provider].models;
+  const m = models[tier] || models.medium;
+  if (!m) throw new Error(`Missing model for tier ${tier} on provider ${provider} in .env`);
   return m;
 };
 
-export const llmAvailable = () => !config.offline && Boolean(config.llm.apiKey);
+export const providerAvailable = (p: ProviderName) => Boolean(config.providers[p].apiKey);
+export const llmAvailable = () => !config.offline && (providerAvailable("meta") || providerAvailable("gemini"));
 
 type Msg = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 type Tool = OpenAI.Chat.Completions.ChatCompletionTool;
 
-export async function chat(tier: Tier, messages: Msg[], opts: { tools?: Tool[]; json?: boolean; maxTokens?: number } = {}) {
-  const res = await client.chat.completions.create({
-    model: modelFor(tier),
-    messages,
-    tools: opts.tools?.length ? opts.tools : undefined,
-    response_format: opts.json ? { type: "json_object" } : undefined,
-    max_tokens: opts.maxTokens ?? config.maxTokens,
-  });
-  return res.choices[0].message;
+export async function chat(tier: Tier, messages: Msg[], opts: { tools?: Tool[]; json?: boolean; maxTokens?: number; provider?: ProviderName } = {}) {
+  const order: ProviderName[] = opts.provider
+    ? [opts.provider]
+    : [config.primary, config.secondary].filter(providerAvailable);
+  if (!order.length) throw new Error("No LLM provider API key configured");
+
+  const timeout = tier === "fast" ? config.fastTimeoutMs : config.defaultTimeoutMs;
+  let lastErr: unknown;
+
+  for (const p of order) {
+    try {
+      const res = await clients[p].chat.completions.create(
+        {
+          model: modelFor(tier, p),
+          messages,
+          tools: opts.tools?.length ? opts.tools : undefined,
+          response_format: opts.json ? { type: "json_object" } : undefined,
+          max_tokens: opts.maxTokens ?? config.maxTokens,
+        },
+        { timeout }
+      );
+      return res.choices[0].message;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
 }
 ```
 
@@ -126,11 +183,17 @@ const app = Fastify({ logger: true, bodyLimit: 4 * 1024 * 1024 }); // 4 MB: alca
 await app.register(rateLimit, { global: false });
 await app.register(websocket, { options: { maxPayload: 4096 } });
 
-// Rechaza llamadas a /api y /ws desde orígenes no listados.
+// Rejects calls to /api and /ws from unlisted origins, and sets CORS headers for allowed origins (e.g. Vercel frontend).
 app.addHook("onRequest", async (req, reply) => {
   if (!req.url.startsWith("/api") && !req.url.startsWith("/ws")) return;
   const origin = req.headers.origin;
-  if (origin && config.origins.length && !config.origins.includes(origin)) return reply.code(403).send({ error: "origin" });
+  if (origin) {
+    if (config.origins.length && !config.origins.includes(origin)) return reply.code(403).send({ error: "origin" });
+    reply.header("Access-Control-Allow-Origin", origin);
+    reply.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    reply.header("Access-Control-Allow-Headers", "Content-Type");
+  }
+  if (req.method === "OPTIONS") return reply.code(204).send();
 });
 
 app.get("/api/health", async () => ({ ok: true, offline: config.offline }));
@@ -144,10 +207,11 @@ app.get("/remote", (_req, reply) => reply.sendFile("remote.html"));
 await app.listen({ port: config.port, host: "0.0.0.0" });
 ```
 
-`scripts/check-llm.ts` (plan task 2, run this first):
+`scripts/check-llm.ts` (plan task 2, run this first against both `meta` and `gemini` providers):
 
 ```ts
-import { chat, modelFor } from "../llm/provider.js";
+import { chat, modelFor, providerAvailable } from "../llm/provider.js";
+import type { ProviderName } from "../config.js";
 
 const tiny = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 const run = async (name: string, fn: () => Promise<unknown>) => {
@@ -156,17 +220,20 @@ const run = async (name: string, fn: () => Promise<unknown>) => {
   catch (e: any) { console.log(`FAIL ${name}`, e?.status ?? "", e?.message); }
 };
 
-for (const tier of ["fast", "medium", "large", "judge"] as const)
-  await run(`texto ${tier} (${modelFor(tier)})`, () => chat(tier, [{ role: "user", content: "Reply with the word READY." }], { maxTokens: 10 }));
+for (const provider of (["meta", "gemini"] as ProviderName[]).filter(providerAvailable)) {
+  console.log(`\n=== Provider: ${provider} ===`);
+  for (const tier of ["fast", "medium", "large", "judge"] as const)
+    await run(`${provider} text ${tier} (${modelFor(tier, provider)})`, () => chat(tier, [{ role: "user", content: "Reply with the word READY." }], { maxTokens: 10, provider }));
 
-await run("imagen", () => chat("vision", [{ role: "user", content: [
-  { type: "text", text: "What color is this pixel? One word." }, { type: "image_url", image_url: { url: tiny } } ] }], { maxTokens: 10 }));
+  await run(`${provider} vision`, () => chat("vision", [{ role: "user", content: [
+    { type: "text", text: "What color is this pixel? One word." }, { type: "image_url", image_url: { url: tiny } } ] }], { maxTokens: 10, provider }));
 
-await run("tool calling", () => chat("fast", [{ role: "user", content: "Open the thermal map." }], { tools: [{ type: "function",
-  function: { name: "set_layer", description: "Switch the terrain layer", parameters: { type: "object",
-    properties: { layer: { type: "string", enum: ["optical", "slope", "thermal", "radiation"] } }, required: ["layer"] } } }] }));
+  await run(`${provider} tool calling`, () => chat("fast", [{ role: "user", content: "Open the thermal map." }], { provider, tools: [{ type: "function",
+    function: { name: "set_layer", description: "Switch the terrain layer", parameters: { type: "object",
+      properties: { layer: { type: "string", enum: ["optical", "slope", "thermal", "radiation"] } }, required: ["layer"] } } }] }));
 
-await run("JSON", () => chat("fast", [{ role: "user", content: 'Return JSON {"ok":true}' }], { json: true, maxTokens: 20 }));
+  await run(`${provider} JSON`, () => chat("fast", [{ role: "user", content: 'Return JSON {"ok":true}' }], { json: true, maxTokens: 20, provider }));
+}
 ```
 
 ## Instructions for the coding agent

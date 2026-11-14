@@ -25,7 +25,7 @@
 
 | # | Priority | Step | Task | Guides | Depends on |
 |---|---|---|---|---|---|
-| F1 | 🔴 | Step 1 | Scaffold `web/` workspace (`web/package.json`, `web/vite.config.ts` with `index.html` and `remote.html` entries, `three`, `@types/three`, `qrcode`) | `01_SCAFFOLD.md` | — |
+| F1 | 🔴 | Step 1 | Scaffold `web/` workspace (`web/package.json`, `web/vite.config.ts` with `index.html` and `remote.html` entries, `VITE_API_URL` helper for Vercel → Cloud Run `/api` and `/ws/remote`, `three`, `@types/three`, `qrcode`) | `01_SCAFFOLD.md`, `10_DEPLOY_SUBMISSION.md` | — |
 | F2 | 🔴 | Step 5 | Build core Three.js viewer in `web/src/`: `Terrain` (`height_2048.u16`, `ortho_4096.webp`, `2048²` normal map, bilinear `heightAt`/`slopeAt`), Martian sky shader (`uTau`), `Astronaut` WASD controller, `#visor` helmet frame, global `state.ts` store | `04_TERRAIN_HELMET_HUD.md`, `3D_AND_VISUAL_PLAN.md` §2–4 | F1, Step 3 data, Step 4 physics |
 | F3 | 🔴 | Step 5 | Build curved CSS 3D HUD (`hud.css`, `thresholds.ts`): Left life-support panel, Top mission/coordinates panel, Right environment panel, Bottom pointable menu, 2D minimap canvas, terrain layer switcher (`slope`, `svf`, `thermal_class`), `HudPointer`, and `data-src` provenance cards | `04_TERRAIN_HELMET_HUD.md`, `3D_AND_VISUAL_PLAN.md` §7 | F2 |
 | F4 | 🔴 | Step 6 | Wire `t()` and `setLang` across all `web/` UI elements and add Language menu item (EN/ES live switch without reload) | `14_I18N.md` | F3 |

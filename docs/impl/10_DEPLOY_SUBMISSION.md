@@ -1,6 +1,6 @@
-# 10. Google Cloud deploy and submission
+# 10. Google Cloud & Vercel deploy and submission
 
-**Goal:** the app public on Cloud Run over HTTPS, the key protected, and the submission material ready.
+**Goal:** the backend (`server/`, with MCP servers, BM25 RAG, `GUARDIAN`, TTS, and WebSocket relay, plus a bundled mirror of `web/dist`) public on Google Cloud Run over HTTPS with both API keys (`META_API_KEY` and `GEMINI_API_KEY`) protected in Secret Manager, the frontend (`web/`) deployed on Vercel Edge CDN pointing to Cloud Run via `VITE_API_URL`, and the submission material ready.
 **Read first:** `NASA_SPACE_APPS_2026_PLAN.md` sections 5.2, 9 and 10; guide 01 (`Dockerfile`); `.env.example`.
 **Plan tasks:** 4, 33, 34, 35.
 
@@ -10,24 +10,33 @@
 
 ```bash
 #!/usr/bin/env bash
-# Uso: ./deploy.sh   (lee .env de la raíz)
+# Usage: ./deploy.sh   (reads .env from repo root)
 set -euo pipefail
 set -a; source .env; set +a
-: "${GCP_PROJECT_ID:?falta GCP_PROJECT_ID}" "${GCP_REGION:=us-central1}" "${CLOUD_RUN_SERVICE:=tango-horizon}"
+: "${GCP_PROJECT_ID:?missing GCP_PROJECT_ID}" "${GCP_REGION:=us-central1}" "${CLOUD_RUN_SERVICE:=tango-horizon}"
 
 gcloud config set project "$GCP_PROJECT_ID"
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com artifactregistry.googleapis.com
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com artifactregistry.googleapis.com texttospeech.googleapis.com
 
-# La key va a Secret Manager, no a variables de entorno en texto plano.
-if ! gcloud secrets describe meta-api-key >/dev/null 2>&1; then
-  printf '%s' "$META_API_KEY" | gcloud secrets create meta-api-key --data-file=-
-else
-  printf '%s' "$META_API_KEY" | gcloud secrets versions add meta-api-key --data-file=-
-fi
 PROJECT_NUMBER=$(gcloud projects describe "$GCP_PROJECT_ID" --format='value(projectNumber)')
-gcloud secrets add-iam-policy-binding meta-api-key \
-  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor" >/dev/null
+SA="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+
+# Store both Muse/Meta and Google AI Studio keys in Secret Manager, never as plain-text env vars.
+upsert_secret() {
+  local name="$1" val="$2"
+  if [ -z "$val" ]; then return; fi
+  if ! gcloud secrets describe "$name" >/dev/null 2>&1; then
+    printf '%s' "$val" | gcloud secrets create "$name" --data-file=-
+  else
+    printf '%s' "$val" | gcloud secrets versions add "$name" --data-file=-
+  fi
+  gcloud secrets add-iam-policy-binding "$name" --member="$SA" --role="roles/secretmanager.secretAccessor" >/dev/null
+}
+
+upsert_secret "meta-api-key" "${META_API_KEY:-}"
+upsert_secret "gemini-api-key" "${GEMINI_API_KEY:-}"
+
+SECRETS_ARG="META_API_KEY=meta-api-key:latest,GEMINI_API_KEY=gemini-api-key:latest"
 
 gcloud run deploy "$CLOUD_RUN_SERVICE" \
   --source . \
@@ -37,14 +46,22 @@ gcloud run deploy "$CLOUD_RUN_SERVICE" \
   --cpu 1 --memory 1Gi \
   --timeout 3600 \
   --session-affinity \
-  --set-secrets "META_API_KEY=meta-api-key:latest" \
-  --set-env-vars "^@^LLM_PROVIDER=${LLM_PROVIDER:-meta}@META_BASE_URL=${META_BASE_URL}@LLM_MODEL_LARGE=${LLM_MODEL_LARGE}@LLM_MODEL_MEDIUM=${LLM_MODEL_MEDIUM}@LLM_MODEL_FAST=${LLM_MODEL_FAST}@LLM_MODEL_JUDGE=${LLM_MODEL_JUDGE}@LLM_MODEL_VISION=${LLM_MODEL_VISION}@RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-30}@LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-400}@AGENTS_OFFLINE=${AGENTS_OFFLINE:-0}"
+  --set-secrets "$SECRETS_ARG" \
+  --set-env-vars "^@^LLM_PROVIDER=${LLM_PROVIDER:-meta}@META_BASE_URL=${META_BASE_URL:-https://api.meta.ai/v1}@LLM_MODEL_LARGE=${LLM_MODEL_LARGE:-}@LLM_MODEL_MEDIUM=${LLM_MODEL_MEDIUM:-}@LLM_MODEL_FAST=${LLM_MODEL_FAST:-}@LLM_MODEL_JUDGE=${LLM_MODEL_JUDGE:-}@LLM_MODEL_VISION=${LLM_MODEL_VISION:-}@GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}@GEMINI_MODEL_LARGE=${GEMINI_MODEL_LARGE:-gemini-2.5-pro}@GEMINI_MODEL_MEDIUM=${GEMINI_MODEL_MEDIUM:-gemini-2.5-flash}@GEMINI_MODEL_FAST=${GEMINI_MODEL_FAST:-gemini-2.5-flash}@GEMINI_MODEL_JUDGE=${GEMINI_MODEL_JUDGE:-gemini-2.5-flash}@GEMINI_MODEL_VISION=${GEMINI_MODEL_VISION:-gemini-2.5-flash}@TTS_VOICE_ES=${TTS_VOICE_ES:-es-US-Journey-D}@TTS_VOICE_EN=${TTS_VOICE_EN:-en-US-Journey-D}@RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-30}@LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-400}@AGENTS_OFFLINE=${AGENTS_OFFLINE:-0}"
 
 URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" --region "$GCP_REGION" --format='value(status.url)')
-gcloud run services update "$CLOUD_RUN_SERVICE" --region "$GCP_REGION" --update-env-vars "ALLOWED_ORIGINS=${URL}" >/dev/null
-echo "Desplegado en: $URL"
+ORIGINS="${URL}${VERCEL_URL:+,${VERCEL_URL}}"
+gcloud run services update "$CLOUD_RUN_SERVICE" --region "$GCP_REGION" --update-env-vars "^@^ALLOWED_ORIGINS=${ORIGINS}" >/dev/null
+echo "Cloud Run backend + mirror deployed at: $URL"
 curl -fsS "$URL/api/health" && echo
 ```
+
+## Frontend Deployment on Vercel (`web/`)
+
+1. In Vercel, import the repository with **Root Directory** set to `.` (or deploy via `vercel --prod`), **Build Command**: `npm -w shared run build && npm -w web run build`, and **Output Directory**: `web/dist`.
+2. Set the environment variable `VITE_API_URL=https://<cloud-run-service>.a.run.app` in Vercel Project Settings (no API keys are ever placed in Vercel).
+3. In `web/src/`, all `/api/*` `fetch` calls prefix `import.meta.env.VITE_API_URL ?? ""` and WebSocket `/ws/remote` connects to `(import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/^http/, "ws") : `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}`) + "/ws/remote"`. When `VITE_API_URL` is empty (local Vite dev proxy or Cloud Run mirror), it uses same-origin paths automatically.
+4. Add the deployed Vercel URL (e.g., `https://nasa-mars-tango-horizon.vercel.app`) to `VERCEL_URL` in `.env` and re-run the `ALLOWED_ORIGINS` update so Cloud Run accepts CORS and WebSocket connections from Vercel.
 
 `.dockerignore`:
 

@@ -53,14 +53,29 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 
 ## Project
 
-`nasa-mars-tango-horizon` — <!-- TODO: describe in 1-2 lines the project goal, stack and commands (install, run, test) -->
+`nasa-mars-tango-horizon` (AEGIS-MARS / Tango Horizon) — Real-time 3D Mars surface mission operations simulator (Three.js WebGL2 at 60 FPS) over real NASA/USGS Gale Crater cartography, coupled with deterministic bioastronautics/physics (`@th/shared`), hands-free bilingual voice, phone-as-pointer WebSocket control, and a multi-agent AI hierarchy guarded by `GUARDIAN`.
 
-### Workspace separation (Frontend vs. Backend)
+- **Commands:** `npm install` (install workspaces), `npm run dev` (run `web` on `:5173` and `server` on `:8080`), `npm run build` (build `shared`, `web`, `server`), `npm start` (production server on `:8080`), `npm test` (run Vitest unit tests in `shared`).
 
-- **Frontend (`web/`):** All frontend, 3D (Three.js), shaders, HUD, voice UI, and phone pointer (`remote.html`) work happens in the isolated `web/` directory (consuming shared types, physics, and i18n from `shared/`). Frontend plans and pending tasks are tracked in `PENDING_FRONT.md`.
-- **Backend (`server/`):** Fastify server, `/api/*` routes, `/ws/remote` relay, MCP servers, and agent orchestration (`GUARDIAN`).
-- **Shared (`shared/`):** Deterministic physics engine, shared TypeScript types, and i18n dictionaries imported by both `web/` and `server/`.
-- **Data pipeline (`tools/`):** Python scripts that process raw NASA/USGS files from `data/` into static assets under `web/public/data/`.
+### Architecture: Frontend, Backend, Agents, MCP, RAG, and Deployment
+
+1. **Workspace separation:**
+   - **Frontend (`web/`):** Vite + TypeScript + Three.js viewer (`index.html`), curved CSS 3D HUD, local $<5\text{ ms}$ critical voice intents (`localIntents.ts`), and mobile pointer/PTT client (`remote.html`). The browser is the **single source of truth for mission simulation state**: it sends a JSON `MissionContext` snapshot on each agent call and applies the returned `actions`. Frontend plans and pending tasks are tracked in `PENDING_FRONT.md`.
+   - **Backend (`server/`):** Stateless Fastify Node.js server exposing `/api/health`, `/api/agent/voice`, `/api/agent/run`, `/api/agent/vision`, `/api/tts` (Google Cloud Text-to-Speech), and `/ws/remote` (in-memory WebSocket room relay for the phone pointer). Never put API keys in `web/`.
+   - **Shared (`shared/`, `@th/shared`):** Deterministic physics core (Pandolf metabolic rate, choked orifice flow, RK4 pod ballistics, sky-view-factor dose, solar power, route planners), shared TypeScript schemas, and i18n dictionaries (`EN`/`ES`/`FR`/`DE`/`IT`).
+   - **Data pipeline (`tools/`):** Offline Python scripts that process raw NASA/USGS files from `data/` into static assets under `web/public/data/` with `provenance.json`.
+2. **Where Agent Logic, MCP, and RAG run (all inside `server/`):**
+   - **Agent orchestration (`server/src/agents/`):** Runs on the backend (`runAgent.ts`, `hierarchy.ts`). Voice orders hit `SUIT.VOICE-EXEC` (fast tier) first and escalate to `BASE` (large tier), which delegates to domain agents (`SUIT.HEALTH`, `EVA-PLANNER`, `SCIENCE`, `WEATHER-RAD`, `MAINTENANCE`, `ROBOT.<id>`).
+   - **In-process MCP servers (`server/src/agents/tools/mcp.ts`):** 6 domain MCP servers (`mcp-terrain`, `mcp-suit`, `mcp-environment`, `mcp-fleet`, `mcp-hud`, `mcp-knowledge`) run inside the same Fastify process via `InMemoryTransport` (zero network hop), generated from one tool registry (`registry.ts`). Read tools compute exact numbers via `@th/shared`; effect tools propose `Action` objects.
+   - **In-memory BM25 RAG (`server/src/agents/tools/knowledge.ts` + `server/corpus/chunks.json`):** Runs inside `server/` (exposed through `mcp-knowledge` tool `search_docs`). Searches ~800-char chunks extracted from `NASA-STD-3001` (Vol. 1 & 2) and OCHMO briefs in $<2\text{ ms}$ with no external vector database, returning exact document and page citations.
+   - **Safety Guardrail (`GUARDIAN`, `server/src/agents/guardian.ts`):** Every effect action passes deterministic hard limits (`ruleCheck`: vehicle slope limits, $15\text{ m}$ pod keep-out radius, $2\text{ m}$ manipulator arm keep-out from crew) followed by an LLM safety/prompt-injection judge (`judge`).
+3. **Dual-LLM Provider (Muse/Meta + Google AI Studio) & 3-Tier Resilience:**
+   - **Primary + Automatic Failover (`server/src/llm/provider.ts`):** Configured with both **Muse / Meta API (`META_API_KEY`)** and **Google AI Studio / Gemini API (`GEMINI_API_KEY` via OpenAI-compatible endpoint `https://generativelanguage.googleapis.com/v1beta/openai/`)**.
+   - **Low-latency routing & failover:** `check-llm.ts` benchmarks both keys across tiers (`fast`, `medium`, `large`, `judge`, `vision`). At runtime, if the primary provider exceeds a tight timeout or returns an error (`429`/`5xx`), `provider.ts` automatically retries against the secondary provider within the same request.
+   - **Deterministic Offline Fallback (`server/src/agents/offline.ts`):** If both LLM providers are unreachable or `AGENTS_OFFLINE=1`, the backend executes deterministic rule-based tool calls and replies so the demo never breaks.
+4. **Deployment (Vercel Frontend + Google Cloud Run Backend):**
+   - **Backend (`server/`):** Deployed as a Docker container on **Google Cloud Run** (`us-central1`, `--min-instances 1 --max-instances 1 --session-affinity` for WebSocket rooms, secrets `META_API_KEY` and `GEMINI_API_KEY` stored in Google Cloud Secret Manager). Cloud Run also serves `web/dist` as a full mirror.
+   - **Frontend (`web/`):** Deployed on **Vercel** (global Edge CDN for fast 3D asset/texture loading) configured with `VITE_API_URL=https://<cloud-run-service>.run.app` for `/api/*` and `/ws/remote`, with the Vercel domain whitelisted in Cloud Run's `ALLOWED_ORIGINS`.
 
 ### Project files
 

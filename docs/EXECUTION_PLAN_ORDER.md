@@ -76,8 +76,8 @@ Suggested clock: steps 0 to 5 on Saturday; 6 to 11 by Sunday midday; 12 to 16 Su
 | # | Do | Why |
 |---|----|-----|
 | 1 | Open spaceappschallenge.org and write into plan section 2.2: the 2026 judging criteria, the deliverables, the exact deadline, the full challenge text, the AI-disclosure rule | Everything is tuned to assumptions until this is read |
-| 2 | Copy `.env.example` to `.env`. Paste the Meta hackathon key. Fill the five `LLM_MODEL_*` IDs from the Meta model docs | The agents need them |
-| 3 | Create or choose the GCP project, enable billing, run `gcloud auth login` and `gcloud auth application-default login`. Fill `GCP_PROJECT_ID` | Deploy and neural voice |
+| 2 | Copy `.env.example` to `.env`. Paste both the Muse/Meta API key (`META_API_KEY`) and the Google AI Studio API key (`GEMINI_API_KEY`). Fill the five `LLM_MODEL_*` and `GEMINI_MODEL_*` IDs | Dual-provider low-latency agent routing and automatic failover |
+| 3 | Create or choose the GCP project, enable billing, run `gcloud auth login` and `gcloud auth application-default login`. Fill `GCP_PROJECT_ID` | Cloud Run backend deploy and neural voice |
 | 4 | Decide who is on which phone for testing (one Android, one iPhone) | Guide 06 |
 
 ---
@@ -104,16 +104,16 @@ Finish by running the guide's acceptance criteria and report the result of each 
 
 ```text
 Read docs/impl/05_SERVER.md, .env.example and section 5.3 of the plan.
-Implement the server: config, the OpenAI-compatible provider layer, the WebSocket relay, static serving and index.
-Then run the model check script (server/src/scripts/check-llm.ts) against the key in .env and write the full output,
-with latencies per tier, to docs/LLM_CHECK.md.
+Implement the server: config, the dual-provider OpenAI-compatible layer (Muse/Meta + Google AI Studio Gemini with automatic failover), CORS for ALLOWED_ORIGINS (including Vercel), the WebSocket relay, static serving and index.
+Then run the model check script (server/src/scripts/check-llm.ts) against both keys in .env and write the full output,
+with latencies per provider and tier, to docs/LLM_CHECK.md.
 Interpret the result using step 2 of the guide's instructions and tell me clearly:
-which capabilities work (text per tier, image input, tool calling, JSON mode), which do not, and what you recommend.
-If every call fails with 401 or 403, stop and tell me; do not try other endpoints or keys.
+which capabilities work per provider (text per tier, image input, tool calling, JSON mode), which do not, and what primary/failover pairing you recommend.
+If every call on both providers fails with 401 or 403, stop and tell me; do not try other endpoints or keys.
 Do not implement the agent routes yet (that is guide 08); leave registerAgentRoutes as a stub.
 ```
 
-**Done when:** `docs/LLM_CHECK.md` exists and you know which capabilities the key gives.
+**Done when:** `docs/LLM_CHECK.md` exists and you know which capabilities and latencies each provider (`meta` and `gemini`) gives.
 
 ---
 
@@ -276,20 +276,17 @@ Run the scenario three times and confirm it plays identically each time. Report 
 
 ---
 
-## Step 11. First public deploy
+## Step 11. First public deploy (Google Cloud Run Backend + Vercel Frontend)
 
 **Read:** `docs/impl/10_DEPLOY_SUBMISSION.md`.
 
 ```text
-Read docs/impl/10_DEPLOY_SUBMISSION.md. Prepare deploy.sh and the ignore files, including the Text-to-Speech
-permission for the Cloud Run service account. Show me the exact commands and what they will create, and wait for
-my confirmation before running anything in Google Cloud.
-After deploying, run the model check against the deployed service so we know the Meta key works from that region,
-then go through the post-deploy checklist in the guide and report each row as pass or fail with what you observed.
-Do not push the repository anywhere.
+Read docs/impl/10_DEPLOY_SUBMISSION.md. Prepare deploy.sh and the ignore files, including Secret Manager storage for both META_API_KEY and GEMINI_API_KEY, the Text-to-Speech permission for the Cloud Run service account, and VITE_API_URL / ALLOWED_ORIGINS support for the Vercel frontend. Show me the exact commands and what they will create, and wait for my confirmation before running anything in Google Cloud or Vercel.
+After deploying the backend to Cloud Run and the frontend to Vercel, run the model check against the deployed service so we know both keys work from that region, then go through the post-deploy checklist in the guide and report each row as pass or fail with what you observed.
+Do not push the repository anywhere without asking.
 ```
 
-**Done when:** the public URL passes the checklist, including the phone on mobile data.
+**Done when:** both the Vercel URL and the Cloud Run URL pass the checklist, including the phone on mobile data.
 
 ---
 
