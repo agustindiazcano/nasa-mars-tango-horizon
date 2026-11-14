@@ -5,6 +5,7 @@
 - Agustin Diaz Cano
 - Baltazar Salerno
 - Milagros Sotelo
+- Federico Yaconis
 
 ## AI-assisted development methodology (Software 3.0)
 
@@ -16,6 +17,6 @@ This project was built with AI-assisted development in the Software 3.0 style: A
 
 ## License
 
-Copyright (c) 2026 Agustin Diaz-Cano, Baltazar Salerno and Milagros Sotelo.
+Copyright (c) 2026 Agustin Diaz-Cano, Baltazar Salerno, Milagros Sotelo and Federico Yaconis.
 
 This project is licensed under the [MIT License](LICENSE).
