@@ -9,7 +9,7 @@
 
 - Merged PR #5 (`feat/vercel-analytics`), wiring `@vercel/analytics` (`^2.0.1`, `inject()`) into `web-test-3d/src/main.ts` (`/`) and `web-test-3d/src/remote/phoneClient.ts` (`/remote`).
 - Rebased `docs/readme-es-and-rag-plans` cleanly onto `main`, including the YouTube channel link (`@agustin-diaz-cano`) in `README.md`.
-- Updated `README.md` with a top `Leer en español` badge button linking to `README_ES.md` and an `Index` section linking to every `##` heading.
+- Updated `README.md` with a top `Leer en español` badge button linking to `README_ES.md`, an `Index` section linking to every `##` heading, and verified NASA Space Apps Challenge 2026 rules/legal and resources links (`/legal/`, `/resources/`, `/resources/participant-faqs/`).
 - Created `README_ES.md` as a 1-to-1 Spanish translation of `README.md` with a symmetric `Read in English` button and `Índice`.
 - Completed aerospace research and gap analyses via two parallel `self` subagents and documented two future unimplemented plans:
   - `docs/impl/20_COMPONENT_FAULT_TELEMETRY_RAG.md` (`B20`): deterministic FDIR/RUL prediction (`shared/src/physics/fdir.ts`), `evaluate_component_health`, FDIR SOP RAG chunks, `isolate_component`, and hardware `GUARDIAN` gates.
