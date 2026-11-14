@@ -24,8 +24,7 @@
 - Added `.gitignore` (env files, OS, editor and log files) and `.env.example` (no variables yet). Each developer keeps a local `.env`, ignored by git.
 - Work goes directly on `main` (user decision, time-limited). Branch/worktree rule replaced in `AGENTS.md`.
 - Created `NASA_APIS.md` (table of NASA/USGS sources; endpoints untested) and referenced it in `AGENTS.md`.
-- Created `BLUEPRINT.md` (plan for the whole project; content pasted by the user, in Spanish) and the `docs/` folder.
-- Re-downloaded the NASA/USGS data into `data/` with `fetch_mars_data.py` (33 items OK, 0 failed) and regenerated `data/validation.json` with `validate_urls.py`, so file dates are today. Scripts were run from the scratchpad and are not in the repo.
+- Created `BLUEPRINT.md` (plan for the whole project; content pasted by the user, in Spanish) and the `docs/` folder.- Re-downloaded the NASA/USGS data into `data/` with `fetch_mars_data.py` (33 items OK, 0 failed) and regenerated `data/validation.json` with `validate_urls.py`, so file dates are today. Scripts were run from the scratchpad and are not in the repo.
 - Recreated `docs/` (`EXECUTION_PLAN_ORDER.md` and `impl/01`–`15`) as new files with the same content as `nasa-data/docs`.
 - `AGENTS.md` now lists `BLUEPRINT.md`, `NASA_APIS.md`, `data/` and every document in `docs/` with path and title.
 
