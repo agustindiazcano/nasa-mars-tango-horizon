@@ -10,7 +10,7 @@
 
 - [Equipo: Tango Horizon (Buenos Aires, Argentina)](#equipo-tango-horizon-buenos-aires-argentina)
 - [Enlaces del NASA Space Apps Challenge](#enlaces-del-nasa-space-apps-challenge)
-- [Metodología de desarrollo asistido por IA (Software 3.0)](#metodología-de-desarrollo-asistido-por-ia-software-30)
+- [Uso de IA](#uso-de-ia)
 - [Licencia](#licencia)
 
 ## Equipo: Tango Horizon (Buenos Aires, Argentina)
@@ -29,9 +29,15 @@
 - **Recursos y Preguntas Frecuentes (FAQs):** https://www.spaceappschallenge.org/resources/ · https://www.spaceappschallenge.org/resources/participant-faqs/
 - **Space Apps Challenge:** https://www.spaceappschallenge.org/
 
-## Metodología de desarrollo asistido por IA (Software 3.0)
+## Uso de IA
 
-Este proyecto se construyó con desarrollo asistido por IA al estilo Software 3.0: los agentes de programación con IA participaron en todo el proceso de desarrollo (implementación, pruebas, CI/CD, pull requests, commits y documentación validados y diseñados por humanos, despliegue), bajo dirección y revisión humana. Agentes de programación utilizados: Codex, Claude Code y Gemini Antigravity.
+### Metodología de desarrollo asistido por IA (Software 3.0)
+
+Este proyecto se construyó con desarrollo asistido por IA al estilo Software 3.0: los agentes de programación con IA participaron en todo el proceso de desarrollo (implementación, pruebas, CI/CD, pull requests, commits y documentación validados y diseñados por humanos, despliegue), bajo dirección y revisión humana.
+
+- **Agentes de código:** Codex, Claude Code, Gemini Antigravity, IBM Bob, Meta Muse
+- **IA para workflows:** ChatGPT, Gemini, Google AI Studio, Grok
+- **Generación de modelos 3D:** Tripo AI (China), Meshy AI (Estados Unidos)
 
 **Contratos para el contexto de los agentes.** Los agentes reciben su contexto mediante archivos de contrato: [`AGENTS.md`](AGENTS.md) (reglas), [`PENDING.md`](PENDING.md) (tareas abiertas priorizadas) y [`LASTCONTEXT.md`](LASTCONTEXT.md) (último estado y próximo paso). Cada tarea actualiza [`PENDING.md`](PENDING.md) y [`LASTCONTEXT.md`](LASTCONTEXT.md) para que el siguiente agente arranque desde el mismo estado.
 

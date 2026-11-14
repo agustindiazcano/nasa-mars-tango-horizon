@@ -10,7 +10,7 @@
 
 - [Team: Tango Horizon (Buenos Aires, Argentina)](#team-tango-horizon-buenos-aires-argentina)
 - [NASA Space Apps Challenge Links](#nasa-space-apps-challenge-links)
-- [AI-assisted development methodology (Software 3.0)](#ai-assisted-development-methodology-software-30)
+- [AI Usage](#ai-usage)
 - [License](#license)
 
 ## Team: Tango Horizon (Buenos Aires, Argentina)
@@ -29,9 +29,15 @@
 - **Participant Resources & FAQs:** https://www.spaceappschallenge.org/resources/ · https://www.spaceappschallenge.org/resources/participant-faqs/
 - **Space Apps Challenge:** https://www.spaceappschallenge.org/
 
-## AI-assisted development methodology (Software 3.0)
+## AI Usage
 
-This project was built with AI-assisted development in the Software 3.0 style: AI coding agents took part in the whole development process (implementation, tests, CI/CD, pull requests, commits and documentation validated and designed by human, deploy), under human direction and review. Coding agents used: Codex, Claude Code and Gemini Antigravity.
+### AI-assisted development methodology (Software 3.0)
+
+This project was built with AI-assisted development in the Software 3.0 style: AI coding agents took part in the whole development process (implementation, tests, CI/CD, pull requests, commits and documentation validated and designed by human, deploy), under human direction and review.
+
+- **Coding agents:** Codex, Claude Code, Gemini Antigravity, IBM Bob, Meta Muse
+- **Workflow AI:** ChatGPT, Gemini, Google AI Studio, Grok
+- **3D model generation:** Tripo AI (China), Meshy AI (United States)
 
 **Contracts for agent context.** Agents receive their context through contract files: [`AGENTS.md`](AGENTS.md) (rules), [`PENDING.md`](PENDING.md) (prioritized open tasks) and [`LASTCONTEXT.md`](LASTCONTEXT.md) (latest state and next step). Every task updates [`PENDING.md`](PENDING.md) and [`LASTCONTEXT.md`](LASTCONTEXT.md) so the next agent starts from the same state.
 
