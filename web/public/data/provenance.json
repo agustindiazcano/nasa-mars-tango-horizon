@@ -1,0 +1,84 @@
+{
+  "terrain/height_2048.u16": {
+    "source": "USGS Astrogeology, MRO HiRISE SOCET DTMs (NASA/JPL/University of Arizona/USGS)",
+    "product_id": "DTEEC_009149_1750_009294_1750_U01",
+    "url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/hirise/controlled/dtm/PSP_009149_1750_PSP_009294_1750/DTEEC_009149_1750_009294_1750_U01.tif",
+    "transform": "4000 m square window centered at (137.4000E, -4.7450N), bilinear resample to 2048x2048 uint16",
+    "retrieved": "2026-11-14"
+  },
+  "terrain/meta.json": {
+    "source": "USGS Astrogeology, MRO HiRISE SOCET DTMs (NASA/JPL/University of Arizona/USGS)",
+    "product_id": "DTEEC_009149_1750_009294_1750_U01",
+    "url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/hirise/controlled/dtm/PSP_009149_1750_PSP_009294_1750/DTEEC_009149_1750_009294_1750_U01.tif",
+    "transform": "Bounding box, elevation range, and hole percentage metadata for the 4x4 km Gale Crater Mount Sharp window",
+    "retrieved": "2026-11-14"
+  },
+  "terrain/svf_1024.png": {
+    "source": "USGS Astrogeology, MRO HiRISE SOCET DTMs (NASA/JPL/University of Arizona/USGS)",
+    "product_id": "DTEEC_009149_1750_009294_1750_U01",
+    "url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/hirise/controlled/dtm/PSP_009149_1750_PSP_009294_1750/DTEEC_009149_1750_009294_1750_U01.tif",
+    "transform": "Sky View Factor (cos^2 horizon angle), 16 azimuths, 1500 m radius, 1.6 m eye height, 1024x1024 uint8",
+    "retrieved": "2026-11-14"
+  },
+  "terrain/slope_1024.png": {
+    "source": "USGS Astrogeology, MRO HiRISE SOCET DTMs (NASA/JPL/University of Arizona/USGS)",
+    "product_id": "DTEEC_009149_1750_009294_1750_U01",
+    "url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/hirise/controlled/dtm/PSP_009149_1750_PSP_009294_1750/DTEEC_009149_1750_009294_1750_U01.tif",
+    "transform": "Terrain slope in degrees (0-45 deg mapped to 0-255) by central differences on ~3.9 m grid",
+    "retrieved": "2026-11-14"
+  },
+  "terrain/ortho_4096.webp": {
+    "source": "USGS Astrogeology, MRO HiRISE SOCET DTMs (NASA/JPL/University of Arizona/USGS)",
+    "product_id": "DTEEC_009149_1750_009294_1750_U01",
+    "url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/hirise/controlled/dtm/PSP_009149_1750_PSP_009294_1750/PSP_009149_1750_RED_A_01_ORTHO.tif",
+    "transform": "Co-registered HiRISE orthoimage window, 1-99 percentile contrast stretch, 4096x4096 WebP",
+    "retrieved": "2026-11-14"
+  },
+  "terrain/thermal_class.png": {
+    "source": "USGS Astrogeology / ASU, Mars Odyssey THEMIS Controlled Night IR Mosaic (mc23_aeolis_nir)",
+    "product_id": "mc23_aeolis_nir",
+    "url": "https://astrogeo-ard.s3.us-west-2.amazonaws.com/mars/mo/themis/controlled_mosaics/mc23_aeolis_nir/mc23_aeolis_nir.tif",
+    "transform": "Qualitative 3-class tercile proxy (0=cold/loose, 127=medium/mixed, 255=warm/rock) over matching 4x4 km window, 1024x1024 uint8",
+    "notes": "Qualitative proxy only; DN values are not converted to physical TIU units.",
+    "tercile_thresholds": [
+      193.0,
+      220.0
+    ],
+    "retrieved": "2026-11-14"
+  },
+  "env/ephem.json": {
+    "source": "NASA/JPL Horizons System (DE441 / mar099)",
+    "product_id": "Target 399 (Earth) w.r.t. 499 (Mars) + Target 10 (Sun) at Gale site",
+    "url": "https://ssd.jpl.nasa.gov/api/horizons.api",
+    "transform": "Extracted Earth-Mars one-way/round-trip light time (LT) and hourly solar azimuth/elevation at Gale scene center.",
+    "retrieved": "2026-11-14"
+  },
+  "env/rad_quiet.json": {
+    "source": "NASA/SwRI PDS-PPI, MSL RAD RDR V1.0 (MSL-M-RAD-3-RDR-V1.0)",
+    "product_id": "RAD_RDR_2017_213-219 (Sols 1773-1779)",
+    "url": "https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/DATA/SOL_01773_01869/",
+    "transform": "Extracted [DOSIMETRY_TOTAL_DOSE_B] absorbed dose rate in silicon (uGy/h) per observation; no quality factor applied.",
+    "retrieved": "2026-11-14"
+  },
+  "env/rad_sep2017.json": {
+    "source": "NASA/SwRI PDS-PPI, MSL RAD RDR V1.0 (MSL-M-RAD-3-RDR-V1.0)",
+    "product_id": "RAD_RDR_2017_252-258 (Sols 1811-1817)",
+    "url": "https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/DATA/SOL_01773_01869/",
+    "transform": "Extracted [DOSIMETRY_TOTAL_DOSE_B] absorbed dose rate in silicon (uGy/h) during Sep 2017 SEP event; no quality factor applied.",
+    "retrieved": "2026-11-14"
+  },
+  "env/rems_clear.json": {
+    "source": "NASA/CAB PDS Atmospheres, MSL REMS MODRDR V1.0 (mslrem_1001)",
+    "product_id": "SOL02004-SOL02006 RMD",
+    "url": "https://atmos.nmsu.edu/PDS/data/mslrem_1001/DATA/SOL_02004_02127/",
+    "transform": "Parsed via MODRDR6.FMT with missing-value filtering; hourly means across 3 clear pre-storm sols (May 2018).",
+    "retrieved": "2026-11-14"
+  },
+  "env/rems_storm2018.json": {
+    "source": "NASA/CAB PDS Atmospheres, MSL REMS MODRDR V1.0 (mslrem_1001)",
+    "product_id": "SOL02060-SOL02090 RMD",
+    "url": "https://atmos.nmsu.edu/PDS/data/mslrem_1001/DATA/SOL_02004_02127/",
+    "transform": "8-sol 2018 global dust storm sequence; relative opacity tau derived from REMS noon UV_ABC drop relative to clear baseline.",
+    "retrieved": "2026-11-14"
+  }
+}
