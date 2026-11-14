@@ -54,6 +54,13 @@ Several people and several agents work on this project at the same time.
 
 `nasa-mars-tango-horizon` — <!-- TODO: describe in 1-2 lines the project goal, stack and commands (install, run, test) -->
 
+### Project files
+
+| Path | Content |
+|---|---|
+| `BLUEPRINT.md` | The plan for the whole project. Read it before planning or starting a task. |
+| `docs/` | Project documents. |
+
 ## Session memory
 
 | File | Content | When to update |
