@@ -110,7 +110,7 @@ export class VoiceController {
           lang: apiLang,
           context: this.store.toContext(),
         }),
-        signal: AbortSignal.timeout(45000),
+        signal: AbortSignal.timeout(70000),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const out = (await res.json()) as {
