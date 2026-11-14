@@ -96,7 +96,7 @@ export const config = {
     .map((s) => s.trim())
     .filter(Boolean),
   rateLimit: Number(env("RATE_LIMIT_PER_MIN", "30")),
-  maxTokens: Number(env("LLM_MAX_OUTPUT_TOKENS", "400")),
+  maxTokens: Number(env("LLM_MAX_OUTPUT_TOKENS", "1500")),
   fastTimeoutMs: Number(env("LLM_FAST_TIMEOUT_MS", "4000")),
   defaultTimeoutMs: Number(env("LLM_DEFAULT_TIMEOUT_MS", "12000")),
   offline: env("AGENTS_OFFLINE", "0") === "1",
