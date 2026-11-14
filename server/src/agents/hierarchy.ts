@@ -1,5 +1,6 @@
 import { runAgent, setDelegateHandler, type AgentResult, type AgentSpec } from "./runAgent.js";
 import type { MissionContext } from "./types.js";
+import { capabilityPrompt } from "./unitCapabilities.js";
 
 const READ_SUIT = ["get_suit_telemetry", "get_consumables_margin", "time_to_hypoxia"];
 const HUD = ["set_layer", "open_panel", "show_route", "show_alert"];
@@ -28,6 +29,7 @@ Spoken replies: 25 words or fewer, concise radio style.`,
       "plan_route",
       "show_route",
       "dispatch",
+      "unit_action",
       "launch_pod",
       "deploy_beacons",
       "show_alert",
@@ -42,7 +44,7 @@ Priority order: crew integrity (weather, radiation, consumables, equipment), the
 Mars has no GPS: use get_localization_and_lidar (HiRISE 1 m/px Map-Relative Localization + 6.5 GHz UWB ToF mesh + VIO + 3D LiDAR) to read the exact coordinates of the astronaut and all fleet units, plus 360-deg LiDAR terrain hazards.
 When the astronaut asks to send a robot to "my position" / "mi posición" / "donde estoy", read get_localization_and_lidar and dispatch that unit to the astronaut's exact (x, z) coordinates.
 Read state with tools before deciding. Delegate domain tasks to SUIT.HEALTH, EVA-PLANNER, SCIENCE, WEATHER-RAD, MAINTENANCE, or ROBOT.<id> when helpful.
-Never both delegate to ROBOT.<id> and call dispatch for that same unit: delegate to ROBOT.<id> (it dispatches itself) or call dispatch directly, never both. Issue independent read-only tool calls together in a single turn. Use get_terrain_at at most 3 times; if GUARDIAN denies an action, report the reason to the crew and stop instead of searching for alternatives.
+For a single-unit order (go there, take off, land, photograph, follow me, return to base, hold, relay, bring supplies) call dispatch or unit_action yourself for that unit: no delegation hop, answer right after the tool result. Use unit_action actions: takeoff, land, photograph_area, hover_overwatch, follow_astronaut, return_to_base, survey_area, hold_position, relay_comms, deliver_supplies; GUARDIAN rejects ones the unit kind cannot do. Delegate to ROBOT.<id> only for multi-step jobs (arm skills on manip-1). Never both delegate to ROBOT.<id> and call dispatch for that same unit: delegate to ROBOT.<id> (it dispatches itself) or call dispatch directly, never both. Issue independent read-only tool calls together in a single turn. Use get_terrain_at at most 3 times; if GUARDIAN denies an action, report the reason to the crew and stop instead of searching for alternatives.
 In a suit leak emergency: check time_to_hypoxia, launch an 8 kg O2 pod at least 15 m from the astronaut, deploy UWB/LED beacons, dispatch rescue-1, and show a crit alert.
 Spoken replies: 25 words or fewer, stating the key number and its SI unit.`,
   },
@@ -97,6 +99,19 @@ State the trend, likely cause, cited source, and recommended action. 40 words or
 
 const KNOWN_ROBOT_ID = /^(rover-\d+|scout-\d+|rescue-\d+|drone-\d+|glider-\d+|manip-1)$/;
 
+const ID_KIND: Record<string, string> = {
+  rover: "rover_crew",
+  scout: "scout",
+  rescue: "rescue",
+  drone: "drone",
+  glider: "glider",
+  manip: "manipulator",
+};
+
+function kindFromId(id: string): string {
+  return ID_KIND[id.split("-")[0]] ?? "rover_crew";
+}
+
 /** Resolves static domain agents and dynamic ROBOT.<id> per-unit agents. */
 export function getAgentSpec(name: string, ctx?: MissionContext): AgentSpec | undefined {
   if (AGENTS[name]) return AGENTS[name];
@@ -107,6 +122,7 @@ export function getAgentSpec(name: string, ctx?: MissionContext): AgentSpec | un
   if (!existsInFleet && !KNOWN_ROBOT_ID.test(unitId)) return undefined;
 
   const isManip = unitId === "manip-1";
+  const unitKind = ctx?.fleet?.find((u) => u.id === unitId)?.kind ?? kindFromId(unitId);
   const tools = [
     "list_units",
     "get_terrain_at",
@@ -114,6 +130,7 @@ export function getAgentSpec(name: string, ctx?: MissionContext): AgentSpec | un
     "plan_route",
     "show_route",
     "dispatch",
+    "unit_action",
     "show_alert",
   ];
   if (isManip) tools.push("arm_skill", "detect_veins");
@@ -127,10 +144,10 @@ export function getAgentSpec(name: string, ctx?: MissionContext): AgentSpec | un
 You may ONLY command unit_id "manip-1". Use get_localization_and_lidar to know your exact coordinates, the astronaut's position, and surrounding LiDAR slopes.
 Choose arm_skill (handover, sample, drill, photograph) using only visible target_id markers (or "astronaut" for handover).
 Never invent joint angles or coordinates. Never approach within 2 m of crew except for stationary handover.
-Report concisely in 30 words or fewer.`
+Report concisely in 30 words or fewer.` + "\n" + capabilityPrompt(unitId, "manipulator")
       : `You are the onboard autonomous planner for Mars fleet unit ${unitId}, equipped with 3D Flash LiDAR, HiRISE 1 m/px Map-Relative Localization (MRL), Visual-Inertial Odometry (VIO), and 6.5 GHz UWB ToF ranging.
 You may ONLY command unit_id "${unitId}". Use get_localization_and_lidar and plan_route to check your coordinates, the astronaut's position, and LiDAR slope hazards before dispatching.
-Report concisely in 30 words or fewer.`,
+Report concisely in 30 words or fewer.` + "\n" + capabilityPrompt(unitId, unitKind),
   };
 }
 
