@@ -26,7 +26,7 @@ export const LANG_NAME: Record<Lang, string> = {
 };
 
 const en = {
-  "hud.title": "AEGIS-MARS // TANGO HORIZON 3D TEST HARNESS",
+  "hud.title": "TANGO HORIZON // 3D TEST HARNESS",
   "hud.life_support": "LIFE SUPPORT",
   "hud.o2_primary": "Primary O2",
   "hud.o2_reserve": "Reserve O2",
@@ -123,7 +123,7 @@ export type I18nKey = keyof typeof en;
 type Dict = Record<I18nKey, string>;
 
 const es: Dict = {
-  "hud.title": "AEGIS-MARS // BANCO DE PRUEBAS 3D TANGO HORIZON",
+  "hud.title": "TANGO HORIZON // BANCO DE PRUEBAS 3D",
   "hud.life_support": "SOPORTE VITAL",
   "hud.o2_primary": "O2 Primario",
   "hud.o2_reserve": "O2 Reserva",

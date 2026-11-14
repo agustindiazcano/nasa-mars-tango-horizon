@@ -56,14 +56,14 @@ export const BASE_MODULES: BaseModuleSpec[] = [
   },
   {
     id: "compute",
-    name: "Local SI Compute Node",
+    name: "Local AI Compute Node",
     kind: "compute",
     offset: [10, 0],
     footprint: [4, 4],
     height: 3.0,
     color: 0x5c8eff,
     specs: [
-      { key: "Orchestrator", value: "BASE + MCP + GUARDIAN", source: "AEGIS-MARS Architecture" },
+      { key: "Orchestrator", value: "BASE + MCP + GUARDIAN", source: "Tango Horizon Architecture" },
       { key: "Link mode", value: "Local (<2 s)", source: "Measured in runtime" },
     ],
   },

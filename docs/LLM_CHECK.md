@@ -1,50 +1,56 @@
-# LLM Provider Benchmark (`check-llm.ts`)
+# LLM Provider & Voice Benchmark (`check-llm.ts`)
 
-Recorded from `npx tsx server/src/scripts/check-llm.ts` on 2026-11-14 against all three configured providers (`vertex`, `gemini`, `meta`) using the `.env` configuration.
+Recorded from `npx tsx server/src/scripts/check-llm.ts` on 2026-11-14 against all three configured providers (`vertex`, `gemini`, `meta`) and Google Cloud Text-to-Speech (`voice`).
 
 ## Summary
 
-- **Google AI Studio (`gemini`)**: Passed 7/7 checks (`fast`, `medium`, `large`, `judge`, `vision`, `tool calling`, `JSON`). `fast` tier (`gemini-4-hydrogen`) completed text in `1178 ms` and JSON in `830 ms`, meeting the `< 1500 ms` voice latency target.
-- **Vertex AI (`vertex`)**: Returned `404` (`status code (no body)`) for `google/gemini-4-hydrogen`, `google/gemini-4-argon`, and `google/gemini-4-carbon` on the `us-central1` OpenAI-compatible endpoint.
-- **Meta Muse (`meta`)**: Returned `404` (`The requested model was not found`) for `muse-spark` and `muse-wonder` on `https://api.meta.ai/v1`.
-- **Failover behavior**: With `LLM_PROVIDER=vertex`, `server/src/llm/provider.ts` automatically fails over to `gemini` on HTTP error or timeout within the same request.
+- **Google Cloud Vertex AI (`vertex`, primary — keyless ADC on `nasa-tango-horizon`, `VERTEX_LOCATION=global`)**: Passed **7/7** checks (`fast`, `medium`, `large`, `judge`, `vision`, `tool calling`, `JSON`). `google/gemini-4-hydrogen` completed tool calling in `1496 ms` and JSON in `1374 ms`.
+- **Google AI Studio (`gemini`, secondary failover)**: Passed **7/7** checks (`fast`, `medium`, `large`, `judge`, `vision`, `tool calling`, `JSON`). `gemini-4-hydrogen` completed text in `1207 ms` and tool calling in `1290 ms`.
+- **Meta Muse (`meta`, backup failover — `https://api.meta.ai/v1`)**: Passed **7/7** checks using the exact model IDs returned by `/v1/models` (`muse-wonder-1.0` for `large`/`medium`/`vision`, `muse-spark-1.3` for `fast`/`judge`). Also available on the account: `muse-ember-1.0`, `muse-voice-transcribe-1.0`, `muse-image-1.0`, `sam-3.1`.
+- **Google Cloud Neural Text-to-Speech (`POST /api/tts`)**: Passed **2/2** checks via keyless ADC (`es-US-Journey-D` in `1534 ms`, `en-US-Journey-D` in `1983 ms`).
+- **Failover behavior**: With `LLM_PROVIDER=vertex`, `server/src/llm/provider.ts` routes primary traffic to Vertex AI (`locations/global/endpoints/openapi`) and automatically fails over to `gemini` and `meta` on timeout (`4000 ms` on `fast`) or HTTP error within the same request.
 
 ## Results by Provider and Tier
 
-### `vertex` (`https://us-central1-aiplatform.googleapis.com/v1/projects/nasa-tango-horizon/locations/us-central1/endpoints/openapi`)
+### 1. `vertex` (`https://aiplatform.googleapis.com/v1beta1/projects/nasa-tango-horizon/locations/global/endpoints/openapi`)
 
-| Check | Model | Status | Latency | Output / Error |
+| Check | Model | Status | Latency | Output |
 |---|---|---|---|---|
-| Text (`fast`) | `google/gemini-4-hydrogen` | FAIL | 1564 ms | `404 status code (no body)` |
-| Text (`medium`) | `google/gemini-4-argon` | FAIL | 970 ms | `404 status code (no body)` |
-| Text (`large`) | `google/gemini-4-carbon` | FAIL | 1147 ms | `404 status code (no body)` |
-| Text (`judge`) | `google/gemini-4-argon` | FAIL | 1298 ms | `404 status code (no body)` |
-| Vision (`vision`) | `google/gemini-4-argon` | FAIL | 935 ms | `404 status code (no body)` |
-| Tool calling (`fast`) | `google/gemini-4-hydrogen` | FAIL | 311 ms | `404 status code (no body)` |
-| JSON (`fast`) | `google/gemini-4-hydrogen` | FAIL | 285 ms | `404 status code (no body)` |
+| Text (`fast`) | `google/gemini-4-hydrogen` | OK | 2111 ms | `"READY"` |
+| Text (`medium`) | `google/gemini-4-argon` | OK | 3019 ms | `"READY"` |
+| Text (`large`) | `google/gemini-4-carbon` | OK | 3703 ms | `"READY"` |
+| Text (`judge`) | `google/gemini-4-argon` | OK | 3921 ms | `"READY"` |
+| Vision (`vision`) | `google/gemini-4-argon` | OK | 4108 ms | `"Maroon"` |
+| Tool calling (`fast`) | `google/gemini-4-hydrogen` | OK | 1496 ms | `tool_calls: set_layer({"layer":"thermal"})` |
+| JSON (`fast`) | `google/gemini-4-hydrogen` | OK | 1374 ms | `{"ok":true}` |
 
-### `gemini` (`https://generativelanguage.googleapis.com/v1beta/openai/`)
+### 2. `gemini` (`https://generativelanguage.googleapis.com/v1beta/openai/`)
 
-| Check | Model | Status | Latency | Output / Error |
+| Check | Model | Status | Latency | Output |
 |---|---|---|---|---|
-| Text (`fast`) | `gemini-4-hydrogen` | OK | 1178 ms | `{"role":"assistant"}` |
-| Text (`medium`) | `gemini-4-argon` | OK | 5328 ms | `"READY"` |
-| Text (`large`) | `gemini-4-carbon` | OK | 4425 ms | `{"role":"assistant"}` |
-| Text (`judge`) | `gemini-4-argon` | OK | 5647 ms | `"READY"` |
-| Vision (`vision`) | `gemini-4-argon` | OK | 3670 ms | `"Pink"` |
-| Tool calling (`fast`) | `gemini-4-hydrogen` | OK | 1962 ms | `tool_calls` (`set_layer`) |
-| JSON (`fast`) | `gemini-4-hydrogen` | OK | 830 ms | `{"role":"assistant"}` |
+| Text (`fast`) | `gemini-4-hydrogen` | OK | 1207 ms | `"READY"` |
+| Text (`medium`) | `gemini-4-argon` | OK | 4490 ms | `"READY"` |
+| Text (`large`) | `gemini-4-carbon` | OK | 4189 ms | `"READY"` |
+| Text (`judge`) | `gemini-4-argon` | OK | 8607 ms | `"READY"` |
+| Vision (`vision`) | `gemini-4-argon` | OK | 4821 ms | `"Pink"` |
+| Tool calling (`fast`) | `gemini-4-hydrogen` | OK | 1290 ms | `tool_calls: set_layer({"layer":"thermal"})` |
+| JSON (`fast`) | `gemini-4-hydrogen` | OK | 1680 ms | `{"ok":true}` |
 
-> Note: On `gemini-4-hydrogen` and `gemini-4-carbon`, `maxTokens: 10` / `20` can be consumed by internal reasoning tokens before emitting visible text; production calls use `LLM_MAX_OUTPUT_TOKENS=400`.
+### 3. `meta` (`https://api.meta.ai/v1`)
 
-### `meta` (`https://api.meta.ai/v1`)
-
-| Check | Model | Status | Latency | Output / Error |
+| Check | Model | Status | Latency | Output |
 |---|---|---|---|---|
-| Text (`fast`) | `muse-spark` | FAIL | 1000 ms | `404 The requested model was not found` |
-| Text (`medium`) | `muse-wonder` | FAIL | 683 ms | `404 The requested model was not found` |
-| Text (`large`) | `muse-wonder` | FAIL | 216 ms | `404 The requested model was not found` |
-| Text (`judge`) | `muse-spark` | FAIL | 1059 ms | `404 The requested model was not found` |
-| Vision (`vision`) | `muse-wonder` | FAIL | 574 ms | `404 The requested model was not found` |
-| Tool calling (`fast`) | `muse-spark` | FAIL | 762 ms | `404 The requested model was not found` |
-| JSON (`fast`) | `muse-spark` | FAIL | 759 ms | `404 The requested model was not found` |
+| Text (`fast`) | `muse-spark-1.3` | OK | 2165 ms | `"READY"` |
+| Text (`medium`) | `muse-wonder-1.0` | OK | 1197 ms | `"READY"` |
+| Text (`large`) | `muse-wonder-1.0` | OK | 1690 ms | `"READY"` |
+| Text (`judge`) | `muse-spark-1.3` | OK | 1522 ms | `"READY"` |
+| Vision (`vision`) | `muse-wonder-1.0` | OK | 1264 ms | `HTTP 200` |
+| Tool calling (`fast`) | `muse-spark-1.3` | OK | 1427 ms | `HTTP 200` |
+| JSON (`fast`) | `muse-spark-1.3` | OK | 1394 ms | `HTTP 200` |
+
+### 4. Google Cloud Text-to-Speech (`@google-cloud/text-to-speech`)
+
+| Check | Voice | Status | Latency | Output |
+|---|---|---|---|---|
+| Spanish (`es-US`) | `es-US-Journey-D` | OK | 1534 ms | `12,672 bytes MP3` |
+| English (`en-US`) | `en-US-Journey-D` | OK | 1983 ms | `10,272 bytes MP3` |

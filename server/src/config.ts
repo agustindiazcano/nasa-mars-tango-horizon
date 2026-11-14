@@ -33,13 +33,17 @@ export interface ProviderConfig {
 }
 
 const gcpProject = env("GCP_PROJECT_ID", "nasa-tango-horizon");
-const vertexLoc = env("VERTEX_LOCATION", env("GCP_REGION", "us-central1"));
+const vertexLoc = env("VERTEX_LOCATION", "global");
+const vertexHost =
+  vertexLoc === "global"
+    ? "aiplatform.googleapis.com"
+    : `${vertexLoc}-aiplatform.googleapis.com`;
 
 const providers: Record<ProviderName, ProviderConfig> = {
   vertex: {
     name: "vertex",
     enabled: env("VERTEX_ENABLED", "1") !== "0" && Boolean(gcpProject),
-    baseURL: `https://${vertexLoc}-aiplatform.googleapis.com/v1/projects/${gcpProject}/locations/${vertexLoc}/endpoints/openapi`,
+    baseURL: `https://${vertexHost}/v1beta1/projects/${gcpProject}/locations/${vertexLoc}/endpoints/openapi`,
     models: {
       large: env("VERTEX_MODEL_LARGE", "google/gemini-4-carbon"),
       medium: env("VERTEX_MODEL_MEDIUM", "google/gemini-4-argon"),
@@ -67,11 +71,11 @@ const providers: Record<ProviderName, ProviderConfig> = {
     apiKey: env("META_API_KEY"),
     baseURL: env("META_BASE_URL", "https://api.meta.ai/v1"),
     models: {
-      large: env("LLM_MODEL_LARGE", "muse-wonder"),
-      medium: env("LLM_MODEL_MEDIUM", "muse-wonder"),
-      fast: env("LLM_MODEL_FAST", "muse-spark"),
-      judge: env("LLM_MODEL_JUDGE", "muse-spark"),
-      vision: env("LLM_MODEL_VISION", "muse-wonder"),
+      large: env("LLM_MODEL_LARGE", "muse-wonder-1.0"),
+      medium: env("LLM_MODEL_MEDIUM", "muse-wonder-1.0"),
+      fast: env("LLM_MODEL_FAST", "muse-spark-1.3"),
+      judge: env("LLM_MODEL_JUDGE", "muse-spark-1.3"),
+      vision: env("LLM_MODEL_VISION", "muse-wonder-1.0"),
     },
   },
 };

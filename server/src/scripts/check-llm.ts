@@ -38,7 +38,7 @@ async function main(): Promise<void> {
         chat(
           tier,
           [{ role: "user", content: "Reply with the word READY." }],
-          { maxTokens: 10, provider }
+          { maxTokens: 120, provider }
         )
       );
     }
@@ -55,7 +55,7 @@ async function main(): Promise<void> {
             ],
           },
         ],
-        { maxTokens: 10, provider }
+        { maxTokens: 120, provider }
       )
     );
 
@@ -65,6 +65,7 @@ async function main(): Promise<void> {
         [{ role: "user", content: "Open the thermal map." }],
         {
           provider,
+          maxTokens: 120,
           tools: [
             {
               type: "function",
@@ -92,7 +93,7 @@ async function main(): Promise<void> {
       chat(
         "fast",
         [{ role: "user", content: 'Return JSON {"ok":true}' }],
-        { json: true, maxTokens: 20, provider }
+        { json: true, maxTokens: 120, provider }
       )
     );
   }

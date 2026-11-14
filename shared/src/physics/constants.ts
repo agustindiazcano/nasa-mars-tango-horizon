@@ -1,5 +1,5 @@
 /**
- * Physical constants and documented design assumptions for AEGIS-MARS / Tango Horizon.
+ * Physical constants and documented design assumptions for Tango Horizon.
  * Every constant carries its authoritative source; `assumption: true` marks an
  * engineering design choice shown as such in the provenance panel.
  */
