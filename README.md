@@ -25,6 +25,8 @@
 - **Team:** https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project
 - **Local Event — [Universidad de Palermo](https://www.palermo.edu/) (Buenos Aires, Argentina) Node:** https://www.spaceappschallenge.org/2026/local-events/buenos-aires/
 - **Challenge — Interplanetary Survival Guide: Martian Map:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
+- **Rules (Participant Terms & Conditions):** https://www.spaceappschallenge.org/legal/
+- **Participant Resources & FAQs:** https://www.spaceappschallenge.org/resources/ · https://www.spaceappschallenge.org/resources/participant-faqs/
 - **Space Apps Challenge:** https://www.spaceappschallenge.org/
 
 ## AI-assisted development methodology (Software 3.0)
