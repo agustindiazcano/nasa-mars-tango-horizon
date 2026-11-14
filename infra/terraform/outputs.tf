@@ -20,7 +20,7 @@ output "artifact_registry_repository" {
 
 output "vertex_openai_base_url" {
   description = "Vertex AI OpenAI-compatible Chat Completions endpoint URL"
-  value       = "https://${var.vertex_location}-aiplatform.googleapis.com/v1/projects/${var.project_id}/locations/${var.vertex_location}/endpoints/openapi"
+  value       = var.vertex_location == "global" ? "https://aiplatform.googleapis.com/v1beta1/projects/${var.project_id}/locations/global/endpoints/openapi" : "https://${var.vertex_location}-aiplatform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.vertex_location}/endpoints/openapi"
 }
 
 output "cloud_run_url" {
