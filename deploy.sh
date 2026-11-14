@@ -79,9 +79,17 @@ ENV_VARS+="@RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-30}"
 ENV_VARS+="@LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-400}"
 ENV_VARS+="@AGENTS_OFFLINE=${AGENTS_OFFLINE:-0}"
 
+IMAGE_URI="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/tango-horizon/${CLOUD_RUN_SERVICE}:latest"
+
+gcloud builds submit \
+  --project "$GCP_PROJECT_ID" \
+  --tag "$IMAGE_URI" \
+  --quiet \
+  .
+
 gcloud run deploy "$CLOUD_RUN_SERVICE" \
   --project "$GCP_PROJECT_ID" \
-  --source . \
+  --image "$IMAGE_URI" \
   --region "$GCP_REGION" \
   --service-account "$SA_EMAIL" \
   --allow-unauthenticated \
@@ -91,6 +99,7 @@ gcloud run deploy "$CLOUD_RUN_SERVICE" \
   --memory 1Gi \
   --timeout 3600 \
   --session-affinity \
+  --quiet \
   "${SECRETS_FLAG[@]}" \
   --set-env-vars "$ENV_VARS"
 
