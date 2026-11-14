@@ -7,36 +7,30 @@
 
 ## What was done
 
-- Completed **B8** (Cloud Run + Vercel deployment and post-deploy smoke verification):
-  - Fixed stale `MissionContext` fields in `server/src/agents/__tests__/knowledge.test.ts` so `npm run build` compiles `@th/server` cleanly (`0` TypeScript errors).
-  - Updated `infra/terraform/{variables,main,outputs,terraform.tfvars}` to separate `cloud_run_service_name = "tangohorizon-api"` from existing `tango-horizon-sa` and `tango-horizon` Artifact Registry, and aligned `vertex_location = "global"`.
-  - Created `deploy.sh`, `.dockerignore`, `.gcloudignore`, and updated `Dockerfile` (anchored `/data`, `/tools`, `/docs`, `/infra` so `server/src/agents/tools` and `web/public/data` are included in Cloud Build, added `--quiet`, CRLF stripping when sourcing `.env`, and `ALLOWED_ORIGINS` wiring for Vercel).
-  - Fixed `server/src/agents/runAgent.ts` (`maxSteps = 6` plus a tool-less final summary call when `maxSteps` is reached) so `BASE` never returns an empty `speech` string after multi-step tool loops.
-  - Added `VITE_API_URL` support (`web-test-3d/src/api.ts`, `main.ts`, `voice/speak.ts`, `voice/voiceController.ts`, `remote/phoneClient.ts`, `remote/screenRelay.ts`), configured `publicDir: "../web/public"` in `web-test-3d/vite.config.ts`, and added root `vercel.json` (`/remote` rewrite).
-  - Deployed backend to **Google Cloud Run** (`https://tangohorizon-api-yuhr7hkc7q-uc.a.run.app`, service `tangohorizon-api`, `us-central1`, service account `tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com`, Secret Manager `meta-api-key` + `gemini-api-key`) and frontend to **Vercel** (`https://tangohorizon.vercel.app`, project `tangohorizon` with `VITE_API_URL` in `production` & `preview`).
-  - Verified live smoke tests: `/api/health` (`{"ok":true,"offline":false}`), CORS from `https://tangohorizon.vercel.app`, `/api/tts` (`audio/mpeg`), fast `SUIT.VOICE-EXEC` order (`1.6 s`), escalated `BASE` -> `ROBOT.rover-2` dispatch in Spanish with spoken response and `GUARDIAN` approval, weather forecast/hold-position `GUARDIAN` checks, `/data/terrain/meta.json` and `/remote` on Vercel, and verified `VITE_API_URL` is bundled with zero leaked API keys.
-- Updated `README.md` with the supported-by banner above the title, team roles and clickable UTN FRBA / LinkedIn / Portfolio / GitHub links, and the NASA Space Apps Challenge Links section.
-- Drafted and documented two future (unimplemented) plans via `pro` research subagents and linked them in `AGENTS.md` and `PENDING.md`:
-  - `docs/impl/16_ESCALATED_MODEL_VOTING.md`: Post-guardrail 3-model voting (`gemini-4-carbon` `low`, `gemini-4-argon`, `muse-wonder` `medium`), plus full inventory of current `GUARDIAN` rules and Source of Truth layers.
-  - `docs/impl/17_MULTITURN_VOICE_MEMORY.md`: Bounded multi-turn conversational memory (`history`, max 6 turns) for voice orders.
+- Synced local `main` with merged PR #3 (`f94ce51`) and created branch `docs/missing-plans-and-deploy-sync`.
+- Updated deployment and infrastructure documentation to match the live Cloud Run + Vercel production setup:
+  - `docs/impl/10_DEPLOY_SUBMISSION.md`: updated `deploy.sh` snippet, anchored `.dockerignore`/`.gcloudignore` patterns, `vercel.json` notes, and live URLs (`https://tangohorizon-api-yuhr7hkc7q-uc.a.run.app`, `https://tangohorizon.vercel.app`).
+  - `docs/INFRASTRUCTURE_AND_VERTEX_AI.md`: updated `VERTEX_LOCATION=global`, `cloud_run_service_name=tangohorizon-api`, `muse-wonder-1.0` / `muse-spark-1.3`, and the architecture diagram to Gemini 4 models.
+- Updated `README.md` Team section so Agustin Diaz Cano's links (`LinkedIn`, `Portfolio`, `GitHub`, `Qollab`) appear on one line.
+- Researched existing NASA/aerospace biomedical decision-support precedents (ExMC MDA/CDSS, HRP-48032, AMCL/MEDPRAT/IMPACT, SUITS TSS, Polaris Dawn wearables, LSAH Privacy Act controls, Human Digital Twins, ClinicalRAG) and ran a gap analysis against Tango Horizon's current telemetry and BM25 RAG (`1,002` chunks across `15` docs).
+- Documented two future implementation plans (unimplemented backlog items, zero runtime changes):
+  - `docs/impl/18_CHAT_SESSION_PERSISTENCE.md` (`B18`): client-side `IndexedDB`/`localStorage` session persistence (max 20 sessions, 200 entries) compatible with `17_MULTITURN_VOICE_MEMORY.md`.
+  - `docs/impl/19_PREDICTIVE_BIOMEDICAL_RAG.md` (`B19`): aerospace medical precedents, gap analysis, deterministic vital-signs trend prediction (`shared/src/physics/biomed.ts`), privacy-bounded personal baselines, and `SUIT.HEALTH` + `GUARDIAN` clinical advisory boundaries.
+- Updated `AGENTS.md` and `PENDING.md` with the new documentation references and backlog tasks (`B18`, `B19`).
 
 ## Files touched
 
-- `.dockerignore`, `.gcloudignore`, `.env.example`, `Dockerfile`, `deploy.sh`, `vercel.json`
-- `infra/terraform/{variables.tf,main.tf,outputs.tf,terraform.tfvars}`
-- `server/src/agents/runAgent.ts`, `server/src/agents/__tests__/knowledge.test.ts`
-- `web-test-3d/vite.config.ts`, `web-test-3d/src/{api.ts,main.ts,voice/speak.ts,voice/voiceController.ts,remote/phoneClient.ts,remote/screenRelay.ts}`
-- `docs/impl/16_ESCALATED_MODEL_VOTING.md`, `docs/impl/17_MULTITURN_VOICE_MEMORY.md`
-- `AGENTS.md`, `README.md`, `PENDING.md`, `LASTCONTEXT.md`
+- `docs/impl/10_DEPLOY_SUBMISSION.md`, `docs/INFRASTRUCTURE_AND_VERTEX_AI.md`
+- `docs/impl/18_CHAT_SESSION_PERSISTENCE.md`, `docs/impl/19_PREDICTIVE_BIOMEDICAL_RAG.md`
+- `README.md`, `AGENTS.md`, `PENDING.md`, `LASTCONTEXT.md`
 
 ## Decisions
 
-- Separated `cloud_run_service_name = "tangohorizon-api"` from `service_name = "tango-horizon"` in Terraform so the existing `tango-horizon-sa` Service Account, `tango-horizon` Artifact Registry repo, and Secret Manager secrets remain intact without replacement.
-- Configured `vercel.json` to deploy `web-test-3d/dist` (with `../web/public` static assets) to `https://tangohorizon.vercel.app` while `web/` is completed by the frontend team; switching to `web/dist` later only requires updating `buildCommand` and `outputDirectory` in `vercel.json`.
-- Kept `docs/impl/16_ESCALATED_MODEL_VOTING.md` and `docs/impl/17_MULTITURN_VOICE_MEMORY.md` as documented backlog plans (`B16`, `B17`) without modifying runtime code.
+- Kept `B18` and `B19` as documented backlog plans in `PENDING.md` without modifying runtime code until user review.
+- Designed `B18` as client-first storage (`IndexedDB` / `localStorage`) so `server/` stays stateless with `--min-instances 1 --max-instances 1`.
+- Designed `B19` so personal medical baselines can only tighten (never relax) `NASA-STD-3001` safety ceilings and deterministic `@th/shared` calculations compute all predictive slopes/scores before RAG retrieval.
 
 ## State the work was left in
 
-- Cloud Run (`https://tangohorizon-api-yuhr7hkc7q-uc.a.run.app`) and Vercel (`https://tangohorizon.vercel.app`) are live and connected; `B8` is complete and removed from `PENDING.md`.
-- All changes are on branch `feat/b8-deploy-cloudrun-vercel` with atomic commits and a PR opened to `main`.
-- Only `B15` (final `README.md` tables + final deploy once `web/` is merged + `submission` tag) remains blocking in `PENDING.md`, alongside optional backlog plans `B16` and `B17`.
+- All documentation updates and future plans are committed on `docs/missing-plans-and-deploy-sync` with a Pull Request opened to `main`.
+- `B15` (final `README.md` tables + final deploy once `web/` is merged + `submission` tag) remains blocking in `PENDING.md`, alongside backlog plans `B16`–`B19`.
