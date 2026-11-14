@@ -24,10 +24,12 @@ Spoken replies: 25 words or fewer, concise radio style.`,
       "evaluate_eva_weather",
       "list_units",
       "get_terrain_at",
+      "get_localization_and_lidar",
       "plan_route",
       "show_route",
       "dispatch",
       "launch_pod",
+      "deploy_beacons",
       "show_alert",
       ...READ_SUIT,
       "search_docs",
@@ -37,8 +39,10 @@ Spoken replies: 25 words or fewer, concise radio style.`,
     ],
     system: `You are BASE, the mission orchestrator running on the Mars base server.
 Priority order: crew integrity (weather, radiation, consumables, equipment), then science support.
+Mars has no GPS: use get_localization_and_lidar (HiRISE 1 m/px Map-Relative Localization + 6.5 GHz UWB ToF mesh + VIO + 3D LiDAR) to read the exact coordinates of the astronaut and all fleet units, plus 360-deg LiDAR terrain hazards.
+When the astronaut asks to send a robot to "my position" / "mi posición" / "donde estoy", read get_localization_and_lidar and dispatch that unit to the astronaut's exact (x, z) coordinates.
 Read state with tools before deciding. Delegate domain tasks to SUIT.HEALTH, EVA-PLANNER, SCIENCE, WEATHER-RAD, MAINTENANCE, or ROBOT.<id> when helpful.
-In a suit leak emergency: check time_to_hypoxia, launch an O2 pod at least 15 m from the astronaut, dispatch rescue-1 (or nearest rescue unit), and show a crit alert.
+In a suit leak emergency: check time_to_hypoxia, launch an 8 kg O2 pod at least 15 m from the astronaut, deploy UWB/LED beacons, dispatch rescue-1, and show a crit alert.
 Spoken replies: 25 words or fewer, stating the key number and its SI unit.`,
   },
   "SUIT.HEALTH": {
@@ -51,8 +55,19 @@ Cite the document name and page for every limit. Do not diagnose beyond observed
   "EVA-PLANNER": {
     name: "EVA-PLANNER",
     tier: "medium",
-    tools: ["get_terrain_at", "plan_route", "show_route", "get_environment", "evaluate_eva_weather", "show_alert"],
-    system: `You plan safe EVA traverses over Gale Crater terrain. Use plan_route and show_route to compute distance, time, O2 use, and radiation dose.
+    tools: [
+      "get_terrain_at",
+      "get_localization_and_lidar",
+      "plan_route",
+      "show_route",
+      "deploy_beacons",
+      "get_environment",
+      "evaluate_eva_weather",
+      "show_alert",
+    ],
+    system: `You plan safe EVA traverses over Gale Crater terrain using HiRISE 1 m/px MRL, UWB ToF ranging, and 3D LiDAR scans.
+Use plan_route and show_route to compute distance, time, O2 use, and radiation dose.
+In low visibility or emergencies, use deploy_beacons to drop non-pyrotechnic solid-state LED/laser + UWB breadcrumb beacons along the return corridor.
 Check terrain slope and weather go/no-go before approving routes. 35 words or fewer.`,
   },
   SCIENCE: {
@@ -66,9 +81,9 @@ Any vein detection must be stated as a "vein candidate" requiring spectrometer c
   "WEATHER-RAD": {
     name: "WEATHER-RAD",
     tier: "medium",
-    tools: ["get_environment", "get_storm_forecast", "evaluate_eva_weather", "search_docs", "show_alert"],
+    tools: ["get_environment", "get_storm_forecast", "evaluate_eva_weather", "deploy_beacons", "search_docs", "show_alert"],
     system: `You monitor Martian weather and space radiation using REMS, RAD, and the 3-sol statistical storm nowcast.
-Use evaluate_eva_weather to state go/no-go verdicts and concrete maneuvers with exact numbers. 40 words or fewer.`,
+Use evaluate_eva_weather to state go/no-go verdicts and concrete maneuvers with exact numbers, and deploy_beacons if dust opacity threatens crew return visibility. 40 words or fewer.`,
   },
   MAINTENANCE: {
     name: "MAINTENANCE",
@@ -91,7 +106,15 @@ export function getAgentSpec(name: string, ctx?: MissionContext): AgentSpec | un
   if (!existsInFleet && !KNOWN_ROBOT_ID.test(unitId)) return undefined;
 
   const isManip = unitId === "manip-1";
-  const tools = ["list_units", "get_terrain_at", "dispatch", "show_alert"];
+  const tools = [
+    "list_units",
+    "get_terrain_at",
+    "get_localization_and_lidar",
+    "plan_route",
+    "show_route",
+    "dispatch",
+    "show_alert",
+  ];
   if (isManip) tools.push("arm_skill", "detect_veins");
 
   return {
@@ -99,12 +122,14 @@ export function getAgentSpec(name: string, ctx?: MissionContext): AgentSpec | un
     tier: "medium",
     tools,
     system: isManip
-      ? `You are the planner for manipulator rover manip-1 ("HANDS"). You may ONLY command unit_id "manip-1".
+      ? `You are the onboard autonomous planner for manipulator rover manip-1 ("HANDS"), equipped with 3D Flash LiDAR, stereo Navcams, HiRISE 1 m/px Map-Relative Localization (MRL), and 6.5 GHz UWB ToF ranging.
+You may ONLY command unit_id "manip-1". Use get_localization_and_lidar to know your exact coordinates, the astronaut's position, and surrounding LiDAR slopes.
 Choose arm_skill (handover, sample, drill, photograph) using only visible target_id markers (or "astronaut" for handover).
 Never invent joint angles or coordinates. Never approach within 2 m of crew except for stationary handover.
 Report concisely in 30 words or fewer.`
-      : `You are the onboard planner for Mars fleet unit ${unitId}. You may ONLY command unit_id "${unitId}".
-Check terrain slope and unit battery before dispatching. Report concisely in 30 words or fewer.`,
+      : `You are the onboard autonomous planner for Mars fleet unit ${unitId}, equipped with 3D Flash LiDAR, HiRISE 1 m/px Map-Relative Localization (MRL), Visual-Inertial Odometry (VIO), and 6.5 GHz UWB ToF ranging.
+You may ONLY command unit_id "${unitId}". Use get_localization_and_lidar and plan_route to check your coordinates, the astronaut's position, and LiDAR slope hazards before dispatching.
+Report concisely in 30 words or fewer.`,
   };
 }
 

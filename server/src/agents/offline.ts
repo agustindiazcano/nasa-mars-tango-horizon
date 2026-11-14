@@ -1,6 +1,7 @@
-import { ruleCheck } from "./guardian.js";
+import { MAX_SLOPE, ruleCheck } from "./guardian.js";
 import { callTool, missionScope, startMcpServers } from "./tools/mcp.js";
 import { TOOLS } from "./tools/registry.js";
+import { nearestSafePoint } from "./tools/terrainData.js";
 import type { Action, Lang, MissionContext, ToolDef, TraceEvent } from "./types.js";
 
 export interface OfflineResult {
@@ -63,7 +64,21 @@ function isEs(lang: Lang): boolean {
   return lang === "es";
 }
 
-function parseSiteTarget(q: string): { x: number; z: number; label: string } {
+function parseSiteTarget(q: string, ctx?: MissionContext): { x: number; z: number; label: string } {
+  if (
+    ctx &&
+    /(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here)(?=$|\s|[.,;!?])/i.test(
+      q,
+    )
+  ) {
+    const ax = Math.round(ctx.astronaut.x);
+    const az = Math.round(ctx.astronaut.z);
+    return {
+      x: ax,
+      z: az,
+      label: ctx.lang === "es" ? `tu posición (${ax}, ${az})` : `your position (${ax}, ${az})`,
+    };
+  }
   const numMatch = q.match(/(?:sitio|site|estaci[oó]n|station|s)\s*[-#]?\s*(1|2|3|4|uno|one|dos|two|tres|three|cuatro|four)/i);
   if (numMatch) {
     const word = numMatch[1].toLowerCase();
@@ -129,7 +144,21 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     proposeAction("show_alert", { level: "crit", text: alertText.slice(0, 140) }, ctx, caller, actions, trace);
     proposeAction(
       "launch_pod",
-      { target_x: Math.round(ctx.astronaut.x + 25), target_z: Math.round(ctx.astronaut.z), payload: "o2" },
+      {
+        target_x: Math.round(ctx.astronaut.x + 25),
+        target_z: Math.round(ctx.astronaut.z),
+        payload: "full_life_support",
+        mass_kg: 8.0,
+        breakdown_kg: {
+          o2_copv_total_kg: 4.0,
+          o2_usable_gas_kg: 1.0,
+          co2_scrubber_lioh_kg: 1.2,
+          battery_thermal_pack_kg: 1.0,
+          suit_breach_patch_kit_kg: 0.35,
+          aeroshell_chute_beacon_kg: 1.45,
+        },
+        chute_cda_m2: 18.0,
+      },
       ctx,
       caller,
       actions,
@@ -139,6 +168,14 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     const rescueUnit =
       ctx.fleet.find((u) => u.id === "rescue-1") ??
       ctx.fleet.find((u) => u.kind === "rescue" || u.kind.startsWith("rover"));
+    const shelterX = rescueUnit ? Math.round(rescueUnit.x) : 0;
+    const shelterZ = rescueUnit ? Math.round(rescueUnit.z) : 0;
+    const beaconTool = toolByName("deploy_beacons");
+    const beaconProposal = (await missionScope.run({ ctx, caller }, () =>
+      beaconTool.run({ to_x: shelterX, to_z: shelterZ, mode: "auto", spacing_m: 50 }, ctx, caller),
+    )) as Action;
+    proposeAction("deploy_beacons", beaconProposal.args, ctx, caller, actions, trace);
+
     if (rescueUnit) {
       proposeAction(
         "dispatch",
@@ -158,12 +195,39 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     const critS = hypoxia?.toCriticalS !== undefined ? Math.round(hypoxia.toCriticalS) : null;
     const speech = es
       ? critS !== null
-        ? `Emergencia: crítico en ${critS} s. Cápsula O2 lanzada a 25 m y ${rescueUnit?.id ?? "rescate"} en camino.`
-        : `Emergencia activada. Cápsula O2 lanzada a 25 m y ${rescueUnit?.id ?? "rescate"} despachado.`
+        ? `Emergencia: crítico en ${critS} s. Pod de 8 kg (4 kg COPV O2, 1.2 kg LiOH, parche) lanzado a 25 m, balizas UWB/LED desplegadas y ${rescueUnit?.id ?? "rescate"} en camino.`
+        : `Emergencia activada. Pod de 8 kg lanzado a 25 m, sendero de balizas UWB/LED activo y ${rescueUnit?.id ?? "rescate"} despachado.`
       : critS !== null
-        ? `Emergency: critical in ${critS} s. O2 pod launched 25 m away and ${rescueUnit?.id ?? "rescue"} dispatched.`
-        : `Emergency active. O2 pod launched 25 m away and ${rescueUnit?.id ?? "rescue"} dispatched.`;
+        ? `Emergency: critical in ${critS} s. 8 kg pod (4 kg O2 COPV, 1.2 kg LiOH, patch) launched 25 m away, UWB/LED beacons deployed, and ${rescueUnit?.id ?? "rescue"} dispatched.`
+        : `Emergency active. 8 kg pod launched 25 m away, UWB/LED breadcrumb beacons deployed, and ${rescueUnit?.id ?? "rescue"} dispatched.`;
     return { speech, actions, trace, route };
+  }
+
+  // 1b. Non-pyrotechnic electronic breadcrumb beacons / pathfinder flares
+  if (/\b(bengala|flare|baliza|beacon|breadcrumb|migas|sendero luminoso|camino de luz|radiofaro|uwb)\b/i.test(q)) {
+    const caller = "EVA-PLANNER";
+    const route = ["SUIT.VOICE-EXEC", "BASE", caller];
+    trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
+    trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
+
+    const target = parseSiteTarget(q, ctx);
+    const toX = /\b(base|hab|refugio|shelter)\b/i.test(q) ? 0 : target.x;
+    const toZ = /\b(base|hab|refugio|shelter)\b/i.test(q) ? 0 : target.z;
+    const beaconTool = toolByName("deploy_beacons");
+    const beaconProposal = (await missionScope.run({ ctx, caller }, () =>
+      beaconTool.run({ to_x: toX, to_z: toZ, mode: "auto", spacing_m: 50 }, ctx, caller),
+    )) as Action;
+    const act = proposeAction("deploy_beacons", beaconProposal.args, ctx, caller, actions, trace);
+    const count = Array.isArray(act.args.beacons) ? act.args.beacons.length : 6;
+    const modeStr = act.args.mode === "drone_drop" ? (es ? "dron" : "drone") : (es ? "cápsula balística" : "ballistic canister");
+    return {
+      speech: es
+        ? `Desplegadas ${count} balizas electrónicas LED 505/615 nm + radiofaro UWB 6.5 GHz (${act.args.total_payload_kg} kg) vía ${modeStr} hacia (${toX}, ${toZ}).`
+        : `Deployed ${count} solid-state 505/615 nm LED + 6.5 GHz UWB breadcrumb beacons (${act.args.total_payload_kg} kg) via ${modeStr} to (${toX}, ${toZ}).`,
+      actions,
+      trace,
+      route,
+    };
   }
 
   // 2. Manipulator arm skills (manip-1 / "Hands")
@@ -277,7 +341,7 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
-    const target = parseSiteTarget(q);
+    const target = parseSiteTarget(q, ctx);
     const res = await execRead("plan_route", { to_x: target.x, to_z: target.z, speed_ms: 1.0 }, ctx, caller, trace);
     if (!res?.reachable) {
       return {
@@ -421,13 +485,38 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     };
   }
 
-  // 10. Fleet dispatch
-  if (/\b(envia|envía|manda|send|dispatch|despacha|mueve|move|rover)\b/i.test(q)) {
+  // 10. Fleet dispatch & Mars MRL/UWB/LiDAR localization
+  if (/(?:^|\s)(envia|envía|manda|mandá|send|dispatch|despacha|mueve|move|rover|ven[ií]|come|localiza|lidar|ubicaci[oó]n|coordenada)/i.test(q)) {
     const caller = "BASE";
-    const route = ["SUIT.VOICE-EXEC", "BASE"];
-    trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
-
     const unitId = parseUnitId(q, ctx);
+    const robotAgent = unitId ? `ROBOT.${unitId}` : "BASE";
+    const route = unitId ? ["SUIT.VOICE-EXEC", "BASE", robotAgent] : ["SUIT.VOICE-EXEC", "BASE"];
+    trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
+    if (unitId) {
+      trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: robotAgent } });
+    }
+
+    const loc = await execRead(
+      "get_localization_and_lidar",
+      unitId ? { unit_id: unitId } : {},
+      ctx,
+      robotAgent,
+      trace,
+    );
+
+    if (/\b(localiza|lidar|d[oó]nde est[aá]|where is|ubicaci[oó]n|coordenada)\b/i.test(q) && !/\b(envia|envía|manda|mandá|send|dispatch|despacha|mueve|move|ven[ií]|come)\b/i.test(q)) {
+      const a = loc.astronaut;
+      const u = unitId ? loc.fleet?.find((f: any) => f.id === unitId) : loc.fleet?.[0];
+      return {
+        speech: es
+          ? `MRL HiRISE + UWB 6.5 GHz + LiDAR: astronauta en (${a.x}, ${a.z}) m (${a.lat_deg}°, ${a.lon_e_deg}°E); ${u?.id ?? "flota"} a ${u?.distance_to_astronaut_m ?? 0} m.`
+          : `HiRISE MRL + 6.5 GHz UWB + LiDAR: astronaut at (${a.x}, ${a.z}) m (${a.lat_deg}°, ${a.lon_e_deg}°E); ${u?.id ?? "fleet"} ${u?.distance_to_astronaut_m ?? 0} m away.`,
+        actions,
+        trace,
+        route,
+      };
+    }
+
     if (!unitId) {
       return {
         speech: es ? "No hay unidades disponibles en la flota." : "No fleet units available.",
@@ -436,12 +525,23 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
         route,
       };
     }
-    const target = parseSiteTarget(q);
+    const target = parseSiteTarget(q, ctx);
+    const unitObj = ctx.fleet.find((u) => u.id === unitId);
+    const maxSlope = unitObj ? (MAX_SLOPE[unitObj.kind] ?? 20) : 20;
+    const safeTarget = nearestSafePoint(target.x, target.z, maxSlope);
+    const rPlan = await execRead(
+      "plan_route",
+      { unit_id: unitId, to_x: safeTarget.x, to_z: safeTarget.z, speed_ms: 1.2 },
+      ctx,
+      robotAgent,
+      trace,
+    );
+    proposeAction("show_route", { to_x: safeTarget.x, to_z: safeTarget.z }, ctx, robotAgent, actions, trace);
     const act = proposeAction(
       "dispatch",
-      { unit_id: unitId, x: target.x, z: target.z, task: "goto" },
+      { unit_id: unitId, x: safeTarget.x, z: safeTarget.z, task: "goto" },
       ctx,
-      caller,
+      robotAgent,
       actions,
       trace,
     );
@@ -455,10 +555,11 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
         route,
       };
     }
+    const distInfo = rPlan?.distance_m ? ` (${rPlan.distance_m} m, LiDAR + MRL HiRISE OK)` : "";
     return {
       speech: es
-        ? `Despachando ${unitId} hacia (${target.x}, ${target.z}).`
-        : `Dispatching ${unitId} to (${target.x}, ${target.z}).`,
+        ? `Despachando ${unitId} hacia ${target.label}${distInfo}.`
+        : `Dispatching ${unitId} to ${target.label}${distInfo}.`,
       actions,
       trace,
       route,

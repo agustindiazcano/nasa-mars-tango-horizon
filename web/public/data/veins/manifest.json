@@ -1,0 +1,170 @@
+{
+  "model": "tango-horizon-veins-v1 (dinov2-small-vits14)",
+  "disclaimer": "Visual mineral-vein candidate signature only; mineral identity (e.g., calcium sulfate) requires spectrometer confirmation (ChemCam/CheMin heritage). Trained on real Curiosity Mastcam/MAHLI photographs only; never apply to synthetic 3D viewer renders.",
+  "provenance": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1",
+    "api_url": "https://mars.nasa.gov/api/v1/raw_image_items/",
+    "ai4mars_checked": "Zenodo 15995036 (Swan et al., 2022, CC-BY-4.0) checked; lacks mineral-vein class so MSL Mastcam/MAHLI frames were curated and visually audited.",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.658, roc_auc=0.845, p=0.0020, n=117"
+  },
+  "validation": {
+    "n_images": 117,
+    "n_positive": 41,
+    "n_negative": 76,
+    "n_sols": 22,
+    "n_splits": 5,
+    "feature_backend": "dinov2-small-vits14",
+    "feature_dim": 384,
+    "classifier": "StandardScaler + LogisticRegression(C=0.5, class_weight='balanced')",
+    "validation": "GroupKFold grouped by sol",
+    "precision": 0.7941,
+    "recall": 0.6585,
+    "f1": 0.72,
+    "roc_auc": 0.8453,
+    "pr_auc": 0.7961,
+    "baseline_positive_rate": 0.3504,
+    "n_permutations": 500,
+    "permutation_p_value": 0.001996,
+    "null_auc_mean": 0.4925,
+    "null_auc_std": 0.071
+  },
+  "images": [
+    {
+      "waypoint_id": "wp-1",
+      "image": "0925ML0040680180402771E01_DXXX.jpg",
+      "heatmap": "0925ML0040680180402771E01_DXXX_heat.png",
+      "sol": 925,
+      "instrument": "MAST_LEFT",
+      "vein_probability": 0.864,
+      "peak": {
+        "u": 0.141,
+        "v": 0.016,
+        "score": 1.0
+      },
+      "classification": "vein_candidate",
+      "image_credit": "NASA/JPL-Caltech/MSSS",
+      "nasa_url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00925/mcam/0925ML0040680180402771E01_DXXX.jpg",
+      "note": "Traverse waypoint 1: light-toned mineral vein network (Sol 925, Garden City)"
+    },
+    {
+      "waypoint_id": "wp-2",
+      "image": "0170ML0009051090104788E01_DXXX.jpg",
+      "heatmap": "0170ML0009051090104788E01_DXXX_heat.png",
+      "sol": 170,
+      "instrument": "MAST_LEFT",
+      "vein_probability": 0.972,
+      "peak": {
+        "u": 0.141,
+        "v": 0.484,
+        "score": 1.0
+      },
+      "classification": "vein_candidate",
+      "image_credit": "NASA/JPL-Caltech/MSSS",
+      "nasa_url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00170/mcam/0170ML0009051090104788E01_DXXX.jpg",
+      "note": "Traverse waypoint 2: Sheepbed fractured mudstone outcrop (Sol 170)"
+    },
+    {
+      "waypoint_id": "wp-3",
+      "image": "1190ML0053920190502837E01_DXXX.jpg",
+      "heatmap": "1190ML0053920190502837E01_DXXX_heat.png",
+      "sol": 1190,
+      "instrument": "MAST_LEFT",
+      "vein_probability": 0.048,
+      "peak": {
+        "u": 0.984,
+        "v": 0.047,
+        "score": 0.974
+      },
+      "classification": "low_probability",
+      "image_credit": "NASA/JPL-Caltech/MSSS",
+      "nasa_url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/01190/mcam/1190ML0053920190502837E01_DXXX.jpg",
+      "note": "Traverse waypoint 3: Bagnold Dunes basaltic sand ripples (Sol 1190, negative control)"
+    },
+    {
+      "waypoint_id": "site-1",
+      "image": "0931ML0040940390402909C00_DXXX.jpg",
+      "heatmap": "0931ML0040940390402909C00_DXXX_heat.png",
+      "sol": 931,
+      "instrument": "MAST_LEFT",
+      "vein_probability": 0.0,
+      "peak": {
+        "u": 0.016,
+        "v": 0.016,
+        "score": 0.946
+      },
+      "classification": "low_probability",
+      "image_credit": "NASA/JPL-Caltech/MSSS",
+      "nasa_url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00931/mcam/0931ML0040940390402909C00_DXXX.jpg",
+      "note": "Science station S1 (Bradbury Regolith): pebbly regolith without veins (Sol 931)"
+    },
+    {
+      "waypoint_id": "site-2",
+      "image": "0925MR0040680180501725E01_DXXX.jpg",
+      "heatmap": "0925MR0040680180501725E01_DXXX_heat.png",
+      "sol": 925,
+      "instrument": "MAST_RIGHT",
+      "vein_probability": 0.95,
+      "peak": {
+        "u": 0.109,
+        "v": 0.016,
+        "score": 1.0
+      },
+      "classification": "vein_candidate",
+      "image_credit": "NASA/JPL-Caltech/MSSS",
+      "nasa_url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00925/mcam/0925MR0040680180501725E01_DXXX.jpg",
+      "note": "Science station S2 (Boxwork Ridge Alpha): branching bright ridge veins (Sol 925)"
+    },
+    {
+      "waypoint_id": "site-3",
+      "image": "0929MR0040870190501785E01_DXXX.jpg",
+      "heatmap": "0929MR0040870190501785E01_DXXX_heat.png",
+      "sol": 929,
+      "instrument": "MAST_RIGHT",
+      "vein_probability": 0.064,
+      "peak": {
+        "u": 0.922,
+        "v": 0.016,
+        "score": 1.0
+      },
+      "classification": "low_probability",
+      "image_credit": "NASA/JPL-Caltech/MSSS",
+      "nasa_url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00929/mcam/0929MR0040870190501785E01_DXXX.jpg",
+      "note": "Science station S3 (Sulfate Vein Trough): raised mineral vein ledge (Sol 929)"
+    },
+    {
+      "waypoint_id": "hands-target",
+      "image": "0925MR0040700000501727E01_DXXX.jpg",
+      "heatmap": "0925MR0040700000501727E01_DXXX_heat.png",
+      "sol": 925,
+      "instrument": "MAST_RIGHT",
+      "vein_probability": 0.004,
+      "peak": {
+        "u": 0.141,
+        "v": 0.328,
+        "score": 1.0
+      },
+      "classification": "low_probability",
+      "image_credit": "NASA/JPL-Caltech/MSSS",
+      "nasa_url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00925/mcam/0925MR0040700000501727E01_DXXX.jpg",
+      "note": "Manipulator rover drill candidate: bright vein outcrop beside float rock (Sol 925)"
+    },
+    {
+      "waypoint_id": "garden-city",
+      "image": "0929ML0040870190402854E01_DXXX.jpg",
+      "heatmap": "0929ML0040870190402854E01_DXXX_heat.png",
+      "sol": 929,
+      "instrument": "MAST_LEFT",
+      "vein_probability": 0.973,
+      "peak": {
+        "u": 0.234,
+        "v": 0.016,
+        "score": 1.0
+      },
+      "classification": "vein_candidate",
+      "image_credit": "NASA/JPL-Caltech/MSSS",
+      "nasa_url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00929/mcam/0929ML0040870190402854E01_DXXX.jpg",
+      "note": "Garden City reference outcrop: dense intersecting mineral veins (Sol 929)"
+    }
+  ]
+}

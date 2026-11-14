@@ -1,6 +1,6 @@
 # Tango Horizon: AI Systems for EVA and Mars Exploration
 
-**Autonomous Multi-Agent AI Systems & Run-Time Assurance for Extravehicular Activities (EVA)**
+**Autonomous Multi-Agent AI Systems for Extravehicular Activities (EVA)**
 
 ## Team
 

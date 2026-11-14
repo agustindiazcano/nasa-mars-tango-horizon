@@ -1,0 +1,53 @@
+{
+  "weh_min": 3.1406,
+  "weh_max": 4.5024,
+  "interval_width_max": 1.7439,
+  "target_name": "thermal_epithermal_net_ratio",
+  "target_label": "Relative Hydrogen Indicator (DAN passive CTN/CETN net ratio)",
+  "units": "dimensionless ratio (not absolute wt% H2O)",
+  "signal_tier": "validated",
+  "validation": {
+    "n_points": 1567,
+    "n_spatial_blocks": 36,
+    "n_folds": 5,
+    "block_m": 500,
+    "r2_blocked_cv": 0.36377753185488826,
+    "spearman_blocked_cv": 0.5822558091898575,
+    "spearman_pvalue": 6.845117785707937e-143,
+    "mae_model": 0.3695416050559174,
+    "mae_baseline_mean": 0.4860259508953266,
+    "target_quantity": "thermal_epithermal_net_ratio",
+    "target_units": "dimensionless ratio",
+    "y_min": 1.4005231631654826,
+    "y_max": 5.565948190783872,
+    "y_mean": 3.3259596188899025,
+    "y_std": 0.6276158564185105,
+    "feature_importance": {
+      "elev": 0.5655304212918612,
+      "themis_day": 0.13899232263619982,
+      "img_mean": 0.05633613112831255,
+      "themis_night": 0.04206588358370425,
+      "crism_bd1900": 0.041267650413279865,
+      "northness": 0.038084453719193646,
+      "img_std": 0.03352718671531541,
+      "curvature": 0.02368837874292129,
+      "slope": 0.021072295271317175,
+      "crism_sindex": 0.020121704835736283,
+      "roughness": 0.019313571662158475
+    }
+  },
+  "provenance": {
+    "source": "Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC)",
+    "product_id": "tango-horizon-hydration-v1",
+    "datasets": [
+      "MSL-M-DAN-3/4-RDR-V1.0",
+      "mro_crism_mtrdr (frt000058a3, frt0000b6f1, frt00021c92, frt0000c518, frt0002037a, hrl0000baba, hrl0000d21c, hrl0000d349, hrl0001233b)",
+      "mc23_aeolis_nir",
+      "mc23_aeolis_dir",
+      "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W"
+    ],
+    "transform": "500 m spatial-block GroupKFold CV: R2=0.364, Spearman=0.582, MAE=0.370 vs baseline 0.486 (n=1567, blocks=36)",
+    "limitations": "Predicts near-surface mineral-bound hydrogen indicator (passive thermal/epithermal neutron ratio) in the top ~0.5 m, not liquid water or shallow ice. Limited to orbital predictor resolution (CRISM 18-36 m/px, CTX 20 m/px, THEMIS 100 m/px).",
+    "retrieved": "2026-11-14"
+  }
+}

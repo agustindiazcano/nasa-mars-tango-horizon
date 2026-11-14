@@ -80,5 +80,26 @@
     "url": "https://atmos.nmsu.edu/PDS/data/mslrem_1001/DATA/SOL_02004_02127/",
     "transform": "8-sol 2018 global dust storm sequence; relative opacity tau derived from REMS noon UV_ABC drop relative to clear baseline.",
     "retrieved": "2026-11-14"
+  },
+  "terrain/hydration_1024.png": {
+    "source": "Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC)",
+    "product_id": "tango-horizon-hydration-v1",
+    "url": "https://pds-geosciences.wustl.edu/msl/msl-m-dan-3_4-rdr-v1/msldan_1000/data/",
+    "transform": "500 m spatial-block GroupKFold CV: R2=0.364, Spearman=0.582, MAE=0.370 vs baseline 0.486 (n=1567, blocks=36)",
+    "retrieved": "2026-11-14"
+  },
+  "veins/index.json": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1",
+    "url": "https://mars.nasa.gov/api/v1/raw_image_items/",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.659, roc_auc=0.845, p=0.0020, n=117",
+    "retrieved": "2026-11-14"
+  },
+  "env/storm_forecast.json": {
+    "source": "NASA/CAB PDS Atmospheres MSL REMS MODRDR V1.0 (mslrem_1001) + MSL Mastcam-100 Optical Depths (msl_mmm_tau_bundle, Lemmon 2024)",
+    "product_id": "mslrem_1001 (Sols 1-3953) + msl_tau_880.csv (doi:10.17189/fjh0-2978)",
+    "url": "https://atmos.nmsu.edu/PDS/review/PDS4/msl_mmm_tau_bundle/data_derived/msl_tau_880.csv",
+    "transform": "Quantile HistGradientBoostingRegressor (q=0.1,0.5,0.9; horizons h=1,2,3 sols) with training-only LOMO-CV CQR calibration on REMS S1/S2 pressure-tide harmonics, daily ranges, noon UV, Ls, and 1/3/7-sol lags; Mars Year 34 held out entirely.",
+    "retrieved": "2026-11-14"
   }
 }

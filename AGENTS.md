@@ -33,18 +33,18 @@ Applies to everything you write: chat replies, reasoning, documents, code commen
 
 Several people and several agents work on this project at the same time.
 
-Time is limited: work directly on `main`. No task branches or worktrees unless the user asks for them.
+**Never push directly to `main`. Always work on a task branch and open a Pull Request (PR) to `main`, unless the human explicitly instructs otherwise.**
 
-1. Before editing, run `git branch --show-current` and `git status`. Confirm you are on `main`.
-2. Run `git pull --rebase origin main` before starting and before each push, to pick up other people's and agents' commits.
-3. Commit small and push to `origin main` right after each task.
+1. Before editing, run `git status` and `git pull --rebase origin main`, then create or switch to a task branch (`git checkout -b <branch-name>`).
+2. Commit small on your branch, push the branch (`git push -u origin <branch-name>`), and open a Pull Request to `main` (`gh pr create --base main`).
+3. Only push directly to `origin main` if the human explicitly tells you to do so for that session or task.
 4. On a conflict, resolve it without discarding the other side's changes. Ask the user if unsure.
 
 ## Mandatory rule: when a task is finished
 
 1. Update `PENDING.md` (and `PENDING_FRONT.md` if it is a frontend task) and `LASTCONTEXT.md`.
-2. Commit the changes for that task, including those status files (one commit per task, with a message that describes it).
-3. Push to `origin main`.
+2. Commit the changes for that task on your branch, including those status files (one commit per task, with a message that describes it).
+3. Push your branch to `origin` and open/update a PR to `main` (unless the human explicitly instructed to push to `main`).
 4. **Ask the user for permission** before moving on to the next task. Do not start another task without their confirmation.
 
 ## Mandatory rule: no project status in the README

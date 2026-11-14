@@ -73,6 +73,44 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     }
   }
 
+  if (a.type === "deploy_beacons") {
+    const { mode, pyrotechnic, beacons, unit_id } = a.args as {
+      mode?: string;
+      pyrotechnic?: boolean;
+      beacons?: { x: number; z: number }[];
+      unit_id?: string;
+    };
+    if (pyrotechnic) {
+      return deny(
+        "Pyrotechnic flares are prohibited near 100% O2 EVA suits (NASA-STD-3001 V2 6002); use solid-state LED/UWB beacons only",
+      );
+    }
+    if (mode === "drone_drop") {
+      if (ctx.env.tau >= 1.8) {
+        return deny(
+          `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds 1.8 aircraft grounding limit; use ballistic_canister mode`,
+        );
+      }
+      if (unit_id) {
+        const drone = ctx.fleet.find((u) => u.id === unit_id);
+        if (drone && drone.battery < 0.15) {
+          return deny(`Drone ${unit_id} battery is below 15% for beacon deployment`);
+        }
+      }
+    }
+    if (mode === "ballistic_canister" && Array.isArray(beacons) && beacons.length > 0) {
+      const first = beacons[0];
+      const d = Math.hypot(first.x - ctx.astronaut.x, first.z - ctx.astronaut.z);
+      if (d < POD_KEEPOUT_M) {
+        return deny(
+          `First ballistic beacon is ${d.toFixed(0)} m from the astronaut; minimum keep-out is ${POD_KEEPOUT_M} m`,
+          "guard.pod_keepout",
+          { d: Math.round(d), min: POD_KEEPOUT_M },
+        );
+      }
+    }
+  }
+
   if (a.type === "arm_skill") {
     const { unit_id, skill, target_id } = a.args as {
       unit_id?: string;

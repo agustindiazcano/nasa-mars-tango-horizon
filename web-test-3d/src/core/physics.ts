@@ -170,8 +170,8 @@ export interface Delivery {
   maxHeightM: number;
 }
 
-export const DEFAULT_POD: Pod = { massKg: 3.0, cdA: 0.015 };
-export const DEFAULT_CHUTE: Chute = { cdA: 12.4, deployBelowM: 140, inflateS: 1.0 };
+export const DEFAULT_POD: Pod = { massKg: 8.0, cdA: 0.025 };
+export const DEFAULT_CHUTE: Chute = { cdA: 18.0, deployBelowM: 140, inflateS: 1.0 };
 export const DEFAULT_LAUNCHER: Launcher = { maxMuzzleSpeed: 90, tubeLengthM: 6, minElevDeg: 30, maxElevDeg: 70 };
 
 export const terminalSpeed = (massKg: number, rho: number, cdA: number): number =>
