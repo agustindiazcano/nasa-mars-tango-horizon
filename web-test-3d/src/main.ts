@@ -244,6 +244,60 @@ store.setHooks({
       "EVA-PLANNER",
     );
   },
+  onUnitAction: (unitId, action, args) => {
+    const unit = fleet.get(unitId);
+    if (!unit) return;
+    const here = { x: unit.object.position.x, z: unit.object.position.z };
+    const me = { x: astronaut.pos.x, z: astronaut.pos.z };
+    const dir: Record<string, [number, number]> = { north: [0, -1], south: [0, 1], east: [1, 0], west: [-1, 0] };
+    const nx = typeof args.x === "number" ? args.x : undefined;
+    const nz = typeof args.z === "number" ? args.z : undefined;
+    const target = nx !== undefined && nz !== undefined ? { x: nx, z: nz } : null;
+    const standOff = () => {
+      const d = Math.hypot(here.x - me.x, here.z - me.z) || 1;
+      return { x: me.x + ((here.x - me.x) / d) * 5, z: me.z + ((here.z - me.z) / d) * 5 };
+    };
+    const note = (text: string) => store.pushAlert("info", `${unitId}: ${text}`);
+    const go = (p: { x: number; z: number }, task: string, done?: string) =>
+      fleet.dispatchTo(unitId, p.x, p.z, task, done ? () => note(done) : undefined);
+    switch (action) {
+      case "takeoff":
+        go(here, "takeoff");
+        note(`airborne, climbing to ${args.altitude_m ?? 14} m`);
+        break;
+      case "land":
+        go(here, "land");
+        note("landing");
+        break;
+      case "photograph_area": {
+        const d = dir[String(args.heading ?? "")] ?? [0, 0];
+        go(target ?? { x: here.x + d[0] * 60, z: here.z + d[1] * 60 }, "photograph", "photo captured");
+        break;
+      }
+      case "hover_overwatch":
+        go(me, "overwatch", "overwatch on station above the astronaut");
+        break;
+      case "follow_astronaut":
+        go(standOff(), "follow", "in position, 5 m from the astronaut");
+        break;
+      case "deliver_supplies":
+        go(standOff(), "deliver", "supplies delivered at 5 m");
+        break;
+      case "return_to_base":
+        go({ x: 0, z: 0 }, "return", "back at base");
+        break;
+      case "survey_area":
+        go(target ?? me, "survey", "survey complete");
+        break;
+      case "hold_position":
+        go(here, "hold");
+        note("holding position");
+        break;
+      case "relay_comms":
+        go(target ?? me, "relay", "relay node online");
+        break;
+    }
+  },
   onArmSkill: (skill: ArmSkillId, targetId: string, item?: string) => {
     fleet.executeArmSkill(skill, targetId, astronaut.pos, astronaut.yaw, item);
   },
