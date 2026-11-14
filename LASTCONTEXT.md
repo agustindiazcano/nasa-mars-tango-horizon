@@ -7,21 +7,26 @@
 
 ## What was done
 
-- Read `BLUEPRINT.md`, `docs/EXECUTION_PLAN_ORDER.md`, and the implementation guides in `docs/impl/` (`02`, `04`, `06`, `07`, `08`, `09`, `11`, `12`, `13`, `15`).
-- Created `docs/3D_AND_VISUAL_PLAN.md` consolidating all 3D and visual tasks, specifications, shaders, terrain layers, cameras, actors, fleet, manipulator rover (`manip-1`), Mars base modules, GPU particle effects, HUD panels, interactive modals, phone remote UI, file paths, and acceptance criteria.
-- Listed `docs/3D_AND_VISUAL_PLAN.md` in the `Documents in docs/` table in `AGENTS.md`.
+- Created `docs/3D_AND_VISUAL_PLAN.md` consolidating all 3D and visual tasks, specifications, shaders, terrain layers, cameras, actors, fleet, manipulator rover (`manip-1`), Mars base modules, GPU particle effects, HUD panels, interactive modals, phone remote UI, file paths, and acceptance criteria from `BLUEPRINT.md`, `docs/EXECUTION_PLAN_ORDER.md`, and `docs/impl/*`.
+- Created `PENDING_FRONT.md` listing the frontend reference plans and the prioritized frontend task queue (`F1`–`F15`) for the `web/` workspace.
+- Updated `AGENTS.md`:
+  - Added `@PENDING_FRONT.md` to the mandatory pre-session reading rule and session memory rules.
+  - Added the `Workspace separation (Frontend vs. Backend)` section specifying that frontend works in `web/` (consuming `shared/`), backend in `server/`, and data pipeline scripts in `tools/`.
+  - Listed `PENDING_FRONT.md`, `web/`, `server/`, `shared/`, and `docs/3D_AND_VISUAL_PLAN.md` in the project files and document tables.
 
 ## Files touched
 
 - `docs/3D_AND_VISUAL_PLAN.md` (created)
-- `AGENTS.md` (updated document table)
+- `PENDING_FRONT.md` (created)
+- `AGENTS.md` (updated rules, workspace separation, and file tables)
 - `LASTCONTEXT.md` (updated)
 
 ## Decisions
 
-- Unified the 3D/visual requirements from both `BLUEPRINT.md` (6-layer spectral shader, 5 cameras, Sky-Crane Kevlar tether, LIBS, Casson bio-twin) and `docs/EXECUTION_PLAN_ORDER.md` + `docs/impl/*` (Three.js 512×512 displaced HiRISE mesh, curved CSS 3D HUD, `HudPointer`, `remote.html`, `manip-1` 4-DOF arm IK, Hydration Prospector layer, Storm Nowcaster fan chart, Vein Detector heatmap overlay, 20 base modules, provenance cards) into a single reference document mapped by execution step and priority.
+- Separated frontend task tracking into `PENDING_FRONT.md` scoped to `web/` so frontend and backend contributors/agents can work concurrently without conflicts.
+- Unified all 3D and visual specifications from `BLUEPRINT.md` and `docs/EXECUTION_PLAN_ORDER.md` into `docs/3D_AND_VISUAL_PLAN.md`.
 
 ## State the work was left in
 
-- `docs/3D_AND_VISUAL_PLAN.md` is complete and indexed in `AGENTS.md`.
-- The repository has no application code yet; implementation awaits starting the tasks in `PENDING.md` and `docs/EXECUTION_PLAN_ORDER.md`.
+- `docs/3D_AND_VISUAL_PLAN.md` and `PENDING_FRONT.md` are created and linked in `AGENTS.md`.
+- The repository has no application code yet; implementation awaits starting the tasks in `PENDING.md` and `PENDING_FRONT.md`.

@@ -5,14 +5,15 @@ Shared instructions for all coding agents (Claude Code, Gemini CLI, Codex, etc.)
 
 ## Mandatory rule: before every session
 
-**ALWAYS read `PENDING.md` and `LASTCONTEXT.md` before doing anything else in a session.** No exceptions, even if the requested task seems unrelated.
+**ALWAYS read `PENDING.md`, `PENDING_FRONT.md` and `LASTCONTEXT.md` before doing anything else in a session.** No exceptions, even if the requested task seems unrelated.
 
 @LASTCONTEXT.md
 @PENDING.md
+@PENDING_FRONT.md
 
-If your tool does not resolve the `@imports` above, open both files manually before answering.
+If your tool does not resolve the `@imports` above, open all three files manually before answering.
 
-Unless the user says otherwise, continue with the highest-priority task in `PENDING.md`.
+Unless the user says otherwise, continue with the highest-priority task in `PENDING.md` (or `PENDING_FRONT.md` for frontend sessions).
 
 ## Mandatory rule: language
 
@@ -41,18 +42,25 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 
 ## Mandatory rule: when a task is finished
 
-1. Update `PENDING.md` and `LASTCONTEXT.md`.
-2. Commit the changes for that task, including those two files (one commit per task, with a message that describes it).
+1. Update `PENDING.md` (and `PENDING_FRONT.md` if it is a frontend task) and `LASTCONTEXT.md`.
+2. Commit the changes for that task, including those status files (one commit per task, with a message that describes it).
 3. Push to `origin main`.
 4. **Ask the user for permission** before moving on to the next task. Do not start another task without their confirmation.
 
 ## Mandatory rule: no project status in the README
 
-**Never write project status in `README.md`**: no progress, roadmap, pending work, "work in progress" notes, or recent changes. Status belongs only in the status files (`PENDING.md`, `LASTCONTEXT.md`) and in dedicated documents.
+**Never write project status in `README.md`**: no progress, roadmap, pending work, "work in progress" notes, or recent changes. Status belongs only in the status files (`PENDING.md`, `PENDING_FRONT.md`, `LASTCONTEXT.md`) and in dedicated documents.
 
 ## Project
 
 `nasa-mars-tango-horizon` — <!-- TODO: describe in 1-2 lines the project goal, stack and commands (install, run, test) -->
+
+### Workspace separation (Frontend vs. Backend)
+
+- **Frontend (`web/`):** All frontend, 3D (Three.js), shaders, HUD, voice UI, and phone pointer (`remote.html`) work happens in the isolated `web/` directory (consuming shared types, physics, and i18n from `shared/`). Frontend plans and pending tasks are tracked in `PENDING_FRONT.md`.
+- **Backend (`server/`):** Fastify server, `/api/*` routes, `/ws/remote` relay, MCP servers, and agent orchestration (`GUARDIAN`).
+- **Shared (`shared/`):** Deterministic physics engine, shared TypeScript types, and i18n dictionaries imported by both `web/` and `server/`.
+- **Data pipeline (`tools/`):** Python scripts that process raw NASA/USGS files from `data/` into static assets under `web/public/data/`.
 
 ### Project files
 
@@ -60,6 +68,10 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 |---|---|
 | `BLUEPRINT.md` | Title: "AEGIS-MARS: Master Technical Architecture & Top 1% Global Winner Blueprint". The plan for the whole project. Read it before planning or starting a task. |
 | `NASA_APIS.md` | Title: "NASA APIs". NASA and USGS data sources: endpoints, auth, fields used, and the API validation report. Update it when a source is added or changed. |
+| `PENDING_FRONT.md` | Title: "Pending frontend tasks (`web/`)". Frontend reference plans and prioritized pending tasks for the `web/` workspace. |
+| `web/` | Frontend workspace (Vite + TypeScript + Three.js viewer, HUD, `index.html`, `remote.html`, and static processed datasets in `web/public/data/`). |
+| `server/` | Backend workspace (Fastify server, LLM/MCP agents, TTS proxy, WebSocket relay). |
+| `shared/` | Shared workspace (`@th/shared`: physics core, types, i18n). |
 | `data/` | Downloaded NASA/USGS data, one folder per group (`rover_photos`, `donki`, `horizons`, `orbits_comms`, `trek`, `topography`, `ai4mars`, `moxie`, `radiation`, `atmosphere`, `suits`, `medical`), plus `manifest.json` (download status) and `validation.json` (URL validation results). |
 | `docs/` | Project documents, listed below. |
 
@@ -90,13 +102,14 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 | File | Content | When to update |
 |---|---|---|
 | `LASTCONTEXT.md` | What was done last: summary of the previous session, decisions, and the state the work was left in | At the end of every session (overwritten, not accumulated) |
-| `PENDING.md` | List of pending tasks with priority | Whenever a task is completed, added or reprioritized |
+| `PENDING.md` | List of general/backend pending tasks with priority | Whenever a task is completed, added or reprioritized |
+| `PENDING_FRONT.md` | List of frontend (`web/`) plans and pending tasks with priority | Whenever a frontend task is completed, added or reprioritized |
 
 ### When a session ends
 
 1. Rewrite `LASTCONTEXT.md` with: date, what was done, files touched, decisions made and why, and the exact point where the work was left.
-2. Update `PENDING.md`: remove what is done, add what is new, reorder priorities.
-3. Do not keep in `LASTCONTEXT.md` anything that is already in `PENDING.md` (one is recent history, the other is what remains).
+2. Update `PENDING.md` and `PENDING_FRONT.md`: remove what is done, add what is new, reorder priorities.
+3. Do not keep in `LASTCONTEXT.md` anything that is already in `PENDING.md` or `PENDING_FRONT.md` (one is recent history, the others are what remains).
 
 ## Conventions
 
