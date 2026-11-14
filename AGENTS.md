@@ -55,7 +55,9 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 
 `nasa-mars-tango-horizon` (AEGIS-MARS / Tango Horizon) — Real-time 3D Mars surface mission operations simulator (Three.js WebGL2 at 60 FPS) over real NASA/USGS Gale Crater cartography, coupled with deterministic bioastronautics/physics (`@th/shared`), hands-free bilingual voice, phone-as-pointer WebSocket control, and a multi-agent AI hierarchy guarded by `GUARDIAN`.
 
-- **Commands:** `npm install` (install workspaces), `npm run dev` (run `web` on `:5173` and `server` on `:8080`), `npm run build` (build `shared`, `web`, `server`), `npm start` (production server on `:8080`), `npm test` (run Vitest unit tests in `shared`).
+- **Commands:**
+  - App & workspaces: `npm install` (install workspaces), `npm run dev` (run `web` on `:5173` and `server` on `:8080`), `npm run build` (build `shared`, `web`, `server`), `npm start` (production server on `:8080`), `npm test` (run Vitest unit tests in `shared`).
+  - GCP & Terraform (`nasa-tango-horizon`): `gcloud config set project nasa-tango-horizon`, `cd infra/terraform && terraform init && terraform plan && terraform apply`.
 
 ### Architecture: Frontend, Backend, Agents, MCP, RAG, and Deployment
 
@@ -88,7 +90,7 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 | `web/` | Frontend workspace (Vite + TypeScript + Three.js viewer, HUD, `index.html`, `remote.html`, and static processed datasets in `web/public/data/`). |
 | `server/` | Backend workspace (Fastify server, LLM/MCP agents, TTS proxy, WebSocket relay). |
 | `shared/` | Shared workspace (`@th/shared`: physics core, types, i18n). |
-| `infra/terraform/` | Terraform Infrastructure-as-Code for GCP project `nasa-tango-horizon` (APIs, `tango-horizon-sa`, IAM, Artifact Registry, Secret Manager, Cloud Run). |
+| `infra/terraform/` | Terraform Infrastructure-as-Code (`versions.tf`, `variables.tf`, `main.tf`, `outputs.tf`, `terraform.tfvars`) for GCP project `nasa-tango-horizon` (`291271901218`): APIs, `tango-horizon-sa`, IAM, Artifact Registry, Secret Manager, and Cloud Run. |
 | `data/` | Downloaded NASA/USGS data, one folder per group (`rover_photos`, `donki`, `horizons`, `orbits_comms`, `trek`, `topography`, `ai4mars`, `moxie`, `radiation`, `atmosphere`, `suits`, `medical`), plus `manifest.json` (download status) and `validation.json` (URL validation results). |
 | `docs/` | Project documents, listed below. |
 
