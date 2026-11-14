@@ -4,6 +4,7 @@
 
 - Agustin Diaz Cano
 - Baltazar Salerno
+- Milagros Sotelo
 
 ## AI Usage
 
@@ -13,6 +14,6 @@ All AI-generated output is reviewed by the team, who remain responsible for the 
 
 ## License
 
-Copyright (c) 2026 Agustin Diaz-Cano and Baltazar Salerno.
+Copyright (c) 2026 Agustin Diaz-Cano, Baltazar Salerno and Milagros Sotelo.
 
 This project is licensed under the [MIT License](LICENSE).

@@ -7,21 +7,23 @@
 
 ## What was done
 
-- Linked active `gcloud` CLI and Application Default Credentials (ADC) quota project to `nasa-tango-horizon` (`291271901218`).
-- Created and applied Terraform Infrastructure-as-Code in `infra/terraform/` (`versions.tf`, `variables.tf`, `main.tf`, `outputs.tf`, `terraform.tfvars`, `.terraform.lock.hcl`) against `nasa-tango-horizon` (17 resources provisioned).
-- Created `docs/INFRASTRUCTURE_AND_VERTEX_AI.md` and updated `docs/impl/05_SERVER.md`, `docs/impl/01_SCAFFOLD.md`, `docs/impl/10_DEPLOY_SUBMISSION.md`, and `.env.example` for the 3-provider LLM failover chain (`vertex` + `meta` + `gemini`) + `offline.ts`.
-- Updated `AGENTS.md` with the GCP/Terraform commands (`nasa-tango-horizon`), the 3-provider Vertex AI + Muse/Meta + Google AI Studio architecture, the `infra/terraform/` file entry, and `docs/INFRASTRUCTURE_AND_VERTEX_AI.md`.
+- Added Milagros Sotelo to the Team list and Copyright notice in `README.md` and `LICENSE`.
+- Previously in this session:
+  - Linked `gcloud` and ADC to `nasa-tango-horizon` (`291271901218`) and provisioned GCP infrastructure with Terraform in `infra/terraform/` (APIs, `tango-horizon-sa`, IAM, Artifact Registry, Secret Manager).
+  - Created `docs/3D_AND_VISUAL_PLAN.md`, `docs/INFRASTRUCTURE_AND_VERTEX_AI.md`, and `PENDING_FRONT.md`.
+  - Updated `AGENTS.md`, `.env.example`, `.gitignore`, and `docs/impl/01`, `05`, `10` for the 3-provider LLM failover (`vertex` + `meta` + `gemini`) + `offline.ts` and Cloud Run + Vercel architecture.
 
 ## Files touched
 
-- `AGENTS.md` (added GCP/Terraform commands, `infra/terraform/` details, and `docs/INFRASTRUCTURE_AND_VERTEX_AI.md`)
+- `README.md` (added Milagros Sotelo to Team and Copyright)
+- `LICENSE` (added Milagros Sotelo to Copyright)
 - `LASTCONTEXT.md` (updated)
 
 ## Decisions
 
-- Documented all `nasa-tango-horizon` GCP, Vertex AI, and Terraform commands and file paths directly in `AGENTS.md` so every coding agent session has immediate context.
+- Kept `README.md` and `LICENSE` copyright notices identical with all three team members (Agustin Diaz-Cano, Baltazar Salerno, Milagros Sotelo).
 
 ## State the work was left in
 
-- Base GCP infrastructure on `nasa-tango-horizon` is provisioned and documented in `AGENTS.md` and `docs/INFRASTRUCTURE_AND_VERTEX_AI.md`.
+- All documentation, team credits, and GCP/Terraform setup are committed and pushed to `origin/main`.
 - Next step is `B1` / `F1` (Step 1: Project scaffold in `docs/impl/01_SCAFFOLD.md`) upon user confirmation.
