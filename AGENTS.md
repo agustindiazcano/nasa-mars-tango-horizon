@@ -28,11 +28,23 @@ Applies to everything you write: chat replies, reasoning, documents, code commen
 - Do not use adjectives or adverbs that add no information.
 - Never use these words: "honest", "honestly", "rigorous" (or their forms and translations, e.g. "honesto", "honestamente", "riguroso").
 
+## Mandatory rule: branches and worktrees
+
+Several people and several agents work on this project at the same time.
+
+1. Never assume you can work on the current branch. Check the branch and its state first (`git branch --show-current`, `git status`, `git worktree list`).
+2. For every new task, create a new branch in a new worktree, based on the updated `main`:
+   `git fetch origin` then `git worktree add ../nasa-mars-tango-horizon-<task> -b <task> origin/main`
+3. Work only inside that worktree. Do not edit files in the main checkout or in another agent's worktree.
+4. After the commit and push, remove the worktree: `git worktree remove ../nasa-mars-tango-horizon-<task>`.
+
 ## Mandatory rule: when a task is finished
 
-1. Commit the changes for that task (one commit per task, with a message that describes it).
-2. Update `PENDING.md` and `LASTCONTEXT.md` and include them in that commit.
-3. **Ask the user for permission** before opening the PR and before moving on to the next task. Do not push, open a PR, or start another task without their confirmation.
+1. Update `PENDING.md` and `LASTCONTEXT.md`.
+2. Commit the changes for that task, including those two files (one commit per task, with a message that describes it).
+3. Push the task branch to `origin`.
+4. Remove the worktree used for the task.
+5. **Ask the user for permission** before opening the PR and before moving on to the next task. Do not open a PR or start another task without their confirmation.
 
 ## Mandatory rule: no project status in the README
 

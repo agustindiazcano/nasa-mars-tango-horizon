@@ -16,7 +16,8 @@
 - Added the mandatory rules in `AGENTS.md`:
   - Always read `PENDING.md` and `LASTCONTEXT.md` before every session.
   - Chain of thought and all project documents always in English.
-  - On finishing a task: commit, then ask permission for the PR and for the next task.
+  - Branches and worktrees: check the current branch, one new branch and worktree per task, remove the worktree after commit and push.
+  - On finishing a task: commit, push the task branch, remove the worktree, then ask permission for the PR and for the next task.
   - Never write project status in `README.md`.
   - Writing style: direct, concise, no adjectives; the words "honest", "honestly" and "rigorous" are banned.
 - Translated all existing project documents to English.
