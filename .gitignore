@@ -27,7 +27,7 @@ venv/
 *.parquet
 
 # Raw NASA/USGS downloads (processed outputs in web/public/data/ are tracked)
-data/raw/
+data/
 
 # OS files
 .DS_Store

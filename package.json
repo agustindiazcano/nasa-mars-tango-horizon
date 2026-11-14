@@ -1,0 +1,19 @@
+{
+  "name": "tango-horizon",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "server"
+  ],
+  "scripts": {
+    "dev": "npm -w server run dev",
+    "build": "npm -w shared run build && npm -w server run build",
+    "start": "node server/dist/index.js",
+    "test": "npm -w shared run test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "typescript": "^5.6.0"
+  }
+}

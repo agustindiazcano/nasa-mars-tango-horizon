@@ -5,27 +5,27 @@ prompt_tokens: 3063
 candidate_tokens: 17994
 thinking_tokens: None
 date: 2026-11-11
-title: Plan Maestro Tecnico y Arquitectura de Mision AEGIS-MARS Top 1% NASA Space Apps 2026
+title: Plan Maestro Tecnico y Arquitectura de Mision AEGIS-MARS NASA Space Apps 2026
 ---
 
-# AEGIS-MARS: MASTER TECHNICAL ARCHITECTURE & TOP 1% GLOBAL WINNER BLUEPRINT
+# AEGIS-MARS: MASTER TECHNICAL ARCHITECTURE BLUEPRINT
 **NASA International Space Apps Challenge 2026 ("The Next Frontier")**  
-**Clasificación del Documento:** Especificación de Ingeniería de Sistemas Nivel JPL / Propuesta Ejecutiva de Misión  
+**Clasificación del Documento:** Especificación de Ingeniería de Sistemas / Propuesta Técnica de Misión  
 **Sede de Origen:** Nodo Oficial Argentina (Ecosistema CONAE / Universidades Nacionales)  
-**Candidatura a Premios Globales:** *Best Use of Science*, *Best Use of Data*, *Best Mission Concept*, *Best Use of Technology*
+**Categorías Aplicables:** *Best Use of Science*, *Best Use of Data*, *Best Mission Concept*, *Best Use of Technology*
 
 ---
 
-## 1. RESUMEN EJECUTIVO Y PROPUESTA DE VALOR TOP 1% (THE NEXT FRONTIER 2026)
+## 1. RESUMEN EJECUTIVO Y PROPUESTA TÉCNICA (THE NEXT FRONTIER 2026)
 
-### 1.1 Definición del Sistema y Tesis de Victoria
+### 1.1 Definición del Sistema y Enfoque Técnico
 **AEGIS-MARS** (*Autonomous Extravehicular Guide, Intelligent Swarm & Bioastronautics Digital Twin*) es un gemelo digital táctico hiper-local en tiempo real (WebGL/Three.js a 60 FPS) diseñado para la supervivencia humana, exploración geológica y rescate autónomo cooperativo en la superficie marciana (Cráter Gale / Formaciones Boxwork de Aeolis Mons).
 
-**Tesis de Victoria:** El 99% de los equipos en Space Apps construyen visualizadores pasivos (mapas 2D en Leaflet, dashboards estáticos en Streamlit o wrappers genéricos de LLMs que alucinan datos médicos y físicos). **AEGIS-MARS rompe este paradigma operando como un Simulador de Operaciones de Misión (MOS) determinista de grado JPL**. Integra cartografía orbital cruda de la NASA sin mocks, motores de física diferencial acoplados (termodinámica de fluidos compresibles, reología sanguínea no-newtoniana, balística atmosférica y dosimetría topográfica), orquestación robótica multi-agente inspirada en **JPL CADRE** y comando acústico bidireccional con latencia sub-segundo.
+**Enfoque de Ingeniería:** A diferencia de visualizadores pasivos (mapas 2D en Leaflet, dashboards estáticos en Streamlit o wrappers genéricos de LLMs sin validación física), **AEGIS-MARS opera como un Simulador de Operaciones de Misión (MOS) determinista**. Integra cartografía orbital cruda de la NASA sin mocks, motores de física diferencial acoplados (termodinámica de fluidos compresibles, reología sanguínea no-newtoniana, balística atmosférica y dosimetría topográfica), orquestación robótica multi-agente inspirada en **JPL CADRE** y comando acústico bidireccional con latencia sub-segundo.
 
 ### 1.2 Mapeo Directo contra la Rúbrica Oficial de 5 Pilares (NASA Space Apps)
 
-| Pilar Oficial (20% c/u) | Implementación de Grado JPL en AEGIS-MARS | Diferenciador frente al 99% |
+| Pilar Oficial (20% c/u) | Implementación en AEGIS-MARS | Diferenciador Técnico |
 | :--- | :--- | :--- |
 | **1. Impact (Impacto)** | Resuelve el cuello de botella crítico de la arquitectura *Moon-to-Mars* de NASA: la autonomía de supervivencia EVA ante latencias de comunicación Tierra-Marte de 4 a 24 minutos (OWLT) durante tormentas solares (SPE) o fallas catastróficas del traje xEMU. | Aplicabilidad dual inmediata: operaciones marcianas y telemedicina/rescate autónomo en entornos extremos terrestres (Puna argentina / bases antárticas en sinergia con CONAE). |
 | **2. Creativity (Creatividad)** | Fusión inédita entre **Inercia Térmica Orbital (THEMIS)**, **Física Ergonométrica Marciana**, **Reología Sanguínea** y **Rescate Cooperativo Multi-Robot (Sky-Crane + Rover 6x6)** resuelto mediante optimización combinatoria determinista con restricciones acopladas de recursos (RCSPP / Branch & Bound) y comandado por voz con tonos Quindar históricos. | Convierte un mapa estático en un entorno vivo de supervivencia en primera persona donde la geología orbital altera directamente la fisiología cardiovascular del astronauta. |
@@ -40,12 +40,12 @@ title: Plan Maestro Tecnico y Arquitectura de Mision AEGIS-MARS Top 1% NASA Spac
 
 ---
 
-## 2. INGENIERÍA INVERSA DE GANADORES GLOBALES (PATRONES HISTÓRICOS Y TRAMPAS DE JURADO)
+## 2. CRITERIOS DE DISEÑO Y RESTRICCIONES DE EVALUACIÓN TÉCNICA
 
-### 2.1 Por qué triunfan los retos de Intersección Aplicada sobre el "Puro Hardware/ML Abstracto"
-El análisis histórico de ganadores globales (2019–2025) demuestra una asimetría clara: los proyectos que solo presentan notebooks de Jupyter o modelos puros en Python fracasan en la fase ejecutiva porque carecen de **transferencia operativa inmediata**. Los ganadores globales combinan **ciencia dura verificable en el backend** con una **interfaz espacial tridimensional interactiva en el frontend** que permite a un especialista de la NASA experimentar causa y efecto en menos de 30 segundos.
+### 2.1 Integración de Física de Backend e Interfaz 3D Interactiva
+El análisis de proyectos técnicos de misión demuestra que las soluciones que solo presentan notebooks de Jupyter o modelos aislados en Python carecen de **transferencia operativa inmediata**. Este sistema combina **física determinista verificable en el backend** con una **interfaz espacial tridimensional interactiva en el frontend** que permite evaluar causa y efecto en menos de 30 segundos.
 
-### 2.2 Las 4 Fallas Fatales del 99% de Equipos (Prohibiciones Estrictas)
+### 2.2 Restricciones de Diseño y Antiparámetros Evitados
 1. **El Síndrome "Streamlit + ChatGPT Wrapper":** Subir un CSV estático y conectar un prompt de OpenAI que inventa recomendaciones médicas sin ecuaciones termodinámicas subyacentes. *(Penalización letal en Validity).*
 2. **Mocks Estáticos Disfrazados:** Prometer datos satelitales y renderizar un `.jpg` genérico de Marte sin coordenadas planetocéntricas ni correspondencia altimétrica real. *(Descalificación técnica en Relevance).*
 3. **Fricción de Instalación ("Clone & Pip Install Death"):** Los jueces evalúan decenas de proyectos por hora; jamás instalarán Docker ni compilarán C++ localmente. Si la URL pública no carga a 60 FPS en 3 segundos en Chrome estándar, el proyecto muere.
@@ -451,10 +451,10 @@ El terreno marciano se construye sobre una malla adaptativa `PlaneGeometry(512, 
 
 ---
 
-## 10. GUIÓN DEL VIDEO DE 30 SEGUNDOS Y ESTRATEGIA DE PRESENTACIÓN (PITCH DE IMPACTO)
+## 10. GUIÓN DEL VIDEO DE 30 SEGUNDOS Y PRESENTACIÓN TÉCNICA
 
-### 10.1 Guión Cronometrado Segundo a Segundo (Formato Ganador Global: 30.0s Exactos)
-*Nota Técnica:* NASA Space Apps exige un video de **30 segundos exactos** (o demostración de 7 diapositivas; el video dinámico a 60 FPS tiene una tasa de conversión a *Global Finalist* drásticamente superior). **Prohibido poner intro con logos lentos.**
+### 10.1 Guión Cronometrado Segundo a Segundo (30.0s Exactos)
+*Nota Técnica:* NASA Space Apps exige un video de **30 segundos exactos** o demostración de 7 diapositivas. **Sin intro con logos lentos.**
 
 * **00:00 – 00:06 [EL PROBLEMA LETAL EN VIVO]:**
   * *Visual:* Vista `CAM-1 [EVA HELMET POV]` caminando sobre crestas reales de Boxwork en Gale Crater ($4.7182^\circ\text{S}, 137.3841^\circ\text{E}$). De golpe, destello carmesí de tormenta solar SPE de diseño extremo peor caso ($5,840\text{ }\mu\text{Sv/h}$), impacto de roca en el guante ($1.6\text{ mm}$, $P_{\text{suit}} = 21.4\text{ kPa}$) y alerta roja pulsante: **`CHOKED FLOW BREACH — CRITICAL HYPOXIA IN 03:01 (ARMSTRONG 11:45)`**.
@@ -475,4 +475,4 @@ El terreno marciano se construye sobre una malla adaptativa `PlaneGeometry(512, 
 3. **Sección de Sinergia Nacional e Impacto Terrestre (Guiño Estratégico CONAE / Galactic Impact):** Destacar brevemente cómo el motor de fusión **Inercia Térmica Orbital + Ruteo Autónomo Cooperativo + Telemedicina Desconectada** desarrollado desde Argentina es directamente transferible a operaciones terrestres de búsqueda y rescate autónomo en alta montaña andina (Puna $>4,500\text{ msnm}$, hipoxia hipobárica análoga y alta irradiancia UV) e integración futura con productos SAR banda L de misiones satelitales nacionales (**CONAE SAOCOM**) para estimación de humedad y portancia de suelos remotos.
 
 ---
-**ESTADO DEL BLUEPRINT:** *LISTO PARA EJECUCIÓN DE INGENIERÍA — PARÁMETROS VALIDADOS PARA COMPETENCIA GLOBAL TOP 1%.*
+**ESTADO DEL BLUEPRINT:** *LISTO PARA EJECUCIÓN DE INGENIERÍA — PARÁMETROS TÉCNICOS VALIDADOS.*

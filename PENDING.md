@@ -6,7 +6,6 @@
 
 | # | Priority | Step | Task | Guides | Depends on |
 |---|---|---|---|---|---|
-| B1 | 🔴 | Step 1 | Create root, `shared/`, and `server/` workspace scaffold (`package.json`, `Dockerfile`, `server/src/index.ts` health check) | `01_SCAFFOLD.md` | — |
 | B2 | 🔴 | Step 2 | Implement `server/src/` base: `config.ts`, 3-provider LLM layer (`llm/provider.ts` for Vertex AI keyless ADC on `nasa-tango-horizon` + Muse/Meta + Google AI Studio Gemini with automatic failover), CORS for `ALLOWED_ORIGINS` (Vercel + Cloud Run), `/ws/remote` relay (`relay.ts`), and run `scripts/check-llm.ts` → `docs/LLM_CHECK.md` | `05_SERVER.md`, `INFRASTRUCTURE_AND_VERTEX_AI.md` | B1 |
 | B3 | 🔴 | Step 3 | Run NASA/USGS data pipeline (`tools/`): `build_terrain.py` (`height_2048.u16`, `ortho_4096.webp`, `slope_1024.png`, `svf_1024.png`), `build_thermal.py` (`thermal_class.png`), REMS (`rems_clear.json`), RAD (`rad_quiet.json`, `rad_sep2017.json`), SUITS (`shared/src/types/suit.ts`), ephemerides (`ephem.json`), NASA GLBs, and `provenance.json` | `02_DATA_PIPELINE.md` | B1 |
 | B4 | 🔴 | Step 4 | Implement deterministic physics core in `shared/src/physics/` (Pandolf metabolic rate, choked orifice flow, RK4 pod ballistics, sky-view-factor dose, solar power, `suitState.ts`, `route.ts`) with Vitest unit tests | `03_PHYSICS_CORE.md` | B1 |

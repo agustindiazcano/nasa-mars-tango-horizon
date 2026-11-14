@@ -7,18 +7,22 @@
 
 ## What was done
 
-- Uploaded `GEMINI_API_KEY` (`gemini-api-key`, version `1`, `enabled`) and `META_API_KEY` (`meta-api-key`, version `1`, `enabled`) from local `.env` to Google Cloud Secret Manager in project `nasa-tango-horizon` (`291271901218`) without exposing secret values or committing `.env`.
-- Previously configured model tiers (`google/gemini-4-carbon`, `google/gemini-4-argon`, `google/gemini-4-hydrogen` on Vertex AI + `GEMINI_API_KEY` secondary + `muse-wonder`/`muse-spark` via `META_API_KEY` backup).
+- Removed promotional phrases ("Top 1%", "Global Winner", etc.) from `BLUEPRINT.md` and `AGENTS.md`, replacing them with technical titles and descriptions (`AEGIS-MARS: Master Technical Architecture Blueprint`).
+- Completed `B1` (Step 1 scaffold): created root `package.json` (`shared` and `server` workspaces), `tsconfig.base.json`, `shared/package.json`, `shared/tsconfig.json`, `shared/src/index.ts`, `server/package.json`, `server/tsconfig.json`, `server/src/index.ts` (`/api/health`), `server/corpus/.gitkeep`, `Dockerfile`, and updated `.gitignore` to ignore `data/`.
+- Ran `npm install` and verified `npm run build` succeeds for `@th/shared` and `@th/server`.
 
 ## Files touched
 
-- `LASTCONTEXT.md` (updated with Secret Manager version `1` upload status)
+- `AGENTS.md`, `BLUEPRINT.md`, `.gitignore`, `PENDING.md`, `LASTCONTEXT.md`
+- `package.json`, `package-lock.json`, `tsconfig.base.json`, `Dockerfile`
+- `shared/package.json`, `shared/tsconfig.json`, `shared/src/index.ts`
+- `server/package.json`, `server/tsconfig.json`, `server/src/index.ts`, `server/corpus/.gitkeep`
 
 ## Decisions
 
-- Stored both keys in GCP Secret Manager (`gemini-api-key:1` and `meta-api-key:1`) with UTF-8 encoding and no trailing newline so Cloud Run (`tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com`) can mount them directly via `:latest`.
+- Scoped workspace setup strictly to backend, shared, and data pipeline (`shared/`, `server/`, `tools/`) without touching `web/` or `PENDING_FRONT.md`, as frontend work is handled separately.
 
 ## State the work was left in
 
-- GCP infrastructure, IAM, Artifact Registry, and Secret Manager secrets (`gemini-api-key:1`, `meta-api-key:1`) are live on `nasa-tango-horizon`.
-- Next step is `B1` / `F1` (Step 1: Project scaffold in `docs/impl/01_SCAFFOLD.md`) upon user confirmation.
+- Base workspace scaffold (`B1`) is built and ready on `main`.
+- Next step: launching 6 parallel `gemini-4-hydrogen-high` swarm workers on isolated `share` workspaces for `B2+B6`, `B3`, `B4+B14`, `B5`, `B7`, and `B13`.

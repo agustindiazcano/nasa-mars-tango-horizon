@@ -87,7 +87,7 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 
 | Path | Content |
 |---|---|
-| `BLUEPRINT.md` | Title: "AEGIS-MARS: Master Technical Architecture & Top 1% Global Winner Blueprint". The plan for the whole project. Read it before planning or starting a task. |
+| `BLUEPRINT.md` | Title: "AEGIS-MARS: Master Technical Architecture Blueprint". The plan for the whole project. Read it before planning or starting a task. |
 | `NASA_APIS.md` | Title: "NASA APIs". NASA and USGS data sources: endpoints, auth, fields used, and the API validation report. Update it when a source is added or changed. |
 | `PENDING_FRONT.md` | Title: "Pending frontend tasks (`web/`)". Frontend reference plans and prioritized pending tasks for the `web/` workspace. |
 | `web/` | Frontend workspace (Vite + TypeScript + Three.js viewer, HUD, `index.html`, `remote.html`, and static processed datasets in `web/public/data/`). |
