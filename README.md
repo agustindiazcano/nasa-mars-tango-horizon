@@ -2,12 +2,12 @@
 
 **Autonomous Multi-Agent AI Systems for Extravehicular Activities (EVA)**
 
-## Team
+## Team: Tango Horizon (Buenos Aires, Argentina)
 
-- Agustin Diaz Cano
-- Baltazar Salerno
-- Milagros Sotelo
-- Federico Yaconis
+- **Agustin Diaz Cano:** MS Candidate, Systems Engineering ([UTN, FRBA](https://frba.utn.edu.ar/))
+- **Baltazar Salerno:** Frontend Developer
+- **Milagros Sotelo:** Systems Engineering Student ([UTN, FRBA](https://frba.utn.edu.ar/))
+- **Federico Yaconis:** 3D Developer & QA
 
 ## NASA Space Apps Challenge Links
 
