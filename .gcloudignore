@@ -1,0 +1,12 @@
+.git
+node_modules
+**/node_modules
+**/dist
+data/
+docs/
+tools/
+infra/
+.env
+.env.*
+.vercel/
+*.bak.md
