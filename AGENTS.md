@@ -20,6 +20,14 @@ Unless the user says otherwise, continue with the highest-priority task in `PEND
 - **`AGENTS.md` and every project document must always be written in English**: Markdown files, code comments, commit messages, PR descriptions, and anything else stored in the repository.
 - Chat replies to the user are the only exception: answer in the language the user writes in (usually Spanish).
 
+## Mandatory rule: writing style
+
+Applies to everything you write: chat replies, reasoning, documents, code comments, commit messages and PR descriptions.
+
+- Write direct and concise text. State the fact or the action; cut filler and preamble.
+- Do not use adjectives or adverbs that add no information.
+- Never use these words: "honest", "honestly", "rigorous" (or their forms and translations, e.g. "honesto", "honestamente", "riguroso").
+
 ## Mandatory rule: when a task is finished
 
 1. Commit the changes for that task (one commit per task, with a message that describes it).
@@ -41,7 +49,7 @@ Unless the user says otherwise, continue with the highest-priority task in `PEND
 | `LASTCONTEXT.md` | What was done last: summary of the previous session, decisions, and the state the work was left in | At the end of every session (overwritten, not accumulated) |
 | `PENDING.md` | List of pending tasks with priority | Whenever a task is completed, added or reprioritized |
 
-### When a session ends (or after a significant block of work)
+### When a session ends
 
 1. Rewrite `LASTCONTEXT.md` with: date, what was done, files touched, decisions made and why, and the exact point where the work was left.
 2. Update `PENDING.md`: remove what is done, add what is new, reorder priorities.

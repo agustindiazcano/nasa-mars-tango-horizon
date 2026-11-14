@@ -18,6 +18,7 @@
   - Chain of thought and all project documents always in English.
   - On finishing a task: commit, then ask permission for the PR and for the next task.
   - Never write project status in `README.md`.
+  - Writing style: direct, concise, no adjectives; the words "honest", "honestly" and "rigorous" are banned.
 - Translated all existing project documents to English.
 
 ## Decisions
