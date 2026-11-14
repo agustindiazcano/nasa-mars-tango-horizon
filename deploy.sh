@@ -4,8 +4,9 @@ set -euo pipefail
 
 if [ -f .env ]; then
   set -a
-  # shellcheck disable=SC1091
-  source .env
+  # Strip CRLF if edited on Windows so Bash variable values have no trailing \r
+  # shellcheck disable=SC1090
+  source <(tr -d '\r' < .env)
   set +a
 fi
 
