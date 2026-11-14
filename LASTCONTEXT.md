@@ -21,6 +21,7 @@
   - Never write project status in `README.md`.
   - Writing style: direct, concise, no adjectives; the words "honest", "honestly" and "rigorous" are banned.
 - Translated all existing project documents to English.
+- Added `.gitignore` (env files, OS, editor and log files) and `.env.example` (no variables yet). Each developer keeps a local `.env`, ignored by git.
 
 ## Decisions
 

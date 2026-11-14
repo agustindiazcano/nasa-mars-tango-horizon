@@ -6,4 +6,4 @@
 | # | Priority | Task | Depends on | Notes |
 |---|---|---|---|---|
 | 1 | 🔴 | Define the project goal, stack and commands, and fill in the "Project" section of `AGENTS.md` | — | Without this, agents have no project context |
-| 2 | 🟢 | Add a `.gitignore` | Task 1 | Needs the stack to be defined |
+| 2 | 🟢 | Add stack-specific entries to `.gitignore` and the project variables to `.env.example` | Task 1 | Both files exist with generic content |
