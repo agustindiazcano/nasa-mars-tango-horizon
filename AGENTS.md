@@ -40,10 +40,19 @@ Several people and several agents work on this project at the same time.
 3. Only push directly to `origin main` if the human explicitly tells you to do so for that session or task.
 4. On a conflict, resolve it without discarding the other side's changes. Ask the user if unsure.
 
+## Mandatory rule: atomic commits
+
+**Every commit must be atomic: one single, self-contained logical change per commit. Never bundle multiple features, models, tasks, or large generated datasets into one giant commit.**
+
+1. **One concern per commit:** Separate documentation/rule updates, shared types/constants, backend logic/tools, Python pipeline scripts, generated dataset outputs, and status file updates (`PENDING.md`, `LASTCONTEXT.md`) into distinct commits.
+2. **Keep commits small and revertible:** Each commit must build and pass tests on its own so any single change can be reviewed, cherry-picked, or reverted (`git revert <sha>`) without collateral damage.
+3. **Multi-worker / swarm integration:** When integrating work from multiple subagents or worktrees, cherry-pick or commit each worker's module as its own separate commit (or separate PR) rather than squashing unrelated modules together.
+4. **Avoid bloated JSON/data diffs:** Keep generated JSON artifacts compact (only the fields consumed at runtime) and commit generated data assets separately from source code.
+
 ## Mandatory rule: when a task is finished
 
-1. Update `PENDING.md` (and `PENDING_FRONT.md` if it is a frontend task) and `LASTCONTEXT.md`.
-2. Commit the changes for that task on your branch, including those status files (one commit per task, with a message that describes it).
+1. Commit each logical step atomically while working on the task.
+2. When the task is finished, update `PENDING.md` (and `PENDING_FRONT.md` if it is a frontend task) and `LASTCONTEXT.md` in their own commit.
 3. Push your branch to `origin` and open/update a PR to `main` (unless the human explicitly instructed to push to `main`).
 4. **Ask the user for permission** before moving on to the next task. Do not start another task without their confirmation.
 
