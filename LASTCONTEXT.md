@@ -7,19 +7,18 @@
 
 ## What was done
 
-- Evaluated repository architecture, `npm test` (45/45 passing in `shared/`), `npm run build` (`shared`, `server`, `web-test-3d`), data/ML validation docs, and deployment configuration.
-- Added engineering gap tasks `B22`–`B26` to `PENDING.md` covering `web/` vs `web-test-3d/` consolidation, `@th/shared` deduplication, `server/` + frontend test coverage, full-resolution DEM rendering in `TerrainProc`, and Cloud Run redeploy/latency measurement for PR #8 (`perf/multi-hop-latency`).
-- Updated `PENDING_FRONT.md` header note to point to `B22` and `B23` while active frontend code remains in `web-test-3d/`.
+- PR #8 merged; backend redeployed to Cloud Run (revision `tangohorizon-api-00006-89d`).
+- Voice simulation against production (TTS audio of each order + `/api/agent/voice` with a flat-terrain `MissionContext`):
+  - rover to (-130,-270): dispatch allowed by rules, 19 s.
+  - manip-1 "grab rock T1": `BASE` -> `ROBOT.manip-1` -> `arm_skill sample` allowed, 48 s (above the 45 s client timeout).
+  - drone-1 "take off and photograph east": empty reply after 30 s, no actions (no drone photo skill exists).
+- Branch `fix/base-terrain-probe-cap`: `get_terrain_at` capped at 3 per run, hard-rule denial ends the run, empty model replies fall back to a deterministic text, `BASE` prompt updated. Typecheck passes; not deployed or re-measured.
 
 ## Files touched
 
-- `PENDING.md`, `PENDING_FRONT.md`, `LASTCONTEXT.md`
-
-## Decisions
-
-- Kept `B22`–`B26` in `PENDING.md` (with `PENDING_FRONT.md` referencing `B22`/`B23`) instead of duplicating entries across both files.
+- `server/src/agents/runAgent.ts`, `server/src/agents/hierarchy.ts`
 
 ## State the work was left in
 
-- Branch `docs/pending-engineering-gaps` pushed and PR opened to `main`.
-- `@vercel/analytics` `inject()`, 45 s timeout in `web/`, and `vercel.json` -> `web/dist` remain deferred to `web/` consolidation (`B22`/`B15`) and Vercel Analytics enablement.
+- Fix branch pushed with a PR to `main`; after merge: `./deploy.sh` (run with Git Bash on Windows) and repeat the three voice orders (`scratch-voice/run.ps1`, untracked; the response field is `speech`).
+- Open: arm order takes 48 s (`BASE` -> `ROBOT` double hop); drone has no photo/takeoff tool; `deploy.sh` exits 1 after a successful deploy (cause not checked).

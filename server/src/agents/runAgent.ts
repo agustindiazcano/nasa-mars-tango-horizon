@@ -36,6 +36,9 @@ export function setDelegateHandler(fn: DelegateHandler): void {
 
 const MAX_DELEGATION_DEPTH = 2;
 
+/** Max calls per run for probing tools. */
+const TOOL_CAPS: Record<string, number> = { get_terrain_at: 3 };
+
 const DelegateSchema = z.object({
   agent: z
     .string()
@@ -83,6 +86,8 @@ export async function runAgent(
   const trace: TraceEvent[] = [];
   const untrusted: string[] = [];
   const delegatedUnits = new Set<string>();
+  const callCounts = new Map<string, number>();
+  let hardDenied: string | null = null;
 
   const baseTools = toolsFor(spec.tools);
   const tools: ToolDef[] = [...baseTools];
@@ -154,9 +159,8 @@ export async function runAgent(
         ];
       } else {
         const finalText = (msg.content ?? "").trim();
-        if (finalText) {
-          trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
-        }
+        if (!finalText) break; // empty reply: use the forced-final path below (never return empty)
+        trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
         return { text: finalText, actions, trace };
       }
     }
@@ -174,10 +178,25 @@ export async function runAgent(
       }
     }
 
+    // Probing tools are capped per run so an agent cannot loop on them.
+    const overCap = new Set<string>();
+    for (const call of toolCalls) {
+      const cap = TOOL_CAPS[call.function.name];
+      if (cap === undefined) continue;
+      const n = (callCounts.get(call.function.name) ?? 0) + 1;
+      callCounts.set(call.function.name, n);
+      if (n > cap) overCap.add(call.id);
+    }
+
     // Independent calls (reads, reviews, delegations) run concurrently; results keep call order.
     const outcomes = await Promise.all(
       toolCalls.map(async (call): Promise<{ result: unknown; action?: Action }> => {
         const tool = tools.find((t) => t.name === call.function.name);
+        if (overCap.has(call.id)) {
+          return {
+            result: { error: `Call limit reached for ${call.function.name}; answer with the data already gathered.` },
+          };
+        }
         if (!tool) return { result: { error: "Tool not permitted for this agent" } };
 
         let rawArgs: unknown = {};
@@ -224,6 +243,9 @@ export async function runAgent(
           const action = result as Action;
           action.verdict = await review(action, ctx, userRequest, [...untrusted]);
           trace.push({ t: Date.now(), agent: "GUARDIAN", kind: "verdict", detail: action });
+          if (action.verdict.decision === "deny" && action.verdict.by === "rules") {
+            hardDenied ??= action.verdict.reason;
+          }
           return {
             result: { status: action.verdict.decision, reason: action.verdict.reason },
             action:
@@ -254,9 +276,15 @@ export async function runAgent(
       content: "Provide your concise spoken reply now based on the tool results already gathered.",
     },
   ]);
-  const finalText = (finalMsg.content ?? "").trim();
-  if (finalText) {
-    trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
+  let finalText = (finalMsg.content ?? "").trim();
+  if (!finalText) {
+    // Never return an empty reply: fall back to the deterministic outcome.
+    finalText = hardDenied
+      ? `Denied: ${hardDenied}`
+      : actions.length
+        ? `Done: ${actions.map((a) => a.type).join(", ")}`
+        : "No action taken.";
   }
+  trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
   return { text: finalText, actions, trace };
 }
