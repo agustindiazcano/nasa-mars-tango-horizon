@@ -9,6 +9,13 @@
 - Milagros Sotelo
 - Federico Yaconis
 
+## NASA Space Apps Challenge Links
+
+- **Team:** https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project
+- **Local Event — [Universidad de Palermo](https://www.palermo.edu/) (Buenos Aires, Argentina) Node:** https://www.spaceappschallenge.org/2026/local-events/buenos-aires/
+- **Challenge — Interplanetary Survival Guide: Martian Map:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
+- **Space Apps Challenge:** https://www.spaceappschallenge.org/
+
 ## AI-assisted development methodology (Software 3.0)
 
 This project was built with AI-assisted development in the Software 3.0 style: AI coding agents took part in the whole development process (implementation, tests, CI/CD, pull requests, commits and documentation validated and designed by human, deploy), under human direction and review. Coding agents used: Codex, Claude Code and Gemini Antigravity.
