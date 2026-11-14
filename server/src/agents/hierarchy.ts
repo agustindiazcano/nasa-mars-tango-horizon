@@ -1,3 +1,4 @@
+import { offlineReply } from "./offline.js";
 import { runAgent, setDelegateHandler, type AgentResult, type AgentSpec } from "./runAgent.js";
 import type { MissionContext } from "./types.js";
 import { capabilityPrompt } from "./unitCapabilities.js";
@@ -171,11 +172,26 @@ export async function handleVoice(
   const fast = await runAgent(AGENTS["SUIT.VOICE-EXEC"], text, ctx);
   const needsEscalation =
     /ESCALATE/i.test(fast.text) || (!fast.text.trim() && fast.actions.length === 0);
+  if (!needsEscalation && ctx.leak_diameter_m > 0 && !fast.actions.some((a) => a.type === "launch_pod")) {
+    const det = await offlineReply(`${text} emergency`, ctx);
+    return { text: det.speech, actions: [...fast.actions, ...det.actions], trace: [...fast.trace, ...det.trace], route: det.route };
+  }
   if (!needsEscalation) {
     return { ...fast, route: ["SUIT.VOICE-EXEC"] };
   }
 
   const base = await runAgent(AGENTS.BASE, text, ctx);
+
+  // Life-support safety net: a suit leak must never depend on the LLM choosing to act.
+  if (ctx.leak_diameter_m > 0 && !base.actions.some((a) => a.type === "launch_pod")) {
+    const det = await offlineReply(`${text} emergency`, ctx);
+    return {
+      text: det.speech,
+      actions: [...fast.actions, ...det.actions],
+      trace: [...fast.trace, ...base.trace, ...det.trace],
+      route: det.route,
+    };
+  }
   const delegatedAgents = base.trace
     .filter((e) => e.kind === "delegate")
     .map((e) => String((e.detail as { to?: string })?.to ?? ""))
