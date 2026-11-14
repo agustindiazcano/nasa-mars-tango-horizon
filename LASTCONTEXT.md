@@ -7,17 +7,19 @@
 
 ## What was done
 
-- Branch `perf/multi-hop-latency`: voice client timeout 15 s -> 45 s (`web-test-3d`).
-- `runAgent.ts`: tool calls of one turn (reads, `review()`, delegations) run with `Promise.all`; a direct `dispatch`/`arm_skill` for a unit already delegated to `ROBOT.<id>` in the same run is skipped.
-- `hierarchy.ts`: `BASE` prompt forbids delegating and dispatching the same unit.
-- `guardian.ts`: `dispatch` and `arm_skill` that pass `ruleCheck` skip the LLM judge when no untrusted text is in context and the request matches no injection pattern. `launch_pod` and `deploy_beacons` still use the judge.
-- `npm test` (45 pass), `npm run build` and server `tsc --noEmit` pass.
+- Evaluated repository architecture, `npm test` (45/45 passing in `shared/`), `npm run build` (`shared`, `server`, `web-test-3d`), data/ML validation docs, and deployment configuration.
+- Added engineering gap tasks `B22`–`B26` to `PENDING.md` covering `web/` vs `web-test-3d/` consolidation, `@th/shared` deduplication, `server/` + frontend test coverage, full-resolution DEM rendering in `TerrainProc`, and Cloud Run redeploy/latency measurement for PR #8 (`perf/multi-hop-latency`).
+- Updated `PENDING_FRONT.md` header note to point to `B22` and `B23` while active frontend code remains in `web-test-3d/`.
 
 ## Files touched
 
-- `server/src/agents/{runAgent,hierarchy,guardian}.ts`, `web-test-3d/src/voice/voiceController.ts`
+- `PENDING.md`, `PENDING_FRONT.md`, `LASTCONTEXT.md`
+
+## Decisions
+
+- Kept `B22`–`B26` in `PENDING.md` (with `PENDING_FRONT.md` referencing `B22`/`B23`) instead of duplicating entries across both files.
 
 ## State the work was left in
 
-- PR to `main` opened. Not done: Cloud Run redeploy (`./deploy.sh`) and validation on `tangohorizon.vercel.app` after merge; no latency measurement yet; streaming in `routes.ts` not evaluated (only if multi-agent latency stays > 12 s).
-- `@vercel/analytics` `inject()`, 45 s timeout in `web/` and `vercel.json` -> `web/dist` wait for `web/` merge (`B15`) and Vercel Analytics enabled.
+- Branch `docs/pending-engineering-gaps` pushed and PR opened to `main`.
+- `@vercel/analytics` `inject()`, 45 s timeout in `web/`, and `vercel.json` -> `web/dist` remain deferred to `web/` consolidation (`B22`/`B15`) and Vercel Analytics enablement.
