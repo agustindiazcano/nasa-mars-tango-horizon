@@ -7,27 +7,21 @@
 
 ## What was done
 
-- Merged PR #5 (`feat/vercel-analytics`), wiring `@vercel/analytics` (`^2.0.1`, `inject()`) into `web-test-3d/src/main.ts` (`/`) and `web-test-3d/src/remote/phoneClient.ts` (`/remote`).
-- Rebased `docs/readme-es-and-rag-plans` cleanly onto `main`, including the YouTube channel link (`@agustin-diaz-cano`) in `README.md`.
-- Updated `README.md` with a top `Leer en español` badge button linking to `README_ES.md`, an `Index` section linking to every `##` heading, and verified NASA Space Apps Challenge 2026 rules/legal and resources links (`/legal/`, `/resources/`, `/resources/participant-faqs/`).
-- Created `README_ES.md` as a 1-to-1 Spanish translation of `README.md` with a symmetric `Read in English` button and `Índice`, and structured the `AI Usage` / `Uso de IA` section with `AI-assisted development methodology (Software 3.0)` as its subtitle plus workflow AI (`ChatGPT`, `Gemini`, `Google AI Studio`, `Grok`), coding agents (`Codex`, `Claude Code`, `Gemini Antigravity`, `IBM Bob`, `Meta Muse`), and 3D model generators (`Tripo AI` [China], `Meshy AI` [United States]).
-- Completed aerospace research and gap analyses via two parallel `self` subagents and documented two future unimplemented plans:
-  - `docs/impl/20_COMPONENT_FAULT_TELEMETRY_RAG.md` (`B20`): deterministic FDIR/RUL prediction (`shared/src/physics/fdir.ts`), `evaluate_component_health`, FDIR SOP RAG chunks, `isolate_component`, and hardware `GUARDIAN` gates.
-  - `docs/impl/21_ENVIRONMENTAL_WEATHER_RAG.md` (`B21`): unified `ENV_LIMITS`, `shared/src/physics/envNowcast.ts`, `evaluate_environmental_risk`, DONKI/REMS/MEDA RAG chunks, and aircraft/SEP `GUARDIAN` gates.
-- Updated `AGENTS.md` and `PENDING.md` with `B20` and `B21`.
+- Synced local `main` with merged PR #6 (`6eb100b`) and branched `docs/readme-hackathon-window-and-multiagent`.
+- Verified repository creation timestamp (`2026-11-14T16:56:55Z`), first commit hash (`a3f7a4e7d0bfa7ba5677b80eec3c6523eb61433b` at `2026-11-14 14:22:31 -0300`), and PR history (`#1`–`#6`).
+- Updated `README.md` and `README_ES.md` with:
+  - Small hackathon-window verification note directly below the institutional support banner linking to initial commit `a3f7a4e` and repository PR history.
+  - Parallel multi-agent orchestration details under `AI Usage` / `Uso de IA` (orchestrator coordinating medium-tier models across isolated git worktrees and branches, plus a code reviewer agent).
 
 ## Files touched
 
-- `README.md`, `README_ES.md`
-- `docs/impl/20_COMPONENT_FAULT_TELEMETRY_RAG.md`, `docs/impl/21_ENVIRONMENTAL_WEATHER_RAG.md`
-- `AGENTS.md`, `PENDING.md`, `LASTCONTEXT.md`
+- `README.md`, `README_ES.md`, `LASTCONTEXT.md`
 
 ## Decisions
 
-- Installed `@vercel/analytics` in `web-test-3d` (leaving `web/src/` untouched); `features.webAnalytics` must still be toggled ON once in Vercel Dashboard (`tangohorizon` -> Analytics -> Enable).
-- Preserved the deterministic-physics-first pattern in both `B20` and `B21` so `@th/shared` computes all fault slopes, RULs, storm ETAs, solar margins, and radiation doses while BM25 RAG supplies `(doc, page)` operational citations.
+- Cited the verified repository timestamp (`2026-11-14`) alongside the `09:00 ART (UTC-3)` hackathon window start so commit hashes, repo creation date, and PR history align verbatim.
 
 ## State the work was left in
 
-- Rebased `docs/readme-es-and-rag-plans` cleanly on `main` (resolving `LASTCONTEXT.md`) for PR #6.
+- All updates are committed on `docs/readme-hackathon-window-and-multiagent` with PR #7 opened to `main`.
 - `B15` remains blocking in `PENDING.md`, alongside backlog plans `B16`–`B21`.
