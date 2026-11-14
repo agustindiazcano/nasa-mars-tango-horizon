@@ -68,6 +68,7 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 | Path | Title |
 |---|---|
 | `docs/EXECUTION_PLAN_ORDER.md` | Execution plan order |
+| `docs/3D_AND_VISUAL_PLAN.md` | 3D and Visual Implementation Plan |
 | `docs/impl/01_SCAFFOLD.md` | 01. Project scaffold |
 | `docs/impl/02_DATA_PIPELINE.md` | 02. Data pipeline |
 | `docs/impl/03_PHYSICS_CORE.md` | 03. Physics core |

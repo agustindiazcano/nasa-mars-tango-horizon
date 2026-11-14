@@ -3,40 +3,25 @@
 > Summary of the previous session. Overwritten at the end of every session.
 
 **Date:** 2026-11-14
-**Agent:** Claude Code
+**Agent:** Antigravity
 
 ## What was done
 
-- Created the agent instruction structure in a previously empty directory:
-  - `AGENTS.md`: single source of instructions.
-  - `CLAUDE.md` and `GEMINI.md`: only import `AGENTS.md` via `@AGENTS.md`.
-  - `LASTCONTEXT.md` (this file) and `PENDING.md`, imported from `AGENTS.md`.
-- Created `README.md` (title "Tango Horizon", sections Team, AI Usage and License) and the `LICENSE` file with the MIT license under Agustin Diaz-Cano and Baltazar Salerno.
-- Initialized git (branch `main`) and set `origin` → https://github.com/agustindiazcano/nasa-mars-tango-horizon.git.
-- Added the mandatory rules in `AGENTS.md`:
-  - Always read `PENDING.md` and `LASTCONTEXT.md` before every session.
-  - Chain of thought and all project documents always in English.
-  - Branches and worktrees: check the current branch, one new branch and worktree per task, remove the worktree after commit and push.
-  - On finishing a task: commit, push to `main`, then ask permission for the next task.
-  - Never write project status in `README.md`.
-  - Writing style: direct, concise, no adjectives; the words "honest", "honestly" and "rigorous" are banned.
-- Translated all existing project documents to English.
-- Added `.gitignore` (env files, OS, editor and log files) and `.env.example` (no variables yet). Each developer keeps a local `.env`, ignored by git.
-- Work goes directly on `main` (user decision, time-limited). Branch/worktree rule replaced in `AGENTS.md`.
-- Created `NASA_APIS.md` (table of NASA/USGS sources; endpoints untested) and referenced it in `AGENTS.md`.
-- Created `BLUEPRINT.md` (plan for the whole project; content pasted by the user, in Spanish) and the `docs/` folder.- Re-downloaded the NASA/USGS data into `data/` with `fetch_mars_data.py` (33 items OK, 0 failed) and regenerated `data/validation.json` with `validate_urls.py`, so file dates are today. Scripts were run from the scratchpad and are not in the repo.
-- Recreated `docs/` (`EXECUTION_PLAN_ORDER.md` and `impl/01`–`15`) as new files with the same content as `nasa-data/docs`.
-- `AGENTS.md` now lists `BLUEPRINT.md`, `NASA_APIS.md`, `data/` and every document in `docs/` with path and title.
+- Read `BLUEPRINT.md`, `docs/EXECUTION_PLAN_ORDER.md`, and the implementation guides in `docs/impl/` (`02`, `04`, `06`, `07`, `08`, `09`, `11`, `12`, `13`, `15`).
+- Created `docs/3D_AND_VISUAL_PLAN.md` consolidating all 3D and visual tasks, specifications, shaders, terrain layers, cameras, actors, fleet, manipulator rover (`manip-1`), Mars base modules, GPU particle effects, HUD panels, interactive modals, phone remote UI, file paths, and acceptance criteria.
+- Listed `docs/3D_AND_VISUAL_PLAN.md` in the `Documents in docs/` table in `AGENTS.md`.
+
+## Files touched
+
+- `docs/3D_AND_VISUAL_PLAN.md` (created)
+- `AGENTS.md` (updated document table)
+- `LASTCONTEXT.md` (updated)
 
 ## Decisions
 
-- Rules are written only in `AGENTS.md` so they are not duplicated across tools.
-- `LASTCONTEXT.md` is overwritten every session (it is not a history log); what remains to be done goes in `PENDING.md`.
-- The two memory files are uppercase, like `AGENTS.md`.
-- Chat replies to the user stay in the user's language; everything stored in the repo is in English.
+- Unified the 3D/visual requirements from both `BLUEPRINT.md` (6-layer spectral shader, 5 cameras, Sky-Crane Kevlar tether, LIBS, Casson bio-twin) and `docs/EXECUTION_PLAN_ORDER.md` + `docs/impl/*` (Three.js 512×512 displaced HiRISE mesh, curved CSS 3D HUD, `HudPointer`, `remote.html`, `manip-1` 4-DOF arm IK, Hydration Prospector layer, Storm Nowcaster fan chart, Vein Detector heatmap overlay, 20 base modules, provenance cards) into a single reference document mapped by execution step and priority.
 
 ## State the work was left in
 
-- The project has no code yet.
-- `main` is pushed to `origin`. New tasks go in a branch and worktree created from `origin/main`.
-- The "Project" section of `AGENTS.md` has a TODO: goal, stack and commands still need to be described.
+- `docs/3D_AND_VISUAL_PLAN.md` is complete and indexed in `AGENTS.md`.
+- The repository has no application code yet; implementation awaits starting the tasks in `PENDING.md` and `docs/EXECUTION_PLAN_ORDER.md`.
