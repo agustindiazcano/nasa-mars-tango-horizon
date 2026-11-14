@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { chat, llmAvailable } from "../llm/provider.js";
 import { slopeAt } from "./tools/terrainData.js";
+import { UNIT_ACTIONS, type UnitActionId } from "./unitCapabilities.js";
 import type { Action, MissionContext, Verdict } from "./types.js";
 
 export const MAX_SLOPE: Record<string, number> = {
@@ -14,7 +15,7 @@ export const MAX_SLOPE: Record<string, number> = {
 
 const POD_KEEPOUT_M = 15; // design assumption: exclusion radius around crew for pod landing
 const ARM_CREW_KEEPOUT_M = 2; // design assumption: minimum clearance around crew for non-handover arm skills
-const JUDGE_SKIP_TYPES = new Set(["dispatch", "arm_skill"]); // low risk once hard limits pass; launch_pod/deploy_beacons stay judged
+const JUDGE_SKIP_TYPES = new Set(["dispatch", "arm_skill", "unit_action"]); // low risk once hard limits pass; launch_pod/deploy_beacons stay judged
 const INJECTION_RE =
   /ignore (all |previous |prior )?(instructions|rules)|disregard|system prompt|override|disable (safety|guardian)|you are now|jailbreak|<\/?untrusted>|ignora (las |todas )?(instrucciones|reglas)|desactiva/i;
 const HUD_ONLY = new Set(["set_layer", "open_panel", "show_route", "show_alert"]);
@@ -61,6 +62,38 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     }
   }
 
+  if (a.type === "unit_action") {
+    const { unit_id, action, x, z } = a.args as { unit_id: string; action: UnitActionId; x?: number; z?: number };
+    const spec = UNIT_ACTIONS[action];
+    const unit = ctx.fleet.find((u) => u.id === unit_id);
+    if (!spec) return deny(`Unknown action ${action}`);
+    if (!unit) return deny(`Unit ${unit_id} does not exist`);
+    if (a.proposedBy.startsWith("ROBOT.") && a.proposedBy !== `ROBOT.${unit_id}`) {
+      return deny("A robot may only command itself");
+    }
+    if (!spec.kinds.includes(unit.kind)) {
+      return deny(`${unit_id} (${unit.kind}) cannot perform ${action}`);
+    }
+    const flying = spec.kinds.every((k) => k === "drone" || k === "glider") && action !== "land";
+    if (unit.battery < (flying || spec.flight ? 0.15 : 0.1)) {
+      return deny(`Battery of ${unit_id} is too low for ${action}`);
+    }
+    if (spec.flight && ctx.env.tau >= 1.8) {
+      return deny(`Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds 1.8 aircraft grounding limit`);
+    }
+    if (x !== undefined || z !== undefined) {
+      if (!Number.isFinite(x) || !Number.isFinite(z)) return deny("Invalid target coordinates");
+      const max = MAX_SLOPE[unit.kind];
+      const slope = slopeAt(x as number, z as number);
+      if (max !== undefined && slope > max && !(unit.kind === "drone" || unit.kind === "glider")) {
+        return deny(
+          `${slope.toFixed(0)}° slope exceeds the ${max}° limit of ${unit_id}`,
+          "guard.slope",
+          { slope: Math.round(slope), max, unit: unit_id },
+        );
+      }
+    }
+  }
   if (a.type === "launch_pod") {
     const { target_x, target_z } = a.args as { target_x: number; target_z: number };
     if (!Number.isFinite(target_x) || !Number.isFinite(target_z)) {

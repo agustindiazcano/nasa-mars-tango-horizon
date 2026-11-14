@@ -218,7 +218,7 @@ export async function runAgent(
         const unitId = (parsed.data as { unit_id?: unknown }).unit_id;
         if (
           tool.effect &&
-          (tool.name === "dispatch" || tool.name === "arm_skill") &&
+          (tool.name === "dispatch" || tool.name === "arm_skill" || tool.name === "unit_action") &&
           typeof unitId === "string" &&
           delegatedUnits.has(unitId)
         ) {
