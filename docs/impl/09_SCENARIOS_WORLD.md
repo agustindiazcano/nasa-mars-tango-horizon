@@ -225,7 +225,7 @@ Every module is selectable in the viewer and opens a card with its function, its
 | Fission surface power | Storm-proof baseline power | Rated electric power, keep-out distance | NASA Fission Surface Power project figures (NASA.gov / NTRS) |
 | Garage and workshop | Fleet charging and repair | Units docked, charge state | Live from the fleet |
 | Comms tower | Links to orbiters and to the field | Line-of-sight coverage computed on the DTM | Computed |
-| Launch towers (2) | Ballistic life-support pods | Pod mass, range, flight time to the astronaut now | `ballistic.ts` |
+| Launch towers (2) | Ballistic life-support pods & UWB/LED beacon canisters | 8.0 kg multi-consumable pod mass (4.0 kg O2 COPV [1.0 kg gas], 1.2 kg LiOH scrubber, 1.0 kg 200 Wh battery, 0.35 kg patch kit, 1.45 kg aeroshell + 18 m² chute) and non-pyrotechnic 0.25 kg LED/UWB breadcrumb beacons | `ballistic.ts`, `podDelivery.ts`, NASA xPLSS & JPL CoSTAR heritage |
 | Landing pad and airstrip | Drones, glider | Design choice | — |
 | Radiation storm shelter | Crew refuge during solar events | Shielding mass, dose reduction | NASA-STD-3001 radiation limits; design assumption for shielding |
 | Storage and spares | Consumables and spare parts | Days of reserve | Design assumption |

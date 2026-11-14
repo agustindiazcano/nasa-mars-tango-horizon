@@ -210,14 +210,35 @@ store.setHooks({
       store.env.wind_ms,
       store.env.wind_dir_rad,
       () => {
-        store.pushAlert("info", `O2 pod (${payload}) landed safely (${tele?.impactSpeed.toFixed(1)} m/s)`);
-        if (store.leakDiameterM > 0) sealSuitLeak("O2 pod delivered");
+        store.pushAlert(
+          "info",
+          `8.0 kg Life-Support Pod (${payload}: 4.0 kg O2 COPV, 1.2 kg LiOH, 1.0 kg battery, 0.35 kg patch) landed (${tele?.impactSpeed.toFixed(1)} m/s)`,
+        );
+        if (store.leakDiameterM > 0) sealSuitLeak("8.0 kg Life-Support Pod delivered");
       },
     );
     if (tele) {
       store.podTelemetry = tele;
-      store.pushAlert("info", `Pod launched: ETA ${tele.flightTimeS.toFixed(1)} s, drift ${tele.windDriftM.toFixed(1)} m`);
+      store.pushAlert("info", `8.0 kg Pod launched: ETA ${tele.flightTimeS.toFixed(1)} s, drift ${tele.windDriftM.toFixed(1)} m`);
     }
+  },
+  onDeployBeacons: (beacons, mode) => {
+    const pts =
+      beacons.length > 0
+        ? beacons
+        : [
+            { id: "BCN-1", x: Math.round(astronaut.pos.x * 0.75), z: Math.round(astronaut.pos.z * 0.75) },
+            { id: "BCN-2", x: Math.round(astronaut.pos.x * 0.5), z: Math.round(astronaut.pos.z * 0.5) },
+            { id: "BCN-3", x: Math.round(astronaut.pos.x * 0.25), z: Math.round(astronaut.pos.z * 0.25) },
+            { id: "BCN-4", x: 0, z: 0 },
+          ];
+    terrain.setBeacons(pts);
+    terrain.setRoute([{ x: astronaut.pos.x, z: astronaut.pos.z }, ...pts.map((b) => ({ x: b.x, z: b.z }))]);
+    store.pushAlert(
+      "info",
+      `${pts.length} solid-state 505/615 nm LED + 6.5 GHz UWB beacons (${(pts.length * 0.25).toFixed(2)} kg) deployed via ${mode}`,
+      "EVA-PLANNER",
+    );
   },
   onArmSkill: (skill: ArmSkillId, targetId: string, item?: string) => {
     fleet.executeArmSkill(skill, targetId, astronaut.pos, astronaut.yaw, item);

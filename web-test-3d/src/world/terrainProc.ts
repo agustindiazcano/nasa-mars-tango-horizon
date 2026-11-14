@@ -58,6 +58,7 @@ export class TerrainProc {
   private textures: Record<LayerId, THREE.DataTexture>;
   private material: THREE.MeshStandardMaterial;
   private routeLine: THREE.Line | null = null;
+  private beaconsGroup = new THREE.Group();
   private sceneRef: THREE.Scene;
 
   constructor(scene: THREE.Scene) {
@@ -219,6 +220,45 @@ export class TerrainProc {
     const mat = new THREE.LineBasicMaterial({ color: 0x35e0ff });
     this.routeLine = new THREE.Line(geo, mat);
     this.sceneRef.add(this.routeLine);
+  }
+
+  setBeacons(beacons: { id: string; x: number; z: number }[]): void {
+    this.sceneRef.remove(this.beaconsGroup);
+    this.beaconsGroup = new THREE.Group();
+    for (let i = 0; i < beacons.length; i++) {
+      const b = beacons[i];
+      const y = this.heightAt(b.x, b.z);
+      const puck = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.45, 0.55, 0.25, 16),
+        new THREE.MeshStandardMaterial({ color: 0x1b2430, emissive: 0x00e5ff, emissiveIntensity: 0.9 }),
+      );
+      puck.position.set(b.x, y + 0.15, b.z);
+      this.beaconsGroup.add(puck);
+
+      // Vertical solid-state 505 nm cyan / 615 nm red-orange laser-LED beam (no flame)
+      const beamColor = i % 2 === 0 ? 0x00f0ff : 0xff5e2b;
+      const beam = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.28, 16, 12, 1, true),
+        new THREE.MeshBasicMaterial({
+          color: beamColor,
+          transparent: true,
+          opacity: 0.55,
+          side: THREE.DoubleSide,
+        }),
+      );
+      beam.position.set(b.x, y + 8, b.z);
+      this.beaconsGroup.add(beam);
+
+      // UWB 6.5 GHz ground ranging ring
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(1.6, 2.1, 24),
+        new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.65, side: THREE.DoubleSide }),
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(b.x, y + 0.08, b.z);
+      this.beaconsGroup.add(ring);
+    }
+    this.sceneRef.add(this.beaconsGroup);
   }
 
   private sampleField(arr: Float32Array, x: number, z: number): number {

@@ -17,11 +17,14 @@ import {
   getStormForecastData,
   heightAt,
   hydrationAt,
+  lidarScanAt,
+  meta as terrainMeta,
   rankSampleSites,
   routeBetween,
   slopeAt,
   svfAt,
   thermalClassAt,
+  worldToPlanetocentric,
 } from "./terrainData.js";
 
 export interface DocChunk {
@@ -77,25 +80,89 @@ export const TOOLS: ToolDef[] = [
     server: "terrain",
     effect: false,
     schema: z.object(xz),
-    description: "Elevation (m), slope (deg), sky view factor (0..1), and thermal class (0..2) at a point.",
+    description: "Elevation (m), slope (deg), sky view factor (0..1), thermal class (0..2), and Mars IAU-2000 (lat, lon_E) at a point.",
     run: (a) => ({
       elevation_m: heightAt(a.x, a.z),
       slope_deg: slopeAt(a.x, a.z),
       sky_view_factor: svfAt(a.x, a.z),
       thermal_class: thermalClassAt(a.x, a.z),
+      ...worldToPlanetocentric(a.x, a.z),
     }),
+  }),
+  def({
+    name: "get_localization_and_lidar",
+    server: "terrain",
+    effect: false,
+    schema: z.object({
+      unit_id: z
+        .string()
+        .optional()
+        .describe("Optional fleet unit ID (e.g. 'rover-2') to center the 360-deg 3D LiDAR scan on; defaults to astronaut position"),
+    }),
+    description:
+      "Mars GNSS-denied geolocation & 3D Flash LiDAR scan: returns IAU-2000 planetocentric (lat, lon_E) and local (x, z, elev) coordinates of the astronaut and all fleet units (via HiRISE 1 m/px Map-Relative Localization + 6.5 GHz UWB Time-of-Flight mesh + VIO), plus an 8-sector 60 m 3D LiDAR slope/hazard scan.",
+    run: (a, ctx) => {
+      const unit = a.unit_id ? ctx.fleet.find((u) => u.id === a.unit_id) : undefined;
+      const scanX = unit ? unit.x : ctx.astronaut.x;
+      const scanZ = unit ? unit.z : ctx.astronaut.z;
+      return {
+        localization_mode:
+          "Mars GNSS-Denied Stack: USGS HiRISE 1 m/px Map-Relative Localization (MRL) + IEEE 802.15.4z UWB 6.5 GHz ToF Mesh + Visual-Inertial Odometry (VIO) + 3D Flash LiDAR (532/905 nm)",
+        cartography_product: terrainMeta.product_id,
+        astronaut: {
+          x: Number(ctx.astronaut.x.toFixed(1)),
+          z: Number(ctx.astronaut.z.toFixed(1)),
+          elevation_m: heightAt(ctx.astronaut.x, ctx.astronaut.z),
+          slope_deg: slopeAt(ctx.astronaut.x, ctx.astronaut.z),
+          sky_view_factor: svfAt(ctx.astronaut.x, ctx.astronaut.z),
+          thermal_class: thermalClassAt(ctx.astronaut.x, ctx.astronaut.z),
+          ...worldToPlanetocentric(ctx.astronaut.x, ctx.astronaut.z),
+        },
+        fleet: ctx.fleet.map((u) => {
+          const dx = ctx.astronaut.x - u.x;
+          const dz = ctx.astronaut.z - u.z;
+          const distM = Number(Math.hypot(dx, dz).toFixed(1));
+          const bearingDeg = Number((((Math.atan2(dx, -dz) * 180) / Math.PI + 360) % 360).toFixed(1));
+          return {
+            id: u.id,
+            kind: u.kind,
+            x: Number(u.x.toFixed(1)),
+            z: Number(u.z.toFixed(1)),
+            elevation_m: heightAt(u.x, u.z),
+            slope_deg: slopeAt(u.x, u.z),
+            thermal_class: thermalClassAt(u.x, u.z),
+            ...worldToPlanetocentric(u.x, u.z),
+            distance_to_astronaut_m: distM,
+            bearing_to_astronaut_deg: bearingDeg,
+            battery: u.battery,
+            busy: u.busy,
+          };
+        }),
+        lidar_scan: lidarScanAt(scanX, scanZ),
+      };
+    },
   }),
   def({
     name: "plan_route",
     server: "terrain",
     effect: false,
     schema: z.object({
+      from_x: z.number().optional().describe("Optional origin X coordinate in metres east (defaults to astronaut X or unit X)"),
+      from_z: z.number().optional().describe("Optional origin Z coordinate in metres south (defaults to astronaut Z or unit Z)"),
+      unit_id: z.string().optional().describe("Optional fleet unit ID whose position is used as route origin"),
       to_x: z.number().describe("Destination X coordinate in metres east"),
       to_z: z.number().describe("Destination Z coordinate in metres south"),
-      speed_ms: z.number().min(0.2).max(1.6).default(1.0).describe("Walking speed in m/s"),
+      speed_ms: z.number().min(0.2).max(3.0).default(1.0).describe("Traversal speed in m/s"),
     }),
-    description: "Walking A* route from astronaut position minimizing metabolic energy and radiation exposure.",
-    run: (a, ctx) => routeBetween(ctx.astronaut, { x: a.to_x, z: a.to_z }, a.speed_ms, ctx),
+    description: "A* route over HiRISE 1 m/px DTM + THEMIS thermal inertia map from astronaut or a fleet unit to (to_x, to_z).",
+    run: (a, ctx) => {
+      const unit = a.unit_id ? ctx.fleet.find((u) => u.id === a.unit_id) : undefined;
+      const from = {
+        x: a.from_x ?? (unit ? unit.x : ctx.astronaut.x),
+        z: a.from_z ?? (unit ? unit.z : ctx.astronaut.z),
+      };
+      return routeBetween(from, { x: a.to_x, z: a.to_z }, a.speed_ms, ctx);
+    },
   }),
   def({
     name: "get_hydration_at",
@@ -262,10 +329,107 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       target_x: z.number().describe("Target X coordinate in metres east"),
       target_z: z.number().describe("Target Z coordinate in metres south"),
-      payload: z.enum(["o2", "battery", "patch_kit"]),
+      payload: z.enum(["o2", "battery", "patch_kit", "full_life_support"]).default("full_life_support"),
     }),
-    description: "Proposes launching a ballistic life-support pod from the base tower to a target coordinate.",
-    run: (a, _c, caller) => ({ type: "launch_pod", args: a, proposedBy: caller }),
+    description:
+      "Proposes launching an 8.0 kg ballistic life-support pod from the base tower (4.0 kg high-pressure O2 COPV with 1.0 kg breathable O2 gas, 1.2 kg LiOH CO2 scrubber cartridge, 1.0 kg 200 Wh thermal battery, 0.35 kg self-sealing patch kit, 1.45 kg aeroshell + 18 m^2 parachute).",
+    run: (a, _c, caller) => ({
+      type: "launch_pod",
+      args: {
+        ...a,
+        mass_kg: 8.0,
+        breakdown_kg: {
+          o2_copv_total_kg: 4.0,
+          o2_usable_gas_kg: 1.0,
+          co2_scrubber_lioh_kg: 1.2,
+          battery_thermal_pack_kg: 1.0,
+          suit_breach_patch_kit_kg: 0.35,
+          aeroshell_chute_beacon_kg: 1.45,
+        },
+        chute_cda_m2: 18.0,
+      },
+      proposedBy: caller,
+    }),
+  }),
+  def({
+    name: "deploy_beacons",
+    server: "fleet",
+    effect: true,
+    schema: z.object({
+      to_x: z.number().default(0).describe("Shelter or rover destination X coordinate in metres east"),
+      to_z: z.number().default(0).describe("Shelter or rover destination Z coordinate in metres south"),
+      mode: z
+        .enum(["auto", "drone_drop", "ballistic_canister"])
+        .default("auto")
+        .describe("Deployment mode: drone_drop when tau < 1.8, or ballistic_canister when dust/wind grounds aircraft"),
+      spacing_m: z.number().min(25).max(100).default(50).describe("Spacing in metres between breadcrumb beacons"),
+    }),
+    description:
+      "Deploys a trail of non-pyrotechnic solid-state LED/laser (505 nm cyan + 615 nm red-orange + 850 nm NIR, 1.5 Hz) and UWB (6.5 GHz IEEE 802.15.4z + 880 Hz audio homing) breadcrumb beacons (0.25 kg each) along the A* return route to guide a blinded or HUD-degraded astronaut to shelter.",
+    run: (a, ctx, caller) => {
+      const route = routeBetween(ctx.astronaut, { x: a.to_x, z: a.to_z }, 1.0, ctx);
+      const rawPts =
+        route.reachable && route.points?.length
+          ? route.points
+          : [
+              { x: Math.round(ctx.astronaut.x), z: Math.round(ctx.astronaut.z) },
+              { x: Math.round(a.to_x), z: Math.round(a.to_z) },
+            ];
+      const beacons: { id: string; x: number; z: number }[] = [];
+      let accum = 0;
+      for (let i = 0; i < rawPts.length; i++) {
+        if (i === 0) {
+          const dx0 = rawPts[rawPts.length - 1].x - rawPts[0].x;
+          const dz0 = rawPts[rawPts.length - 1].z - rawPts[0].z;
+          const d0 = Math.hypot(dx0, dz0) || 1;
+          beacons.push({
+            id: "BCN-1",
+            x: Math.round(rawPts[0].x + (dx0 / d0) * 18),
+            z: Math.round(rawPts[0].z + (dz0 / d0) * 18),
+          });
+          continue;
+        }
+        const seg = Math.hypot(rawPts[i].x - rawPts[i - 1].x, rawPts[i].z - rawPts[i - 1].z);
+        accum += seg;
+        if (accum >= a.spacing_m && beacons.length < 10) {
+          accum = 0;
+          beacons.push({
+            id: `BCN-${beacons.length + 1}`,
+            x: Math.round(rawPts[i].x),
+            z: Math.round(rawPts[i].z),
+          });
+        }
+      }
+      if (beacons.length < 2) {
+        beacons.push({ id: `BCN-${beacons.length + 1}`, x: Math.round(a.to_x), z: Math.round(a.to_z) });
+      }
+      const drone = ctx.fleet.find((u) => u.kind === "drone" && u.battery >= 0.2);
+      const resolvedMode =
+        a.mode === "auto"
+          ? ctx.env.tau < 1.8 && drone
+            ? "drone_drop"
+            : "ballistic_canister"
+          : a.mode;
+      const puckMassKg = 0.25;
+      const totalPayloadKg = Number((beacons.length * puckMassKg).toFixed(2));
+      return {
+        type: "deploy_beacons",
+        args: {
+          to_x: a.to_x,
+          to_z: a.to_z,
+          mode: resolvedMode,
+          unit_id: resolvedMode === "drone_drop" ? (drone?.id ?? "drone-1") : "launcher-1",
+          pyrotechnic: false,
+          beacons,
+          puck_mass_kg: puckMassKg,
+          total_payload_kg: totalPayloadKg,
+          canister_total_kg: resolvedMode === "ballistic_canister" ? 8.0 : totalPayloadKg,
+          optical_spec: "Solid-state dual-LED/laser strobe 505 nm cyan + 615 nm red-orange + 850 nm NIR at 1.5 Hz (75 cd, RTCM 13200.0 eVDSD)",
+          rf_spec: "IEEE 802.15.4z UWB 6.5 GHz ToF ranging (<0.2 m) + 400 MHz UHF mesh + 880 Hz ILS audio homing",
+        },
+        proposedBy: caller,
+      };
+    },
   }),
   def({
     name: "arm_skill",

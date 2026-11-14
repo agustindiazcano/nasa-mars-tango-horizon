@@ -475,6 +475,38 @@ export function slopeAt(x: number, z: number): number {
   return Number(sampleFloatBilinear(state.slopeDeg, state.mapN, x, z).toFixed(2));
 }
 
+/**
+ * Returns (x, z) if its slope is within maxSlopeDeg; otherwise searches outward
+ * in 15 m rings on the HiRISE DTM to find the nearest safe rover rendezvous point.
+ */
+export function nearestSafePoint(
+  x: number,
+  z: number,
+  maxSlopeDeg = 20,
+): { x: number; z: number; slope_deg: number; adjusted: boolean } {
+  const s0 = slopeAt(x, z);
+  if (s0 <= maxSlopeDeg) {
+    return { x: Math.round(x), z: Math.round(z), slope_deg: s0, adjusted: false };
+  }
+  const half = state.meta.size_m / 2 - 20;
+  let best = { x: Math.round(x), z: Math.round(z), slope_deg: s0, adjusted: true };
+  for (let r = 15; r <= 600; r += 15) {
+    for (let k = 0; k < 16; k++) {
+      const ang = (2 * Math.PI * k) / 16;
+      const cx = clamp(Math.round(x + r * Math.cos(ang)), -half, half);
+      const cz = clamp(Math.round(z + r * Math.sin(ang)), -half, half);
+      const sl = slopeAt(cx, cz);
+      if (sl < best.slope_deg) {
+        best = { x: cx, z: cz, slope_deg: sl, adjusted: true };
+      }
+      if (sl <= maxSlopeDeg) {
+        return { x: cx, z: cz, slope_deg: sl, adjusted: true };
+      }
+    }
+  }
+  return best;
+}
+
 export function svfAt(x: number, z: number): number {
   return Number(sampleFloatBilinear(state.svf, state.mapN, x, z).toFixed(3));
 }
@@ -486,6 +518,86 @@ export function thermalClassAt(x: number, z: number): 0 | 1 | 2 {
   const raw = state.thermalClass[row * state.mapN + col];
   if (raw <= 2) return raw as 0 | 1 | 2;
   return raw < 85 ? 0 : raw < 170 ? 1 : 2;
+}
+
+const GALE_CENTER_LAT_DEG = -4.5895;
+const GALE_CENTER_LON_E_DEG = 137.4417;
+const MARS_RADIUS_M = 3_396_190;
+
+/**
+ * Converts local tangent-plane coordinates (x east, z south in metres) into
+ * IAU Mars 2000 planetocentric latitude and east longitude (degrees).
+ */
+export function worldToPlanetocentric(x: number, z: number): { lat_deg: number; lon_e_deg: number } {
+  const mPerDegLat = (Math.PI / 180) * MARS_RADIUS_M;
+  const mPerDegLon = mPerDegLat * Math.cos((GALE_CENTER_LAT_DEG * Math.PI) / 180);
+  return {
+    lat_deg: Number((GALE_CENTER_LAT_DEG - z / mPerDegLat).toFixed(6)),
+    lon_e_deg: Number((GALE_CENTER_LON_E_DEG + x / mPerDegLon).toFixed(6)),
+  };
+}
+
+export interface LidarSectorScan {
+  sector: "N" | "NE" | "E" | "SE" | "S" | "SW" | "W" | "NW";
+  azimuth_deg: number;
+  elevation_15m: number;
+  elevation_30m: number;
+  elevation_60m: number;
+  max_slope_deg: number;
+  thermal_class: 0 | 1 | 2;
+  traversable: boolean;
+}
+
+/**
+ * Simulates an onboard 360-deg 3D Flash LiDAR + HiRISE DTM hazard scan around (x, z)
+ * across 8 octants out to 60 m range.
+ */
+export function lidarScanAt(x: number, z: number, maxSlopeDeg = 22): {
+  origin: { x: number; z: number; elevation_m: number; slope_deg: number; lat_deg: number; lon_e_deg: number };
+  range_m: number;
+  sectors: LidarSectorScan[];
+} {
+  const dirs: { sector: LidarSectorScan["sector"]; az: number; dx: number; dz: number }[] = [
+    { sector: "N", az: 0, dx: 0, dz: -1 },
+    { sector: "NE", az: 45, dx: Math.SQRT1_2, dz: -Math.SQRT1_2 },
+    { sector: "E", az: 90, dx: 1, dz: 0 },
+    { sector: "SE", az: 135, dx: Math.SQRT1_2, dz: Math.SQRT1_2 },
+    { sector: "S", az: 180, dx: 0, dz: 1 },
+    { sector: "SW", az: 225, dx: -Math.SQRT1_2, dz: Math.SQRT1_2 },
+    { sector: "W", az: 270, dx: -1, dz: 0 },
+    { sector: "NW", az: 315, dx: -Math.SQRT1_2, dz: -Math.SQRT1_2 },
+  ];
+  const sectors: LidarSectorScan[] = dirs.map((d) => {
+    const p15 = { x: x + d.dx * 15, z: z + d.dz * 15 };
+    const p30 = { x: x + d.dx * 30, z: z + d.dz * 30 };
+    const p60 = { x: x + d.dx * 60, z: z + d.dz * 60 };
+    const s15 = slopeAt(p15.x, p15.z);
+    const s30 = slopeAt(p30.x, p30.z);
+    const s60 = slopeAt(p60.x, p60.z);
+    const maxSlope = Number(Math.max(s15, s30, s60).toFixed(1));
+    const tc = thermalClassAt(p30.x, p30.z);
+    return {
+      sector: d.sector,
+      azimuth_deg: d.az,
+      elevation_15m: heightAt(p15.x, p15.z),
+      elevation_30m: heightAt(p30.x, p30.z),
+      elevation_60m: heightAt(p60.x, p60.z),
+      max_slope_deg: maxSlope,
+      thermal_class: tc,
+      traversable: maxSlope <= maxSlopeDeg && tc > 0,
+    };
+  });
+  return {
+    origin: {
+      x: Number(x.toFixed(1)),
+      z: Number(z.toFixed(1)),
+      elevation_m: heightAt(x, z),
+      slope_deg: slopeAt(x, z),
+      ...worldToPlanetocentric(x, z),
+    },
+    range_m: 60,
+    sectors,
+  };
 }
 
 export function hydrationAt(x: number, z: number) {

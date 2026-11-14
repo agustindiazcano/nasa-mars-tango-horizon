@@ -109,9 +109,13 @@ export const TOOLS: ToolDef[] = [
     description: "Envía una unidad a un punto con una tarea.",
     run: (a, _c, caller) => ({ type: "dispatch", args: a, proposedBy: caller }) }),
   def({ name: "launch_pod", server: "fleet", effect: true,
-    schema: z.object({ target_x: z.number(), target_z: z.number(), payload: z.enum(["o2", "battery", "patch_kit"]) }),
-    description: "Lanza una cápsula de soporte vital desde la torre hacia un punto.",
+    schema: z.object({ target_x: z.number(), target_z: z.number(), payload: z.enum(["o2", "battery", "patch_kit", "full_life_support"]).default("full_life_support") }),
+    description: "Launches an 8.0 kg ballistic life-support pod (4.0 kg O2 COPV with 1.0 kg O2 gas, 1.2 kg LiOH CO2 scrubber, 1.0 kg 200 Wh battery, 0.35 kg breach patch kit, 1.45 kg aeroshell + 18 m^2 parachute).",
     run: (a, _c, caller) => ({ type: "launch_pod", args: a, proposedBy: caller }) }),
+  def({ name: "deploy_beacons", server: "fleet", effect: true,
+    schema: z.object({ to_x: z.number().default(0), to_z: z.number().default(0), mode: z.enum(["auto", "drone_drop", "ballistic_canister"]).default("auto"), spacing_m: z.number().default(50) }),
+    description: "Deploys non-pyrotechnic solid-state LED/laser (505/615/850 nm, 1.5 Hz) + UWB (6.5 GHz ToF + 880 Hz audio homing) breadcrumb beacons (0.25 kg each) along the return path.",
+    run: (a, _c, caller) => ({ type: "deploy_beacons", args: a, proposedBy: caller }) }),
 
   // --- mcp-hud -----------------------------------------------------------
   def({ name: "set_layer", server: "hud", effect: true,

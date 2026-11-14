@@ -93,6 +93,7 @@ export interface Verdict {
 export type ActionType =
   | "dispatch"
   | "launch_pod"
+  | "deploy_beacons"
   | "arm_skill"
   | "set_layer"
   | "open_panel"

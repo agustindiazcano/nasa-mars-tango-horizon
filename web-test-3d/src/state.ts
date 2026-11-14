@@ -21,6 +21,7 @@ export interface WorldHooks {
   onShowRoute?(toX: number, toZ: number): RouteDisplay | null;
   onDispatch?(unitId: string, x: number, z: number, task: string): void;
   onLaunchPod?(targetX: number, targetZ: number, payload: string): void;
+  onDeployBeacons?(beacons: { id: string; x: number; z: number }[], mode: string): void;
   onArmSkill?(skill: ArmSkillId, targetId: string, item?: string): void;
   onStopAll?(): void;
 }
@@ -306,8 +307,16 @@ export class MissionStore {
       case "launch_pod": {
         const tx = Number(args.target_x ?? this.astronaut.x + 20);
         const tz = Number(args.target_z ?? this.astronaut.z);
-        const payload = String(args.payload ?? "o2");
+        const payload = String(args.payload ?? "full_life_support");
         this.hooks.onLaunchPod?.(tx, tz, payload);
+        break;
+      }
+      case "deploy_beacons": {
+        const beacons = Array.isArray(args.beacons)
+          ? (args.beacons as { id: string; x: number; z: number }[])
+          : [];
+        const mode = String(args.mode ?? "drone_drop");
+        this.hooks.onDeployBeacons?.(beacons, mode);
         break;
       }
       case "arm_skill": {
