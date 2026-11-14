@@ -9,3 +9,5 @@
 | B15 | 🔴 | Step 19 | Finalize `README.md` (auto-generated data, physics, and constants tables + model validation metrics), run final deploy to Cloud Run and Vercel once `web/` is merged, and tag `submission` | `10_DEPLOY_SUBMISSION.md` | All |
 | B16 | ⚪ | Backlog | Implement post-guardrail 3-model escalated voting (`gemini-4-carbon` `low`, `gemini-4-argon`, `muse-wonder` `medium`) and HUD trace card (nice-to-have) | `16_ESCALATED_MODEL_VOTING.md` | B8 |
 | B17 | ⚪ | Backlog | Implement bounded multi-turn conversational memory (`history`, max 6 turns) across separate voice orders | `17_MULTITURN_VOICE_MEMORY.md` | B8 |
+| B18 | ⚪ | Backlog | Implement client-side persistent chat and voice session history (`IndexedDB` / `localStorage`, max 20 sessions) with session picker and JSON/Markdown export | `18_CHAT_SESSION_PERSISTENCE.md` | B17 |
+| B19 | ⚪ | Backlog | Implement deterministic EVA biomedical trend prediction (`shared/src/physics/biomed.ts`), privacy-bounded personal baselines, `evaluate_crew_biomed` MCP tool, and clinical `GUARDIAN` rules | `19_PREDICTIVE_BIOMEDICAL_RAG.md` | B8 |

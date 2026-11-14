@@ -6,77 +6,57 @@
 
 ## Code
 
-`deploy.sh`:
+`deploy.sh` (current deployment script in repo root):
 
 ```bash
 #!/usr/bin/env bash
 # Usage: ./deploy.sh   (reads .env from repo root; base infra provisioned via infra/terraform)
 set -euo pipefail
-set -a; source .env; set +a
-: "${GCP_PROJECT_ID:=nasa-tango-horizon}" "${GCP_REGION:=us-central1}" "${VERTEX_LOCATION:=us-central1}" "${CLOUD_RUN_SERVICE:=tango-horizon}"
-SA_EMAIL="${CLOUD_RUN_SERVICE}-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com"
 
-gcloud config set project "$GCP_PROJECT_ID"
-
-# Store Muse/Meta and Google AI Studio keys in Secret Manager if provided (Vertex AI uses keyless ADC via SA_EMAIL).
-SECRETS_LIST=()
-upsert_secret() {
-  local name="$1" env_var="$2" val="$3"
-  if [ -z "$val" ]; then return; fi
-  if ! gcloud secrets describe "$name" >/dev/null 2>&1; then
-    printf '%s' "$val" | gcloud secrets create "$name" --data-file=-
-  else
-    printf '%s' "$val" | gcloud secrets versions add "$name" --data-file=-
-  fi
-  gcloud secrets add-iam-policy-binding "$name" --member="serviceAccount:${SA_EMAIL}" --role="roles/secretmanager.secretAccessor" >/dev/null
-  SECRETS_LIST+=("${env_var}=${name}:latest")
-}
-
-upsert_secret "meta-api-key" "META_API_KEY" "${META_API_KEY:-}"
-upsert_secret "gemini-api-key" "GEMINI_API_KEY" "${GEMINI_API_KEY:-}"
-
-SECRETS_FLAG=()
-if [ ${#SECRETS_LIST[@]} -gt 0 ]; then
-  IFS=,; SECRETS_FLAG=(--set-secrets "${SECRETS_LIST[*]}"); unset IFS
+if [ -f .env ]; then
+  set -a
+  source <(tr -d '\r' < .env)
+  set +a
 fi
 
-gcloud run deploy "$CLOUD_RUN_SERVICE" \
-  --source . \
-  --region "$GCP_REGION" \
-  --service-account "$SA_EMAIL" \
-  --allow-unauthenticated \
-  --min-instances 1 --max-instances 1 \
-  --cpu 1 --memory 1Gi \
-  --timeout 3600 \
-  --session-affinity \
-  "${SECRETS_FLAG[@]}" \
-  --set-env-vars "^@^GCP_PROJECT_ID=${GCP_PROJECT_ID}@GCP_REGION=${GCP_REGION}@VERTEX_LOCATION=${VERTEX_LOCATION}@VERTEX_ENABLED=${VERTEX_ENABLED:-1}@LLM_PROVIDER=${LLM_PROVIDER:-vertex}@VERTEX_MODEL_LARGE=${VERTEX_MODEL_LARGE:-google/gemini-4-carbon}@VERTEX_MODEL_MEDIUM=${VERTEX_MODEL_MEDIUM:-google/gemini-4-argon}@VERTEX_MODEL_FAST=${VERTEX_MODEL_FAST:-google/gemini-4-hydrogen}@VERTEX_MODEL_JUDGE=${VERTEX_MODEL_JUDGE:-google/gemini-4-argon}@VERTEX_MODEL_VISION=${VERTEX_MODEL_VISION:-google/gemini-4-argon}@GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}@GEMINI_MODEL_LARGE=${GEMINI_MODEL_LARGE:-gemini-4-carbon}@GEMINI_MODEL_MEDIUM=${GEMINI_MODEL_MEDIUM:-gemini-4-argon}@GEMINI_MODEL_FAST=${GEMINI_MODEL_FAST:-gemini-4-hydrogen}@GEMINI_MODEL_JUDGE=${GEMINI_MODEL_JUDGE:-gemini-4-argon}@GEMINI_MODEL_VISION=${GEMINI_MODEL_VISION:-gemini-4-argon}@META_BASE_URL=${META_BASE_URL:-https://api.meta.ai/v1}@LLM_MODEL_LARGE=${LLM_MODEL_LARGE:-muse-wonder}@LLM_MODEL_MEDIUM=${LLM_MODEL_MEDIUM:-muse-wonder}@LLM_MODEL_FAST=${LLM_MODEL_FAST:-muse-spark}@LLM_MODEL_JUDGE=${LLM_MODEL_JUDGE:-muse-spark}@LLM_MODEL_VISION=${LLM_MODEL_VISION:-muse-wonder}@TTS_VOICE_ES=${TTS_VOICE_ES:-es-US-Journey-D}@TTS_VOICE_EN=${TTS_VOICE_EN:-en-US-Journey-D}@RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-30}@LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-400}@AGENTS_OFFLINE=${AGENTS_OFFLINE:-0}"
-
-URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" --region "$GCP_REGION" --format='value(status.url)')
-ORIGINS="${URL}${VERCEL_URL:+,${VERCEL_URL}}"
-gcloud run services update "$CLOUD_RUN_SERVICE" --region "$GCP_REGION" --update-env-vars "^@^ALLOWED_ORIGINS=${ORIGINS}" >/dev/null
-echo "Cloud Run backend + mirror deployed at: $URL"
-curl -fsS "$URL/api/health" && echo
+: "${GCP_PROJECT_ID:=nasa-tango-horizon}"
+: "${GCP_REGION:=us-central1}"
+: "${VERTEX_LOCATION:=global}"
+: "${CLOUD_RUN_SERVICE:=tangohorizon-api}"
+: "${SA_EMAIL:=tango-horizon-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com}"
+: "${VERCEL_URL:=https://tangohorizon.vercel.app}"
+# Builds image with `gcloud builds submit --tag us-central1-docker.pkg.dev/nasa-tango-horizon/tango-horizon/${CLOUD_RUN_SERVICE}:latest .`
+# Deploys Cloud Run with --min-instances 1 --max-instances 1 --session-affinity --service-account "$SA_EMAIL"
+# Sets ALLOWED_ORIGINS="${URL},${VERCEL_URL}" and smoke-checks "$URL/api/health"
 ```
 
-## Frontend Deployment on Vercel (`web/`)
+> **Live deployment (PR #3):**
+> - **Cloud Run backend:** `https://tangohorizon-api-yuhr7hkc7q-uc.a.run.app` (`tangohorizon-api`, `us-central1`, `tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com`)
+> - **Vercel frontend:** `https://tangohorizon.vercel.app` (configured with `VITE_API_URL=https://tangohorizon-api-yuhr7hkc7q-uc.a.run.app` in `production` and `preview`)
 
-1. In Vercel, import the repository with **Root Directory** set to `.` (or deploy via `vercel --prod`), **Build Command**: `npm -w shared run build && npm -w web run build`, and **Output Directory**: `web/dist`.
-2. Set the environment variable `VITE_API_URL=https://<cloud-run-service>.a.run.app` in Vercel Project Settings (no API keys are ever placed in Vercel).
-3. In `web/src/`, all `/api/*` `fetch` calls prefix `import.meta.env.VITE_API_URL ?? ""` and WebSocket `/ws/remote` connects to `(import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/^http/, "ws") : `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}`) + "/ws/remote"`. When `VITE_API_URL` is empty (local Vite dev proxy or Cloud Run mirror), it uses same-origin paths automatically.
-4. Add the deployed Vercel URL (e.g., `https://nasa-mars-tango-horizon.vercel.app`) to `VERCEL_URL` in `.env` and re-run the `ALLOWED_ORIGINS` update so Cloud Run accepts CORS and WebSocket connections from Vercel.
+## Frontend Deployment on Vercel (`vercel.json`)
 
-`.dockerignore`:
+1. Root `vercel.json` currently builds `web-test-3d/dist` (with `publicDir: "../web/public"` so static NASA terrain and model assets are served from `/data/*`) while `web/` is completed by the frontend team:
+   - `buildCommand`: `npm -w shared run build && npm -w web-test-3d run build` (switch to `npm -w web run build` and `outputDirectory: "web/dist"` when `web/` is merged in **B15**).
+   - `rewrites`: `/remote` -> `/remote.html`.
+2. Set `VITE_API_URL=https://tangohorizon-api-yuhr7hkc7q-uc.a.run.app` in Vercel Project Settings (no API keys are ever placed in Vercel).
+3. In frontend `src/`, all `/api/*` `fetch` calls prefix `import.meta.env.VITE_API_URL ?? ""` and WebSocket `/ws/remote` connects to `(import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/^http/, "ws") : `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}`) + "/ws/remote"`. When `VITE_API_URL` is empty (local Vite dev proxy or Cloud Run mirror), it uses same-origin paths automatically.
+4. Add the deployed Vercel URL to `VERCEL_URL` in `.env` and re-run `./deploy.sh` so `ALLOWED_ORIGINS` accepts CORS and WebSocket connections from Vercel.
+
+`.dockerignore` (root-anchored so `web/public/data` and `server/src/agents/tools` are preserved):
 
 ```
 node_modules
 **/node_modules
 **/dist
-data
-docs
-tools
+/data
+/docs
+/tools
+/infra
 .env
+.env.*
 .git
+.vercel
 *.bak.md
 ```
 
@@ -87,8 +67,13 @@ tools
 node_modules
 **/node_modules
 **/dist
-data/
+/data/
+/docs/
+/tools/
+/infra/
 .env
+.env.*
+.vercel/
 *.bak.md
 ```
 

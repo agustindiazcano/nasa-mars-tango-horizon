@@ -11,10 +11,12 @@ Complete reference for the Google Cloud project `nasa-tango-horizon`, Terraform 
 | **Project ID** | `nasa-tango-horizon` |
 | **Project Number** | `291271901218` |
 | **Primary Region** | `us-central1` |
-| **Vertex AI Location** | `us-central1` |
+| **Vertex AI Location** | `global` |
+| **Cloud Run Service** | `tangohorizon-api` (`https://tangohorizon-api-yuhr7hkc7q-uc.a.run.app`) |
+| **Vercel Frontend** | `tangohorizon` (`https://tangohorizon.vercel.app`) |
 | **Backend Service Account** | `tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com` |
 | **Artifact Registry Repo** | `us-central1-docker.pkg.dev/nasa-tango-horizon/tango-horizon` |
-| **Vertex AI OpenAI Endpoint** | `https://us-central1-aiplatform.googleapis.com/v1/projects/nasa-tango-horizon/locations/us-central1/endpoints/openapi` |
+| **Vertex AI OpenAI Endpoint** | `https://aiplatform.googleapis.com/v1beta1/projects/nasa-tango-horizon/locations/global/endpoints/openapi` |
 
 Local CLI and Application Default Credentials (ADC) are linked to `nasa-tango-horizon`:
 
@@ -39,7 +41,7 @@ Even though Vertex AI, Muse/Meta, and Google AI Studio run inference in the clou
 |---|---|---|---|
 | **1 (Primary)** | `vertex` | Vertex AI OpenAI-compatible endpoint on `nasa-tango-horizon`. **Keyless ADC** via `google-auth-library` (`tango-horizon-sa` on Cloud Run, `gcloud auth application-default` locally). | `google/gemini-4-carbon` / `google/gemini-4-argon` / `google/gemini-4-hydrogen` |
 | **2 (Failover 1)** | `gemini` | Google AI Studio OpenAI-compatible endpoint (`https://generativelanguage.googleapis.com/v1beta/openai/`), authenticated via `GEMINI_API_KEY` (Secret Manager `gemini-api-key`). | `gemini-4-carbon` / `gemini-4-argon` / `gemini-4-hydrogen` |
-| **3 (Failover 2 / Backup)** | `meta` | Muse / Meta OpenAI-compatible API (`META_BASE_URL`), authenticated via `META_API_KEY` (Secret Manager `meta-api-key`). | `muse-wonder` (brain/medium/vision) / `muse-spark` (fast/judge) |
+| **3 (Failover 2 / Backup)** | `meta` | Muse / Meta OpenAI-compatible API (`META_BASE_URL`), authenticated via `META_API_KEY` (Secret Manager `meta-api-key`). | `muse-wonder-1.0` (brain/medium/vision) / `muse-spark-1.3` (fast/judge) |
 | **4 (Offline Fallback)** | `offline.ts` | Deterministic rule engine inside `server/src/agents/offline.ts` calling the exact same `@th/shared` physics and MCP read tools in `0 ms` if all cloud providers time out or `AGENTS_OFFLINE=1`. | Rule-based + `GUARDIAN` `ruleCheck` |
 
 To switch the primary provider (for example, to prioritize `meta` or `gemini`), set `LLM_PROVIDER=meta` or `LLM_PROVIDER=gemini` in `.env`; the remaining enabled providers stay active as automatic failover within the same request whenever a call exceeds `LLM_FAST_TIMEOUT_MS` (`4000 ms`) or `LLM_DEFAULT_TIMEOUT_MS` (`12000 ms`).
@@ -53,10 +55,10 @@ To switch the primary provider (for example, to prioritize `meta` or `gemini`), 
 | File | Purpose |
 |---|---|
 | `infra/terraform/versions.tf` | Terraform `>= 1.5.0` and `hashicorp/google ~> 6.0` provider configured for `var.project_id` |
-| `infra/terraform/variables.tf` | Input variables (`project_id`, `region`, `vertex_location`, `service_name`, `llm_provider`, `allowed_origins`, `deploy_cloud_run`, `container_image`) |
+| `infra/terraform/variables.tf` | Input variables (`project_id`, `region`, `vertex_location`, `service_name`, `cloud_run_service_name`, `llm_provider`, `allowed_origins`, `deploy_cloud_run`, `container_image`) |
 | `infra/terraform/main.tf` | Enables 8 GCP APIs, creates `tango-horizon-sa`, binds `roles/aiplatform.user` + logging/monitoring + Secret Manager access, creates Artifact Registry `tango-horizon`, creates `meta-api-key` & `gemini-api-key` secrets, and optionally deploys the Cloud Run v2 service |
 | `infra/terraform/outputs.tf` | Outputs `project_id`, `region`, `service_account_email`, `artifact_registry_repository`, `vertex_openai_base_url`, and `cloud_run_url` |
-| `infra/terraform/terraform.tfvars` | Default values bound to `nasa-tango-horizon` (`us-central1`) |
+| `infra/terraform/terraform.tfvars` | Default values bound to `nasa-tango-horizon` (`us-central1`, `vertex_location = "global"`, `cloud_run_service_name = "tangohorizon-api"`) |
 
 ### 3.2 Resources Provisioned by Terraform
 
@@ -110,8 +112,8 @@ graph LR
     end
 
     subgraph GCP["Google Cloud Project: nasa-tango-horizon (us-central1)"]
-        CR["Cloud Run: tango-horizon<br/>Fastify Server + 6 MCP Servers + BM25 RAG + GUARDIAN + WS Relay"]
-        VERTEX["Vertex AI (aiplatform.googleapis.com)<br/>Gemini 2.5 Pro / Flash (Keyless ADC)"]
+        CR["Cloud Run: tangohorizon-api<br/>Fastify Server + 6 MCP Servers + BM25 RAG + GUARDIAN + WS Relay"]
+        VERTEX["Vertex AI (global endpoint)<br/>Gemini 4 Carbon / Argon / Hydrogen (Keyless ADC)"]
         TTS["Cloud Text-to-Speech<br/>Neural Voices (ES / EN)"]
         SM["Secret Manager<br/>meta-api-key & gemini-api-key"]
     end
