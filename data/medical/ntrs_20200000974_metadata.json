@@ -1,0 +1,163 @@
+{
+  "copyright": {
+    "thirdPartyPermissionsProduced": false,
+    "disclosedToPublic": false,
+    "containsIndication": false,
+    "publisherPermissionOrRightsToDistribute": false,
+    "belongsToUsGov": false,
+    "determinationType": "PUBLIC_USE_PERMITTED",
+    "thirdPartyContentCondition": "NOT_SET",
+    "belongsToContractor": false,
+    "disclosedInvention": false,
+    "submissionId": 20200000974,
+    "containsThirdPartyMaterial": false,
+    "belongsToPublisher": false,
+    "id": "1224971de83f46929b73da7dd7d66594",
+    "belongsToAuthors": false
+  },
+  "subjectCategories": [
+    "Life Sciences (General)"
+  ],
+  "exportControl": {
+    "isExportControl": "NO",
+    "eccnNumber": "",
+    "submissionId": 20200000974,
+    "ear": "NO",
+    "id": "0bdb739e9ccd49b4be7c8bc84d844d6e",
+    "itar": "NO"
+  },
+  "distributionDate": "2020-02-21T08:28:18.2100000+00:00",
+  "otherReportNumbers": [
+    "GRC-E-DAA-TN77298",
+    "Report Number: GRC-E-DAA-TN77298"
+  ],
+  "fundingNumbers": [
+    {
+      "number": "NNC14CA02",
+      "submissionId": 20200000974,
+      "id": "4c240d139b7f4b05bb213ae81f162bb1",
+      "type": "CONTRACT_GRANT"
+    },
+    {
+      "number": "836404.01.02.10",
+      "submissionId": 20200000974,
+      "id": "edc2dbb9d5bf41a9b84cc0b6f601d369",
+      "type": "WBS"
+    }
+  ],
+  "title": "Dynamic Medical Risk Assessment Supported by Inference Networks",
+  "stiType": "PRESENTATION",
+  "distribution": "PUBLIC",
+  "submittedDate": "2020-02-19T15:46:16.2830000+00:00",
+  "authorAffiliations": [
+    {
+      "sequence": 0,
+      "submissionId": 20200000974,
+      "meta": {
+        "author": {
+          "name": "McIntyre, L."
+        },
+        "organization": {
+          "name": "NASA Glenn Research Center",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "c0d95fede6d84b67a2af31d068dffccc"
+    },
+    {
+      "sequence": 1,
+      "submissionId": 20200000974,
+      "meta": {
+        "author": {
+          "name": "Leinweber, L."
+        },
+        "organization": {
+          "name": "ZIN Technologies, Inc.",
+          "location": "Brook Park, OH, United States"
+        }
+      },
+      "id": "1913a7c5d0cb49039515c5e6b1d30f1b"
+    },
+    {
+      "sequence": 2,
+      "submissionId": 20200000974,
+      "meta": {
+        "author": {
+          "name": "Myers, Jerry G."
+        },
+        "organization": {
+          "name": "NASA Glenn Research Center",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "9a0eb3456cda4f91a252eb7124a07c01"
+    }
+  ],
+  "stiTypeDetails": "Presentation",
+  "technicalReviewType": "TECHNICAL_REVIEW_TYPE_NONE",
+  "modified": "2025-08-31T18:39:21.7150190+00:00",
+  "id": 20200000974,
+  "legacyMeta": {
+    "__type": "LegacyMetaIndex, StrivesApi.ServiceModel",
+    "accessionNumber": ""
+  },
+  "created": "2020-02-19T15:46:16.2830000+00:00",
+  "center": {
+    "code": "GRC",
+    "name": "Glenn Research Center",
+    "id": "19eeb25fa404421d9eaa5f876e853e3c"
+  },
+  "onlyAbstract": false,
+  "sensitiveInformation": 2,
+  "abstract": "The Human Research Program's next generation risk model, the Medical Extensible Dynamic Probabilistic Risk Assessment Tool (MEDPRAT), provides researchers with estimates of astronaut medical and health risk. MEDPRATs Susceptibility Inference Network (SIN) facilitates the dynamic component of this tool. The SIN provides MEDPRAT with a \"memory\" that allows the system to use knowledge of what simulation events have occurred to alter the representative probability that future simulation events will occur during a given trial. The SIN allows for the medical events being simulated to be related to, and influence the likelihood of one another, providing a more robust risk estimate. We present initial work of our efforts to mathematically quantify and represent these dependent relationships between medical events.\n\n\n",
+  "isLessonsLearned": false,
+  "disseminated": "DOCUMENT_AND_METADATA",
+  "meetings": [
+    {
+      "country": "United States",
+      "submissionId": 20200000974,
+      "endDate": "2020-01-30T00:00:00.0000000+00:00",
+      "sponsors": [
+        {
+          "organizationId": "0bba4b66c88d4f6b9af09a68495f6606",
+          "meta": {
+            "organization": {
+              "name": "NASA Headquarters",
+              "location": "Washington, DC, United States"
+            }
+          },
+          "meetingId": "368fa8eff9f64bf19ff8f9b4f52e1c16",
+          "id": "41a2e47cf9f442cca84e7042788b328f"
+        }
+      ],
+      "name": "Human Research Program Investigators’ Workshop (HRP IWS 2020)",
+      "location": "Galveston, TX",
+      "id": "368fa8eff9f64bf19ff8f9b4f52e1c16",
+      "startDate": "2020-01-27T00:00:00.0000000+00:00"
+    }
+  ],
+  "publications": [
+    {
+      "submissionId": 20200000974,
+      "id": "5b9e1cec70494242a0614202683fe7b0",
+      "publicationDate": "2020-01-27T00:00:00.0000000+00:00"
+    }
+  ],
+  "status": "CURATED",
+  "related": [],
+  "downloads": [
+    {
+      "draft": false,
+      "mimetype": "application/pdf",
+      "name": "20200000974.pdf",
+      "type": "STI",
+      "links": {
+        "original": "/api/citations/20200000974/downloads/20200000974.pdf",
+        "pdf": "/api/citations/20200000974/downloads/20200000974.pdf",
+        "fulltext": "/api/citations/20200000974/downloads/20200000974.txt"
+      }
+    }
+  ],
+  "downloadsAvailable": true,
+  "index": "submissions-2026-11-12-06-24"
+}

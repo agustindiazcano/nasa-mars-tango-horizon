@@ -58,9 +58,31 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 
 | Path | Content |
 |---|---|
-| `BLUEPRINT.md` | The plan for the whole project. Read it before planning or starting a task. |
-| `NASA_APIS.md` | NASA and USGS data sources: endpoints, auth, fields used. Update it when a source is added or changed. |
-| `docs/` | Project documents. |
+| `BLUEPRINT.md` | Title: "AEGIS-MARS: Master Technical Architecture & Top 1% Global Winner Blueprint". The plan for the whole project. Read it before planning or starting a task. |
+| `NASA_APIS.md` | Title: "NASA APIs". NASA and USGS data sources: endpoints, auth, fields used, and the API validation report. Update it when a source is added or changed. |
+| `data/` | Downloaded NASA/USGS data, one folder per group (`rover_photos`, `donki`, `horizons`, `orbits_comms`, `trek`, `topography`, `ai4mars`, `moxie`, `radiation`, `atmosphere`, `suits`, `medical`), plus `manifest.json` (download status) and `validation.json` (URL validation results). |
+| `docs/` | Project documents, listed below. |
+
+#### Documents in `docs/`
+
+| Path | Title |
+|---|---|
+| `docs/EXECUTION_PLAN_ORDER.md` | Execution plan order |
+| `docs/impl/01_SCAFFOLD.md` | 01. Project scaffold |
+| `docs/impl/02_DATA_PIPELINE.md` | 02. Data pipeline |
+| `docs/impl/03_PHYSICS_CORE.md` | 03. Physics core |
+| `docs/impl/04_TERRAIN_HELMET_HUD.md` | 04. 3D terrain, helmet and HUD |
+| `docs/impl/05_SERVER.md` | 05. Server: static files, model proxy and relay |
+| `docs/impl/06_PHONE_REMOTE.md` | 06. Phone as pointer |
+| `docs/impl/07_VOICE.md` | 07. Hands-free voice |
+| `docs/impl/08_AGENTS_TOOLS_MCP_GUARDIAN.md` | 08. SI agents, tools, MCP and guardrail |
+| `docs/impl/09_SCENARIOS_WORLD.md` | 09. Scenarios, fleet, base and demo deck |
+| `docs/impl/10_DEPLOY_SUBMISSION.md` | 10. Google Cloud deploy and submission |
+| `docs/impl/11_HYDRATION_PROSPECTOR.md` | 11. Hydration Prospector: looking for water with SI and orbital data |
+| `docs/impl/12_MANIPULATOR_ROBOT.md` | 12. Manipulator rover: a wheeled robot with a procedural arm driven by vision |
+| `docs/impl/13_STORM_NOWCASTER.md` | 13. Storm Nowcaster: predicting dust storms and acting before they arrive |
+| `docs/impl/14_I18N.md` | 14. Languages |
+| `docs/impl/15_VEIN_DETECTOR.md` | 15. Vein Detector: a vision model that finds evidence of past water in rover images |
 
 ## Session memory
 

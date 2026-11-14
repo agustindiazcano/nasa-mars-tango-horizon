@@ -1,0 +1,152 @@
+{
+  "copyright": {
+    "thirdPartyPermissionsProduced": false,
+    "disclosedToPublic": false,
+    "containsIndication": false,
+    "publisherPermissionOrRightsToDistribute": false,
+    "belongsToUsGov": false,
+    "determinationType": "PUBLIC_USE_PERMITTED",
+    "thirdPartyContentCondition": "NOT_SET",
+    "belongsToContractor": false,
+    "disclosedInvention": false,
+    "licenseType": "NO",
+    "submissionId": 20210000586,
+    "containsThirdPartyMaterial": false,
+    "belongsToPublisher": false,
+    "id": "b4e522e88d334201a59dfc87b201e8a8",
+    "belongsToAuthors": false
+  },
+  "subjectCategories": [
+    "Mathematical And Computer Sciences (General)"
+  ],
+  "exportControl": {
+    "isExportControl": "NO",
+    "submissionId": 20210000586,
+    "ear": "NO",
+    "id": "acf2cad562f44d5fb4a4dfc9ee8073c5",
+    "itar": "NO"
+  },
+  "distributionDate": "2021-02-08T05:00:00.0000000+00:00",
+  "fundingNumbers": [
+    {
+      "number": "NASA",
+      "submissionId": 20210000586,
+      "id": "17af8c4f289c494ca8b2033d6c1764de",
+      "type": "CONTRACT_GRANT"
+    }
+  ],
+  "title": "MEDPRAT Treatment Clusters: Improving Representation of Mission Medical Risk",
+  "stiType": "PRESENTATION",
+  "distribution": "PUBLIC",
+  "submittedDate": "2021-01-19T14:41:06.0271140+00:00",
+  "authorAffiliations": [
+    {
+      "sequence": 0,
+      "submissionId": 20210000586,
+      "meta": {
+        "author": {
+          "orcidId": "",
+          "name": "Lawrence Leinweber"
+        },
+        "organization": {
+          "name": "ZIN TECHNOLOGIES INC"
+        }
+      },
+      "id": "9043e2aa341740beb434a21f1120912c",
+      "userType": "CONTRACTOR_GRANTEE",
+      "userId": "777321208f604d82a9d60d160f108879"
+    },
+    {
+      "organizationId": "fdea3daf3b5156699f511edf3e9b9ec4",
+      "sequence": 1,
+      "submissionId": 20210000586,
+      "meta": {
+        "author": {
+          "orcidId": "",
+          "name": "Lauren McIntyre"
+        },
+        "organization": {
+          "name": "Glenn Research Center",
+          "location": "Cleveland, Ohio, United States"
+        }
+      },
+      "id": "8d48197042784e44bd55b11d7aba5c51",
+      "userType": "CIVIL",
+      "userId": "8330ff990ee349bfafbd089d9272c2a6"
+    },
+    {
+      "organizationId": "fdea3daf3b5156699f511edf3e9b9ec4",
+      "sequence": 2,
+      "submissionId": 20210000586,
+      "meta": {
+        "author": {
+          "orcidId": "",
+          "name": "Jerry Myers"
+        },
+        "organization": {
+          "name": "Glenn Research Center",
+          "location": "Cleveland, Ohio, United States"
+        }
+      },
+      "id": "d2a3c983b91b42c29afcc7a63c20cd0e",
+      "userType": "CIVIL",
+      "userId": "4610e67a47334933be88fe90c62a1c9f"
+    }
+  ],
+  "stiTypeDetails": "Presentation",
+  "technicalReviewType": "SINGLE_EXPERT",
+  "modified": "2025-08-31T18:39:21.7150190+00:00",
+  "id": 20210000586,
+  "created": "2021-01-19T14:37:40.6147080+00:00",
+  "center": {
+    "code": "GRC",
+    "name": "Glenn Research Center",
+    "id": "19eeb25fa404421d9eaa5f876e853e3c"
+  },
+  "onlyAbstract": false,
+  "sensitiveInformation": 2,
+  "abstract": "INTRODUCTION \nThe Medical Extensible Dynamic Probabilistic Risk Assessment Tool (MEDPRAT) implements a computational model that aims to quantify spaceflight medical risk by utilizing probabilistic techniques to simulate critical event incidence and outcomes over thousands of simulated mission trials. The goal of MEDPRAT is to characterize mission medical risk and provide insight into medical resource utilization. In order to analyze the medical resource space, treatment must be mapped from each simulated condition, and resources consumed as a result of this treatment must be tracked throughout the course of the mission. A new MEDPRAT feature, ‘treatment clusters’, provide a more sophisticated method of defining the structure and interaction between resources, more closely mimicking the way treatment is carried out clinically.\n\nMETHODS\nTreatment clusters expand on the two existing treatment groupings (combination and alternate) adding a new grouping: bundled treatment. Treatment clusters may be combined to any depth, giving users the ability to specify complex treatment trees whose behavior is governed by several user-specified parameters. This approach emphasizes reusability, as treatment clusters, once defined, can be used to create more complex treatment trees or applied to many conditions. By configuring parameters for contribution, efficacy, necessity, primacy, and equivalence, resource relationships and dependencies can be more accurately represented, thereby allowing users to build capabilities with desired treatment properties, for example an intravenous capability for conditions such as anaphylaxis, acute radiation syndrome, etc. MEDPRAT v1.0 remains backward compatible with existing treatment structures, giving users the ability to define new treatment clusters as evidence becomes available, without having to recode their existing treatment databases.\n\nIn addition to facilitating the representation of more complex treatment options, by pairing treatment clusters with the internal optimization routine, the MEDPRAT set selector, medical resources can be identified as organized in bundles, where appropriate, so that optimized resource sets include groups of highly-dependent resources only when all resources of the group are together. For example, it would be wasteful to include ultrasound gel but not an ultrasound machine, since the gel provides no benefit as a treatment without the ultrasound machine. With treatment clusters, the user may require that both resources are available to provide any benefit as treatment, so that if one resource is optimized out of the set, the other resource will be optimized out as well.\n\nRESULTS AND CONCLUSIONS\nWe will report on MEDPRAT treatment clusters used in a bundling study under the IMPACT project of the ExMC element. We will discuss an example of a complex treatment tree. Through the implementation of this feature MEDPRAT enables treatment to be defined and applied in a way that is more representative of the real world, providing more accurate insight into mission medical risk and the medical resource space.\n",
+  "isLessonsLearned": false,
+  "disseminated": "DOCUMENT_AND_METADATA",
+  "meetings": [
+    {
+      "country": "US",
+      "submissionId": 20210000586,
+      "endDate": "2021-02-04T05:00:00.0000000+00:00",
+      "sponsors": [
+        {
+          "organizationId": "e53641f275f15469a1b19a8980e09171",
+          "meta": {
+            "organization": {
+              "name": "National Aeronautics and Space Administration",
+              "location": "Washington D.C., District of Columbia, United States"
+            }
+          },
+          "meetingId": "67b6d37d96594278928d465d5fb60c7d",
+          "id": "15a4d24c671843798dfd4deed9faf357"
+        }
+      ],
+      "name": "NASA Human Research Programs Investigators Workshop (IWS)",
+      "location": "Virtual",
+      "id": "67b6d37d96594278928d465d5fb60c7d",
+      "startDate": "2021-02-01T05:00:00.0000000+00:00"
+    }
+  ],
+  "status": "CURATED",
+  "related": [],
+  "downloads": [
+    {
+      "draft": false,
+      "mimetype": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "name": "IWS 2021 Clusters Leinweber 4.pptx",
+      "type": "STI",
+      "links": {
+        "original": "/api/citations/20210000586/downloads/IWS%202021%20Clusters%20Leinweber%204.pptx",
+        "pdf": "/api/citations/20210000586/downloads/IWS%202021%20Clusters%20Leinweber%204.pptx.pdf",
+        "fulltext": "/api/citations/20210000586/downloads/IWS%202021%20Clusters%20Leinweber%204.pptx.txt"
+      }
+    }
+  ],
+  "downloadsAvailable": true,
+  "index": "submissions-2026-11-12-06-24"
+}

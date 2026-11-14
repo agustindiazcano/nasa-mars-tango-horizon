@@ -1,0 +1,2328 @@
+[
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "FETCHED",
+    "url": "https://trek.nasa.gov/tiles/apidoc/trekAPI.html?body=mars",
+    "desc": "Mars Trek WMTS documentation. Gives the URL template only. It does not list layer names in the text I could read, so get layer IDs from the page in a browser.",
+    "test_url": "https://trek.nasa.gov/tiles/apidoc/trekAPI.html?body=mars",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 4312,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta na",
+      "ms": 2259,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "OK",
+    "url": "https://api.nasa.gov/mars-wmts/catalog",
+    "desc": "Mars Trek layer catalog on api.nasa.gov with preview per layer.",
+    "test_url": "https://api.nasa.gov/mars-wmts/catalog?api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 404,
+      "content_type": "text/plain",
+      "bytes": 19,
+      "final_url": "",
+      "head": "File does not exist",
+      "ms": 47133,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "OK",
+    "url": "https://trek.nasa.gov/tiles/apidoc/trekAPI.html?body=moon",
+    "desc": "Same documentation for the Moon.",
+    "test_url": "https://trek.nasa.gov/tiles/apidoc/trekAPI.html?body=moon",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 4312,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"><meta na",
+      "ms": 1781,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "OK",
+    "url": "https://trek.nasa.gov/tiles/Mars/EQ/Viking_MDIM21_ClrMosaic_global_232m/1.0.0/WMTSCapabilities.xml",
+    "desc": "Example GetCapabilities (Viking color mosaic). Pattern to copy for other layers.",
+    "test_url": "https://trek.nasa.gov/tiles/Mars/EQ/Viking_MDIM21_ClrMosaic_global_232m/1.0.0/WMTSCapabilities.xml",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": 196,
+      "final_url": "",
+      "head": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found",
+      "ms": 1505,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "OK",
+    "url": "https://trek.nasa.gov/tiles/Mars/EQ/Viking_MDIM21_ClrMosaic_global_232m/1.0.0/default/default028mm/1/0/0.jpg",
+    "desc": "Example tile, zoom 1, row 0, col 0.",
+    "test_url": "https://trek.nasa.gov/tiles/Mars/EQ/Viking_MDIM21_ClrMosaic_global_232m/1.0.0/default/default028mm/1/0/0.jpg",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": 196,
+      "final_url": "",
+      "head": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found",
+      "ms": 230,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "OK",
+    "url": "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/WMTSCapabilities.xml",
+    "desc": "Moon example GetCapabilities (LRO WAC).",
+    "test_url": "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/WMTSCapabilities.xml",
+    "result": {
+      "code": 200,
+      "content_type": "application/xml",
+      "bytes": 7241,
+      "final_url": "",
+      "head": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Capabilities xmlns=\"http://www.opengis.net/wmts/1.0\" xmlns:ows=\"http://www.openg",
+      "ms": 229,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "OK",
+    "url": "https://nasa-open.vercel.app/trek",
+    "desc": "Third-party explorer of the Trek layers. Useful to see layer names. Not official.",
+    "test_url": "https://nasa-open.vercel.app/trek",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\" class=\"dark\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-wid",
+      "ms": 3201,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "UNVERIFIED",
+    "url": "https://trek.nasa.gov/tiles/Mars/EQ/",
+    "desc": "Base path for Mars equirectangular layers.",
+    "test_url": "https://trek.nasa.gov/tiles/Mars/EQ/",
+    "result": {
+      "code": 403,
+      "content_type": "text/html",
+      "bytes": 199,
+      "final_url": "",
+      "head": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>403 Forbidden</title>\n</head><body>\n<h1>Forbidden",
+      "ms": 1669,
+      "remaining": null
+    },
+    "verdict": "BLOQUEADA"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "UNVERIFIED",
+    "url": "https://trek.nasa.gov/tiles/Moon/SP/",
+    "desc": "Moon south polar tiles (from the lunar prompt).",
+    "test_url": "https://trek.nasa.gov/tiles/Moon/SP/",
+    "result": {
+      "code": 403,
+      "content_type": "text/html",
+      "bytes": 199,
+      "final_url": "",
+      "head": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>403 Forbidden</title>\n</head><body>\n<h1>Forbidden",
+      "ms": 235,
+      "remaining": null
+    },
+    "verdict": "BLOQUEADA"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "SUSPECT",
+    "url": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/default/default028mm/{Z}/{Y}/{X}.jpg",
+    "desc": "Layer ID given for MOLA color hillshade. Name not confirmed.",
+    "test_url": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/default/default028mm/1/0/0.jpg",
+    "result": {
+      "code": 200,
+      "content_type": "image/jpeg",
+      "bytes": 53186,
+      "final_url": "",
+      "head": "����\u0000\u0010JFIF\u0000\u0001\u0001\u0001\u0000H\u0000H\u0000\u0000��\u0000C\u0000\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001��\u0000C\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001",
+      "ms": 276,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "1. Mars Trek (optical, topographic and thermal tiles)",
+    "md_status": "SUSPECT",
+    "url": "https://api.nasa.gov/mars-wmts/catalog/curiosity_ctx_mosaic/1.0.0//default/default028mm/{z}/{y}/{x}.png",
+    "desc": "Guessed path for the CTX Curiosity mosaic. The source file hedged it itself. A listing I found names the layer \"CTX Mosaic - Curiosity Landing Site\" and \"HiRISE Mosaic - Curiosity Landing Site\".",
+    "test_url": "https://api.nasa.gov/mars-wmts/catalog/curiosity_ctx_mosaic/1.0.0//default/default028mm/1/0/0.png?api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 404,
+      "content_type": "text/plain",
+      "bytes": 19,
+      "final_url": "",
+      "head": "File does not exist",
+      "ms": 30578,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://pds-geosciences.wustl.edu/missions/mgs/mola.html",
+    "desc": "MOLA landing page at PDS Geosciences.",
+    "test_url": "https://pds-geosciences.wustl.edu/missions/mgs/mola.html",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 29572,
+      "final_url": "",
+      "head": "﻿<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"",
+      "ms": 2952,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://pds-geosciences.wustl.edu/missions/mgs/pedr.html",
+    "desc": "MOLA PEDR, along-track altimetry. Queries by lat, lon, orbit and time via ODE.",
+    "test_url": "https://pds-geosciences.wustl.edu/missions/mgs/pedr.html",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 29442,
+      "final_url": "",
+      "head": "﻿<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"",
+      "ms": 2055,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html",
+    "desc": "MOLA MEGDR, global gridded topography. Best starting point for a DEM.",
+    "test_url": "https://pds-geosciences.wustl.edu/missions/mgs/megdr.html",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 72131,
+      "final_url": "",
+      "head": "﻿<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"",
+      "ms": 1943,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://pds.nasa.gov/data/mgs-m-mola-5-shadr-v1.0/mgsl_2025/aareadme.htm",
+    "desc": "MOLA PEDR/EGDR archive volume readme.",
+    "test_url": "https://pds.nasa.gov/data/mgs-m-mola-5-shadr-v1.0/mgsl_2025/aareadme.htm",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<html>\r\n\r\n<head>\r\n<title>The MGS MOLA PEDR and EGDR Archives</title>\r\n</head>\r\n\r\n<body BGCOLOR=\"#FFFFFF\">\r\n\r\n<h1>The Mar",
+      "ms": 1736,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://ode.rsl.wustl.edu/mars/pagehelp/Content/Missions_Instruments/MGS/MOLA/Intro.htm",
+    "desc": "ODE help page for MOLA products (PEDR, MEGDR, SHADR).",
+    "test_url": "https://ode.rsl.wustl.edu/mars/pagehelp/Content/Missions_Instruments/MGS/MOLA/Intro.htm",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 5130,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\r\n<html xmlns:MadCap=\"https://www.madcapsoftware.com/Schemas/MadCap.xsd\" class=\"_Skins_Side_Navigation\" l",
+      "ms": 3204,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://registry.opendata.aws/nasa-usgs-mars-hirise-dtms/",
+    "desc": "HiRISE DTMs on AWS open data. Public bucket `s3://astrogeo-ard/mars/mro/hirise/controlled/dtm/`.",
+    "test_url": "https://registry.opendata.aws/nasa-usgs-mars-hirise-dtms/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=",
+      "ms": 2369,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://stac.astrogeology.usgs.gov/docs/data/mars/hirise_dtms/",
+    "desc": "Docs for the same DTMs, with a STAC catalog.",
+    "test_url": "https://stac.astrogeology.usgs.gov/docs/data/mars/hirise_dtms/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html\n  lang=\"en\"\n  class=\"color-toggle-hidden\"\n  \n>\n  <head>\n    <meta charset=\"UTF-8\" />\n<meta name=\"r",
+      "ms": 2328,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://github.com/GALE-Lab/Mars_DEMs",
+    "desc": "Index and footprint shapefile of more than 1,300 HiRISE DEMs (1 m/px) from UCLA. Use to check if a DEM covers the boxwork area.",
+    "test_url": "https://github.com/GALE-Lab/Mars_DEMs",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n\n\n  \n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  ",
+      "ms": 1772,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://astropedia.astrogeology.usgs.gov/download/Mars/MarsReconnaissanceOrbiter/CTX/mars_mro_hirise_explorationzones_day_2023/ancillary/ReadMe_Mars_DEMs_UCLA_2023.pdf",
+    "desc": "Readme of the UCLA DEM archive (HiRISE 1 m, CTX 18 m).",
+    "test_url": "https://astropedia.astrogeology.usgs.gov/download/Mars/MarsReconnaissanceOrbiter/CTX/mars_mro_hirise_explorationzones_day_2023/ancillary/ReadMe_Mars_DEMs_UCLA_2023.pdf",
+    "result": {
+      "code": 0,
+      "content_type": "",
+      "error": "ConnectTimeout",
+      "ms": 44123
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "OK",
+    "url": "https://www.uahirise.org/dtm/about.php",
+    "desc": "HiRISE team page on how DTMs are made.",
+    "test_url": "https://www.uahirise.org/dtm/about.php",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n        \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitio",
+      "ms": 2095,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "UNVERIFIED",
+    "url": "https://www.uahirise.org/dtm/",
+    "desc": "HiRISE DTM index page.",
+    "test_url": "https://www.uahirise.org/dtm/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n        \"https://www.w3.org/TR/xhtml1/DTD/xhtml1-transiti",
+      "ms": 1738,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "UNVERIFIED",
+    "url": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/",
+    "desc": "PDS copy of HiRISE DTMs at Arizona.",
+    "test_url": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<html>\r\n<head><title>Index of /PDS/DTM/</title></head>\r\n<body bgcolor=\"white\">\r\n<h1>Index of /PDS/DTM/</h1><hr><pre><a h",
+      "ms": 2013,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "UNVERIFIED",
+    "url": "https://pds.nasa.gov/ds-view/pds/viewProfile.jsp?dsid=MGS-M-MOLA-3-PEDR-L1A-V1.0",
+    "desc": "PDS dataset profile for MOLA PEDR.",
+    "test_url": "https://pds.nasa.gov/ds-view/pds/viewProfile.jsp?dsid=MGS-M-MOLA-3-PEDR-L1A-V1.0",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n<html>\n\n<head>\n   <title>PDS: Data Set Information</title>\n   <META  NAME=\"keywords\"  CONTENT=\"Planetary Data System\">\n",
+      "ms": 1726,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "2. Topography and elevation (MOLA, HiRISE DTM)",
+    "md_status": "SUSPECT",
+    "url": "https://github.com/roncapat/NASA-Hirise-DTMs-DEMs-index",
+    "desc": "Repo named in your first chat. Not found, and your second file says it was deleted or made private. Use the UCLA index above.",
+    "test_url": "https://github.com/roncapat/NASA-Hirise-DTMs-DEMs-index",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n\n\n  \n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  ",
+      "ms": 1762,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "3. Thermal inertia and traction hazard (THEMIS, AI4MARS)",
+    "md_status": "OK",
+    "url": "https://registry.opendata.aws/nasa-usgs-themis-mosaics/",
+    "desc": "Controlled THEMIS infrared mosaics (about 100 m/px) on AWS. Fallback for thermal layers if Trek lacks them.",
+    "test_url": "https://registry.opendata.aws/nasa-usgs-themis-mosaics/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=",
+      "ms": 1397,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "3. Thermal inertia and traction hazard (THEMIS, AI4MARS)",
+    "md_status": "UNVERIFIED",
+    "url": "https://data.nasa.gov/dataset/ai4mars-a-dataset-for-terrain-aware-autonomous-driving-on-mars",
+    "desc": "AI4MARS from JPL, semantic terrain labels.",
+    "test_url": "https://data.nasa.gov/dataset/ai4mars-a-dataset-for-terrain-aware-autonomous-driving-on-mars",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<!--[if IE 9]> <html lang=\"en\" class=\"ie9\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html lang=\"en\"  > <!--<",
+      "ms": 1905,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "3. Thermal inertia and traction hazard (THEMIS, AI4MARS)",
+    "md_status": "UNVERIFIED",
+    "url": "https://zenodo.org/records/15995036",
+    "desc": "AI4MARS download on Zenodo.",
+    "test_url": "https://zenodo.org/records/15995036",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n\n<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\">\n  <head>\n  \n    \n  \n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-",
+      "ms": 2134,
+      "remaining": "132"
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "4. Minerals, spectra and subsurface (CRISM, TES, SHARAD, caves, gravity)",
+    "md_status": "UNVERIFIED",
+    "url": "https://crismtypespectra.rsl.wustl.edu/",
+    "desc": "CRISM type spectra library.",
+    "test_url": "https://crismtypespectra.rsl.wustl.edu/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 11947,
+      "final_url": "",
+      "head": "<html>\r\n\t<head>\r\n\t\t<title>MRO CRISM Type Spectra Library</title>\r\n\t\t<meta id=\"keywords\" runat=\"server\" name=\"keywords\" c",
+      "ms": 2131,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "4. Minerals, spectra and subsurface (CRISM, TES, SHARAD, caves, gravity)",
+    "md_status": "UNVERIFIED",
+    "url": "https://pds-geosciences.wustl.edu/missions/mro/crism.htm",
+    "desc": "PDS Geosciences CRISM page.",
+    "test_url": "https://pds-geosciences.wustl.edu/missions/mro/crism.htm",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 58477,
+      "final_url": "",
+      "head": "﻿<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"",
+      "ms": 2185,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "4. Minerals, spectra and subsurface (CRISM, TES, SHARAD, caves, gravity)",
+    "md_status": "UNVERIFIED",
+    "url": "https://pds-geosciences.wustl.edu/missions/mro/sharad.htm",
+    "desc": "SHARAD radargrams (subsurface radar).",
+    "test_url": "https://pds-geosciences.wustl.edu/missions/mro/sharad.htm",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 36443,
+      "final_url": "",
+      "head": "﻿<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"",
+      "ms": 2028,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "4. Minerals, spectra and subsurface (CRISM, TES, SHARAD, caves, gravity)",
+    "md_status": "UNVERIFIED",
+    "url": "https://ode.rsl.wustl.edu/mars/",
+    "desc": "Orbital Data Explorer, search portal for CRISM, SHARAD, MOLA.",
+    "test_url": "https://ode.rsl.wustl.edu/mars/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 14110,
+      "final_url": "",
+      "head": "\r\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dt",
+      "ms": 1790,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "4. Minerals, spectra and subsurface (CRISM, TES, SHARAD, caves, gravity)",
+    "md_status": "UNVERIFIED",
+    "url": "https://oderest.rsl.wustl.edu/",
+    "desc": "ODE REST API documentation.",
+    "test_url": "https://oderest.rsl.wustl.edu/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 5063,
+      "final_url": "",
+      "head": "﻿<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\r\n<html>\r\n<head>\r\n\r\n<title>Orbital Data Explorer - RES",
+      "ms": 2506,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "4. Minerals, spectra and subsurface (CRISM, TES, SHARAD, caves, gravity)",
+    "md_status": "UNVERIFIED",
+    "url": "https://www.mars.asu.edu/data/",
+    "desc": "ASU Mars global datasets, including TES mineral maps.",
+    "test_url": "https://www.mars.asu.edu/data/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 3045,
+      "final_url": "",
+      "head": "<!-- !DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict //EN\"\n  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd",
+      "ms": 1756,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "4. Minerals, spectra and subsurface (CRISM, TES, SHARAD, caves, gravity)",
+    "md_status": "UNVERIFIED",
+    "url": "https://astrogeology.usgs.gov/search/map/mars_global_cave_candidate_catalog_v1_cushing",
+    "desc": "USGS Mars Global Cave Candidate Catalog (MGC3), coordinates of pits and skylights.",
+    "test_url": "https://astrogeology.usgs.gov/search/map/mars_global_cave_candidate_catalog_v1_cushing",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n    <html>\n        <head>\n\t    \n\t        <title> Astropedia - Mars Global Cave Candidate Catalog  v1 Cus",
+      "ms": 1838,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "4. Minerals, spectra and subsurface (CRISM, TES, SHARAD, caves, gravity)",
+    "md_status": "UNVERIFIED",
+    "url": "https://pgda.gsfc.nasa.gov/products/57",
+    "desc": "NASA Goddard Mars gravity models (GMM-3 / JGMRO_120D). Add `https://` before use.",
+    "test_url": "https://pgda.gsfc.nasa.gov/products/57",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 69385,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html><head><title>PGDA - Mars Gravity Field: GMM-3</title><meta name=\"description\" content=\"Mars Gravity",
+      "ms": 2046,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "OK",
+    "url": "https://pds-ppi.igpp.ucla.edu/volume/MSLRAD_1002/DOCUMENT/RAD_RDR_SIS.HTM",
+    "desc": "Software Interface Spec of the MSL RAD reduced data record. RAD data live at the PPI node (UCLA).",
+    "test_url": "https://pds-ppi.igpp.ucla.edu/volume/MSLRAD_1002/DOCUMENT/RAD_RDR_SIS.HTM",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\r\n<!-- Created from PDF via Acrobat SaveAsXML -->\r\n<!-- Mapping t",
+      "ms": 2015,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "OK",
+    "url": "https://pds-ppi.igpp.ucla.edu/volume/MSLRAD_1001/DOCUMENT/RAD_EDR_SIS.HTM",
+    "desc": "Same for the raw experiment data record (EDR).",
+    "test_url": "https://pds-ppi.igpp.ucla.edu/volume/MSLRAD_1001/DOCUMENT/RAD_EDR_SIS.HTM",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<html xmlns:v=\"urn:schemas-microsoft-com:vml\"\r\nxmlns:o=\"urn:schemas-microsoft-com:office:office\"\r\nxmlns:w=\"urn:schemas-m",
+      "ms": 2416,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "OK",
+    "url": "https://pds-ppi.igpp.ucla.edu/volume/MSLRAD_1001/AAREADME.TXT",
+    "desc": "Volume readme for RAD EDR (binary files with PDS labels).",
+    "test_url": "https://pds-ppi.igpp.ucla.edu/volume/MSLRAD_1001/AAREADME.TXT",
+    "result": {
+      "code": 200,
+      "content_type": "text/plain",
+      "bytes": null,
+      "final_url": "",
+      "head": "PDS_VERSION_ID       = PDS3\r\n\r\nLABEL_REVISION_NOTE       = \"2012-02-12, PPI Node;\r\n                             2014-03-",
+      "ms": 2069,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "OK",
+    "url": "https://catalog.data.gov/dataset/msl-mars-radiation-assessment-detector-rdr-b9779",
+    "desc": "data.gov listing for the RAD RDR dataset (id `msl-m-rad-3-rdr-v1.0`).",
+    "test_url": "https://catalog.data.gov/dataset/msl-mars-radiation-assessment-detector-rdr-b9779",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <!-- datalayer injection -->\n  \n  \n  <!-- end datalayer injection -->\n  <!-- G",
+      "ms": 1964,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "OK",
+    "url": "https://catalog.data.gov/dataset/msl-mars-radiation-assessment-detector-edr-5dda7",
+    "desc": "data.gov listing for RAD EDR.",
+    "test_url": "https://catalog.data.gov/dataset/msl-mars-radiation-assessment-detector-edr-5dda7",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <!-- datalayer injection -->\n  \n  \n  <!-- end datalayer injection -->\n  <!-- G",
+      "ms": 1588,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "UNVERIFIED",
+    "url": "https://pds-ppi.igpp.ucla.edu/mission/Mars%20Science%20Laboratory/msl/RAD",
+    "desc": "RAD instrument page at the PPI node.",
+    "test_url": "https://pds-ppi.igpp.ucla.edu/mission/Mars%20Science%20Laboratory/msl/RAD",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head",
+      "ms": 1739,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "UNVERIFIED",
+    "url": "https://pds-ppi.igpp.ucla.edu/collection/MSL-M-RAD-3-RDR-V1.0:DATA",
+    "desc": "RAD RDR data collection.",
+    "test_url": "https://pds-ppi.igpp.ucla.edu/collection/MSL-M-RAD-3-RDR-V1.0:DATA",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<t",
+      "ms": 10714,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "UNVERIFIED",
+    "url": "https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/DOCUMENT/RAD_RDR_SIS.HTM",
+    "desc": "Alternate path to the RDR SIS. The one above is the one I saw.",
+    "test_url": "https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/DOCUMENT/RAD_RDR_SIS.HTM",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\r\n<!-- Created from PDF via Acrobat SaveAsXML -->\r\n<!-- Mapping t",
+      "ms": 2298,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "UNVERIFIED",
+    "url": "https://api.nasa.gov/DONKI/SEP",
+    "desc": "DONKI solar energetic particle events.",
+    "test_url": "https://api.nasa.gov/DONKI/SEP?api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 200,
+      "content_type": "application/json",
+      "bytes": 2,
+      "final_url": "",
+      "head": "[]",
+      "ms": 351,
+      "remaining": "2495"
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "UNVERIFIED",
+    "url": "https://api.nasa.gov/DONKI/CME",
+    "desc": "DONKI coronal mass ejections.",
+    "test_url": "https://api.nasa.gov/DONKI/CME?api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 400,
+      "content_type": "application/json",
+      "bytes": null,
+      "final_url": "",
+      "head": "{\"timestamp\":\"2026-11-14T17:58:40.981Z\",\"status\":400,\"error\":\"Bad Request\",\"path\":\"/DONKI-API/get/CME\"}",
+      "ms": 497,
+      "remaining": "2494"
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "UNVERIFIED",
+    "url": "https://api.nasa.gov/DONKI/CMEAnalysis?startDate=2026-10-15&endDate=2026-11-11&mostAccurateOnly=true&api_key=DEMO_KEY",
+    "desc": "CME analysis for a date range.",
+    "test_url": "https://api.nasa.gov/DONKI/CMEAnalysis?startDate=2026-10-15&endDate=2026-11-11&mostAccurateOnly=true&api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 200,
+      "content_type": "application/json",
+      "bytes": null,
+      "final_url": "",
+      "head": "[{\"catalog\":\"M2M_CATALOG\",\"isMostAccurate\":true,\"time21_5\":\"2026-10-17T02:45Z\",\"latitude\":31.0,\"longitude\":-15.0,\"halfAn",
+      "ms": 1944,
+      "remaining": "2493"
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "UNVERIFIED",
+    "url": "https://api.nasa.gov/DONKI/SEP?startDate=2026-10-15&endDate=2026-11-11&api_key=DEMO_KEY",
+    "desc": "SEP events for a date range.",
+    "test_url": "https://api.nasa.gov/DONKI/SEP?startDate=2026-10-15&endDate=2026-11-11&api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 200,
+      "content_type": "application/json",
+      "bytes": 2,
+      "final_url": "",
+      "head": "[]",
+      "ms": 1904,
+      "remaining": "2492"
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "5. Radiation and space weather",
+    "md_status": "UNVERIFIED",
+    "url": "https://api.nasa.gov/DONKI/WSAEnlilSimulations?api_key=DEMO_KEY",
+    "desc": "WSA-Enlil heliosphere simulations (propagation toward Mars).",
+    "test_url": "https://api.nasa.gov/DONKI/WSAEnlilSimulations?api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 200,
+      "content_type": "application/json",
+      "bytes": null,
+      "final_url": "",
+      "head": "[{\"simulationID\":\"WSA-ENLIL/49439/1\",\"modelCompletionTime\":\"2026-11-07T16:18Z\",\"au\":2.0,\"cmeInputs\":[{\"cmeStartTime\":\"20",
+      "ms": 492,
+      "remaining": "2491"
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "OK",
+    "url": "https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/PERSEVERANCE/meda.html",
+    "desc": "Perseverance MEDA environment data (CSV tables) at PDS Atmospheres. This is Jezero, not Gale.",
+    "test_url": "https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/PERSEVERANCE/meda.html",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"https://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n",
+      "ms": 2722,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "OK",
+    "url": "https://pds-geosciences.wustl.edu/missions/mars2020/",
+    "desc": "Index of Perseverance instrument archives across PDS nodes.",
+    "test_url": "https://pds-geosciences.wustl.edu/missions/mars2020/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 53030,
+      "final_url": "",
+      "head": "﻿<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\"",
+      "ms": 2077,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/api/citations/20210023957/downloads/Mars-GRAM%20User%20Guide.pdf",
+    "desc": "Mars-GRAM user guide (2021).",
+    "test_url": "https://ntrs.nasa.gov/api/citations/20210023957/downloads/Mars-GRAM%20User%20Guide.pdf",
+    "result": {
+      "code": 200,
+      "content_type": "application/pdf",
+      "bytes": 1151351,
+      "final_url": "",
+      "head": "%PDF-1.7\r\n%����\r\n1 0 obj\r\n<</Type/Catalog/Pages 2 0 R/Lang(en-US) /StructTreeRoot 232 0 R/MarkInfo<</Marked true>>/Metad",
+      "ms": 2469,
+      "remaining": "499"
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "OK",
+    "url": "https://software.nasa.gov/software/MFS-33888-1",
+    "desc": "Mars-GRAM page in the NASA software catalog (cited in a NASA poster). Download flow not checked.",
+    "test_url": "https://software.nasa.gov/software/MFS-33888-1",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 18226,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\">\n    <head>\n        <meta charset=\"utf-8\" />\n<meta name=\"Generator\" content=\"D",
+      "ms": 2473,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/api/citations/20190030390/downloads/20190030390.pdf",
+    "desc": "Mars-GRAM upgrade overview (2019).",
+    "test_url": "https://ntrs.nasa.gov/api/citations/20190030390/downloads/20190030390.pdf",
+    "result": {
+      "code": 200,
+      "content_type": "application/pdf",
+      "bytes": 765585,
+      "final_url": "",
+      "head": "%PDF-1.6\r%����\r\n535 0 obj\r<</Linearized 1/L 765585/O 537/E 749928/N 1/T 765229/H [ 546 204]>>\rendobj\r             \r\n558 ",
+      "ms": 2392,
+      "remaining": "499"
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/api/citations/20240008401/downloads/Mars%20GRAM%20Poster%20Tenth%20Mars.pdf",
+    "desc": "2024 poster on Mars-GRAM upgrades.",
+    "test_url": "https://ntrs.nasa.gov/api/citations/20240008401/downloads/Mars%20GRAM%20Poster%20Tenth%20Mars.pdf",
+    "result": {
+      "code": 200,
+      "content_type": "application/pdf",
+      "bytes": 334790,
+      "final_url": "",
+      "head": "%PDF-1.6\r%����\r\n468 0 obj\r<</Linearized 1/L 334790/O 470/E 321631/N 1/T 334429/H [ 551 231]>>\rendobj\r             \r\n498 ",
+      "ms": 1958,
+      "remaining": "499"
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "OK",
+    "url": "https://www-mars.lmd.jussieu.fr/mars/access.html",
+    "desc": "Mars Climate Database access page. Web interface for moderate use; full netCDF version on request.",
+    "test_url": "https://www-mars.lmd.jussieu.fr/mars/access.html",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 2474,
+      "final_url": "",
+      "head": "<html>\r\n<head>\r\n<title> MARS CLIMATE DATABASE ACCESS </title>\r\n</head>\r\n\r\n<!--\r\n<BODY TEXT=\"#FFFFFF\" bgcolor=\"#000000\" l",
+      "ms": 1937,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "OK",
+    "url": "http://www-mars.lmd.jussieu.fr/mars/info_web/user_manual_5.2.pdf",
+    "desc": "MCD user manual (v5.2).",
+    "test_url": "http://www-mars.lmd.jussieu.fr/mars/info_web/user_manual_5.2.pdf",
+    "result": {
+      "code": 200,
+      "content_type": "application/pdf",
+      "bytes": 209346,
+      "final_url": "https://www-mars.lmd.jussieu.fr/mars/info_web/user_manual_5.2.pdf",
+      "head": "%PDF-1.4\n3 0 obj <<\n/Length 2444      \n/Filter /FlateDecode\n>>\nstream\nxڥ\u0018�r�8���i��\u00191\u0004@Rd�I��T�V����ښ́\u0016a\u000b\u0015��\u0010�\u001f��\"E",
+      "ms": 2798,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "UNVERIFIED",
+    "url": "https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/rems.html",
+    "desc": "Curiosity REMS data (this is the Gale instrument you want).",
+    "test_url": "https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/rems.html",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"https://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n",
+      "ms": 2195,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "UNVERIFIED",
+    "url": "http://www-mars.lmd.jussieu.fr/",
+    "desc": "MCD main portal.",
+    "test_url": "http://www-mars.lmd.jussieu.fr/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 2822,
+      "final_url": "https://www-mars.lmd.jussieu.fr/",
+      "head": "<!doctype html public \"-//w3c//dtd html 4.0 transitional//en\">\n<html>\n<head>\n   <meta http-equiv=\"Content-Type\" content=",
+      "ms": 2411,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "UNVERIFIED",
+    "url": "http://www-mars.lmd.jussieu.fr/mcd_python/",
+    "desc": "MCD Python web query interface.",
+    "test_url": "http://www-mars.lmd.jussieu.fr/mcd_python/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 4809,
+      "final_url": "https://www-mars.lmd.jussieu.fr/mcd_python/",
+      "head": "<!-- Author Aymeric Spiga LMD -->\n<!DOCTYPE html>\n<html>\n\n<head>\n<meta charset=\"utf-8\" />\n<title>Mars Climate Database v",
+      "ms": 2509,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "UNVERIFIED",
+    "url": "https://software.nasa.gov/software/MFS-33158-1",
+    "desc": "Mars-GRAM 2010 in the software catalog.",
+    "test_url": "https://software.nasa.gov/software/MFS-33158-1",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 17512,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\">\n    <head>\n        <meta charset=\"utf-8\" />\n<meta name=\"Generator\" content=\"D",
+      "ms": 1978,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "6. Weather and atmosphere (REMS, MEDA, Mars-GRAM, MCD)",
+    "md_status": "UNVERIFIED",
+    "url": "https://ntrs.nasa.gov/citations/20240012934",
+    "desc": "Said to be a 2024 Mars-GRAM update. No hit in my searches.",
+    "test_url": "https://ntrs.nasa.gov/citations/20240012934",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2291,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "7. Oxygen production (MOXIE)",
+    "md_status": "OK",
+    "url": "https://pds.nasa.gov/data/pds4/releases/atmos/mars2020_moxie-20241224/readme_moxie.txt",
+    "desc": "MOXIE bundle readme. Raw, calibrated and derived data for sols 0 to 659; derived includes oxygen mass rate in g/hr.",
+    "test_url": "https://pds.nasa.gov/data/pds4/releases/atmos/mars2020_moxie-20241224/readme_moxie.txt",
+    "result": {
+      "code": 200,
+      "content_type": "text/plain",
+      "bytes": null,
+      "final_url": "",
+      "head": "Bundle Description for the Mars 2020 MOXIE Archive Bundle\r\n=========================================================\r\n\r\n",
+      "ms": 992,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "7. Oxygen production (MOXIE)",
+    "md_status": "OK",
+    "url": "https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/PERSEVERANCE/moxie.html",
+    "desc": "MOXIE page at PDS Atmospheres. CSV at 1 Hz, bundle about 46.7 MB.",
+    "test_url": "https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/PERSEVERANCE/moxie.html",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"https://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n",
+      "ms": 1932,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "OK",
+    "url": "https://data.nasa.gov/dataset/mars-rover-photos-api",
+    "desc": "Dataset record of the Mars Rover Photos API.",
+    "test_url": "https://data.nasa.gov/dataset/mars-rover-photos-api",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<!--[if IE 9]> <html lang=\"en\" class=\"ie9\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html lang=\"en\"  > <!--<",
+      "ms": 46996,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "OK",
+    "url": "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/latest_photos?api_key=DEMO_KEY",
+    "desc": "Latest Curiosity photos.",
+    "test_url": "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/latest_photos?api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta chars",
+      "ms": 1746,
+      "remaining": "1990"
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "OK",
+    "url": "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=DEMO_KEY",
+    "desc": "Photos by sol (25 per page). Add `&camera=NAVCAM` to filter.",
+    "test_url": "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta chars",
+      "ms": 1664,
+      "remaining": "1989"
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "OK",
+    "url": "https://api.nasa.gov/mars-photos/api/v1/manifests/curiosity",
+    "desc": "Mission manifest (max sol, photos per sol, cameras).",
+    "test_url": "https://api.nasa.gov/mars-photos/api/v1/manifests/curiosity?api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta chars",
+      "ms": 1969,
+      "remaining": "1988"
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "UNVERIFIED",
+    "url": "https://api.nasa.gov/mars-photos/api/v1/",
+    "desc": "Base endpoint (listed in the first chat).",
+    "test_url": "https://api.nasa.gov/mars-photos/api/v1/?api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta chars",
+      "ms": 1768,
+      "remaining": "1987"
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "UNVERIFIED",
+    "url": "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=XXXX&camera=NAVCAM&api_key=DEMO_KEY",
+    "desc": "Template from the first chat. Replace XXXX with a real sol.",
+    "test_url": "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&camera=NAVCAM&api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta chars",
+      "ms": 1700,
+      "remaining": "1986"
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "SUSPECT",
+    "url": "https://mars.nasa.gov/api/v1/raw_image_items/",
+    "desc": "Raw image JSON API cited in a later message. The mars.nasa.gov domain moved to science.nasa.gov. Not found.",
+    "test_url": "https://mars.nasa.gov/api/v1/raw_image_items/",
+    "result": {
+      "code": 200,
+      "content_type": "application/json",
+      "bytes": null,
+      "final_url": "",
+      "head": "{\"items\":[{\"id\":623605,\"camera_vector\":\"(0.7082475549078332,0.007243082322355853,0.7059262899344566)\",\"site\":71,\"imageid",
+      "ms": 2004,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "UNVERIFIED",
+    "url": "https://mars.nasa.gov/mars2020/multimedia/audio/",
+    "desc": "Perseverance audio recordings.",
+    "test_url": "https://mars.nasa.gov/mars2020/multimedia/audio/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "https://science.nasa.gov/mars/resources/?types=audio&search=perseverance",
+      "head": "<!doctype html>\n<html lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\">\n<head>\n\t<meta charset=\"UTF-8\">\n<script>\nvar gform;gf",
+      "ms": 2423,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "UNVERIFIED",
+    "url": "https://www.nasa.gov/sounds-from-beyond/",
+    "desc": "Alternate audio page.",
+    "test_url": "https://www.nasa.gov/sounds-from-beyond/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!doctype html>\n<html lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\">\n<head>\n\t<meta charset=\"UTF-8\">\n<script>\nvar gform;gf",
+      "ms": 907,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "8. Surface point-of-view images and audio",
+    "md_status": "UNVERIFIED",
+    "url": "https://science.nasa.gov/mission/mars-2020-perseverance/sounds-of-mars/",
+    "desc": "Sounds of Mars pack (LIBS laser, Ingenuity rotor, wind, wheels).",
+    "test_url": "https://science.nasa.gov/mission/mars-2020-perseverance/sounds-of-mars/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!doctype html>\n<html lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\">\n<head>\n\t<meta charset=\"UTF-8\">\n<script>\nvar gform;gf",
+      "ms": 1345,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "9. Suit and EVA telemetry schema (SUITS)",
+    "md_status": "OK",
+    "url": "https://github.com/SUITS-Techteam/SUITS_Test_TSS",
+    "desc": "Test Telemetry Stream Server (REST plus WebSocket) for student teams.",
+    "test_url": "https://github.com/SUITS-Techteam/SUITS_Test_TSS",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n\n\n  \n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  ",
+      "ms": 1754,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "9. Suit and EVA telemetry schema (SUITS)",
+    "md_status": "OK",
+    "url": "https://github.com/SUITS-Techteam/TSS_2024",
+    "desc": "2024 TSS in C, with a `public` folder holding the JSON files the server uses. Best verified source for variable naming.",
+    "test_url": "https://github.com/SUITS-Techteam/TSS_2024",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n\n\n  \n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  ",
+      "ms": 1564,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "9. Suit and EVA telemetry schema (SUITS)",
+    "md_status": "UNVERIFIED",
+    "url": "https://github.com/SUITS-Techteam/TSS2026",
+    "desc": "Said to hold the 2026 schemas. Not seen in my searches.",
+    "test_url": "https://github.com/SUITS-Techteam/TSS2026",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n\n\n  \n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  ",
+      "ms": 2091,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "9. Suit and EVA telemetry schema (SUITS)",
+    "md_status": "SUSPECT",
+    "url": "https://github.com/SUITS-Techteam/TSS2027",
+    "desc": "Not found in any search.",
+    "test_url": "https://github.com/SUITS-Techteam/TSS2027",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n\n\n  \n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  ",
+      "ms": 1887,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "9. Suit and EVA telemetry schema (SUITS)",
+    "md_status": "UNVERIFIED",
+    "url": "https://github.com/NASA-SUITS-Teams",
+    "desc": "Org page named in the second file. Not seen.",
+    "test_url": "https://github.com/NASA-SUITS-Teams",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  data-a",
+      "ms": 2188,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://www.nasa.gov/ochmo/human-spaceflight-and-aviation-standards",
+    "desc": "OCHMO hub for NASA-STD-3001 Volumes 1 and 2.",
+    "test_url": "https://www.nasa.gov/ochmo/human-spaceflight-and-aviation-standards",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "https://www.nasa.gov/ochmo/human-spaceflight-and-aviation-standards/",
+      "head": "<!doctype html>\n<html lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\">\n<head>\n\t<meta charset=\"UTF-8\">\n<script>\nvar gform;gf",
+      "ms": 1771,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://standards.nasa.gov/node/237",
+    "desc": "Vol. 2 record (Human Factors, Habitability, Environmental Health), version E, active.",
+    "test_url": "https://standards.nasa.gov/node/237",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\" prefix=\"content: http://purl.org/rss/1.0/modules/content/  dc: http://purl.org",
+      "ms": 1467,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://standards.nasa.gov/node/238",
+    "desc": "Vol. 1 record (Crew Health) with the public PDFs.",
+    "test_url": "https://standards.nasa.gov/node/238",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\" prefix=\"content: http://purl.org/rss/1.0/modules/content/  dc: http://purl.org",
+      "ms": 1623,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://www.nasa.gov/reference/1-0-scope-vol-2",
+    "desc": "Scope page of Vol. 2 reference material.",
+    "test_url": "https://www.nasa.gov/reference/1-0-scope-vol-2",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "https://www.nasa.gov/reference/1-0-scope-vol-2/",
+      "head": "<!doctype html>\n<html lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\">\n<head>\n\t<meta charset=\"UTF-8\">\n<script>\nvar gform;gf",
+      "ms": 1662,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://science.nasa.gov/category/organizations/ochmo",
+    "desc": "OCHMO technical briefs. Includes the CO2 / hypercapnia brief (OCHMO-TB-004) and a venous thromboembolism in spaceflight page.",
+    "test_url": "https://science.nasa.gov/category/organizations/ochmo",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "https://science.nasa.gov/category/organizations/ochmo/",
+      "head": "<!doctype html>\n<html lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\">\n<head>\n\t<meta charset=\"UTF-8\">\n<script>\nvar gform;gf",
+      "ms": 1577,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/citations/20180004678",
+    "desc": "Introduction to MEDPRAT.",
+    "test_url": "https://ntrs.nasa.gov/citations/20180004678",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2112,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/citations/20200000974",
+    "desc": "MEDPRAT dynamic risk with inference networks.",
+    "test_url": "https://ntrs.nasa.gov/citations/20200000974",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 3095,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/citations/20210000586",
+    "desc": "MEDPRAT treatment clusters.",
+    "test_url": "https://ntrs.nasa.gov/citations/20210000586",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2167,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/citations/20240012058",
+    "desc": "IMM vs MEDPRAT assessment (NASA/TM-20240012058).",
+    "test_url": "https://ntrs.nasa.gov/citations/20240012058",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2493,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/api/citations/20240012058/downloads/TM-20240012058.pdf",
+    "desc": "PDF of the above.",
+    "test_url": "https://ntrs.nasa.gov/api/citations/20240012058/downloads/TM-20240012058.pdf",
+    "result": {
+      "code": 200,
+      "content_type": "application/pdf",
+      "bytes": 24247863,
+      "final_url": "",
+      "head": "%PDF-1.7\r%����\r\n10074 0 obj\r<</Linearized 1/L 24247863/O 10077/E 102684/N 66/T 24246256/H [ 771 895]>>\rendobj\r    \r\n1009",
+      "ms": 2246,
+      "remaining": "497"
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/citations/20230013414",
+    "desc": "IMPACT, successor to IMM.",
+    "test_url": "https://ntrs.nasa.gov/citations/20230013414",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2189,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/citations/20190027540",
+    "desc": "Accepted Medical Condition List for exploration medical capability scoping.",
+    "test_url": "https://ntrs.nasa.gov/citations/20190027540",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2359,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/citations/20220003136",
+    "desc": "Newer TM version of the same list (NASA/TM-2022-220299).",
+    "test_url": "https://ntrs.nasa.gov/citations/20220003136",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2239,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/api/citations/20220003136/downloads/NASA-T_1.pdf",
+    "desc": "PDF of TM-2022-220299.",
+    "test_url": "https://ntrs.nasa.gov/api/citations/20220003136/downloads/NASA-T_1.pdf",
+    "result": {
+      "code": 200,
+      "content_type": "application/pdf",
+      "bytes": 1069056,
+      "final_url": "",
+      "head": "%PDF-1.7\r%����\r\n8308 0 obj\r<</Linearized 1/L 1069056/O 8310/E 57662/N 52/T 1067935/H [ 504 569]>>\rendobj\r         \r\n8326",
+      "ms": 1643,
+      "remaining": "497"
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/20190027540.pdf",
+    "desc": "Archive PDF path of 20190027540.",
+    "test_url": "https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/20190027540.pdf",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2511,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "OK",
+    "url": "https://science.data.nasa.gov/features-events/data-software-highlights-june-2026",
+    "desc": "NASA data highlights, mentions OSDR Biological Data API updates.",
+    "test_url": "https://science.data.nasa.gov/features-events/data-software-highlights-june-2026",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\" prefix=\"og: https://ogp.me/ns#\">\n  <head>\n    <meta charset=\"utf-8\" />\n<noscri",
+      "ms": 1396,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "UNVERIFIED",
+    "url": "https://visualization.osdr.nasa.gov/biodata/api/v2/datasets/",
+    "desc": "OSDR / GeneLab biological data API.",
+    "test_url": "https://visualization.osdr.nasa.gov/biodata/api/v2/datasets/",
+    "result": {
+      "code": 200,
+      "content_type": "application/json",
+      "bytes": 3850,
+      "final_url": "",
+      "head": "{\"OSD-1\":{\"REST_URL\":\"https://visualization.osdr.nasa.gov/biodata/api/v2/dataset/OSD-1/\"},\"OSD-2\":{\"REST_URL\":\"https://v",
+      "ms": 1684,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "UNVERIFIED",
+    "url": "https://visualization.osdr.nasa.gov/biodata/api/",
+    "desc": "OSDR API root.",
+    "test_url": "https://visualization.osdr.nasa.gov/biodata/api/",
+    "result": {
+      "code": 200,
+      "content_type": "application/json",
+      "bytes": 5461,
+      "final_url": "",
+      "head": "{\n  \"openapi\": \"3.1.0\",\n  \"info\": {\n    \"title\": \"NASA OSDR Biological Data API\",\n    \"version\": \"2.0.0\",\n    \"descripti",
+      "ms": 2202,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "UNVERIFIED",
+    "url": "https://osdr.nasa.gov/osdr/data/osd/files/",
+    "desc": "OSDR file listing.",
+    "test_url": "https://osdr.nasa.gov/osdr/data/osd/files/",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": 232,
+      "final_url": "",
+      "head": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n<title>404 Not Found</title>\n<h1>Not Found</h1>\n<p>The requested",
+      "ms": 2137,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "UNVERIFIED",
+    "url": "https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_1",
+    "desc": "Alternate Vol. 1 URL from the second file.",
+    "test_url": "https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_1",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\" prefix=\"content: http://purl.org/rss/1.0/modules/content/  dc: http://purl.org",
+      "ms": 1751,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "UNVERIFIED",
+    "url": "https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_2",
+    "desc": "Alternate Vol. 2 URL from the second file.",
+    "test_url": "https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_2",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\" dir=\"ltr\" prefix=\"content: http://purl.org/rss/1.0/modules/content/  dc: http://purl.org",
+      "ms": 1833,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "UNVERIFIED",
+    "url": "https://ntrs.nasa.gov/citations/20250004555",
+    "desc": "Said to be Vol. 2 Rev E. Not seen.",
+    "test_url": "https://ntrs.nasa.gov/citations/20250004555",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2342,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "UNVERIFIED",
+    "url": "https://ntrs.nasa.gov/citations/20230000738",
+    "desc": "Said to be IMPACT / MEDPRAT v2.0. Not seen.",
+    "test_url": "https://ntrs.nasa.gov/citations/20230000738",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 2021,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "10. Medical and human standards (RAG corpus)",
+    "md_status": "SUSPECT",
+    "url": "https://ntrs.nasa.gov/citations/20230005442",
+    "desc": "Presented as IMPACT-MD / MedID. A search by that number returned nothing related. Use 20240012058 and 20230013414 instead.",
+    "test_url": "https://ntrs.nasa.gov/citations/20230005442",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\"><head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin=\"\">\n  <meta cha",
+      "ms": 1568,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "11. Robots, spacecraft and 3D models",
+    "md_status": "UNVERIFIED",
+    "url": "https://science.nasa.gov/3d-resources/",
+    "desc": "NASA 3D resources hub.",
+    "test_url": "https://science.nasa.gov/3d-resources/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!doctype html>\n<html lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\">\n<head>\n\t<meta charset=\"UTF-8\">\n<script>\nvar gform;gf",
+      "ms": 1328,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "11. Robots, spacecraft and 3D models",
+    "md_status": "UNVERIFIED",
+    "url": "https://github.com/nasa/NASA-3D-Resources",
+    "desc": "GitHub mirror of the models.",
+    "test_url": "https://github.com/nasa/NASA-3D-Resources",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n\n\n\n  \n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  ",
+      "ms": 1694,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "11. Robots, spacecraft and 3D models",
+    "md_status": "UNVERIFIED",
+    "url": "https://science.nasa.gov/3d-resources/mars-reconnaissance-orbiter-mro-a/",
+    "desc": "MRO model page.",
+    "test_url": "https://science.nasa.gov/3d-resources/mars-reconnaissance-orbiter-mro-a/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!doctype html>\n<html lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\">\n<head>\n\t<meta charset=\"UTF-8\">\n<script>\nvar gform;gf",
+      "ms": 1391,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "OK",
+    "url": "https://celestrak.org/NORAD/documentation/gp-data-formats.php",
+    "desc": "CelesTrak GP query documentation (TLE, JSON, XML, CSV). No API key. CelesTrak refreshes groups about every 2 hours and returns 403 on faster repeats.",
+    "test_url": "https://celestrak.org/NORAD/documentation/gp-data-formats.php",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 14352,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\r\n\r\n<html>\r\n\r\n<head>\r\n\r\n<title>CelesTrak: A New Way to Obtain GP Data</title>\r\n\r\n<meta name=\"viewport\" co",
+      "ms": 2505,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "OK",
+    "url": "https://api.nasa.gov/api/tle/25544",
+    "desc": "NASA TLE API (ISS example). Fed daily from CelesTrak.",
+    "test_url": "https://api.nasa.gov/api/tle/25544?api_key=grCff8MWzftLzdN9WgNHpRzGm7QJHLn6CBg7kjMf",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": 5254,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-e",
+      "ms": 1497,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "OK",
+    "url": "http://tle.ivanstanojevic.me/api/tle",
+    "desc": "Backend of the NASA TLE API.",
+    "test_url": "http://tle.ivanstanojevic.me/api/tle",
+    "result": {
+      "code": 200,
+      "content_type": "application/json",
+      "bytes": null,
+      "final_url": "https://tle.ivanstanojevic.me/api/tle/",
+      "head": "{\"@context\":\"https:\\/\\/www.w3.org\\/ns\\/hydra\\/context.jsonld\",\"@id\":\"https:\\/\\/tle.ivanstanojevic.me\\/api\\/tle\\/\",\"@type",
+      "ms": 3779,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "OK",
+    "url": "https://eyes.nasa.gov/apps/dsn-now/dsn.html",
+    "desc": "DSN Now. Updates every 5 seconds. NASA notes it can be offline during maintenance.",
+    "test_url": "https://eyes.nasa.gov/apps/dsn-now/dsn.html",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n\n<!-- Conditionals for IE classes -->\n<!--[if lt IE 9 ]> <html lang=\"en\" class=\"no-js ie ie8\"> <![endif]",
+      "ms": 2094,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "OK",
+    "url": "https://www.github.com/Vinz87/DSNMonitor",
+    "desc": "Community project that reads the DSN Now public XML.",
+    "test_url": "https://www.github.com/Vinz87/DSNMonitor",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "https://github.com/Vinz87/DSNMonitor",
+      "head": "\n\n\n\n  \n\n<!DOCTYPE html>\n<html\n  lang=\"en\"\n  \n  data-color-mode=\"auto\" data-light-theme=\"light\" data-dark-theme=\"dark\"\n  ",
+      "ms": 3130,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "OK",
+    "url": "https://lightstreamer.com/customer-story/how-nasa-is-using-lightstreamer/",
+    "desc": "Background on the ISS Lightstreamer telemetry feed.",
+    "test_url": "https://lightstreamer.com/customer-story/how-nasa-is-using-lightstreamer/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 28628,
+      "final_url": "",
+      "head": "<!doctype html>\n<html lang=\"en-US\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, ini",
+      "ms": 1990,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "UNVERIFIED",
+    "url": "https://celestrak.org/NORAD/elements/",
+    "desc": "CelesTrak current element sets portal.",
+    "test_url": "https://celestrak.org/NORAD/elements/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 5315,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\r\n\r\n<html>\r\n\r\n<head>\r\n\r\n<title>CelesTrak: Current GP Element Sets</title>\r\n\r\n<meta name=\"viewport\" conten",
+      "ms": 4750,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "UNVERIFIED",
+    "url": "https://celestrak.org/NORAD/elements/gp.php?GROUP=STATIONS&FORMAT=TLE",
+    "desc": "Query example. Same pattern as the documented format.",
+    "test_url": "https://celestrak.org/NORAD/elements/gp.php?GROUP=STATIONS&FORMAT=TLE",
+    "result": {
+      "code": 200,
+      "content_type": "text/plain",
+      "bytes": 804,
+      "final_url": "",
+      "head": "ISS (ZARYA)             \r\n1 25544U 98067A   26318.17412740  .00009423  00000+0  17665-3 0  9991\r\n2 25544  51.6324 277.86",
+      "ms": 4337,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "UNVERIFIED",
+    "url": "https://eyes.nasa.gov/dsn/data/dsn.xml",
+    "desc": "DSN live data file. The second file says it updates every minute and takes `?r=<timestamp>` to bypass cache. DSN Now says 5 seconds.",
+    "test_url": "https://eyes.nasa.gov/dsn/data/dsn.xml",
+    "result": {
+      "code": 200,
+      "content_type": "text/xml",
+      "bytes": 7829,
+      "final_url": "",
+      "head": "<dsn>\n\t<station name=\"gdscc\" friendlyName=\"Goldstone\" timeUTC=\"1794679076000\" timeZoneOffset=\"-28800000.0\"/>\n\t<dish name",
+      "ms": 1911,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "UNVERIFIED",
+    "url": "https://eyes.nasa.gov/dsn/config.xml",
+    "desc": "DSN station and spacecraft config.",
+    "test_url": "https://eyes.nasa.gov/dsn/config.xml",
+    "result": {
+      "code": 200,
+      "content_type": "text/xml",
+      "bytes": 19148,
+      "final_url": "",
+      "head": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<config>\n\t<sites>\n\t\t<site name=\"mdscc\" friendlyName=\"Madrid\" longitude=\"-4.248008",
+      "ms": 1256,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "UNVERIFIED",
+    "url": "https://ssd.jpl.nasa.gov/api/horizons.html",
+    "desc": "JPL Horizons API documentation.",
+    "test_url": "https://ssd.jpl.nasa.gov/api/horizons.html",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": 17190,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n\n<html class=\"no-js\" lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta http-equiv=\"X-UA-Compatible\" c",
+      "ms": 1865,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "UNVERIFIED",
+    "url": "https://ssd.jpl.nasa.gov/api/horizons.api",
+    "desc": "Horizons endpoint. MRO NAIF id is -74, Mars barycenter 499.",
+    "test_url": "https://ssd.jpl.nasa.gov/api/horizons.api",
+    "result": {
+      "code": 200,
+      "content_type": "application/json",
+      "bytes": null,
+      "final_url": "",
+      "head": "{\"result\":\"Missing COMMAND specification ... cannot proceed\\nwldini(): error loading execution-control file.\\n\",\"signatu",
+      "ms": 1833,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "12. Orbits, ephemeris and communications",
+    "md_status": "UNVERIFIED",
+    "url": "https://push.lightstreamer.com/ISSLIVE",
+    "desc": "ISS live telemetry stream (ECLSS values).",
+    "test_url": "https://push.lightstreamer.com/ISSLIVE",
+    "result": {
+      "code": 404,
+      "content_type": "text/html",
+      "bytes": 532,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\r\n<title>404 - Missi",
+      "ms": 1618,
+      "remaining": null
+    },
+    "verdict": "NO SIRVE"
+  },
+  {
+    "section": "13. Other apps from earlier prompts (Earth and Moon, not the main Mars app)",
+    "md_status": "OK",
+    "url": "https://wiki.earthdata.nasa.gov/x/mgnXCw",
+    "desc": "GIBS documentation (WMTS, WMS, TWMS endpoints).",
+    "test_url": "https://wiki.earthdata.nasa.gov/x/mgnXCw",
+    "result": {
+      "code": 403,
+      "content_type": "text/html",
+      "bytes": 919,
+      "final_url": "https://idfs.earthdatacloud.nasa.gov/realms/edl/protocol/openid-connect/auth?acr_values=edl_mfa&client_id=edl&exclude_idps=esa-eoiam%2Cgoogle&redirect_uri=https%3A%2F%2Furs.earthdata.nasa.gov%2Ffederated_keycloak&response_type=code&scope=openid&state=eyJjbGllbnRfaWQiOiJ1MW9fOHpPdW9scU5qdUxRejZ3ellRIiwicmVkaXJlY3RfdXJpIjoiaHR0cHM6Ly93aWtpLmVhcnRoZGF0YS5uYXNhLmdvdi9wbHVnaW5zL3NlcnZsZXQvQ29uZmx1ZW5jZU9BdXRoMiIsInJlc3BvbnNlX3R5cGUiOiJjb2RlIiwic3RhdGUiOiIvcGFnZXMvdmlld3BhZ2UuYWN0aW9uP3BhZ2VJZD0xOTg2NDIwNzQifQ%3D%3D",
+      "head": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<HTML><HEAD><META",
+      "ms": 5288,
+      "remaining": null
+    },
+    "verdict": "BLOQUEADA"
+  },
+  {
+    "section": "13. Other apps from earlier prompts (Earth and Moon, not the main Mars app)",
+    "md_status": "OK",
+    "url": "https://gibs.earthdata.nasa.gov/wmts/epsg4326/all/",
+    "desc": "GIBS WMTS sample endpoint.",
+    "test_url": "https://gibs.earthdata.nasa.gov/wmts/epsg4326/all/",
+    "result": {
+      "code": 200,
+      "content_type": "image/jpeg",
+      "bytes": 12721,
+      "final_url": "",
+      "head": "����\u0000\u0010JFIF\u0000\u0001\u0001\u0000\u0000\u0001\u0000\u0001\u0000\u0000��\u0000\u0002��\u0000C\u0000\b\u0006\u0006\u0007\u0006\u0005\b\u0007\u0007\u0007\t\t\b\n\f\u0014\r\f\u000b\u000b\f\u0019\u0012\u0013\u000f\u0014\u001d\u001a\u001f\u001e\u001d\u001a\u001c\u001c $.' \",#\u001c\u001c(7),01444\u001f'9=82<.342��\u0000C\u0001\t\t\t\f\u000b\f\u0018\r\r\u00182!\u001c!22222222",
+      "ms": 1866,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "13. Other apps from earlier prompts (Earth and Moon, not the main Mars app)",
+    "md_status": "UNVERIFIED",
+    "url": "https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/",
+    "desc": "GIBS endpoint used in the Earth prompt.",
+    "test_url": "https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/",
+    "result": {
+      "code": 200,
+      "content_type": "image/jpeg",
+      "bytes": 12721,
+      "final_url": "",
+      "head": "����\u0000\u0010JFIF\u0000\u0001\u0001\u0000\u0000\u0001\u0000\u0001\u0000\u0000��\u0000\u0002��\u0000C\u0000\b\u0006\u0006\u0007\u0006\u0005\b\u0007\u0007\u0007\t\t\b\n\f\u0014\r\f\u000b\u000b\f\u0019\u0012\u0013\u000f\u0014\u001d\u001a\u001f\u001e\u001d\u001a\u001c\u001c $.' \",#\u001c\u001c(7),01444\u001f'9=82<.342��\u0000C\u0001\t\t\t\f\u000b\f\u0018\r\r\u00182!\u001c!22222222",
+      "ms": 1563,
+      "remaining": null
+    },
+    "verdict": "SIRVE"
+  },
+  {
+    "section": "13. Other apps from earlier prompts (Earth and Moon, not the main Mars app)",
+    "md_status": "UNVERIFIED",
+    "url": "https://firms.modaps.eosdis.nasa.gov/api/",
+    "desc": "FIRMS fire data API (free key).",
+    "test_url": "https://firms.modaps.eosdis.nasa.gov/api/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "  \n<!DOCTYPE html>\n<!-- saved from url=(0027)https://earthdata.nasa.gov/ -->\n<html lang=\"en\" xmlns:fb=\"http://ogp.me/ns/",
+      "ms": 1491,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "14. Event, rules and Argentina",
+    "md_status": "OK",
+    "url": "https://astrobiology.com/2026/09/04/registration-is-now-open-for-the-2026-nasa-space-apps-challenge/",
+    "desc": "Official dates: 14 and 15 November, judging begins 16 November.",
+    "test_url": "https://astrobiology.com/2026/09/04/registration-is-now-open-for-the-2026-nasa-space-apps-challenge/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!doctype html>\n<html lang=\"en-US\">\n<head>\n\t<meta charset=\"UTF-8\" />\n\t<meta name=\"viewport\" content=\"width=device-width,",
+      "ms": 1164,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "14. Event, rules and Argentina",
+    "md_status": "OK",
+    "url": "https://astrobiology.com/event/nasa-space-apps-challenge-2026/",
+    "desc": "Event listing.",
+    "test_url": "https://astrobiology.com/event/nasa-space-apps-challenge-2026/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!doctype html>\n<html lang=\"en-US\">\n<head>\n\t<meta charset=\"UTF-8\" />\n\t<meta name=\"viewport\" content=\"width=device-width,",
+      "ms": 1600,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "14. Event, rules and Argentina",
+    "md_status": "OK",
+    "url": "https://www.spaceappschallenge.org/2025/",
+    "desc": "Space Apps site (2025 archive, links to the 2026 pages).",
+    "test_url": "https://www.spaceappschallenge.org/2025/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\" class=\"fira_sans_80edd855-module__AVCkGq__variable fira_code_5a2a53c7-module__6ZvH9q__var",
+      "ms": 1625,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "14. Event, rules and Argentina",
+    "md_status": "OK",
+    "url": "https://www.spaceappschallenge.org/2025/space-agency-partners/",
+    "desc": "Agency partners. CONAE has supported the event since 2021.",
+    "test_url": "https://www.spaceappschallenge.org/2025/space-agency-partners/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en\" class=\"fira_sans_80edd855-module__AVCkGq__variable fira_code_5a2a53c7-module__6ZvH9q__var",
+      "ms": 1626,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "14. Event, rules and Argentina",
+    "md_status": "OK",
+    "url": "https://www.argentina.gob.ar/noticias/nasa-space-apps-un-desafio-alcanzado-junto-la-conae",
+    "desc": "CONAE and Space Apps in Argentina.",
+    "test_url": "https://www.argentina.gob.ar/noticias/nasa-space-apps-un-desafio-alcanzado-junto-la-conae",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\n <!DOCTYPE html>\n<html lang=\"es\" dir=\"ltr\" prefix=\"content: http://purl.org/rss/1.0/modules/content/ dc: http://purl.or",
+      "ms": 2741,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "14. Event, rules and Argentina",
+    "md_status": "OK",
+    "url": "https://cholilaonline.ar/2026/10/nasa-space-apps-challenge-comodoro-rivadavia-2026.html",
+    "desc": "Comodoro Rivadavia confirmed as a 2026 host site.",
+    "test_url": "https://cholilaonline.ar/2026/10/nasa-space-apps-challenge-comodoro-rivadavia-2026.html",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 27880,
+      "final_url": "",
+      "head": "\n<!DOCTYPE html>\n<html lang=\"es\" class=\"s-light site-s-light\">\n\n<head>\n\n\t<meta charset=\"UTF-8\" />\n\t<meta name=\"viewport\"",
+      "ms": 2188,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "14. Event, rules and Argentina",
+    "md_status": "OK",
+    "url": "https://diariopanorama.com/noticia/561417/benavente-participo-presentacion-hackaton-nasa-se-realizara-noviembre-santiago-estero",
+    "desc": "Santiago del Estero confirmed as a 2026 host site.",
+    "test_url": "https://diariopanorama.com/noticia/561417/benavente-participo-presentacion-hackaton-nasa-se-realizara-noviembre-santiago-estero",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html lang=\"es\" amp>\n    <head>\n    \n    <!-- AMP Analytics -->\n    <meta charset=\"utf-8\">\n    \n    <scr",
+      "ms": 2143,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "14. Event, rules and Argentina",
+    "md_status": "OK",
+    "url": "https://therecursive.com/nasa-space-apps-challenge-2026-where-to-join-it-in-cee",
+    "desc": "Overview of 2026: 14 challenges, theme \"The Next Frontier\".",
+    "test_url": "https://therecursive.com/nasa-space-apps-challenge-2026-where-to-join-it-in-cee",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 13256,
+      "final_url": "https://www.therecursive.com/nasa-space-apps-challenge-2026-where-to-join-it-in-cee/",
+      "head": "<!DOCTYPE html>\n<html lang=\"en\">\n\t<head>\n\t\t<meta charset=\"utf-8\">\n\t\t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"",
+      "ms": 4232,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "14. Event, rules and Argentina",
+    "md_status": "UNVERIFIED",
+    "url": "https://spaceappschallenge.org",
+    "desc": "Registration and rules (named without a full URL).",
+    "test_url": "https://spaceappschallenge.org",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "https://www.spaceappschallenge.org/",
+      "head": "<!DOCTYPE html><html lang=\"en\" class=\"fira_sans_80edd855-module__AVCkGq__variable fira_code_5a2a53c7-module__6ZvH9q__var",
+      "ms": 3083,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "16. Added by the team (2026-11-14)",
+    "md_status": "UNVERIFIED",
+    "url": "https://mars.nasa.gov/mars2020/multimedia/raw-images/",
+    "desc": "Perseverance raw images (Mars 2020). Note: mars.nasa.gov moved to science.nasa.gov, so it may redirect. Perseverance is at Jezero, not Gale.",
+    "test_url": "https://mars.nasa.gov/mars2020/multimedia/raw-images/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "\r\n\r\n\r\n\r\n\r\n\t  \r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\t\r\n \t\r\n\r\n \r\n\r\n\r\n\r\n\r\n\t  \r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\t\r\n \t\r\n\r\n \r\n\n\n<!DOCTYPE html>\n<html lang=\"en\">\n<",
+      "ms": 243,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "16. Added by the team (2026-11-14)",
+    "md_status": "UNVERIFIED",
+    "url": "https://worldview.earthdata.nasa.gov/",
+    "desc": "NASA Worldview, Earth imagery browser (GIBS). Earth only, relevant to section 13.",
+    "test_url": "https://worldview.earthdata.nasa.gov/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!doctype html>\n<!--\nNASA Worldview (https://github.com/nasa-gibs/worldview)\n\nThis code was originally developed at NASA",
+      "ms": 2162,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "16. Added by the team (2026-11-14)",
+    "md_status": "UNVERIFIED",
+    "url": "https://trek.nasa.gov/mars/#v=0.1&x=0&y=0&z=1&p=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A104905&d=&locale=&b=mars&e=-337.4999937044213%2C-160.13671576287905%2C337.4999937044213%2C160.13671576287905&sfz=&w=",
+    "desc": "Mars Trek web viewer. Use it to read layer names and IDs for section 1.",
+    "test_url": "https://trek.nasa.gov/mars/#v=0.1&x=0&y=0&z=1&p=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A104905&d=&locale=&b=mars&e=-337.4999937044213%2C-160.13671576287905%2C337.4999937044213%2C160.13671576287905&sfz=&w=",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": 2488,
+      "final_url": "",
+      "head": "<!DOCTYPE html>\n<html>\n\n<head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    ",
+      "ms": 2036,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "16. Added by the team (2026-11-14)",
+    "md_status": "UNVERIFIED",
+    "url": "https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars",
+    "desc": "USGS Astrogeology interactive Mars maps (ArcGIS Hub). USGS is a U.S. Government site.",
+    "test_url": "https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!DOCTYPE html><html lang=\"en-us\"><head>\n    <title>Interactive Maps: Mars</title><meta name=\"twitter:title\" content=\"In",
+      "ms": 2387,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  },
+  {
+    "section": "16. Added by the team (2026-11-14)",
+    "md_status": "UNVERIFIED",
+    "url": "https://science.nasa.gov/resource/curiositys-proposed-path-up-mount-sharp/",
+    "desc": "Curiosity's proposed path up Mount Sharp. Useful as a reference for the route map in the Gale study site.",
+    "test_url": "https://science.nasa.gov/resource/curiositys-proposed-path-up-mount-sharp/",
+    "result": {
+      "code": 200,
+      "content_type": "text/html",
+      "bytes": null,
+      "final_url": "",
+      "head": "<!doctype html>\n<html lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\">\n<head>\n\t<meta charset=\"UTF-8\">\n<script>\nvar gform;gf",
+      "ms": 1399,
+      "remaining": null
+    },
+    "verdict": "SIRVE-PAGINA"
+  }
+]

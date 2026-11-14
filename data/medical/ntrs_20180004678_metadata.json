@@ -1,0 +1,263 @@
+{
+  "copyright": {
+    "thirdPartyPermissionsProduced": false,
+    "disclosedToPublic": false,
+    "containsIndication": false,
+    "publisherPermissionOrRightsToDistribute": false,
+    "belongsToUsGov": false,
+    "determinationType": "PUBLIC_USE_PERMITTED",
+    "thirdPartyContentCondition": "NOT_SET",
+    "belongsToContractor": false,
+    "disclosedInvention": false,
+    "submissionId": 20180004678,
+    "containsThirdPartyMaterial": false,
+    "belongsToPublisher": false,
+    "id": "09a988169a664ff9a45d06459f37e7b3",
+    "belongsToAuthors": false
+  },
+  "subjectCategories": [
+    "Aerospace Medicine"
+  ],
+  "keywords": [
+    "physiological response",
+    "biomechanics",
+    "gravitational physiology"
+  ],
+  "exportControl": {
+    "isExportControl": "NO",
+    "eccnNumber": "",
+    "submissionId": 20180004678,
+    "ear": "NO",
+    "id": "a9098e9f07124c5b8183475dcc348c6f",
+    "itar": "NO"
+  },
+  "distributionDate": "2019-07-12T00:00:00.0000000+00:00",
+  "otherReportNumbers": [
+    "GRC-E-DAA-TN51673",
+    "Report Number: GRC-E-DAA-TN51673"
+  ],
+  "fundingNumbers": [
+    {
+      "number": "LERCIP",
+      "submissionId": 20180004678,
+      "id": "cc9ff29f57d54385bde0ca37bb2c40de",
+      "type": "CONTRACT_GRANT"
+    },
+    {
+      "number": "WBS 444543.01.02.10",
+      "submissionId": 20180004678,
+      "id": "1eb19fc7abc9478fb8e9eb43802e415d",
+      "type": "WBS"
+    },
+    {
+      "number": "NNC14CA02C",
+      "submissionId": 20180004678,
+      "id": "b926fc69ab8a4f0ea61df62b144f5617",
+      "type": "CONTRACT_GRANT"
+    }
+  ],
+  "title": "Introduction to Medical Extensible Dynamic Probabilistic Risk Assessment Tool (MEDPRAT)",
+  "stiType": "PRESENTATION",
+  "distribution": "PUBLIC",
+  "submittedDate": "2018-08-27T10:28:26.6370000+00:00",
+  "authorAffiliations": [
+    {
+      "sequence": 0,
+      "submissionId": 20180004678,
+      "meta": {
+        "author": {
+          "name": "Robinson, J."
+        },
+        "organization": {
+          "name": "Wright State Univ.",
+          "location": "Dayton, OH, United States"
+        }
+      },
+      "id": "b94c879d0d6d44b19948cfde6935f08c"
+    },
+    {
+      "sequence": 1,
+      "submissionId": 20180004678,
+      "meta": {
+        "author": {
+          "name": "Myers, J."
+        },
+        "organization": {
+          "name": "NASA Glenn Research Center",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "43e6f25026e6454188c13428b218505f"
+    },
+    {
+      "sequence": 2,
+      "submissionId": 20180004678,
+      "meta": {
+        "author": {
+          "name": "Goodenow, D."
+        },
+        "organization": {
+          "name": "NASA Glenn Research Center",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "89600bea2c974cbdbe173fdee38994fd"
+    },
+    {
+      "sequence": 3,
+      "submissionId": 20180004678,
+      "meta": {
+        "author": {
+          "name": "McIntyre, L."
+        },
+        "organization": {
+          "name": "NASA Glenn Research Center",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "a506ae12b808401e8e4921d4f0d22e75"
+    },
+    {
+      "sequence": 4,
+      "submissionId": 20180004678,
+      "meta": {
+        "author": {
+          "name": "Bhattacharyya, K."
+        },
+        "organization": {
+          "name": "NASA Glenn Research Center",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "208035df092d414e9514f7f008f26ccc"
+    },
+    {
+      "sequence": 5,
+      "submissionId": 20180004678,
+      "meta": {
+        "author": {
+          "name": "Bellisario, B."
+        },
+        "organization": {
+          "name": "Zin Technologies, Inc.",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "c5b555aa379c41bda861231bafa68253"
+    },
+    {
+      "sequence": 6,
+      "submissionId": 20180004678,
+      "meta": {
+        "author": {
+          "name": "Leinweber, L."
+        },
+        "organization": {
+          "name": "Zin Technologies, Inc.",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "813d98669a2e4a47bb86e1f506710e4c"
+    },
+    {
+      "sequence": 7,
+      "submissionId": 20180004678,
+      "meta": {
+        "author": {
+          "name": "Burba, T."
+        },
+        "organization": {
+          "name": "NASA Glenn Research Center",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "d108d7309125427e9687acac12289cf5"
+    },
+    {
+      "sequence": 8,
+      "submissionId": 20180004678,
+      "meta": {
+        "author": {
+          "name": "Gilkey, K."
+        },
+        "organization": {
+          "name": "NASA Glenn Research Center",
+          "location": "Cleveland, OH, United States"
+        }
+      },
+      "id": "1ef93937276144298d5dff2525b93a60"
+    }
+  ],
+  "stiTypeDetails": "Presentation",
+  "technicalReviewType": "TECHNICAL_REVIEW_TYPE_NONE",
+  "modified": "2025-08-31T18:39:21.7150190+00:00",
+  "id": 20180004678,
+  "legacyMeta": {
+    "__type": "LegacyMetaIndex, StrivesApi.ServiceModel",
+    "accessionNumber": ""
+  },
+  "created": "2018-08-27T10:28:26.6370000+00:00",
+  "center": {
+    "code": "GRC",
+    "name": "Glenn Research Center",
+    "id": "19eeb25fa404421d9eaa5f876e853e3c"
+  },
+  "onlyAbstract": false,
+  "sensitiveInformation": 2,
+  "abstract": "A key component in the development of NASA Human Research Programs (HRP) next generation risk model, the Medical Extensible Dynamic Probabilistic Risk Assessment Tool (MEDPRAT) intends to deliver a means to quantify how HRP products impact astronaut medical and health risks. MEDPRAT is extensible to the majority of exploration missions. Similar to other risk models, the tool utilizes the available space and terrestrial medical data. MEDPRAT is designed to be extended with additional human health research information, medical equipment, space and terrestrial standards and practices to assess space flight medical risk in a manner consistent with other risk measures used in spacecraft and mission design. This tool provides risk-based medical system design information necessary to evaluate new technologies, procedures, research insights and mission plans.",
+  "isLessonsLearned": false,
+  "disseminated": "DOCUMENT_AND_METADATA",
+  "meetings": [
+    {
+      "submissionId": 20180004678,
+      "name": "NASA Johnson Space Center",
+      "location": "Houston, TX, United States",
+      "id": "c79dbd3f9a514bc9951fefc84db0bc0a"
+    },
+    {
+      "country": "United States",
+      "submissionId": 20180004678,
+      "endDate": "2018-01-25T00:00:00.0000000+00:00",
+      "sponsors": [
+        {
+          "meta": {
+            "organization": {
+              "name": "NASA Johnson Space Center",
+              "location": "Houston, TX, United States"
+            }
+          },
+          "meetingId": "bf23a310d3604ab499ddd61d02620493",
+          "id": "1b4bc24f3257423aad402b1fecb888e9"
+        }
+      ],
+      "name": "2018 NASA Human Research Program Investigators'' Workshop (HRP IWS 2018)",
+      "location": "Galveston, TX",
+      "id": "bf23a310d3604ab499ddd61d02620493",
+      "startDate": "2018-01-22T00:00:00.0000000+00:00"
+    }
+  ],
+  "publications": [
+    {
+      "submissionId": 20180004678,
+      "id": "ca4214cbcb944198aad083f335345010",
+      "publicationDate": "2018-01-22T00:00:00.0000000+00:00"
+    }
+  ],
+  "status": "CURATED",
+  "related": [],
+  "downloads": [
+    {
+      "draft": false,
+      "mimetype": "application/pdf",
+      "name": "20180004678.pdf",
+      "type": "STI",
+      "links": {
+        "original": "/api/citations/20180004678/downloads/20180004678.pdf",
+        "pdf": "/api/citations/20180004678/downloads/20180004678.pdf",
+        "fulltext": "/api/citations/20180004678/downloads/20180004678.txt"
+      }
+    }
+  ],
+  "downloadsAvailable": true,
+  "index": "submissions-2026-11-12-06-24"
+}

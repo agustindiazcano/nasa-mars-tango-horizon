@@ -1,0 +1,257 @@
+{
+  "generated": "2026-11-14T14:56:47",
+  "gale": {
+    "lat": -4.5895,
+    "lon": 137.4417
+  },
+  "results": [
+    {
+      "group": "rover_photos",
+      "file": "data\\rover_photos\\curiosity_latest.json",
+      "url": "https://mars.nasa.gov/api/v1/raw_image_items/",
+      "status": "OK",
+      "bytes": 122545
+    },
+    {
+      "group": "rover_photos",
+      "file": "data\\rover_photos\\curiosity_sol1000.json",
+      "url": "https://mars.nasa.gov/api/v1/raw_image_items/",
+      "status": "OK",
+      "bytes": 162940
+    },
+    {
+      "group": "donki",
+      "file": "data\\donki\\sep.json",
+      "url": "https://api.nasa.gov/DONKI/SEP",
+      "status": "OK",
+      "bytes": 2,
+      "rate_limit_remaining": "2499"
+    },
+    {
+      "group": "donki",
+      "file": "data\\donki\\cme.json",
+      "url": "https://api.nasa.gov/DONKI/CME",
+      "status": "OK",
+      "bytes": 229615,
+      "rate_limit_remaining": "2498"
+    },
+    {
+      "group": "donki",
+      "file": "data\\donki\\cme_analysis.json",
+      "url": "https://api.nasa.gov/DONKI/CMEAnalysis",
+      "status": "OK",
+      "bytes": 54980,
+      "rate_limit_remaining": "2497"
+    },
+    {
+      "group": "donki",
+      "file": "data\\donki\\wsa_enlil.json",
+      "url": "https://api.nasa.gov/DONKI/WSAEnlilSimulations",
+      "status": "OK",
+      "bytes": 66901,
+      "rate_limit_remaining": "2496"
+    },
+    {
+      "group": "horizons",
+      "file": "data\\horizons\\mro_wrt_mars.json",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api",
+      "status": "OK",
+      "bytes": 19274
+    },
+    {
+      "group": "horizons",
+      "file": "data\\horizons\\earth_wrt_mars.json",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api",
+      "status": "OK",
+      "bytes": 19250
+    },
+    {
+      "group": "orbits_comms",
+      "file": "data\\orbits_comms\\celestrak_stations.json",
+      "url": "https://celestrak.org/NORAD/elements/gp.php",
+      "status": "OK",
+      "bytes": 9906
+    },
+    {
+      "group": "orbits_comms",
+      "file": "data\\orbits_comms\\nasa_tle_25544.json",
+      "url": "https://tle.ivanstanojevic.me/api/tle/25544",
+      "status": "OK",
+      "bytes": 401
+    },
+    {
+      "group": "orbits_comms",
+      "file": "data\\orbits_comms\\dsn_config.xml",
+      "url": "https://eyes.nasa.gov/dsn/config.xml",
+      "status": "OK",
+      "bytes": 19148
+    },
+    {
+      "group": "orbits_comms",
+      "file": "data\\orbits_comms\\dsn_now.xml",
+      "url": "https://eyes.nasa.gov/dsn/data/dsn.xml",
+      "status": "OK",
+      "bytes": 7829
+    },
+    {
+      "group": "trek",
+      "file": "data\\trek\\viking_WMTSCapabilities.xml",
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/WMTSCapabilities.xml",
+      "status": "OK",
+      "bytes": 7016
+    },
+    {
+      "group": "trek",
+      "file": "data\\trek\\viking_tile_1_0_0.jpg",
+      "url": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/default/default028mm/1/0/0.jpg",
+      "status": "OK",
+      "bytes": 51165
+    },
+    {
+      "group": "topography",
+      "file": "data\\topography\\stac_collections.json",
+      "url": "https://stac.astrogeology.usgs.gov/api/collections",
+      "status": "OK",
+      "bytes": 89819
+    },
+    {
+      "group": "topography",
+      "file": "data\\topography\\ucla_mars_dems_repo.json",
+      "url": "https://api.github.com/repos/GALE-Lab/Mars_DEMs",
+      "status": "OK",
+      "bytes": 6800,
+      "rate_limit_remaining": "58"
+    },
+    {
+      "group": "ai4mars",
+      "file": "data\\ai4mars\\zenodo_15995036_metadata.json",
+      "url": "https://zenodo.org/api/records/15995036",
+      "status": "OK",
+      "bytes": 6841,
+      "rate_limit_remaining": "132"
+    },
+    {
+      "group": "moxie",
+      "file": "data\\moxie\\readme_moxie.txt",
+      "url": "https://pds.nasa.gov/data/pds4/releases/atmos/mars2020_moxie-20241224/readme_moxie.txt",
+      "status": "OK",
+      "bytes": 2265
+    },
+    {
+      "group": "radiation",
+      "file": "data\\radiation\\RAD_RDR_SIS.html",
+      "url": "https://pds-ppi.igpp.ucla.edu/volume/MSLRAD_1002/DOCUMENT/RAD_RDR_SIS.HTM",
+      "status": "OK",
+      "bytes": 132106
+    },
+    {
+      "group": "radiation",
+      "file": "data\\radiation\\RAD_EDR_SIS.html",
+      "url": "https://pds-ppi.igpp.ucla.edu/volume/MSLRAD_1001/DOCUMENT/RAD_EDR_SIS.HTM",
+      "status": "OK",
+      "bytes": 1874928
+    },
+    {
+      "group": "atmosphere",
+      "file": "data\\atmosphere\\Mars-GRAM_User_Guide.pdf",
+      "url": "https://ntrs.nasa.gov/api/citations/20210023957/downloads/Mars-GRAM%20User%20Guide.pdf",
+      "status": "OK",
+      "bytes": 1151351,
+      "rate_limit_remaining": "499"
+    },
+    {
+      "group": "atmosphere",
+      "file": "data\\atmosphere\\MCD_user_manual_5.2.pdf",
+      "url": "http://www-mars.lmd.jussieu.fr/mars/info_web/user_manual_5.2.pdf",
+      "status": "OK",
+      "bytes": 209346
+    },
+    {
+      "group": "suits",
+      "file": "data\\suits\\TSS_2024_public_listing.json",
+      "url": "https://api.github.com/repos/SUITS-Techteam/TSS_2024/contents/public",
+      "status": "OK",
+      "bytes": 11762,
+      "rate_limit_remaining": "57"
+    },
+    {
+      "group": "suits",
+      "file": "data\\suits\\SUITS_Test_TSS_root_listing.json",
+      "url": "https://api.github.com/repos/SUITS-Techteam/SUITS_Test_TSS/contents",
+      "status": "OK",
+      "bytes": 17780,
+      "rate_limit_remaining": "56"
+    },
+    {
+      "group": "medical",
+      "file": "data\\medical\\MEDPRAT_vs_IMM_TM-20240012058.pdf",
+      "url": "https://ntrs.nasa.gov/api/citations/20240012058/downloads/TM-20240012058.pdf",
+      "status": "OK",
+      "bytes": 24247863,
+      "rate_limit_remaining": "499"
+    },
+    {
+      "group": "medical",
+      "file": "data\\medical\\AMCL_TM-2022-220299.pdf",
+      "url": "https://ntrs.nasa.gov/api/citations/20220003136/downloads/NASA-T_1.pdf",
+      "status": "OK",
+      "bytes": 1069056,
+      "rate_limit_remaining": "499"
+    },
+    {
+      "group": "medical",
+      "file": "data\\medical\\ntrs_20180004678_metadata.json",
+      "url": "https://ntrs.nasa.gov/api/citations/20180004678",
+      "status": "OK",
+      "bytes": 8165,
+      "rate_limit_remaining": "499"
+    },
+    {
+      "group": "medical",
+      "file": "data\\medical\\ntrs_20200000974_metadata.json",
+      "url": "https://ntrs.nasa.gov/api/citations/20200000974",
+      "status": "OK",
+      "bytes": 5580,
+      "rate_limit_remaining": "499"
+    },
+    {
+      "group": "medical",
+      "file": "data\\medical\\ntrs_20210000586_metadata.json",
+      "url": "https://ntrs.nasa.gov/api/citations/20210000586",
+      "status": "OK",
+      "bytes": 7933,
+      "rate_limit_remaining": "499"
+    },
+    {
+      "group": "medical",
+      "file": "data\\medical\\ntrs_20230013414_metadata.json",
+      "url": "https://ntrs.nasa.gov/api/citations/20230013414",
+      "status": "OK",
+      "bytes": 11097,
+      "rate_limit_remaining": "499"
+    },
+    {
+      "group": "medical",
+      "file": "data\\medical\\ntrs_20190027540_metadata.json",
+      "url": "https://ntrs.nasa.gov/api/citations/20190027540",
+      "status": "OK",
+      "bytes": 4839,
+      "rate_limit_remaining": "499"
+    },
+    {
+      "group": "medical",
+      "file": "data\\medical\\osdr_datasets.json",
+      "url": "https://visualization.osdr.nasa.gov/biodata/api/v2/datasets/",
+      "status": "OK",
+      "bytes": 70334
+    },
+    {
+      "group": "topography",
+      "file": "data\\topography\\stac_search_gale.json",
+      "url": "STAC /search (bbox Gale)",
+      "status": "OK",
+      "bytes": 797962,
+      "features": 50
+    }
+  ]
+}

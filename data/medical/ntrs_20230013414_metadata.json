@@ -1,0 +1,242 @@
+{
+  "copyright": {
+    "thirdPartyPermissionsProduced": false,
+    "disclosedToPublic": false,
+    "containsIndication": false,
+    "publisherPermissionOrRightsToDistribute": false,
+    "belongsToUsGov": false,
+    "determinationType": "MAY_INCLUDE_COPYRIGHT_MATERIAL",
+    "thirdPartyContentCondition": "NOT_SET",
+    "belongsToContractor": false,
+    "disclosedInvention": false,
+    "licenseType": "NO",
+    "submissionId": 20230013414,
+    "containsThirdPartyMaterial": false,
+    "belongsToPublisher": false,
+    "id": "f4ff0449d21247babb05ca808d84fed6",
+    "belongsToAuthors": false
+  },
+  "subjectCategories": [
+    "Computer Systems",
+    "Aerospace Medicine",
+    "Systems Analysis and Operations Research"
+  ],
+  "exportControl": {
+    "isExportControl": "NO",
+    "submissionId": 20230013414,
+    "ear": "NO",
+    "id": "f5be83aca79a40d2a3d5221f9d2c839f",
+    "itar": "NO"
+  },
+  "distributionDate": "2024-02-13T06:00:00.0000000+00:00",
+  "fundingNumbers": [
+    {
+      "number": "NNJ15HK11B",
+      "submissionId": 20230013414,
+      "id": "d1d9d501613b4e64918d861587e3bcf3",
+      "type": "CONTRACT_GRANT"
+    }
+  ],
+  "title": "Impact Real World System Validation",
+  "stiType": "CONFERENCE_PAPER",
+  "distribution": "PUBLIC",
+  "submittedDate": "2023-09-15T00:49:48.2328520+00:00",
+  "authorAffiliations": [
+    {
+      "organizationId": "30956d12b05c56f99ba04cefabd82400",
+      "sequence": 0,
+      "submissionId": 20230013414,
+      "meta": {
+        "author": {
+          "orcidId": "",
+          "name": "L. Boley"
+        },
+        "organization": {
+          "name": "KBR (United States)",
+          "location": "Houston, Texas, United States"
+        }
+      },
+      "id": "c49b883d587647ca98e6da8939589db9",
+      "userType": "CONTRACTOR_GRANTEE",
+      "userId": "c8b2301161b145c184bcd32459fea327"
+    },
+    {
+      "organizationId": "7e8b083effc859b3bea970a738a31356",
+      "sequence": 1,
+      "submissionId": 20230013414,
+      "meta": {
+        "author": {
+          "name": "D. Hilmers"
+        },
+        "organization": {
+          "name": "Baylor College of Medicine",
+          "location": "Houston, Texas, United States"
+        }
+      },
+      "id": "748aa226d2c94612b4d53ca92fabb46d",
+      "userType": "OTHER",
+      "userId": "83e536adfa3d4123b8aa109d93a8dd5a"
+    },
+    {
+      "organizationId": "e19468319c7a500681f6c155f5347f25",
+      "sequence": 2,
+      "submissionId": 20230013414,
+      "meta": {
+        "author": {
+          "orcidId": "",
+          "name": "E. Kerstman"
+        },
+        "organization": {
+          "name": "The University of Texas Medical Branch at Galveston",
+          "location": "Galveston, Texas, United States"
+        }
+      },
+      "id": "d119a0c8b38b488f8e3c6f140d5669fe",
+      "userType": "CONTRACTOR_GRANTEE",
+      "userId": "6514d8f020b94b03a82578daddaccd1f"
+    },
+    {
+      "organizationId": "e19468319c7a500681f6c155f5347f25",
+      "sequence": 3,
+      "submissionId": 20230013414,
+      "meta": {
+        "author": {
+          "name": "P. Parmar"
+        },
+        "organization": {
+          "name": "The University of Texas Medical Branch at Galveston",
+          "location": "Galveston, Texas, United States"
+        }
+      },
+      "id": "5bd298ab95464c97b7a7a0ba386abe97",
+      "userType": "OTHER",
+      "userId": "afb22bada3004a4cb42f0af1a0e480e0"
+    },
+    {
+      "organizationId": "4c6a2b878d76521da887cdcb2564bf90",
+      "sequence": 4,
+      "submissionId": 20230013414,
+      "meta": {
+        "author": {
+          "orcidId": "",
+          "name": "M. Young"
+        },
+        "organization": {
+          "name": "Johnson Space Center",
+          "location": "Houston, Texas, United States"
+        }
+      },
+      "id": "3e17ab5fc6c7493b92b7f25fe574f472",
+      "userType": "CIVIL",
+      "userId": "899a826bd0824f1fab846fbbf8d2591a"
+    },
+    {
+      "organizationId": "30956d12b05c56f99ba04cefabd82400",
+      "sequence": 5,
+      "submissionId": 20230013414,
+      "meta": {
+        "author": {
+          "name": "G. Vega"
+        },
+        "organization": {
+          "name": "KBR (United States)",
+          "location": "Houston, Texas, United States"
+        }
+      },
+      "id": "8e52c6d049e3497fad23e4d38c611ce3",
+      "userType": "OTHER",
+      "userId": "5d3123b5b7f64eb99265ffdced464e9e"
+    },
+    {
+      "organizationId": "68c7ff195be14c9a9987fd9b107196e3",
+      "sequence": 6,
+      "submissionId": 20230013414,
+      "meta": {
+        "author": {
+          "orcidId": "",
+          "name": "J. Arellano"
+        },
+        "organization": {
+          "name": "Aegis Aerospace",
+          "location": "Houston, TX"
+        }
+      },
+      "id": "1cfcc756c0074f77beac3e5f3d1fbaf7",
+      "userType": "CONTRACTOR_GRANTEE",
+      "userId": "a9199dc67fd349f88f535baccd6f8107"
+    }
+  ],
+  "stiTypeDetails": "Conference Paper",
+  "technicalReviewType": "PROFESSIONAL_REVIEW",
+  "modified": "2025-08-31T18:39:21.7150190+00:00",
+  "id": 20230013414,
+  "created": "2023-09-15T00:44:18.4903180+00:00",
+  "center": {
+    "code": "JSC",
+    "name": "Johnson Space Center",
+    "id": "dd46994b91a94cb2a2722617cbbadc55"
+  },
+  "onlyAbstract": true,
+  "sensitiveInformation": 2,
+  "abstract": "<b>Introduction</b>\n\nNASA has developed a new evidence-based data-driven probabilistic risk assessment and tradespace analysis tool as a successor to the Integrated Medical Model. This updated decision support tool is known as IMPACT (Informing Mission Planning via Analysis of Complex Tradespaces). IMPACT estimates the frequency and consequences of medical conditions that might arise during exploration missions. A validation analysis of IMPACT was performed with respect to a set of International Space Station (ISS) and Shuttle Transportation System (STS) real world system (RWS) referent data due to the limited referent data available from exploration missions. \n\n<b>Methods</b> \n\nObserved mission and crew characteristics from STS and ISS missions were used as model inputs within MEDPRAT (Medical Extensible Dynamic Probabilistic Risk Assessment Tool). For each mission, two hundred thousand simulations were generated. For each mission, model outputs included occurrence counts for each condition, total medical events (TME), and the probability of loss of crew life (LOCL). These simulated model outputs were compared to the RWS referent data. \n\n<b>Results</b> \n\nThe predicted number of total medical events exceeded the total RWS medical events for ISS missions and combined ISS and STS missions and fell within the 90% confidence interval for STS missions. For the 32 ISS missions simulated by IMPACT, the number of total medical events was overpredicted for 19 missions and fell within the 90% confidence interval for 13 missions. For the 21 STS missions, the total number of medical events was overpredicted for 3 missions, fell within the 90% confidence interval for 16 missions, and was underpredicted for 2 missions. Combined, 29 missions were in range, 22 were overpredicted, and 2 were underpredicted. The predicted LOCL probability for the 32 ISS missions, the 21 STS missions, and the combined ISS and STS missions was consistent with the zero LOCL events observed in the RWS referent data. The validation analysis included a comparison of the number of medical events predicted by IMPACT and the number of medical events observed in the RWS data on a condition-by-condition basis. For ISS missions, 50 conditions were in range, 52 conditions were statistically underpowered (not enough observed sample to draw any conclusions on precision), 8 conditions were overpredicted, and 9 conditions were underpredicted. Overall, only 14% (17/119) of conditions were out of range for STS missions, 40 conditions were in range, 59 conditions were statistically underpowered, 10 conditions were overpredicted, and 10 conditions were underpredicted. Overall, only 17% (20/119) of conditions were out of range. For combined ISS and STS missions, 11 conditions were overpredicted, and 11 conditions were underpredicted. Overall, only 18% (22/119) of conditions were out of range. For combined ISS and STS missions, 49 conditions were in range, 46 conditions were statistically underpowered, 18 conditions were overpredicted, and 8 conditions were underpredicted. Overall, 21% (26/121) of conditions were out of range. \n\n<b>Conclusion</b> \n\nThe results of this validation analysis should not be interpreted as a pass/fail test of the validity of IMPACT. Instead, this validation analysis should be used to assess some of the IMPACT outcomes in terms of consistencies and inconsistencies with the ISS and STS RWS referent data.",
+  "isLessonsLearned": false,
+  "disseminated": "DOCUMENT_AND_METADATA",
+  "cui": {
+    "isCui": false,
+    "submissionId": 20230013414,
+    "id": "15956543d59a41a28e9f53878e673b09"
+  },
+  "meetings": [
+    {
+      "country": "US",
+      "submissionId": 20230013414,
+      "endDate": "2024-02-16T06:00:00.0000000+00:00",
+      "sponsors": [
+        {
+          "organizationId": "e53641f275f15469a1b19a8980e09171",
+          "meta": {
+            "organization": {
+              "name": "National Aeronautics and Space Administration",
+              "location": "Washington D.C., District of Columbia, United States"
+            }
+          },
+          "meetingId": "785fac1350304368a2fa2123827ad371",
+          "id": "d078379aa3e4444aae7ad471b43720f7"
+        }
+      ],
+      "name": "Human Research Program-Investigators Working Group (HRP-IWG) ",
+      "location": "Galveston, TX",
+      "id": "785fac1350304368a2fa2123827ad371",
+      "url": "https://www.edgereg.net/er/EventHomePage/CustomPage.jsp?ActivityID=42008&ItemID=137127 ",
+      "startDate": "2024-02-13T06:00:00.0000000+00:00"
+    }
+  ],
+  "status": "CURATED",
+  "related": [],
+  "downloads": [
+    {
+      "draft": false,
+      "mimetype": "application/pdf",
+      "name": "IMPACT REAL WORLD SYSTEM VALIDATION  updated 9-28.pdf",
+      "type": "ABSTRACT",
+      "links": {
+        "original": "/api/citations/20230013414/downloads/IMPACT%20REAL%20WORLD%20SYSTEM%20VALIDATION%20%20updated%209-28.pdf",
+        "pdf": "/api/citations/20230013414/downloads/IMPACT%20REAL%20WORLD%20SYSTEM%20VALIDATION%20%20updated%209-28.pdf",
+        "fulltext": "/api/citations/20230013414/downloads/IMPACT%20REAL%20WORLD%20SYSTEM%20VALIDATION%20%20updated%209-28.pdf.txt"
+      }
+    },
+    {
+      "draft": false,
+      "mimetype": "application/pdf",
+      "name": "IWS_RWS.pdf",
+      "type": "ABSTRACT",
+      "links": {
+        "original": "/api/citations/20230013414/downloads/IWS_RWS.pdf",
+        "pdf": "/api/citations/20230013414/downloads/IWS_RWS.pdf",
+        "fulltext": "/api/citations/20230013414/downloads/IWS_RWS.pdf.txt"
+      }
+    }
+  ],
+  "downloadsAvailable": false,
+  "index": "submissions-2026-11-12-06-24"
+}
