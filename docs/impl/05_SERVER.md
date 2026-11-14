@@ -13,19 +13,36 @@
 import "dotenv/config";
 
 const env = (k: string, d = "") => process.env[k] ?? d;
-export type ProviderName = "meta" | "gemini";
+export type ProviderName = "vertex" | "meta" | "gemini";
 export type Tier = "large" | "medium" | "fast" | "judge" | "vision";
 
 export interface ProviderConfig {
   name: ProviderName;
-  apiKey: string;
+  enabled: boolean;
+  apiKey?: string;
   baseURL: string;
   models: Record<Tier, string>;
 }
 
+const gcpProject = env("GCP_PROJECT_ID", "nasa-tango-horizon");
+const vertexLoc = env("VERTEX_LOCATION", env("GCP_REGION", "us-central1"));
+
 const providers: Record<ProviderName, ProviderConfig> = {
+  vertex: {
+    name: "vertex",
+    enabled: env("VERTEX_ENABLED", "1") !== "0" && Boolean(gcpProject),
+    baseURL: `https://${vertexLoc}-aiplatform.googleapis.com/v1/projects/${gcpProject}/locations/${vertexLoc}/endpoints/openapi`,
+    models: {
+      large: env("VERTEX_MODEL_LARGE", "google/gemini-2.5-pro"),
+      medium: env("VERTEX_MODEL_MEDIUM", "google/gemini-2.5-flash"),
+      fast: env("VERTEX_MODEL_FAST", "google/gemini-2.5-flash"),
+      judge: env("VERTEX_MODEL_JUDGE", "google/gemini-2.5-flash"),
+      vision: env("VERTEX_MODEL_VISION", "google/gemini-2.5-flash"),
+    },
+  },
   meta: {
     name: "meta",
+    enabled: Boolean(env("META_API_KEY")),
     apiKey: env("META_API_KEY"),
     baseURL: env("META_BASE_URL", "https://api.meta.ai/v1"),
     models: {
@@ -38,6 +55,7 @@ const providers: Record<ProviderName, ProviderConfig> = {
   },
   gemini: {
     name: "gemini",
+    enabled: Boolean(env("GEMINI_API_KEY") || env("FALLBACK_API_KEY")),
     apiKey: env("GEMINI_API_KEY") || env("FALLBACK_API_KEY"),
     baseURL: env("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/"),
     models: {
@@ -50,11 +68,17 @@ const providers: Record<ProviderName, ProviderConfig> = {
   },
 };
 
-const primary: ProviderName = env("LLM_PROVIDER", "meta") === "gemini" ? "gemini" : "meta";
-const secondary: ProviderName = primary === "meta" ? "gemini" : "meta";
+const rawPrimary = env("LLM_PROVIDER", "vertex") as ProviderName;
+const primary: ProviderName = rawPrimary in providers ? rawPrimary : "vertex";
+const providerOrder: ProviderName[] = [
+  primary,
+  ...(["vertex", "meta", "gemini"] as ProviderName[]).filter((p) => p !== primary),
+];
 
 export const config = {
   port: Number(env("PORT", "8080")),
+  gcpProject,
+  vertexLoc,
   origins: env("ALLOWED_ORIGINS").split(",").map((s) => s.trim()).filter(Boolean),
   rateLimit: Number(env("RATE_LIMIT_PER_MIN", "30")),
   maxTokens: Number(env("LLM_MAX_OUTPUT_TOKENS", "400")),
@@ -62,7 +86,7 @@ export const config = {
   defaultTimeoutMs: Number(env("LLM_DEFAULT_TIMEOUT_MS", "12000")),
   offline: env("AGENTS_OFFLINE", "0") === "1",
   primary,
-  secondary,
+  providerOrder,
   providers,
 };
 ```
@@ -71,13 +95,31 @@ export const config = {
 
 ```ts
 import OpenAI from "openai";
+import { GoogleAuth } from "google-auth-library";
 import { config, type ProviderName, type Tier } from "../config.js";
 
-/** Dual-provider client (Muse/Meta + Google AI Studio Gemini) with automatic low-latency failover. */
-const clients: Record<ProviderName, OpenAI> = {
+/**
+ * Multi-provider OpenAI-compatible client supporting:
+ * 1. "vertex": Google Cloud Vertex AI on project `nasa-tango-horizon` (keyless via ADC / Service Account IAM)
+ * 2. "meta": Muse / Meta API (`META_API_KEY`)
+ * 3. "gemini": Google AI Studio (`GEMINI_API_KEY`)
+ * Automatically fails over across available providers on timeout or 4xx/5xx error.
+ */
+const googleAuth = new GoogleAuth({ scopes: ["https://www.googleapis.com/auth/cloud-platform"] });
+
+const staticClients: Record<"meta" | "gemini", OpenAI> = {
   meta: new OpenAI({ apiKey: config.providers.meta.apiKey || "missing", baseURL: config.providers.meta.baseURL, maxRetries: 0 }),
   gemini: new OpenAI({ apiKey: config.providers.gemini.apiKey || "missing", baseURL: config.providers.gemini.baseURL, maxRetries: 0 }),
 };
+
+async function getClient(provider: ProviderName): Promise<OpenAI> {
+  if (provider === "vertex") {
+    const token = await googleAuth.getAccessToken();
+    if (!token) throw new Error("Vertex AI ADC token unavailable");
+    return new OpenAI({ apiKey: token, baseURL: config.providers.vertex.baseURL, maxRetries: 0 });
+  }
+  return staticClients[provider];
+}
 
 export const modelFor = (tier: Tier, provider: ProviderName = config.primary): string => {
   const models = config.providers[provider].models;
@@ -86,8 +128,8 @@ export const modelFor = (tier: Tier, provider: ProviderName = config.primary): s
   return m;
 };
 
-export const providerAvailable = (p: ProviderName) => Boolean(config.providers[p].apiKey);
-export const llmAvailable = () => !config.offline && (providerAvailable("meta") || providerAvailable("gemini"));
+export const providerAvailable = (p: ProviderName) => config.providers[p].enabled;
+export const llmAvailable = () => !config.offline && config.providerOrder.some(providerAvailable);
 
 type Msg = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 type Tool = OpenAI.Chat.Completions.ChatCompletionTool;
@@ -95,15 +137,16 @@ type Tool = OpenAI.Chat.Completions.ChatCompletionTool;
 export async function chat(tier: Tier, messages: Msg[], opts: { tools?: Tool[]; json?: boolean; maxTokens?: number; provider?: ProviderName } = {}) {
   const order: ProviderName[] = opts.provider
     ? [opts.provider]
-    : [config.primary, config.secondary].filter(providerAvailable);
-  if (!order.length) throw new Error("No LLM provider API key configured");
+    : config.providerOrder.filter(providerAvailable);
+  if (!order.length) throw new Error("No LLM provider enabled");
 
   const timeout = tier === "fast" ? config.fastTimeoutMs : config.defaultTimeoutMs;
   let lastErr: unknown;
 
   for (const p of order) {
     try {
-      const res = await clients[p].chat.completions.create(
+      const client = await getClient(p);
+      const res = await client.chat.completions.create(
         {
           model: modelFor(tier, p),
           messages,
@@ -220,7 +263,7 @@ const run = async (name: string, fn: () => Promise<unknown>) => {
   catch (e: any) { console.log(`FAIL ${name}`, e?.status ?? "", e?.message); }
 };
 
-for (const provider of (["meta", "gemini"] as ProviderName[]).filter(providerAvailable)) {
+for (const provider of (["vertex", "meta", "gemini"] as ProviderName[]).filter(providerAvailable)) {
   console.log(`\n=== Provider: ${provider} ===`);
   for (const tier of ["fast", "medium", "large", "judge"] as const)
     await run(`${provider} text ${tier} (${modelFor(tier, provider)})`, () => chat(tier, [{ role: "user", content: "Reply with the word READY." }], { maxTokens: 10, provider }));

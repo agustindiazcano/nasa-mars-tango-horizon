@@ -9,6 +9,14 @@ dist/
 .vercel/
 *.tsbuildinfo
 
+# Terraform state & local plans
+**/.terraform/
+*.tfstate
+*.tfstate.*
+tfplan
+*.tfplan
+crash.log
+
 # Python / ML pipeline artifacts
 __pycache__/
 *.py[cod]

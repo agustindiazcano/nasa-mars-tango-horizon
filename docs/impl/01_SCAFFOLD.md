@@ -129,7 +129,7 @@ __pycache__/
 ## Instructions for the coding agent
 
 1. Create the layout. Run `git init` if there is no repo. Do not touch `data/`, `fetch_mars_data.py`, `validate_urls.py` or the root `.md` files.
-2. Dependencies: in `web` install `three`, `@types/three`, `qrcode`; in `server` install `fastify`, `@fastify/static`, `@fastify/websocket`, `@fastify/rate-limit`, `openai`, `zod`, `zod-to-json-schema`, `@modelcontextprotocol/sdk`, `@google-cloud/text-to-speech`, `dotenv`, and `tsx` as a dev dependency. Use current stable versions; do not hand-pin versions that may not exist.
+2. Dependencies: in `web` install `three`, `@types/three`, `qrcode`; in `server` install `fastify`, `@fastify/static`, `@fastify/websocket`, `@fastify/rate-limit`, `openai`, `google-auth-library`, `zod`, `zod-to-json-schema`, `@modelcontextprotocol/sdk`, `@google-cloud/text-to-speech`, `dotenv`, and `tsx` as a dev dependency. Use current stable versions; do not hand-pin versions that may not exist.
 3. `web` and `server` import `@th/shared` through the workspace. Use `"module": "NodeNext"` in server and shared, `"moduleResolution": "bundler"` in web.
 4. For now `server/src/index.ts` only serves `web/dist` and answers `GET /api/health` with `{ ok: true }`. The rest arrives in guide 05.
 5. Create `server/corpus/.gitkeep` so the Dockerfile `COPY` does not fail.

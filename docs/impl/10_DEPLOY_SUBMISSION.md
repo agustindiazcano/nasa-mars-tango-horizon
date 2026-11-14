@@ -10,44 +10,47 @@
 
 ```bash
 #!/usr/bin/env bash
-# Usage: ./deploy.sh   (reads .env from repo root)
+# Usage: ./deploy.sh   (reads .env from repo root; base infra provisioned via infra/terraform)
 set -euo pipefail
 set -a; source .env; set +a
-: "${GCP_PROJECT_ID:?missing GCP_PROJECT_ID}" "${GCP_REGION:=us-central1}" "${CLOUD_RUN_SERVICE:=tango-horizon}"
+: "${GCP_PROJECT_ID:=nasa-tango-horizon}" "${GCP_REGION:=us-central1}" "${VERTEX_LOCATION:=us-central1}" "${CLOUD_RUN_SERVICE:=tango-horizon}"
+SA_EMAIL="${CLOUD_RUN_SERVICE}-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com"
 
 gcloud config set project "$GCP_PROJECT_ID"
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com artifactregistry.googleapis.com texttospeech.googleapis.com
 
-PROJECT_NUMBER=$(gcloud projects describe "$GCP_PROJECT_ID" --format='value(projectNumber)')
-SA="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
-
-# Store both Muse/Meta and Google AI Studio keys in Secret Manager, never as plain-text env vars.
+# Store Muse/Meta and Google AI Studio keys in Secret Manager if provided (Vertex AI uses keyless ADC via SA_EMAIL).
+SECRETS_LIST=()
 upsert_secret() {
-  local name="$1" val="$2"
+  local name="$1" env_var="$2" val="$3"
   if [ -z "$val" ]; then return; fi
   if ! gcloud secrets describe "$name" >/dev/null 2>&1; then
     printf '%s' "$val" | gcloud secrets create "$name" --data-file=-
   else
     printf '%s' "$val" | gcloud secrets versions add "$name" --data-file=-
   fi
-  gcloud secrets add-iam-policy-binding "$name" --member="$SA" --role="roles/secretmanager.secretAccessor" >/dev/null
+  gcloud secrets add-iam-policy-binding "$name" --member="serviceAccount:${SA_EMAIL}" --role="roles/secretmanager.secretAccessor" >/dev/null
+  SECRETS_LIST+=("${env_var}=${name}:latest")
 }
 
-upsert_secret "meta-api-key" "${META_API_KEY:-}"
-upsert_secret "gemini-api-key" "${GEMINI_API_KEY:-}"
+upsert_secret "meta-api-key" "META_API_KEY" "${META_API_KEY:-}"
+upsert_secret "gemini-api-key" "GEMINI_API_KEY" "${GEMINI_API_KEY:-}"
 
-SECRETS_ARG="META_API_KEY=meta-api-key:latest,GEMINI_API_KEY=gemini-api-key:latest"
+SECRETS_FLAG=()
+if [ ${#SECRETS_LIST[@]} -gt 0 ]; then
+  IFS=,; SECRETS_FLAG=(--set-secrets "${SECRETS_LIST[*]}"); unset IFS
+fi
 
 gcloud run deploy "$CLOUD_RUN_SERVICE" \
   --source . \
   --region "$GCP_REGION" \
+  --service-account "$SA_EMAIL" \
   --allow-unauthenticated \
   --min-instances 1 --max-instances 1 \
   --cpu 1 --memory 1Gi \
   --timeout 3600 \
   --session-affinity \
-  --set-secrets "$SECRETS_ARG" \
-  --set-env-vars "^@^LLM_PROVIDER=${LLM_PROVIDER:-meta}@META_BASE_URL=${META_BASE_URL:-https://api.meta.ai/v1}@LLM_MODEL_LARGE=${LLM_MODEL_LARGE:-}@LLM_MODEL_MEDIUM=${LLM_MODEL_MEDIUM:-}@LLM_MODEL_FAST=${LLM_MODEL_FAST:-}@LLM_MODEL_JUDGE=${LLM_MODEL_JUDGE:-}@LLM_MODEL_VISION=${LLM_MODEL_VISION:-}@GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}@GEMINI_MODEL_LARGE=${GEMINI_MODEL_LARGE:-gemini-2.5-pro}@GEMINI_MODEL_MEDIUM=${GEMINI_MODEL_MEDIUM:-gemini-2.5-flash}@GEMINI_MODEL_FAST=${GEMINI_MODEL_FAST:-gemini-2.5-flash}@GEMINI_MODEL_JUDGE=${GEMINI_MODEL_JUDGE:-gemini-2.5-flash}@GEMINI_MODEL_VISION=${GEMINI_MODEL_VISION:-gemini-2.5-flash}@TTS_VOICE_ES=${TTS_VOICE_ES:-es-US-Journey-D}@TTS_VOICE_EN=${TTS_VOICE_EN:-en-US-Journey-D}@RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-30}@LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-400}@AGENTS_OFFLINE=${AGENTS_OFFLINE:-0}"
+  "${SECRETS_FLAG[@]}" \
+  --set-env-vars "^@^GCP_PROJECT_ID=${GCP_PROJECT_ID}@GCP_REGION=${GCP_REGION}@VERTEX_LOCATION=${VERTEX_LOCATION}@VERTEX_ENABLED=${VERTEX_ENABLED:-1}@LLM_PROVIDER=${LLM_PROVIDER:-vertex}@VERTEX_MODEL_LARGE=${VERTEX_MODEL_LARGE:-google/gemini-2.5-pro}@VERTEX_MODEL_MEDIUM=${VERTEX_MODEL_MEDIUM:-google/gemini-2.5-flash}@VERTEX_MODEL_FAST=${VERTEX_MODEL_FAST:-google/gemini-2.5-flash}@VERTEX_MODEL_JUDGE=${VERTEX_MODEL_JUDGE:-google/gemini-2.5-flash}@VERTEX_MODEL_VISION=${VERTEX_MODEL_VISION:-google/gemini-2.5-flash}@META_BASE_URL=${META_BASE_URL:-https://api.meta.ai/v1}@LLM_MODEL_LARGE=${LLM_MODEL_LARGE:-}@LLM_MODEL_MEDIUM=${LLM_MODEL_MEDIUM:-}@LLM_MODEL_FAST=${LLM_MODEL_FAST:-}@LLM_MODEL_JUDGE=${LLM_MODEL_JUDGE:-}@LLM_MODEL_VISION=${LLM_MODEL_VISION:-}@GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}@GEMINI_MODEL_LARGE=${GEMINI_MODEL_LARGE:-gemini-2.5-pro}@GEMINI_MODEL_MEDIUM=${GEMINI_MODEL_MEDIUM:-gemini-2.5-flash}@GEMINI_MODEL_FAST=${GEMINI_MODEL_FAST:-gemini-2.5-flash}@GEMINI_MODEL_JUDGE=${GEMINI_MODEL_JUDGE:-gemini-2.5-flash}@GEMINI_MODEL_VISION=${GEMINI_MODEL_VISION:-gemini-2.5-flash}@TTS_VOICE_ES=${TTS_VOICE_ES:-es-US-Journey-D}@TTS_VOICE_EN=${TTS_VOICE_EN:-en-US-Journey-D}@RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-30}@LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-400}@AGENTS_OFFLINE=${AGENTS_OFFLINE:-0}"
 
 URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" --region "$GCP_REGION" --format='value(status.url)')
 ORIGINS="${URL}${VERCEL_URL:+,${VERCEL_URL}}"

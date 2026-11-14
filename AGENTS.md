@@ -69,12 +69,13 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
    - **In-process MCP servers (`server/src/agents/tools/mcp.ts`):** 6 domain MCP servers (`mcp-terrain`, `mcp-suit`, `mcp-environment`, `mcp-fleet`, `mcp-hud`, `mcp-knowledge`) run inside the same Fastify process via `InMemoryTransport` (zero network hop), generated from one tool registry (`registry.ts`). Read tools compute exact numbers via `@th/shared`; effect tools propose `Action` objects.
    - **In-memory BM25 RAG (`server/src/agents/tools/knowledge.ts` + `server/corpus/chunks.json`):** Runs inside `server/` (exposed through `mcp-knowledge` tool `search_docs`). Searches ~800-char chunks extracted from `NASA-STD-3001` (Vol. 1 & 2) and OCHMO briefs in $<2\text{ ms}$ with no external vector database, returning exact document and page citations.
    - **Safety Guardrail (`GUARDIAN`, `server/src/agents/guardian.ts`):** Every effect action passes deterministic hard limits (`ruleCheck`: vehicle slope limits, $15\text{ m}$ pod keep-out radius, $2\text{ m}$ manipulator arm keep-out from crew) followed by an LLM safety/prompt-injection judge (`judge`).
-3. **Dual-LLM Provider (Muse/Meta + Google AI Studio) & 3-Tier Resilience:**
-   - **Primary + Automatic Failover (`server/src/llm/provider.ts`):** Configured with both **Muse / Meta API (`META_API_KEY`)** and **Google AI Studio / Gemini API (`GEMINI_API_KEY` via OpenAI-compatible endpoint `https://generativelanguage.googleapis.com/v1beta/openai/`)**.
-   - **Low-latency routing & failover:** `check-llm.ts` benchmarks both keys across tiers (`fast`, `medium`, `large`, `judge`, `vision`). At runtime, if the primary provider exceeds a tight timeout or returns an error (`429`/`5xx`), `provider.ts` automatically retries against the secondary provider within the same request.
-   - **Deterministic Offline Fallback (`server/src/agents/offline.ts`):** If both LLM providers are unreachable or `AGENTS_OFFLINE=1`, the backend executes deterministic rule-based tool calls and replies so the demo never breaks.
-4. **Deployment (Vercel Frontend + Google Cloud Run Backend):**
-   - **Backend (`server/`):** Deployed as a Docker container on **Google Cloud Run** (`us-central1`, `--min-instances 1 --max-instances 1 --session-affinity` for WebSocket rooms, secrets `META_API_KEY` and `GEMINI_API_KEY` stored in Google Cloud Secret Manager). Cloud Run also serves `web/dist` as a full mirror.
+3. **3-Provider LLM Failover (Vertex AI + Muse/Meta + Google AI Studio) & Offline Resilience:**
+   - **Primary + Automatic Failover (`server/src/llm/provider.ts`):** Configured with **Google Cloud Vertex AI (`vertex`, keyless via ADC / `tango-horizon-sa` on GCP project `nasa-tango-horizon`)**, **Muse / Meta API (`meta`, `META_API_KEY`)**, and **Google AI Studio / Gemini API (`gemini`, `GEMINI_API_KEY` via OpenAI-compatible endpoint `https://generativelanguage.googleapis.com/v1beta/openai/`)**.
+   - **Low-latency routing & failover:** `check-llm.ts` benchmarks all enabled providers across tiers (`fast`, `medium`, `large`, `judge`, `vision`). At runtime, if the primary provider exceeds a tight timeout or returns an error (`429`/`5xx`), `provider.ts` automatically retries against the next configured provider within the same request.
+   - **Deterministic Offline Fallback (`server/src/agents/offline.ts`):** If all cloud LLM providers are unreachable or `AGENTS_OFFLINE=1`, the backend executes deterministic rule-based tool calls and replies so the demo never breaks.
+4. **Deployment & Terraform IaC (Vercel Frontend + Google Cloud Run Backend on `nasa-tango-horizon`):**
+   - **Infrastructure-as-Code (`infra/terraform/`):** Provisions all Google Cloud APIs (`aiplatform`, `texttospeech`, `run`, `cloudbuild`, `artifactregistry`, `secretmanager`, `iam`), dedicated Service Account (`tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com` with `roles/aiplatform.user`), Artifact Registry (`us-central1-docker.pkg.dev/nasa-tango-horizon/tango-horizon`), Secret Manager secrets (`meta-api-key`, `gemini-api-key`), and Cloud Run service configuration.
+   - **Backend (`server/`):** Deployed as a Docker container on **Google Cloud Run** (`nasa-tango-horizon`, `us-central1`, `--service-account tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com`, `--min-instances 1 --max-instances 1 --session-affinity` for WebSocket rooms). Cloud Run also serves `web/dist` as a full mirror.
    - **Frontend (`web/`):** Deployed on **Vercel** (global Edge CDN for fast 3D asset/texture loading) configured with `VITE_API_URL=https://<cloud-run-service>.run.app` for `/api/*` and `/ws/remote`, with the Vercel domain whitelisted in Cloud Run's `ALLOWED_ORIGINS`.
 
 ### Project files
@@ -87,6 +88,7 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 | `web/` | Frontend workspace (Vite + TypeScript + Three.js viewer, HUD, `index.html`, `remote.html`, and static processed datasets in `web/public/data/`). |
 | `server/` | Backend workspace (Fastify server, LLM/MCP agents, TTS proxy, WebSocket relay). |
 | `shared/` | Shared workspace (`@th/shared`: physics core, types, i18n). |
+| `infra/terraform/` | Terraform Infrastructure-as-Code for GCP project `nasa-tango-horizon` (APIs, `tango-horizon-sa`, IAM, Artifact Registry, Secret Manager, Cloud Run). |
 | `data/` | Downloaded NASA/USGS data, one folder per group (`rover_photos`, `donki`, `horizons`, `orbits_comms`, `trek`, `topography`, `ai4mars`, `moxie`, `radiation`, `atmosphere`, `suits`, `medical`), plus `manifest.json` (download status) and `validation.json` (URL validation results). |
 | `docs/` | Project documents, listed below. |
 
@@ -96,6 +98,7 @@ Time is limited: work directly on `main`. No task branches or worktrees unless t
 |---|---|
 | `docs/EXECUTION_PLAN_ORDER.md` | Execution plan order |
 | `docs/3D_AND_VISUAL_PLAN.md` | 3D and Visual Implementation Plan |
+| `docs/INFRASTRUCTURE_AND_VERTEX_AI.md` | Infrastructure, Terraform & Vertex AI Guide (`nasa-tango-horizon`) |
 | `docs/impl/01_SCAFFOLD.md` | 01. Project scaffold |
 | `docs/impl/02_DATA_PIPELINE.md` | 02. Data pipeline |
 | `docs/impl/03_PHYSICS_CORE.md` | 03. Physics core |
