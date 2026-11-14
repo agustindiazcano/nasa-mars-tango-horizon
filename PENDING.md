@@ -6,4 +6,4 @@
 | # | Priority | Task | Depends on | Notes |
 |---|---|---|---|---|
 | 1 | 🔴 | Define the project goal, stack and commands, and fill in the "Project" section of `AGENTS.md` | — | Without this, agents have no project context |
-| 2 | 🟡 | Push the initial commits with `git push -u origin main` (add a `.gitignore` once the stack is defined) | User permission | Local commits exist on `main`; the GitHub remote is empty |
+| 2 | 🟢 | Add a `.gitignore` | Task 1 | Needs the stack to be defined |

@@ -32,5 +32,5 @@
 ## State the work was left in
 
 - The project has no code yet.
-- Work is committed locally on `main`; nothing has been pushed. The GitHub remote is empty, and the push is waiting for the user's permission.
+- `main` is pushed to `origin`. New tasks go in a branch and worktree created from `origin/main`.
 - The "Project" section of `AGENTS.md` has a TODO: goal, stack and commands still need to be described.
