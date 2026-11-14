@@ -1,7 +1,7 @@
 # Pending frontend tasks (`web/`)
 
 > Priority: 🔴 blocking/urgent · 🟡 next · 🟢 later · ⚪ backlog
-> All frontend code lives in `web/` (consuming shared types, physics, and i18n from `shared/`).
+> All target frontend code is tracked for `web/` (consuming `@th/shared`). Active runtime code currently resides in `web-test-3d/` until `B22` and `B23` in `PENDING.md` consolidate it and reconcile `F1`–`F15`.
 > When a frontend task is completed, remove it from the table and mention it in `LASTCONTEXT.md`.
 
 ## Frontend reference plans
