@@ -1,13 +1,23 @@
+<sub>This effort is supported by [NASA](https://www.nasa.gov/), [NASA Space Apps Challenge](https://www.spaceappschallenge.org/), [CONAE](https://www.argentina.gob.ar/ciencia/conae), [Universidad de Palermo](https://www.palermo.edu/) & [IBM Argentina](https://www.ibm.com/ar-es).</sub>
+
 # Tango Horizon: AI Systems for EVA and Mars Exploration
 
 **Autonomous Multi-Agent AI Systems for Extravehicular Activities (EVA)**
 
-## Team
+## Team: Tango Horizon (Buenos Aires, Argentina)
 
-- Agustin Diaz Cano
-- Baltazar Salerno
-- Milagros Sotelo
-- Federico Yaconis
+- **Agustin Diaz Cano:** MS Candidate, Systems Engineering ([UTN, FRBA](https://frba.utn.edu.ar/))
+  - [LinkedIn](https://www.linkedin.com/in/agustindiazcano/) · [Portfolio](https://www.agustindiazcano.com/)
+- **Baltazar Salerno:** Frontend Developer · [GitHub](https://github.com/S-Baltazar)
+- **Milagros Sotelo:** Systems Engineering Student ([UTN, FRBA](https://frba.utn.edu.ar/)) · [GitHub](https://github.com/Milagros-Sotelo)
+- **Federico Yaconis:** 3D Developer & QA
+
+## NASA Space Apps Challenge Links
+
+- **Team:** https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project
+- **Local Event — [Universidad de Palermo](https://www.palermo.edu/) (Buenos Aires, Argentina) Node:** https://www.spaceappschallenge.org/2026/local-events/buenos-aires/
+- **Challenge — Interplanetary Survival Guide: Martian Map:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
+- **Space Apps Challenge:** https://www.spaceappschallenge.org/
 
 ## AI-assisted development methodology (Software 3.0)
 

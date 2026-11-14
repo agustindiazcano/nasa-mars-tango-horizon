@@ -79,7 +79,7 @@ Several people and several agents work on this project at the same time.
    - **Agent orchestration (`server/src/agents/`):** Runs on the backend (`runAgent.ts`, `hierarchy.ts`). Voice orders hit `SUIT.VOICE-EXEC` (fast tier) first and escalate to `BASE` (large tier), which delegates to domain agents (`SUIT.HEALTH`, `EVA-PLANNER`, `SCIENCE`, `WEATHER-RAD`, `MAINTENANCE`, `ROBOT.<id>`).
    - **In-process MCP servers (`server/src/agents/tools/mcp.ts`):** 6 domain MCP servers (`mcp-terrain`, `mcp-suit`, `mcp-environment`, `mcp-fleet`, `mcp-hud`, `mcp-knowledge`) run inside the same Fastify process via `InMemoryTransport` (zero network hop), generated from one tool registry (`registry.ts`). Read tools compute exact numbers via `@th/shared`; effect tools propose `Action` objects.
    - **In-memory BM25 RAG (`server/src/agents/tools/knowledge.ts` + `server/corpus/chunks.json`):** Runs inside `server/` (exposed through `mcp-knowledge` tool `search_docs`). Searches ~800-char chunks extracted from `NASA-STD-3001` (Vol. 1 & 2) and OCHMO briefs in $<2\text{ ms}$ with no external vector database, returning exact document and page citations.
-   - **Safety Guardrail (`GUARDIAN`, `server/src/agents/guardian.ts`):** Every effect action passes deterministic hard limits (`ruleCheck`: vehicle slope limits, $15\text{ m}$ pod keep-out radius, $2\text{ m}$ manipulator arm keep-out from crew) followed by an LLM safety/prompt-injection judge (`judge`).
+   - **Safety Guardrail (`GUARDIAN`, `server/src/agents/guardian.ts`):** Every effect action passes deterministic hard limits (`ruleCheck`: vehicle slope limits, $15\text{ m}$ pod keep-out radius, $2\text{ m}$ manipulator arm keep-out from crew) followed by an LLM safety/prompt-injection judge (`judge`). Future roadmap plans (not yet implemented): post-guardrail 3-model escalated voting (`docs/impl/16_ESCALATED_MODEL_VOTING.md`: `gemini-4-carbon` `low` + `gemini-4-argon` + `muse-wonder` `medium`) and bounded multi-turn voice history (`docs/impl/17_MULTITURN_VOICE_MEMORY.md`).
 3. **3-Provider LLM Failover (Vertex AI + Google AI Studio + Meta Muse) & Offline Resilience:**
    - **Primary + Automatic Failover (`server/src/llm/provider.ts`):**
      1. **Primary — Google Cloud Vertex AI (`vertex`, keyless via ADC / `tango-horizon-sa` on GCP project `nasa-tango-horizon`)**: `google/gemini-4-carbon` (`large` / brain: `BASE`), `google/gemini-4-argon` (`medium`, `judge`, `vision`: domain agents + `GUARDIAN`), `google/gemini-4-hydrogen` (`fast` / lightweight: `SUIT.VOICE-EXEC`).
@@ -128,6 +128,8 @@ Several people and several agents work on this project at the same time.
 | `docs/impl/13_STORM_NOWCASTER.md` | 13. Storm Nowcaster: predicting dust storms and acting before they arrive |
 | `docs/impl/14_I18N.md` | 14. Languages |
 | `docs/impl/15_VEIN_DETECTOR.md` | 15. Vein Detector: a vision model that finds evidence of past water in rover images |
+| `docs/impl/16_ESCALATED_MODEL_VOTING.md` | 16. Post-guardrail escalated multi-model voting decision system (future nice-to-have plan) |
+| `docs/impl/17_MULTITURN_VOICE_MEMORY.md` | 17. Bounded multi-turn conversational memory for voice orders (future plan) |
 
 ## Session memory
 

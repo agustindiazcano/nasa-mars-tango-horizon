@@ -74,7 +74,7 @@ export async function runAgent(
   input: string,
   ctx: MissionContext,
   userRequest = input,
-  maxSteps = 4,
+  maxSteps = 6,
   depth = 0,
 ): Promise<AgentResult> {
   await startMcpServers();
@@ -221,5 +221,16 @@ export async function runAgent(
     }
   }
 
-  return { text: "", actions, trace };
+  const finalMsg = await chat(spec.tier, [
+    ...messages,
+    {
+      role: "user",
+      content: "Provide your concise spoken reply now based on the tool results already gathered.",
+    },
+  ]);
+  const finalText = (finalMsg.content ?? "").trim();
+  if (finalText) {
+    trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
+  }
+  return { text: finalText, actions, trace };
 }

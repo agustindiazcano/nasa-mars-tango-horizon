@@ -13,13 +13,19 @@ variable "region" {
 variable "vertex_location" {
   description = "Vertex AI region for Gemini/OpenAI-compatible inference"
   type        = string
-  default     = "us-central1"
+  default     = "global"
 }
 
 variable "service_name" {
-  description = "Cloud Run service name"
+  description = "Base resource name for Service Account and Artifact Registry"
   type        = string
   default     = "tango-horizon"
+}
+
+variable "cloud_run_service_name" {
+  description = "Cloud Run service name"
+  type        = string
+  default     = "tangohorizon-api"
 }
 
 variable "llm_provider" {

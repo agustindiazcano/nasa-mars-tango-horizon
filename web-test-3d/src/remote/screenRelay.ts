@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { wsUrl } from "../api";
 import { getLang, onLangChange } from "../core/i18n";
 
 export interface ScreenRelayHooks {
@@ -127,8 +128,7 @@ export class ScreenRelay {
 
   private connect(): void {
     if (this.closed) return;
-    const proto = window.location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${proto}://${window.location.host}/ws/remote?room=${this.room}&role=screen`);
+    const ws = new WebSocket(wsUrl(`/ws/remote?room=${this.room}&role=screen`));
     this.ws = ws;
 
     ws.onmessage = (ev) => {

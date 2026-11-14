@@ -1,3 +1,4 @@
+import { apiUrl } from "../api";
 import { getLang, TTS_LOCALE, type Lang } from "../core/i18n";
 
 export class RadioSpeaker {
@@ -56,7 +57,7 @@ export class RadioSpeaker {
 
     let buffer: AudioBuffer | null = null;
     try {
-      const res = await fetch("/api/tts", {
+      const res = await fetch(apiUrl("/api/tts"), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ text: text.slice(0, 400), lang: TTS_LOCALE[this.lang] }),
