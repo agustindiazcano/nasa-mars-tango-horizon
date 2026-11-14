@@ -7,23 +7,27 @@
 
 ## What was done
 
-- Synced local `main` with merged PR #4 (`234b512`) and created branch `feat/vercel-analytics`.
-- Wired Vercel Web Analytics (`@vercel/analytics` `^2.0.1`, `inject()`) into both frontend entry points (`web-test-3d/src/main.ts` and `web-test-3d/src/remote/phoneClient.ts`) for `/` and `/remote`.
-- Verified `@th/shared` + `@th/web-test-3d` TypeScript/Vite build and `45/45` Vitest unit tests pass in `shared`.
-- Inspected Vercel project `tangohorizon` (`prj_0U1XyNnX1Trx6jFSSsgBZSNVjwzK`): `features.webAnalytics` is currently `false` (must be enabled once in the Vercel Dashboard -> Analytics -> Enable).
-- Pending cherry-pick/follow-up PR: YouTube link commit `5b688c0` plus backlog plans `B20` (`20_COMPONENT_FAULT_TELEMETRY_RAG.md`) and `B21` (`21_ENVIRONMENTAL_WEATHER_RAG.md`) once environmental planner completes.
+- Merged PR #5 (`feat/vercel-analytics`), wiring `@vercel/analytics` (`^2.0.1`, `inject()`) into `web-test-3d/src/main.ts` (`/`) and `web-test-3d/src/remote/phoneClient.ts` (`/remote`).
+- Rebased `docs/readme-es-and-rag-plans` cleanly onto `main`, including the YouTube channel link (`@agustin-diaz-cano`) in `README.md`.
+- Updated `README.md` with a top `Leer en español` badge button linking to `README_ES.md` and an `Index` section linking to every `##` heading.
+- Created `README_ES.md` as a 1-to-1 Spanish translation of `README.md` with a symmetric `Read in English` button and `Índice`.
+- Completed aerospace research and gap analyses via two parallel `self` subagents and documented two future unimplemented plans:
+  - `docs/impl/20_COMPONENT_FAULT_TELEMETRY_RAG.md` (`B20`): deterministic FDIR/RUL prediction (`shared/src/physics/fdir.ts`), `evaluate_component_health`, FDIR SOP RAG chunks, `isolate_component`, and hardware `GUARDIAN` gates.
+  - `docs/impl/21_ENVIRONMENTAL_WEATHER_RAG.md` (`B21`): unified `ENV_LIMITS`, `shared/src/physics/envNowcast.ts`, `evaluate_environmental_risk`, DONKI/REMS/MEDA RAG chunks, and aircraft/SEP `GUARDIAN` gates.
+- Updated `AGENTS.md` and `PENDING.md` with `B20` and `B21`.
 
 ## Files touched
 
-- `package-lock.json`, `web-test-3d/package.json`
-- `web-test-3d/src/main.ts`, `web-test-3d/src/remote/phoneClient.ts`
-- `LASTCONTEXT.md`
+- `README.md`, `README_ES.md`
+- `docs/impl/20_COMPONENT_FAULT_TELEMETRY_RAG.md`, `docs/impl/21_ENVIRONMENTAL_WEATHER_RAG.md`
+- `AGENTS.md`, `PENDING.md`, `LASTCONTEXT.md`
 
 ## Decisions
 
-- Installed `@vercel/analytics` inside `web-test-3d` (the active Vercel target in `vercel.json`) while leaving `web/src/` and `web/index.html` untouched for the frontend teammate.
+- Installed `@vercel/analytics` in `web-test-3d` (leaving `web/src/` untouched); `features.webAnalytics` must still be toggled ON once in Vercel Dashboard (`tangohorizon` -> Analytics -> Enable).
+- Preserved the deterministic-physics-first pattern in both `B20` and `B21` so `@th/shared` computes all fault slopes, RULs, storm ETAs, solar margins, and radiation doses while BM25 RAG supplies `(doc, page)` operational citations.
 
 ## State the work was left in
 
-- Vercel Web Analytics client tracking is committed on `feat/vercel-analytics` with PR #5 opened to `main`.
-- `B15` (final `README.md` tables + final deploy once `web/` is merged + `submission` tag) remains blocking in `PENDING.md`, alongside backlog plans `B16`–`B19`.
+- Rebased `docs/readme-es-and-rag-plans` cleanly on `main` (resolving `LASTCONTEXT.md`) for PR #6.
+- `B15` remains blocking in `PENDING.md`, alongside backlog plans `B16`–`B21`.
