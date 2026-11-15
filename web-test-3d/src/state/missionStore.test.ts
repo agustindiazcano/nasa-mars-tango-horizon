@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { READY_TERRAIN } from "@th/shared";
+import { ASTRONAUT_START, READY_TERRAIN } from "@th/shared";
 import { setLang } from "../core/i18n";
 import type { Action, RouteDisplay } from "../core/types";
 import { MissionStore, type WorldHooks } from "../state";
@@ -246,7 +246,7 @@ describe("MissionStore (web-test-3d)", () => {
     store.pushTranscript("you", "Base, status", true);
     store.setTrace([{ t: 1, agent: "BASE", kind: "say", detail: "ok" }], ["BASE"]);
     store.pendingActions.push({ type: "launch_pod", args: {}, proposedBy: "BASE" });
-    store.samples.push({ id: "S1", label: "Rock", x: 1, z: 2, met_s: 1500, mass_kg: 0.5, hydration_pct: 4.1 });
+    store.samples.push({ id: "S1", label: "Rock", x: 1, z: 2, met_s: 1500, mass_kg: 0.5, hydration_index: 4.1 });
     store.roverPreviewUrl = "data:image/png;base64,AA==";
     store.lastDrillDepthCm = 5.5;
 
@@ -259,7 +259,7 @@ describe("MissionStore (web-test-3d)", () => {
     expect(store.leakDiameterM).toBe(0);
     expect(store.emergencyResponseActive).toBe(false);
     expect(store.activeScenario).toBe("none");
-    expect(store.astronaut.x).toBe(28);
+    expect(store.astronaut.x).toBe(ASTRONAUT_START.x);
     expect(store.suit.o2_primary_kg).toBe(1.08);
     expect(store.env.tau).toBe(0.48);
     expect(store.alerts).toEqual([]);

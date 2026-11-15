@@ -1,3 +1,4 @@
+import { MISSION_SITES_BY_ID } from "@th/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import { setLang } from "../../core/i18n.js";
 import { AIRCRAFT_GROUNDING_TAU } from "../../core/physics.js";
@@ -253,7 +254,10 @@ describe("VoiceController.offlineFallback fleet navigation", () => {
     expect(thermal.actions[0]).toMatchObject({ type: "set_layer", args: { layer: "thermal" } });
 
     const route = vc.offlineFallback("plan route to site two");
-    expect(route.actions[0]).toMatchObject({ type: "show_route", args: { to_x: 180, to_z: 120 } });
+    expect(route.actions[0]).toMatchObject({
+      type: "show_route",
+      args: { to_x: MISSION_SITES_BY_ID.S2.x, to_z: MISSION_SITES_BY_ID.S2.z },
+    });
 
     const fan = vc.offlineFallback("check fan trend");
     expect(store.fanDegraded).toBe(true);
