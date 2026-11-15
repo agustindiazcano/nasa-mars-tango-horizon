@@ -109,8 +109,37 @@ export const LAUNCH_SITE_COORD: Readonly<Coord2D> = { x: 1202, z: -1022 };
  */
 export const RESCUE_SITE: Readonly<Coord2D> = { x: 1420, z: 648 };
 
-/** Designed pit at `RESCUE_SITE` (no real pit exists in the HiRISE DEM): open shaft, design assumption. */
-export const RESCUE_PIT = { depthM: 4, radiusM: 1.5 } as const;
+/**
+ * Designed pit at `RESCUE_SITE` (no real pit exists in the HiRISE DEM), design assumption: a 10 m wide, 4 m deep
+ * hole with a 4 m wide access ramp (27 deg) on the side that faces the base, so a ground robot can drive in and out.
+ */
+export const RESCUE_PIT = { depthM: 4, radiusM: 5, rampSlopeDeg: 27, rampHalfWidthM: 2 } as const;
+
+/** Unit vector (x, z) from `RESCUE_SITE` toward `BASE_ORIGIN`: the direction of the pit access ramp. */
+export const RESCUE_PIT_AXIS: Readonly<Coord2D> = (() => {
+  const dx = BASE_ORIGIN.x - RESCUE_SITE.x;
+  const dz = BASE_ORIGIN.z - RESCUE_SITE.z;
+  const d = Math.hypot(dx, dz);
+  return { x: dx / d, z: dz / d };
+})();
+
+/**
+ * Height (m, relative to the terrain surface) of the pit floor or access ramp at a world point:
+ * 0 outside the hole, -depth on the floor, a linear slope inside the ramp lane.
+ */
+export function pitSurfaceOffsetAt(x: number, z: number): number {
+  const { depthM, radiusM, rampSlopeDeg, rampHalfWidthM } = RESCUE_PIT;
+  const dx = x - RESCUE_SITE.x;
+  const dz = z - RESCUE_SITE.z;
+  if (Math.hypot(dx, dz) >= radiusM) return 0;
+  const s = dx * RESCUE_PIT_AXIS.x + dz * RESCUE_PIT_AXIS.z;
+  const w = -dx * RESCUE_PIT_AXIS.z + dz * RESCUE_PIT_AXIS.x;
+  if (Math.abs(w) > rampHalfWidthM) return -depthM;
+  const tan = Math.tan((rampSlopeDeg * Math.PI) / 180);
+  const sTop = Math.sqrt(radiusM * radiusM - rampHalfWidthM * rampHalfWidthM);
+  if (s >= sTop) return 0;
+  return Math.max(-depthM, -(sTop - s) * tan);
+}
 
 /** Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` for all 16 base modules. */
 export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [

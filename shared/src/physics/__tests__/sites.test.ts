@@ -11,7 +11,10 @@ import {
   FLEET_START_OFFSETS,
   LAUNCH_SITE_COORD,
   MANIP_TARGETS,
+  RESCUE_PIT,
+  RESCUE_PIT_AXIS,
   RESCUE_SITE,
+  pitSurfaceOffsetAt,
   MISSION_SITES,
   MISSION_SITES_BY_ID,
   fleetStartPos,
@@ -391,5 +394,30 @@ describe("RESCUE_SITE", () => {
       const rz = RESCUE_SITE.z + 30 * Math.sin((a * Math.PI) / 4);
       expect(seen[idx(rx, rz)], `approach ring ${a}`).toBe(1);
     }
+  });
+});
+
+describe("RESCUE_PIT access ramp", () => {
+  const at = (sAlong: number, w = 0) => ({
+    x: RESCUE_SITE.x + RESCUE_PIT_AXIS.x * sAlong - RESCUE_PIT_AXIS.z * w,
+    z: RESCUE_SITE.z + RESCUE_PIT_AXIS.z * sAlong + RESCUE_PIT_AXIS.x * w,
+  });
+  const off = (sAlong: number, w = 0) => pitSurfaceOffsetAt(at(sAlong, w).x, at(sAlong, w).z);
+
+  it("points the axis at the base", () => {
+    expect(Math.hypot(RESCUE_PIT_AXIS.x, RESCUE_PIT_AXIS.z)).toBeCloseTo(1, 9);
+    const toBase = { x: BASE_ORIGIN.x - RESCUE_SITE.x, z: BASE_ORIGIN.z - RESCUE_SITE.z };
+    expect(toBase.x * RESCUE_PIT_AXIS.x + toBase.z * RESCUE_PIT_AXIS.z).toBeGreaterThan(1000);
+  });
+
+  it("is 0 outside, the floor at -depth, and a 27 deg slope in the ramp lane", () => {
+    expect(off(RESCUE_PIT.radiusM + 1)).toBe(0);
+    expect(off(-4)).toBe(-RESCUE_PIT.depthM);
+    expect(off(0, 4)).toBe(-RESCUE_PIT.depthM);
+    expect(off(4.5)).toBeGreaterThan(-0.3);
+    const slope = Math.atan((off(2) - off(0)) / 2) * (180 / Math.PI);
+    expect(slope).toBeCloseTo(RESCUE_PIT.rampSlopeDeg, 3);
+    expect(off(-2)).toBeLessThan(off(0));
+    expect(off(-2)).toBeGreaterThan(-RESCUE_PIT.depthM);
   });
 });
