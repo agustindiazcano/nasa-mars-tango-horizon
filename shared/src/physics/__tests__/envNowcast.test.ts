@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   computeEnvGradients,
@@ -18,7 +19,8 @@ interface RemsStormJson {
 }
 
 function loadRemsStormWindow(startIdx: number, endIdx: number): EnvTelemetrySample[] {
-  const filePath = path.resolve(process.cwd(), "web/public/data/env/rems_storm2018.json");
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const filePath = path.resolve(here, "../../../../web/public/data/env/rems_storm2018.json");
   const raw = JSON.parse(readFileSync(filePath, "utf-8")) as RemsStormJson;
   const out: EnvTelemetrySample[] = [];
   for (let i = startIdx; i < endIdx && i < raw.hours.length; i++) {
