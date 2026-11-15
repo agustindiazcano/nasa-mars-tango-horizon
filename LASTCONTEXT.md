@@ -4,23 +4,21 @@
 
 ## Summary of work done
 
-- Updated `README.md` and `README_ES.md` (PR #38):
-  - Added a 2-paragraph executive summary at the top of both files covering the 3D simulator, Gale Crater NASA/USGS datasets, deterministic physics, hierarchical Multi-Agent AI (`SUIT.VOICE-EXEC`, `BASE`, 5 domain specialists, `ROBOT.<id>`), 3-provider failover (`Vertex AI` Gemini 4 Carbon/Argon/Hydrogen, `Google AI Studio`, `Meta Muse`), local Mars base compute architecture, 5-language voice (`EN`/`ES`/`FR`/`DE`/`IT`) with Google Cloud Neural TTS `Journey` voices, `<2 ms` BM25 predictive RAG (health, FDIR maintenance, weather/radiation), 3 custom ML models (`Hydration Prospector`, `Storm Nowcaster`, `Mineral Vein Detector`), 4-DOF IK simulated robotics, 8.0 kg RK4 ballistic life-support drop-pod, 4-astronaut rescue scenario, and `GUARDIAN` 3-model voting.
-  - Added an updated `## Index` / `## Índice` and wrapped the detailed technical sections in a collapsible `<details>` toggle block right below the Team section.
-  - Documented the proprietary [**AFAW (Anti-Fragile Agentic Workflow)**](https://github.com/agustindiazcano/afaw-anti-fragile-agentic-workflow) multi-agent coordination methodology in `## AI Usage` / `## Uso de IA`.
-  - Synced `README.md` auto-generated `AUTO:DATA` block (`54 entries` in `provenance.json`) with `python tools/generate_readme.py --check`.
-- Added presentation and pitch materials in `docs/slides/`:
-  - `docs/slides/PROJECT_OVERVIEW.md` (complete plain-language technical overview in EN and ES).
-  - `docs/slides/PRESENTATION_SCRIPT_3MIN.md` (3-minute presentation and live rescue script in ES and EN).
-  - `docs/slides/PRESENTATION_SCRIPT_30S.md` (30-second video script in ES and EN).
-  - `docs/slides/SLIDES.md` (10-slide presentation deck structure).
+- Added the standalone Next.js App Router showcase & editorial site under `site/` (`@th/site`), deployed to Vercel at `https://tangohorizon-site.vercel.app`:
+  - Replicated the dark cosmos WebGL (`GalaxyBackdrop`, `GlassSurface`, `ElectricBorder`, `FlexCarousel`, `ProfileCard`, rotating planet banners, Apollo 11 `LunarTubeAmpPlayer`) aesthetic cleanly in TypeScript + Next.js App Router.
+  - Added full bilingual internationalization (`LanguageContext`: **English default** + **Spanish secondary**, synced with `EN / ES` navbar switcher pill across every route and data module).
+  - Built Home (`/`) featuring the top engineering stack strip (`GitHub Actions CI/CD`, `Python 3`, `Cloud Run`, `Terraform IaC`, `Vertex AI`, `Meta Muse`, `Three.js`, `Next.js`, `Fastify + MCP`, `Vercel`), large official mission patch (`tango-horizon-mars-exploration-logo.jpeg`), title `Tango Horizon: AI Systems for EVA and Mars Exploration`, direct CTA to `https://tangohorizon.vercel.app`, `Tango Horizon Project` (`/proyecto`) & `Team` (`/equipo`) CTAs, `AI Usage` (`Software 3.0 · AFAW`) section from `README.md`, and bottom partner emblems (`NASA Space Apps`, `NASA`, `CONAE`, `Universidad de Palermo`, `IBM`).
+  - Added `/proyecto` (`Tango Horizon Project` landing), `/slides` (interactive 10-slide presentation deck), `/sources` (NASA, USGS, ML & telemetry data sources landing), `/cronologia`, `/tesis-lunar`, `/tesis-marte`, `/marte`, `/compendio`, `/equipo` (`Team`), footer with all 4 members, sponsors, CC BY 4.0 3D models notice, GitHub & Database links, simplified Mars planet circle `/favicon.svg`, `sitemap.ts`, `robots.ts`, and `@vercel/analytics` visitor counter (`<Analytics />`).
+- Added `LICENSE-3D-ASSETS-CC-BY-4.0.md` covering all original Team Tango Horizon 3D models under Creative Commons Attribution 4.0 International, plus root `.vercelignore` for clean `web/` deployments.
+- Redesigned the `web/` 3D simulator boot intro & loading modal (`web/src/hud/loadingOverlay.ts`, `web/src/hud/loadingOverlay.css`, `web/src/main.ts`) with a textured rotating Mars sphere (`web/public/images/mars-texture.jpg.jpeg`), blur backdrop, falling-character/telemetry glitch animation, modern glassmorphism card, and spinning `tango-horizon-mars-exploration-logo.jpeg` emblem while preserving download cancel/retry flows, and redeployed `https://tangohorizon.vercel.app`.
+- Generated rectangular black-background README banner `docs/tango-horizon-banner.png` (`1600x860`) pairing the mission patch and institutional partner marks, and updated `AGENTS.md`, `README.md`, and `README_ES.md`.
 
 ## Decisions made
 
-- Frontend ships through Vercel only; Cloud Run stays API-only.
-- Presentation scripts, slide deck structure, and plain-language overview live under `docs/slides/` (`PROJECT_OVERVIEW.md`, `PRESENTATION_SCRIPT_3MIN.md`, `PRESENTATION_SCRIPT_30S.md`, `SLIDES.md`) and are linked from `README.md` and `README_ES.md`.
+- Kept `site/` outside root `npm` workspaces (`["shared", "server", "web"]`) and linked it to a separate Vercel project (`tangohorizon-site`) so `web/` (`tangohorizon.vercel.app`) stays independent.
+- Defaulted `site/` rendering and metadata to English (`en`) with seamless client switching to Spanish (`es`) via `SiteNavbar`.
 
 ## Where the work was left
 
-- PR #38 merged into `main` and local `main` updated.
+- `site/` deployed at `https://tangohorizon-site.vercel.app` and `web/` redeployed at `https://tangohorizon.vercel.app`; PR merged into `main`.
 - Next tasks in `PENDING.md` (`B15`, `B24`) and `PENDING_FRONT.md` (`F7`, `F11`, `F13`) await user confirmation before starting.
