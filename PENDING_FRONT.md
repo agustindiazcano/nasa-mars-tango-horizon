@@ -46,7 +46,7 @@ Status from a code audit of `web/src`. "Done" means the code exists; live visual
 | # | Priority | Step | Task | Guides | Depends on |
 |---|---|---|---|---|---|
 | F7 | 🟡 | Step 10 | Check the `leak` sequence against §5.4/§6.2 (hypoxia/Armstrong countdowns, RK4 pod trajectory, `rescue-1` dispatch); no `SimClock` class exists, scenario time lives in `state.ts` and `main.ts` | `09_SCENARIOS_WORLD.md`, `3D_AND_VISUAL_PLAN.md` §5.4, §6.2 | — |
-| F11 | 🟡 | Step 14b | Build the Vein Detector HUD overlay (`*_heat.png`, peak marker, probability and validation metrics) and the one-page human label review tool; `public/data/veins/` exists | `15_VEIN_DETECTOR.md` | — |
+| F11 | 🟡 | Step 14b | Photo/probability/validation HUD and local CSV human-review tool implemented. Heatmap/peak capability stays disabled until spatial localization is reviewed: only 8 pairs exist versus the guide's 10; no human localization-validation record is available. Broader agent/drill acceptance is unchanged | `15_VEIN_DETECTOR.md` | — |
 | F13 | 🟡 | Step 16 | Reach the full 9-unit fleet (6 `FLEET_SPECS` units plus the MRO orbiter today) and confirm the Base Resource Balance panel and route algorithm badges | `09_SCENARIOS_WORLD.md`, `3D_AND_VISUAL_PLAN.md` §5.2, §5.5, §5.6 | — |
 
 ## NASA data audit priority

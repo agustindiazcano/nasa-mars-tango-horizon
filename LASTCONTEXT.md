@@ -2,6 +2,16 @@
 
 **Date:** 2026-11-15
 
+## F11 frontend implementation (isolated worktree)
+
+- Branch `milagros/f11-vein-detector`, based on `82f5640`; the historical B22 working copy is untouched.
+- Added a validated offline data reader, an independently styled Vein Detector HUD panel, and 19 keys in each of EN/ES/FR/DE/IT. Unknown waypoint IDs return no result; the panel never calls the backend's synthetic fallback.
+- Reads the existing eight real photos and published image probabilities/sol-grouped metrics. These metrics were not recomputed; raw labels/model artifacts are unavailable locally. The recall (0.6585) requires the candidate/to-be-confirmed wording.
+- Heatmap and normalized-peak rendering are implemented but disabled behind an explicit localization gate. Full-frame resize permits geometric alignment; it does not validate geological localization. Only eight pairs are available, fewer than the guide's ten. No spatial-validation evidence is fabricated and no pixel intensity is called calibrated probability.
+- Added `tools/veins/review.html`: explicit local CSV/photo imports, identity required for accept/flip, keyboard controls, quoted CSV export, pending rows preserved, no network calls or source-file writes. The utility can be opened as a local HTML file. Required CSV columns: `name,sol,vein,reviewed_by`; optional columns are preserved.
+- No models, data assets, agents, physics, voice contracts or automatic drill behavior changed. The guide's broader detect/recommend/GUARDIAN/drill acceptance remains outside this frontend patch.
+- Local checks: shared build and frontend TypeScript pass; 23 new data/presentation/review tests pass. Browser checks and final publication are performed separately by the coordinating agent.
+
 ## Summary of work done
 
 - Rescue scenario (180 s, deterministic, seekable) with crew SOTELO and YACONIS at base, SALERNO and DIAZ-CANO (injured) on expedition, ramp rescue into `rescue-1`, scene panel (`S0`–`S7`), scripted chat, 19 optimized GLBs (`tools/assets`), NASA-style map, shoulder patches, rocks/boulders, storm forecast chart, FFT visualizer, Casson panel, and Sky-Crane (`tangohorizon-api` Cloud Run rev `00045` + Vercel).

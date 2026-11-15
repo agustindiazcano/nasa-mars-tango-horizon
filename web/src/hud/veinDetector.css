@@ -1,0 +1,14 @@
+.vein-detector { min-width: 0; max-width: 100%; font-size: 12px; line-height: 1.5; }
+.vein-detector p { margin: 8px 0; overflow-wrap: anywhere; }
+.vein-detector label { display: grid; gap: 6px; }
+.vein-detector select { width: 100%; min-width: 0; padding: 8px; color: inherit; background: #16191c; border: 1px solid var(--border, #766046); font: inherit; }
+.vein-photo { position: relative; margin: 12px 0; width: 100%; overflow: hidden; }
+.vein-original { display: block; width: 100%; height: auto; }
+.vein-heat { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .48; mix-blend-mode: screen; pointer-events: none; }
+.vein-peak { position: absolute; width: 14px; height: 14px; border: 2px solid #00ffff; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.vein-probability { font-size: 17px; color: var(--accent, #ffb36b); }
+.vein-metrics { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; }
+.vein-metrics dd { margin: 0; font-variant-numeric: tabular-nums; }
+.vein-detector a { color: var(--accent, #ffb36b); }
+.vein-detector :focus-visible { outline: 2px solid #a0e3de; outline-offset: 3px; }
+@media (max-width: 600px) { .vein-detector { font-size: 11px; } .vein-detector .panel-hdr { gap: 8px; } }

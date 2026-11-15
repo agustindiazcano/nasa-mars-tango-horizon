@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curiosity vein label review</title>
+<style>
+  :root { color-scheme: dark; font: 15px/1.5 system-ui, sans-serif; background: #101519; color: #e8e9e6; }
+  body { max-width: 980px; margin: auto; padding: 24px; }
+  h1 { font-size: 24px; color: #ffb36b; }
+  .inputs, .actions { display: flex; flex-wrap: wrap; gap: 14px; margin: 16px 0; }
+  label { display: grid; gap: 5px; flex: 1 1 240px; }
+  input, button { font: inherit; padding: 8px; max-width: 100%; box-sizing: border-box; }
+  button { border: 1px solid #a1835e; border-radius: 3px; background: #20282e; color: inherit; cursor: pointer; }
+  button:disabled { opacity: .4; cursor: default; }
+  :focus-visible { outline: 2px solid #7bdbcd; outline-offset: 3px; }
+  img { max-width: 100%; max-height: 52vh; display: block; margin: auto; }
+  #photo { min-height: 150px; background: #080d10; display: grid; place-content: center; }
+  #status { min-height: 24px; color: #ffd5a3; overflow-wrap: anywhere; }
+  #details { overflow-wrap: anywhere; }
+  @media(max-width: 500px) { body { padding: 12px; } .actions button { flex: 1 1 120px; } }
+</style>
+<h1>Curiosity vein label review</h1>
+<p>Review visual vein candidates, not mineral identity. Spectrometer confirmation is required. This tool processes only files you select, makes no network requests, and never overwrites the original CSV or photographs.</p>
+<div class="inputs">
+  <label>Labels CSV (name, sol, vein, reviewed_by)<input id="csv" type="file" accept=".csv,text/csv"></label>
+  <label>Local photographs (multiple selection)<input id="photos" type="file" accept="image/jpeg,image/png" multiple></label>
+  <label>Reviewer identity<input id="reviewer" autocomplete="name" placeholder="Your name" maxlength="120"></label>
+</div>
+<p id="status" role="status" aria-live="polite">Import a labels CSV and the corresponding photographs.</p>
+<p id="details"></p>
+<div id="photo"></div>
+<div class="actions">
+  <button id="previous" disabled>← Previous</button>
+  <button id="accept" disabled>Accept label (A)</button>
+  <button id="flip" disabled>Flip & confirm (F)</button>
+  <button id="next" disabled>Next →</button>
+  <button id="export" disabled>Export reviewed CSV</button>
+</div>
+<p>A confirms the displayed label. F flips and confirms it. Arrow keys navigate without reviewing. Keyboard shortcuts pause while typing. Only explicit acceptance records your identity. Export preserves pending rows with an empty <code>reviewed_by</code>; the trainer must reject those rows.</p>
+<script>
+"use strict";
+const el = id => document.getElementById(id);
+let headers = [], rows = [], current = 0, files = new Map(), objectUrl, imageReady = false;
+
+function parseCsv(text) {
+  text = text.replace(/^\uFEFF/, "");
+  const records = []; let record = [], field = "", quoted = false, afterQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') { quoted = false; afterQuote = true; }
+      else field += c;
+    } else if (c === '"' && field === "" && !afterQuote) quoted = true;
+    else if (c === ",") { record.push(field); field = ""; afterQuote = false; }
+    else if (c === "\r" || c === "\n") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      record.push(field); if (record.some(v => v !== "")) records.push(record);
+      record = []; field = ""; afterQuote = false;
+    } else { if (afterQuote || c === '"') throw Error("Invalid CSV quoting"); field += c; }
+  }
+  if (quoted) throw Error("Unclosed CSV quote");
+  record.push(field); if (record.some(v => v !== "")) records.push(record);
+  if (records.length < 2) throw Error("CSV has no label rows");
+  const head = records.shift();
+  if (new Set(head).size !== head.length || !["name", "sol", "vein", "reviewed_by"].every(k => head.includes(k))) throw Error("Required columns: name, sol, vein, reviewed_by");
+  const names = new Set();
+  const parsed = records.map(values => {
+    if (values.length !== head.length) throw Error("CSV row has an inconsistent column count");
+    const row = Object.fromEntries(head.map((k, i) => [k, values[i]]));
+    if (!row.name || !/^[A-Za-z0-9_.-]+\.(jpg|jpeg|png)$/i.test(row.name) || names.has(row.name)) throw Error("Image names must be unique JPG/PNG filenames");
+    if (!/^[01]$/.test(row.vein) || !/^\d+$/.test(row.sol)) throw Error("vein must be 0 or 1; sol must be an integer");
+    names.add(row.name); return row;
+  });
+  return { headers: head, rows: parsed };
+}
+
+function csvText() {
+  const quote = value => '"' + String(value).replaceAll('"', '""') + '"';
+  return [headers, ...rows.map(row => headers.map(k => row[k]))].map(row => row.map(quote).join(",")).join("\r\n") + "\r\n";
+}
+
+function updateActions() {
+  const canReview = Boolean(rows.length && imageReady && el("reviewer").value.trim());
+  el("accept").disabled = !canReview; el("flip").disabled = !canReview;
+  el("previous").disabled = current <= 0;
+  el("next").disabled = current >= rows.length - 1;
+  el("export").disabled = !rows.length;
+}
+
+function render() {
+  if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = undefined; }
+  imageReady = false; el("photo").replaceChildren(); updateActions();
+  if (!rows.length) { el("details").textContent = ""; return; }
+  const row = rows[current];
+  el("details").textContent = `${current + 1}/${rows.length} · ${row.name} · Sol ${row.sol} · Label: ${row.vein === "1" ? "vein candidate" : "no vein candidate"} · Reviewed by: ${row.reviewed_by || "PENDING"}`;
+  el("status").textContent = `${rows.filter(r => r.reviewed_by.trim()).length}/${rows.length} rows have an explicit reviewer. Navigation does not confirm labels.`;
+  const file = files.get(row.name);
+  if (!file) { el("photo").textContent = "Photograph missing: import the matching local file before reviewing."; return; }
+  const img = document.createElement("img"); img.alt = row.name;
+  img.onload = () => { if (rows[current] === row) { imageReady = true; updateActions(); } };
+  img.onerror = () => { if (rows[current] === row) { imageReady = false; el("photo").textContent = "Photograph could not be decoded."; updateActions(); } };
+  objectUrl = URL.createObjectURL(file); img.src = objectUrl; el("photo").append(img);
+}
+
+el("csv").onchange = async event => {
+  const file = event.target.files[0]; if (!file) return;
+  try { const parsed = parseCsv(await file.text()); headers = parsed.headers; rows = parsed.rows; current = 0; render(); }
+  catch (error) { headers = []; rows = []; current = 0; render(); el("status").textContent = error.message; }
+};
+el("photos").onchange = event => {
+  const incoming = Array.from(event.target.files), map = new Map();
+  for (const file of incoming) {
+    if (map.has(file.name)) { el("status").textContent = "Duplicate photograph names; select an unambiguous set."; return; }
+    map.set(file.name, file);
+  }
+  files = map; render();
+};
+el("reviewer").oninput = updateActions;
+function review(flip) {
+  if (el("accept").disabled) return;
+  if (flip) rows[current].vein = rows[current].vein === "1" ? "0" : "1";
+  rows[current].reviewed_by = el("reviewer").value.trim();
+  if (current < rows.length - 1) current++;
+  render();
+}
+el("accept").onclick = () => review(false); el("flip").onclick = () => review(true);
+el("previous").onclick = () => { if (current > 0) { current--; render(); } };
+el("next").onclick = () => { if (current < rows.length - 1) { current++; render(); } };
+el("export").onclick = () => {
+  if (!rows.length) return;
+  const url = URL.createObjectURL(new Blob([csvText()], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a"); link.href = url; link.download = "labels-reviewed.csv";
+  document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+document.addEventListener("keydown", event => {
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName) || event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+  const key = event.key.toLowerCase();
+  if (key === "a") { event.preventDefault(); review(false); }
+  if (key === "f") { event.preventDefault(); review(true); }
+  if (key === "arrowleft") { event.preventDefault(); el("previous").click(); }
+  if (key === "arrowright") { event.preventDefault(); el("next").click(); }
+});
+window.addEventListener("beforeunload", () => { if (objectUrl) URL.revokeObjectURL(objectUrl); });
+</script>
+</html>
