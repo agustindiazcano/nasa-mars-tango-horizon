@@ -123,22 +123,71 @@ export const RESCUE_PIT_AXIS: Readonly<Coord2D> = (() => {
   return { x: dx / d, z: dz / d };
 })();
 
+/** Horizontal run (m) of the crumbling wall between the floor edge and the rim, measured inward from the outline. */
+export const PIT_WALL_RUN_M = 1.5;
+
 /**
- * Height (m, relative to the terrain surface) of the pit floor or access ramp at a world point:
- * 0 outside the hole, -depth on the floor, a linear slope inside the ramp lane.
+ * Irregular pit outline: radius as a function of the world angle `theta = atan2(dz, dx)` around `RESCUE_SITE`.
+ * A few seeded sine harmonics give a natural sinkhole shape; the radius is pulled back to `RESCUE_PIT.radiusM`
+ * around the access ramp so the ramp geometry stays valid. The terrain hole shader mirrors this exact function.
+ */
+export const PIT_OUTLINE = {
+  baseM: 6.4,
+  /** Smallest radius away from the ramp: keeps the floor disc of radius `minM - PIT_WALL_RUN_M` (>= 4.1 m) intact. */
+  minM: 5.6,
+  harmonics: [
+    { k: 2, amp: 0.55, phase: 0.7 },
+    { k: 3, amp: 0.5, phase: 2.1 },
+    { k: 5, amp: 0.3, phase: 4.0 },
+    { k: 7, amp: 0.16, phase: 1.3 },
+    { k: 11, amp: 0.08, phase: 5.2 },
+  ],
+  /** Angular distance (rad) from the ramp axis where the outline is fully irregular again: smoothstep(near, far). */
+  rampBlendNearRad: 0.15,
+  rampBlendFarRad: 0.9,
+} as const;
+
+/** World angle (rad) of the ramp axis, `atan2(z, x)`. */
+export const PIT_AXIS_ANGLE = Math.atan2(RESCUE_PIT_AXIS.z, RESCUE_PIT_AXIS.x);
+
+/** Outline radius (m) of the pit rim at world angle `theta` (rad, `atan2(dz, dx)`). Always >= `RESCUE_PIT.radiusM`. */
+export function pitOutlineRadiusAt(theta: number): number {
+  let r: number = PIT_OUTLINE.baseM;
+  for (const h of PIT_OUTLINE.harmonics) r += h.amp * Math.sin(h.k * theta + h.phase);
+  r = Math.max(PIT_OUTLINE.minM, r);
+  const d = Math.abs(Math.atan2(Math.sin(theta - PIT_AXIS_ANGLE), Math.cos(theta - PIT_AXIS_ANGLE)));
+  const t = Math.min(1, Math.max(0, (d - PIT_OUTLINE.rampBlendNearRad) / (PIT_OUTLINE.rampBlendFarRad - PIT_OUTLINE.rampBlendNearRad)));
+  const k = t * t * (3 - 2 * t);
+  return RESCUE_PIT.radiusM + (r - RESCUE_PIT.radiusM) * k;
+}
+
+/**
+ * Height (m, relative to the terrain surface) of the pit floor, crumbling wall or access ramp at a world point:
+ * 0 outside the irregular outline, a smooth wall down to -depth over `PIT_WALL_RUN_M`, -depth on the floor, and a
+ * linear slope inside the ramp lane.
  */
 export function pitSurfaceOffsetAt(x: number, z: number): number {
   const { depthM, radiusM, rampSlopeDeg, rampHalfWidthM } = RESCUE_PIT;
   const dx = x - RESCUE_SITE.x;
   const dz = z - RESCUE_SITE.z;
-  if (Math.hypot(dx, dz) >= radiusM) return 0;
+  const dist = Math.hypot(dx, dz);
+  const rim = pitOutlineRadiusAt(Math.atan2(dz, dx));
+  if (dist >= rim) return 0;
   const s = dx * RESCUE_PIT_AXIS.x + dz * RESCUE_PIT_AXIS.z;
   const w = -dx * RESCUE_PIT_AXIS.z + dz * RESCUE_PIT_AXIS.x;
-  if (Math.abs(w) > rampHalfWidthM) return -depthM;
+  if (Math.abs(w) > rampHalfWidthM) return pitWallOffset(dist, rim);
   const tan = Math.tan((rampSlopeDeg * Math.PI) / 180);
   const sTop = Math.sqrt(radiusM * radiusM - rampHalfWidthM * rampHalfWidthM);
   if (s >= sTop) return 0;
   return Math.max(-depthM, -(sTop - s) * tan);
+}
+
+/** Wall and floor profile: -depth up to `rim - PIT_WALL_RUN_M`, then a smooth rise to 0 at the rim. */
+export function pitWallOffset(dist: number, rim: number): number {
+  const edge = rim - PIT_WALL_RUN_M;
+  if (dist <= edge) return -RESCUE_PIT.depthM;
+  const t = Math.min(1, (dist - edge) / PIT_WALL_RUN_M);
+  return -RESCUE_PIT.depthM * (1 - t * t * (3 - 2 * t));
 }
 
 /** Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` for all 16 base modules. */

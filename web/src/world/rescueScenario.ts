@@ -9,6 +9,7 @@ import {
   findCrew,
   initialCrewSnapshots,
   fleetStartPos,
+  pitOutlineRadiusAt,
   pitSurfaceOffsetAt,
   RESCUE_PIT,
   RESCUE_SITE,
@@ -170,7 +171,7 @@ const S_BAY_ENTRY = PARK_S - 2.5;
 const BAY_RAMP_START_S = PARK_S - 4;
 const BAY_RAMP_END_S = PARK_S - 2.6;
 const BAY_FLOOR_M = 0.44;
-const CREW2_RIM = at(P, toRover, RESCUE_PIT.radiusM + 1.5);
+const CREW2_RIM = at(P, toRover, pitOutlineRadiusAt(Math.atan2(toRover.z, toRover.x)) + 1.5);
 const CREW2_BOARD = at(PARK, neg(toBase), 3.0);
 
 const axisPoint = (sAlong: number) => at(P, toBase, sAlong);
@@ -348,13 +349,13 @@ function computeView(t: number): RescueView {
   // crew-3 (DIAZ-CANO): walks around the pit, falls in and lies unconscious on the floor, is hooked by the robot,
   // dragged on the ground up the ramp and across the terrain, and loaded into the bay of rescue-1.
   const c3 = crew3Circle(Math.min(t, T_FAULT));
-  const rimR = RESCUE_PIT.radiusM + 0.8;
+  const rimR = pitOutlineRadiusAt(c3.a) + 0.8;
   const c3Rim = at(P, { x: Math.cos(c3.a), z: Math.sin(c3.a) }, rimR);
   const casPos = axisPoint(S_CAS);
   const lie = 0.12;
   const casFloorY = surfaceOffsetAt(casPos.x, casPos.z) + lie;
   const hurt = t < T_WINCH ? ("incapacitated" as CrewStatus) : ("evacuating" as CrewStatus);
-  const insidePit = (x: number, z: number) => Math.hypot(x - P.x, z - P.z) < RESCUE_PIT.radiusM;
+  const insidePit = (x: number, z: number) => Math.hypot(x - P.x, z - P.z) < pitOutlineRadiusAt(Math.atan2(z - P.z, x - P.x));
   let crew3: RescueCrewView;
   if (t < T_FAULT) {
     const c = crew3Circle(t);
