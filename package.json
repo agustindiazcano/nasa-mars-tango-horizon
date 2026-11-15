@@ -12,7 +12,8 @@
     "dev:test3d": "concurrently \"npm -w server run dev\" \"npm -w web-test-3d run dev\"",
     "build": "npm -w shared run build && npm -w server run build && npm -w web-test-3d run build",
     "start": "node server/dist/index.js",
-    "test": "npm -w shared run test && npm -w server run test"
+    "test": "npm -w shared run test && npm -w server run test && npm -w web-test-3d run test",
+    "test:web": "npm -w web-test-3d run test"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",
