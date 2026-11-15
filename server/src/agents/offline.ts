@@ -545,6 +545,63 @@ export async function offlineReply(
     };
   }
 
+  // 1c. Nominal life-support pod ballistic calculation & confirmation proposal
+  if (
+    ctx.leak_diameter_m <= 0 &&
+    /\b(soporte\s*vital|life[- ]?support|pod|c[aá]psula|capsula)\b/i.test(q)
+  ) {
+    const caller = "BASE";
+    const route = ["SUIT.VOICE-EXEC", "BASE"];
+    trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
+
+    const calc = await execRead("calculate_pod_launch", {}, ctx, caller, trace);
+    if (!calc?.reachable) {
+      return {
+        speech: pick(lang, {
+          es: "Objetivo fuera de alcance balístico del lanzador de soporte vital (alcance máx ~2180 m).",
+          en: "Target out of ballistic range for the life-support launcher (max range ~2180 m).",
+          fr: "Cible hors de portée balistique du lanceur de survie.",
+          de: "Ziel außerhalb der ballistischen Reichweite.",
+          it: "Bersaglio fuori portata balistica.",
+        }),
+        actions,
+        trace,
+        route,
+      };
+    }
+
+    const podTool = toolByName("launch_pod");
+    const rawPod = (await missionScope.run({ ctx, caller }, () =>
+      podTool.run({ target_x: calc.safe_target_x, target_z: calc.safe_target_z, payload: "full_life_support" }, ctx, caller),
+    )) as Action;
+    const act = proposeAction("launch_pod", rawPod.args, ctx, caller, actions, trace);
+    if (act.verdict && act.verdict.decision !== "deny") {
+      act.verdict = {
+        decision: "ask_human",
+        reason: pick(lang, {
+          es: `Impacto a ${calc.distance_from_astronaut_m} m (${calc.safe_target_x}, ${calc.safe_target_z}), vuelo ${calc.flight_time_s} s: confirmar lanzamiento.`,
+          en: `Landing ${calc.distance_from_astronaut_m} m away (${calc.safe_target_x}, ${calc.safe_target_z}), ${calc.flight_time_s} s flight: confirm launch.`,
+          fr: `Impact à ${calc.distance_from_astronaut_m} m (${calc.safe_target_x}, ${calc.safe_target_z}), vol ${calc.flight_time_s} s : confirmer.`,
+          de: `Landung in ${calc.distance_from_astronaut_m} m (${calc.safe_target_x}, ${calc.safe_target_z}), Flug ${calc.flight_time_s} s: bestätigen.`,
+          it: `Atterraggio a ${calc.distance_from_astronaut_m} m (${calc.safe_target_x}, ${calc.safe_target_z}), volo ${calc.flight_time_s} s: confermare.`,
+        }),
+        by: "rules",
+      };
+    }
+    return {
+      speech: pick(lang, {
+        es: `Cálculo pod soporte vital (8 kg): impacto seguro a ${calc.distance_from_astronaut_m} m (${calc.safe_target_x}, ${calc.safe_target_z}) fuera del radio de 15 m. Vuelo ${calc.flight_time_s} s, ${calc.muzzle_speed_ms} m/s. ¿Confirmás lanzamiento?`,
+        en: `Life-support pod calc (8 kg): safe landing ${calc.distance_from_astronaut_m} m away at (${calc.safe_target_x}, ${calc.safe_target_z}), outside 15 m keep-out. Flight ${calc.flight_time_s} s, ${calc.muzzle_speed_ms} m/s. Confirm launch?`,
+        fr: `Calcul pod survie (8 kg) : impact sûr à ${calc.distance_from_astronaut_m} m (${calc.safe_target_x}, ${calc.safe_target_z}), vol ${calc.flight_time_s} s. Confirmer le lancement ?`,
+        de: `Kapsel-Berechnung (8 kg): sicherer Landepunkt ${calc.distance_from_astronaut_m} m entfernt (${calc.safe_target_x}, ${calc.safe_target_z}), Flug ${calc.flight_time_s} s. Start bestätigen?`,
+        it: `Calcolo pod supporto vitale (8 kg): atterraggio sicuro a ${calc.distance_from_astronaut_m} m (${calc.safe_target_x}, ${calc.safe_target_z}), volo ${calc.flight_time_s} s. Confermi lancio?`,
+      }),
+      actions,
+      trace,
+      route,
+    };
+  }
+
   const mentionsMobileUnit = /\b(drone?|rover|scout|glider|rescue|rescate|rvr-\d)\b/i.test(q);
 
   const isMaintenanceQuery =

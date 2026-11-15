@@ -71,10 +71,12 @@ export class TacticalHud {
   private rightEl: HTMLElement;
   private topEl: HTMLElement;
   private bottomEl: HTMLElement;
+  private confirmEl: HTMLElement;
   private voiceInput!: HTMLInputElement;
   private invX = false;
   private invY = false;
   private lastModalPanel: PanelId = "none";
+  private lastConfirmKey = "";
   private sessionsRenderKey = "";
   private provenanceRenderKey = "";
   private provenanceState: "idle" | "loading" | "ready" | "error" = "idle";
@@ -92,6 +94,7 @@ export class TacticalHud {
     this.root.innerHTML = `
       <div id="visor-vignette"></div>
       <div id="hud-top" class="hud-panel hud-top"></div>
+      <div id="hud-confirm" class="hud-panel hud-confirm" data-level="warn" style="display:none"></div>
       <div id="hud-left" class="hud-panel hud-left"></div>
       <div id="hud-right" class="hud-panel hud-right"></div>
       <div id="hud-modal" class="hud-panel hud-modal" style="display:none"></div>
@@ -100,6 +103,7 @@ export class TacticalHud {
     `;
 
     this.topEl = document.getElementById("hud-top")!;
+    this.confirmEl = document.getElementById("hud-confirm")!;
     this.leftEl = document.getElementById("hud-left")!;
     this.rightEl = document.getElementById("hud-right")!;
     this.modalEl = document.getElementById("hud-modal")!;
@@ -540,6 +544,37 @@ export class TacticalHud {
     if (qrSt) {
       qrSt.textContent = s.remoteConnected ? t("remote.connected") : `${t("remote.waiting")} (${s.remoteRoom})`;
       qrSt.className = `pill ${s.remoteConnected ? "" : "warn"}`;
+    }
+
+    const confirmKey = s.pendingActions.map((a) => `${a.type}:${JSON.stringify(a.args)}:${a.verdict?.reason ?? ""}`).join("|");
+    if (confirmKey !== this.lastConfirmKey) {
+      this.lastConfirmKey = confirmKey;
+      if (s.pendingActions.length === 0) {
+        this.confirmEl.style.display = "none";
+        this.confirmEl.innerHTML = "";
+      } else {
+        this.confirmEl.style.display = "block";
+        this.confirmEl.innerHTML = s.pendingActions
+          .map(
+            (a, idx) => `
+            <div style="margin-bottom:${idx < s.pendingActions.length - 1 ? 8 : 0}px;">
+              <div style="font-weight:700;">GUARDIAN · ${escapeHtml(a.type.toUpperCase())}</div>
+              <div style="font-size:11px; color:#fff; margin:3px 0;">${escapeHtml(a.verdict?.reason || JSON.stringify(a.args))}</div>
+              <div class="btn-row" style="margin-top:5px;">
+                <button class="hud-btn" data-pointable data-hud-confirm="${idx}">${t("agents.confirm")}</button>
+                <button class="hud-btn danger" data-pointable data-hud-cancel="${idx}">${t("agents.cancel")}</button>
+              </div>
+            </div>
+          `,
+          )
+          .join("");
+        this.confirmEl.querySelectorAll<HTMLButtonElement>("[data-hud-confirm]").forEach((b) =>
+          b.addEventListener("click", () => s.confirmPendingAction(Number(b.dataset.hudConfirm), true)),
+        );
+        this.confirmEl.querySelectorAll<HTMLButtonElement>("[data-hud-cancel]").forEach((b) =>
+          b.addEventListener("click", () => s.confirmPendingAction(Number(b.dataset.hudCancel), false)),
+        );
+      }
     }
 
     this.renderModal();
