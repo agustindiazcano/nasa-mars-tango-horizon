@@ -96,4 +96,55 @@ describe("offlineReply fixes (Issue 10)", () => {
       expect(res.speech).toMatch(c.expected);
     }
   });
+
+  it("answers conversational fleet count, unit position, ambient weather, and pod calculation on SUIT.VOICE-EXEC without physical actions (B38)", async () => {
+    const ctx = makeContext({ lang: "es" });
+
+    const countRes = await offlineReply("Cuántos vehículos hay en la flota", ctx);
+    expect(countRes.route).toEqual(["SUIT.VOICE-EXEC"]);
+    expect(countRes.actions).toHaveLength(0);
+    expect(countRes.speech).toMatch(/4 vehículos/i);
+
+    const posRes = await offlineReply("Dónde está el rover 1", ctx);
+    expect(posRes.route).toEqual(["SUIT.VOICE-EXEC"]);
+    expect(posRes.actions).toHaveLength(0);
+    expect(posRes.speech).toMatch(/rover-1.*batería/i);
+
+    const wxRes = await offlineReply("Qué temperatura y viento hay", ctx);
+    expect(wxRes.route).toEqual(["SUIT.VOICE-EXEC"]);
+    expect(wxRes.actions).toHaveLength(0);
+    expect(wxRes.speech).toMatch(/220 K.*6 m\/s/i);
+
+    const calcRes = await offlineReply("Calculá la trayectoria del pod de soporte vital", ctx);
+    expect(calcRes.route).toEqual(["SUIT.VOICE-EXEC"]);
+    expect(calcRes.actions).toHaveLength(0);
+    expect(calcRes.speech).toMatch(/RK4/i);
+  });
+
+  it("supports open_panel(menu), set_hud_visible, and 1-step / 2-step set_lang in offlineReply (B40)", async () => {
+    const ctx = makeContext({ lang: "es" });
+
+    const menuRes = await offlineReply("Abrí el menú", ctx);
+    expect(menuRes.actions).toEqual([
+      expect.objectContaining({ type: "open_panel", args: { panel: "menu" } }),
+    ]);
+
+    const hideRes = await offlineReply("Ocultar el HUD VR", ctx);
+    expect(hideRes.actions).toEqual([
+      expect.objectContaining({ type: "set_hud_visible", args: { visible: false } }),
+    ]);
+
+    const askLangRes = await offlineReply("Quiero cambiar de idioma", ctx);
+    expect(askLangRes.actions).toHaveLength(0);
+    expect(askLangRes.speech).toMatch(/qué idioma/i);
+
+    const step2LangRes = await offlineReply("Inglés", ctx, [
+      { role: "user", content: "Quiero cambiar de idioma" },
+      { role: "assistant", content: askLangRes.speech },
+    ]);
+    expect(step2LangRes.actions).toEqual([
+      expect.objectContaining({ type: "set_lang", args: { lang: "en" } }),
+    ]);
+    expect(step2LangRes.speech).toMatch(/Language switched to English/i);
+  });
 });

@@ -706,10 +706,30 @@ export const TOOLS: ToolDef[] = [
     server: "hud",
     effect: true,
     schema: z.object({
-      panel: z.enum(["map", "fleet", "agents", "health", "provenance", "none"]),
+      panel: z.enum(["map", "fleet", "agents", "health", "provenance", "base", "sessions", "menu", "none"]),
     }),
-    description: "Opens or closes a helmet HUD panel.",
+    description: "Opens or closes a helmet HUD panel or the central quick menu ('menu').",
     run: (a, _c, caller) => ({ type: "open_panel", args: a, proposedBy: caller }),
+  }),
+  def({
+    name: "set_lang",
+    server: "hud",
+    effect: true,
+    schema: z.object({
+      lang: z.enum(["es", "en", "fr", "de", "it"]).describe("Target UI/voice/TTS language code"),
+    }),
+    description: "Switches the mission UI, voice recognition (ASR), and radio TTS language.",
+    run: (a, _c, caller) => ({ type: "set_lang", args: a, proposedBy: caller }),
+  }),
+  def({
+    name: "set_hud_visible",
+    server: "hud",
+    effect: true,
+    schema: z.object({
+      visible: z.boolean().describe("True to show the VR helmet visor HUD panels, false to hide them for an unobstructed 3D view"),
+    }),
+    description: "Shows or hides the VR helmet visor HUD overlay panels.",
+    run: (a, _c, caller) => ({ type: "set_hud_visible", args: a, proposedBy: caller }),
   }),
   def({
     name: "show_route",
@@ -733,6 +753,21 @@ export const TOOLS: ToolDef[] = [
     }),
     description: "Displays an alert on the helmet HUD, with a document citation when applicable.",
     run: (a, _c, caller) => ({ type: "show_alert", args: a, proposedBy: caller }),
+  }),
+  def({
+    name: "capture_vision",
+    server: "hud",
+    effect: true,
+    schema: z.object({
+      unit_id: z
+        .enum(["astronaut", "rover-1", "rover-2", "rover-3", "rescue-1", "drone-1", "drone-2"])
+        .default("astronaut")
+        .describe("Camera source ID ('astronaut' for helmet visor POV, or a fleet unit ID)"),
+      question: z.string().max(200).optional().describe("Crew question about the camera frame"),
+    }),
+    description:
+      "Triggers live 3D onboard camera frame capture and vision inspection from the astronaut helmet visor ('astronaut') or any fleet unit ('rover-1'..'rover-3', 'rescue-1', 'drone-1'..'drone-2').",
+    run: (a, _c, caller) => ({ type: "capture_vision", args: a, proposedBy: caller }),
   }),
 
   // --- mcp-knowledge -----------------------------------------------------

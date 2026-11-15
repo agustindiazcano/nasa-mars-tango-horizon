@@ -3,7 +3,10 @@ export type LocalIntentId =
   | "abort_eva"
   | "stop_all"
   | "open_map"
+  | "open_menu"
   | "close_panel"
+  | "hide_hud"
+  | "show_hud"
   | "repeat";
 
 export interface LocalIntentDef {
@@ -39,10 +42,33 @@ export const LOCAL_INTENTS: LocalIntentDef[] = [
     ],
   },
   {
+    id: "open_menu",
+    patterns: [
+      /^[\s.,!¡?¿]*(?:men[uú]|menu)[\s.,!¡?¿]*$/iu,
+      /(?<![\p{L}])(?:abr[aeií]r?|mostr(?:a|ar|ame)|mu[eé]str(?:a|ame)|open|show|ouvr(?:ir|e)|[oö]ffne(?:n)?|zeig(?:e|en)?|apr[ai](?:re)?)\s+(?:el\s+|la\s+|le\s+|das\s+|il\s+|the\s+)?(?:men[uú]|menu)(?![\p{L}])/iu,
+      /(?<![\p{L}])men[uú]\s+[oö]ffnen(?![\p{L}])/iu,
+    ],
+  },
+  {
     id: "close_panel",
     patterns: [
-      /(?<![\p{L}])(?:cerr[aá]r?|close|fermer|schlie(?:ss|ß)en|chiud[ei](?:re)?)\s+(?:el\s+|la\s+|le\s+|das\s+|il\s+|the\s+)?(?:panel|men[uú]|todo|all|tutto)(?![\p{L}])/iu,
-      /(?<![\p{L}])(?:panel|men[uú]|alles)\s+schlie(?:ss|ß)en(?![\p{L}])/iu,
+      /^[\s.,!¡?¿]*(?:cerrar|cerr[aá]|cierr[ae](?:lo)?|ci[eé]rralo|close|fermer|schlie(?:ss|ß)en|chiudi)[\s.,!¡?¿]*$/iu,
+      /(?<![\p{L}])(?:cerr[aá]r?|cierr[ae]|close|fermer|schlie(?:ss|ß)en|chiud[ei](?:re)?)\s+(?:el\s+|la\s+|le\s+|das\s+|il\s+|the\s+)?(?:panel|men[uú]|menu|ventana|window|todo|all|tutto)(?![\p{L}])/iu,
+      /(?<![\p{L}])(?:panel|men[uú]|menu|alles)\s+schlie(?:ss|ß)en(?![\p{L}])/iu,
+    ],
+  },
+  {
+    id: "hide_hud",
+    patterns: [
+      /(?<![\p{L}])(?:ocult(?:a|ar|á)|escond(?:e|er|é)|sac(?:a|ar|á)|hide|masqu(?:er|e)|ausblenden|nascondi)\s+(?:el\s+|la\s+|le\s+|das\s+|il\s+|the\s+)?(?:hud|visor(?:\s+vr)?|interfaz)(?:\s+vr)?(?![\p{L}])/iu,
+      /(?<![\p{L}])hud\s+ausblenden(?![\p{L}])/iu,
+    ],
+  },
+  {
+    id: "show_hud",
+    patterns: [
+      /(?<![\p{L}])(?:mostr(?:a|ar|á|ame)|mu[eé]str(?:a|ame)|restaur(?:a|ar|á)|show|restore|affich(?:er|e)|einblenden|mostra)\s+(?:el\s+|la\s+|le\s+|das\s+|il\s+|the\s+)?(?:hud|visor(?:\s+vr)?|interfaz)(?:\s+vr)?(?![\p{L}])/iu,
+      /(?<![\p{L}])hud\s+einblenden(?![\p{L}])/iu,
     ],
   },
   {

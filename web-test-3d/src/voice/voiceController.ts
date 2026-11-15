@@ -1,13 +1,13 @@
 import { AIRLOCK_COORD, BASE_ORIGIN, MISSION_SITES_BY_ID, terrainMatches } from "@th/shared";
 import { postAgentVoice, type VoiceAgentRequest, type VoiceAgentResponse } from "../api";
-import { ASR_LOCALE, getLang, onLangChange, t, type Lang } from "@th/shared";
+import { ASR_LOCALE, getLang, onLangChange, setLang, t, type Lang } from "@th/shared";
 import { AIRCRAFT_GROUNDING_TAU, C, surfaceDensity } from "@th/shared";
 import type { Action, ConversationTurn, TraceEvent } from "@th/shared";
 import type { MissionStore } from "../state";
 import { Listener, type ListenErrorCode } from "./listen";
 import { matchLocalIntent, type LocalIntentId } from "./localIntents";
 import { RadioSpeaker } from "./speak";
-import { isVisionQuestion } from "./visionIntent";
+import { isVisionQuestion, parseVisionIntent } from "./visionIntent";
 
 const OFFLINE_SITES: Record<number, { x: number; z: number; label: string }> = {
   1: { x: MISSION_SITES_BY_ID.S1.x, z: MISSION_SITES_BY_ID.S1.z, label: "S1" },
@@ -136,6 +136,63 @@ function pickOfflineSpeech(lang: Lang, esText: string, enText: string): string {
   return lang === "es" ? esText : enText;
 }
 
+function matchTargetLanguageName(text: string): Lang | null {
+  if (/(?<![\p{L}])(espa[ñn]ol|castellano|spanish|espagnol|spanisch|spagnolo)(?![\p{L}])/iu.test(text)) return "es";
+  if (/(?<![\p{L}])(ingl[eé]s|english|anglais|englisch|inglese)(?![\p{L}])/iu.test(text)) return "en";
+  if (/(?<![\p{L}])(franc[eé]s|fran[cç]ais|french|franz[oö]sisch|francese)(?![\p{L}])/iu.test(text)) return "fr";
+  if (/(?<![\p{L}])(alem[aá]n|deutsch|german|allemand|tedesco)(?![\p{L}])/iu.test(text)) return "de";
+  if (/(?<![\p{L}])(italiano|italian|italien|italienisch)(?![\p{L}])/iu.test(text)) return "it";
+  return null;
+}
+
+/** Detects spoken/typed language when at least 2 distinct stopword/grammar markers are present. */
+export function detectSpokenLanguage(text: string): Lang | null {
+  const q = text.trim();
+  if (q.split(/\s+/).length < 2) return null;
+  const scores: Record<Lang, number> = { es: 0, en: 0, fr: 0, de: 0, it: 0 };
+  const addMatches = (lang: Lang, re: RegExp) => {
+    const m = q.match(re);
+    if (m) scores[lang] += m.length;
+  };
+  addMatches(
+    "es",
+    /(?<![\p{L}])(qu[eé]|d[oó]nde|cu[aá]nt[oa]s?|c[oó]mo|est[aá]n?|estoy|hay|frente|hacia|pod[eé]s|puedes|abr[ií]r?|mostr[aá]r?|calcul[aá]r?|env[ií]a|manda|c[aá]psula|ox[ií]geno|bater[ií]a|veh[ií]culos?|flota|tormenta|traje|visor)(?![\p{L}])/giu,
+  );
+  addMatches(
+    "en",
+    /(?<![\p{L}])(what|where|how|many|which|please|status|show|open|close|send|check|suit|oxygen|weather|storm|temperature|wind|battery|vehicles?|seeing|front)(?![\p{L}])/giu,
+  );
+  addMatches(
+    "fr",
+    /(?<![\p{L}])(quel(?:le)?s?|o[uù]|combien|comment|est-ce|combinaison|oxyg[eè]ne|m[eé]t[eé]o|temp[eé]rature|batterie|flotte|ouvrir|fermer|carte|panneau)(?![\p{L}])/giu,
+  );
+  addMatches(
+    "de",
+    /(?<![\p{L}])(wie|wo|welche[rs]?|bitte|anzug|sauerstoff|wetter|sturm|temperatur|batterie|flotte|[oö]ffnen|schlie[sß]en|karte)(?![\p{L}])/giu,
+  );
+  addMatches(
+    "it",
+    /(?<![\p{L}])(che|dove|quanti|come|tuta|ossigeno|meteo|tempesta|temperatura|batteria|flotta|apri|chiudi|mappa|pannello)(?![\p{L}])/giu,
+  );
+
+  let bestLang: Lang | null = null;
+  let bestScore = 0;
+  let secondScore = 0;
+  for (const [lang, sc] of Object.entries(scores) as [Lang, number][]) {
+    if (sc > bestScore) {
+      secondScore = bestScore;
+      bestScore = sc;
+      bestLang = lang;
+    } else if (sc > secondScore) {
+      secondScore = sc;
+    }
+  }
+  if (bestLang && bestScore >= 2 && bestScore > secondScore) {
+    return bestLang;
+  }
+  return null;
+}
+
 export interface VoiceHistoryTurn {
   role: "user" | "assistant";
   content: string;
@@ -158,6 +215,7 @@ export class VoiceController {
   readonly listener: Listener;
   private lastReply = "";
   private history: ConversationTurn[] = [];
+  private awaitingLanguageSelection = false;
 
   constructor(
     private store: MissionStore,
@@ -308,6 +366,66 @@ export class VoiceController {
       // For emergency, trigger local instant alert AND escalate to BASE for pod + rescue
     }
 
+    // Direct or 2-step interactive voice language selection (F19)
+    const explicitLang = matchTargetLanguageName(clean);
+    const isLangIntent =
+      /(?<![\p{L}])(idioma|language|langue|sprache|lingua|habl[aáe]\s+en|speak\s+in|passer\s+en|switch\s+to|cambiar?\s+a)(?![\p{L}])/iu.test(
+        clean,
+      ) ||
+      (this.awaitingLanguageSelection && explicitLang !== null);
+    if (isLangIntent) {
+      if (explicitLang) {
+        this.awaitingLanguageSelection = false;
+        setLang(explicitLang);
+        this.store.notify();
+        const confirmMap: Record<Lang, string> = {
+          es: "Idioma cambiado a español.",
+          en: "Language switched to English.",
+          fr: "Langue changée en français.",
+          de: "Sprache auf Deutsch umgestellt.",
+          it: "Lingua cambiata in italiano.",
+        };
+        const reply = confirmMap[explicitLang];
+        this.store.lastAgentLatencyMs = Math.max(1, Math.round(performance.now() - t0));
+        this.lastReply = reply;
+        this.store.pushTranscript("base", reply, true, {
+          latencyMs: this.store.lastAgentLatencyMs,
+          route: ["SUIT.VOICE-EXEC"],
+          lang: explicitLang,
+          excludeFromHistory: true,
+        });
+        void this.radio.say(reply);
+        return;
+      }
+      this.awaitingLanguageSelection = true;
+      const askMap: Record<Lang, string> = {
+        es: "¿A qué idioma quieres cambiar? Español, inglés, francés, alemán o italiano.",
+        en: "Which language would you like to use? Spanish, English, French, German, or Italian.",
+        fr: "Quelle langue souhaitez-vous utiliser ? Espagnol, anglais, français, allemand ou italien.",
+        de: "Welche Sprache möchten Sie verwenden? Spanisch, Englisch, Französisch, Deutsch oder Italienisch.",
+        it: "Quale lingua vuoi usare? Spagnolo, inglese, francese, tedesco o italiano.",
+      };
+      const reply = askMap[activeLang] ?? askMap.en;
+      this.store.lastAgentLatencyMs = Math.max(1, Math.round(performance.now() - t0));
+      this.lastReply = reply;
+      this.store.pushTranscript("base", reply, true, {
+        latencyMs: this.store.lastAgentLatencyMs,
+        route: ["SUIT.VOICE-EXEC"],
+        lang: activeLang,
+        excludeFromHistory: true,
+      });
+      void this.radio.say(reply);
+      return;
+    }
+    this.awaitingLanguageSelection = false;
+
+    // Automatic spoken/typed language sync (F19)
+    const detectedLang = detectSpokenLanguage(clean);
+    if (detectedLang && detectedLang !== activeLang) {
+      setLang(detectedLang);
+      this.store.notify();
+    }
+
     // Voice confirmation / cancellation when GUARDIAN queued an ask_human action
     if (this.store.pendingActions.length > 0) {
       const confirmRe =
@@ -351,20 +469,23 @@ export class VoiceController {
       }
     }
 
-    // Intercept explicit vision questions so the 3D mast camera frame goes to /api/agent/vision.
+    // Intercept explicit vision questions so the 3D helmet visor or fleet camera frame goes to /api/agent/vision.
     // A bare unit mention ("rover dos, scout the north") must reach the agent instead.
-    if (isVisionQuestion(clean) && this.hooks.onVisionRequest) {
+    const visionMatch = parseVisionIntent(clean);
+    if (visionMatch.isVision && this.hooks.onVisionRequest) {
+      const targetUnitId = visionMatch.unitId ?? "astronaut";
       this.store.baseProcessing = true;
       this.store.notify();
       void this.radio.beep(740, 0.06);
       const start = performance.now();
       try {
-        const res = await this.hooks.onVisionRequest("rover-2", clean);
+        const res = await this.hooks.onVisionRequest(targetUnitId, clean);
         this.store.lastAgentLatencyMs = Math.round(performance.now() - start);
         this.lastReply = res.speech;
+        const routeFallback = targetUnitId === "astronaut" ? ["SUIT.VISION"] : [`ROBOT.${targetUnitId}`];
         this.store.pushTranscript("base", res.speech, true, {
           latencyMs: this.store.lastAgentLatencyMs,
-          route: this.store.routePath.length ? this.store.routePath : ["ROBOT.rover-2"],
+          route: this.store.routePath.length ? this.store.routePath : routeFallback,
           lang: activeLang,
         });
         void this.radio.say(res.speech);
@@ -522,9 +643,20 @@ export class VoiceController {
       case "open_map":
         this.store.setPanel("map");
         return getLang() === "es" ? "Mapa táctico abierto." : "Tactical map opened.";
+      case "open_menu":
+        this.store.setPanel("menu");
+        return getLang() === "es" ? "Menú rápido abierto." : "Quick menu opened.";
       case "close_panel":
         this.store.setPanel("none");
         return getLang() === "es" ? "Paneles cerrados." : "Panels closed.";
+      case "hide_hud":
+        this.store.setHudVisible(false);
+        return getLang() === "es"
+          ? "Visor HUD VR ocultado. Di mostrar HUD para restaurarlo."
+          : "VR helmet visor HUD hidden. Say show HUD to restore.";
+      case "show_hud":
+        this.store.setHudVisible(true);
+        return getLang() === "es" ? "Visor HUD VR restaurado." : "VR helmet visor HUD restored.";
       case "repeat":
         return this.lastReply;
     }

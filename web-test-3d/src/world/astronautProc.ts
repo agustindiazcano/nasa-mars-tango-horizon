@@ -7,6 +7,7 @@ export type PovMode = "1st" | "3rd" | "iso";
 
 export class AstronautProc {
   readonly group = new THREE.Group();
+  readonly helmetCamera = new THREE.PerspectiveCamera(62, 512 / 384, 0.25, 2500);
   readonly pos = new THREE.Vector3(ASTRONAUT_START.x, 0, ASTRONAUT_START.z);
   yaw = 0.65;
   pitch = -0.04;
@@ -360,6 +361,8 @@ export class AstronautProc {
   }
 
   syncCamera(): void {
+    this.helmetCamera.position.set(this.pos.x, this.pos.y + this.eyeHeight + this.breathBob, this.pos.z);
+    this.helmetCamera.rotation.set(this.pitch, this.yaw, 0, "YXZ");
     if (this.povMode === "1st") {
       this.camera.position.set(this.pos.x, this.pos.y + this.eyeHeight + this.breathBob, this.pos.z);
       this.camera.rotation.set(this.pitch, this.yaw, 0, "YXZ");
@@ -378,6 +381,47 @@ export class AstronautProc {
       this.camera.position.set(cx, Math.max(cy, minGround), cz);
       this.camera.lookAt(this.isoTarget.x, this.isoTarget.y + 2.0, this.isoTarget.z);
     }
+  }
+
+  captureHelmetCamera(renderer: THREE.WebGLRenderer, scene: THREE.Scene): string {
+    const w = 512;
+    const h = 384;
+    this.helmetCamera.position.set(this.pos.x, this.pos.y + this.eyeHeight + this.breathBob, this.pos.z);
+    this.helmetCamera.rotation.set(this.pitch, this.yaw, 0, "YXZ");
+    this.helmetCamera.updateMatrixWorld(true);
+
+    const prevGroupVisible = this.group.visible;
+    this.group.visible = false;
+    const rt = new THREE.WebGLRenderTarget(w, h);
+    const prevTarget = renderer.getRenderTarget();
+    renderer.setRenderTarget(rt);
+    renderer.render(scene, this.helmetCamera);
+
+    const pixels = new Uint8Array(w * h * 4);
+    renderer.readRenderTargetPixels(rt, 0, 0, w, h, pixels);
+    renderer.setRenderTarget(prevTarget);
+    rt.dispose();
+    this.group.visible = prevGroupVisible;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d")!;
+    const imgData = ctx.createImageData(w, h);
+    for (let y = 0; y < h; y++) {
+      const srcRow = (h - 1 - y) * w * 4;
+      const dstRow = y * w * 4;
+      imgData.data.set(pixels.subarray(srcRow, srcRow + w * 4), dstRow);
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    ctx.fillStyle = "rgba(6, 12, 18, 0.72)";
+    ctx.fillRect(0, h - 22, w, 22);
+    ctx.fillStyle = "#35e0ff";
+    ctx.font = "11px monospace";
+    ctx.fillText(`HELMET VISOR CAM // ASTRONAUT // ${w}x${h}`, 8, h - 7);
+
+    return canvas.toDataURL("image/jpeg", 0.78);
   }
 
   computeBioMetrics(

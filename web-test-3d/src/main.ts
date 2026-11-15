@@ -3,6 +3,10 @@ import "./hud/hud.css";
 import { installHistoricalArchive } from "./hud/historicalArchive";
 import { inject } from "@vercel/analytics";
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { apiUrl } from "./api";
 import { ASR_LOCALE, getLang, t } from "@th/shared";
 import { AIRCRAFT_GROUNDING_TAU, C, leakTimeline, planRoute, stepSuitTelemetry } from "@th/shared";
@@ -35,10 +39,23 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 30000);
 
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.34,
+  0.52,
+  0.82,
+);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
+
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  bloomPass.resolution.set(window.innerWidth, window.innerHeight);
 });
 
 async function boot(): Promise<void> {
@@ -124,7 +141,12 @@ async function captureAndInspectVision(
   unitId: string,
   question: string,
 ): Promise<{ speech: string; injection: boolean }> {
-  const dataUrl = fleet.captureRoverCamera(renderer, unitId);
+  const normId = unitId === "helmet" ? "astronaut" : unitId;
+  const dataUrl =
+    normId === "astronaut"
+      ? astronaut.captureHelmetCamera(renderer, scene)
+      : fleet.captureRoverCamera(renderer, normId);
+  store.activeVisionUnitId = normId;
   store.roverPreviewUrl = dataUrl;
   store.roverPreviewCaption = "Analyzing camera frame...";
   store.injectionBlockedBanner = false;
@@ -136,7 +158,7 @@ async function captureAndInspectVision(
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        unit_id: unitId,
+        unit_id: normId,
         image: dataUrl,
         question,
         lang: apiLang,
@@ -393,6 +415,20 @@ store.setHooks({
   onArmSkill: (skill: ArmSkillId, targetId: string, item?: string) => {
     fleet.executeArmSkill(skill, targetId, astronaut.pos, astronaut.yaw, item);
   },
+  onCaptureVision: (unitId: string, question?: string) => {
+    const q =
+      question ||
+      (unitId === "astronaut"
+        ? "Describe what the astronaut is seeing through the helmet visor camera"
+        : `Describe what ${unitId} onboard camera sees`);
+    void captureAndInspectVision(unitId, q).then((res) => {
+      store.pushTranscript("base", res.speech, true, {
+        route: unitId === "astronaut" ? ["SUIT.VISION"] : [`ROBOT.${unitId}`],
+        lang: getLang(),
+      });
+      void voice.radio.say(res.speech);
+    });
+  },
   onStopAll: () => fleet.stopAll(),
 });
 
@@ -472,6 +508,7 @@ const hud: TacticalHud = new TacticalHud(store, terrain, voice, deck, {
   recenterRemote: () => relay.recenter(),
   setRemoteInvert: (ix, iy) => relay.setInvert(ix, iy),
   onToggleDeck: () => hud.toggleDeck(),
+  startScenario,
   sessions: sessionManager,
 });
 
@@ -523,6 +560,10 @@ window.addEventListener("keydown", (e) => {
     store.notify();
   } else if (e.code === "KeyH") {
     hud.toggleDeck();
+  } else if (e.code === "KeyU") {
+    store.setHudVisible(!store.hudVisible);
+  } else if (e.code === "KeyM") {
+    store.setPanel(store.panel === "menu" ? "none" : "menu");
   } else if (e.code === "Space" && !spaceHeld) {
     e.preventDefault();
     spaceHeld = true;
@@ -642,7 +683,7 @@ function animate(now: number): void {
   );
 
   terrain.updateLod(camera.position.x, camera.position.z);
-  renderer.render(scene, camera);
+  composer.render();
 
   hudTick += realDt;
   if (hudTick >= 0.2) {

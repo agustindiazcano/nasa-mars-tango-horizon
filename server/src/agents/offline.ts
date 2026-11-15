@@ -78,6 +78,9 @@ const PANEL_LABELS: Record<string, Record<Lang, string>> = {
   agents: { es: "agentes", en: "agents", fr: "agents", de: "Agenten", it: "agenti" },
   health: { es: "salud", en: "health", fr: "santé", de: "Gesundheit", it: "salute" },
   provenance: { es: "procedencia", en: "provenance", fr: "provenance", de: "Herkunft", it: "provenienza" },
+  base: { es: "base", en: "base", fr: "base", de: "Basis", it: "base" },
+  sessions: { es: "sesiones", en: "sessions", fr: "sessions", de: "Sitzungen", it: "sessioni" },
+  menu: { es: "menú", en: "menu", fr: "menu", de: "Menü", it: "menu" },
 };
 
 const SPOKEN_ONES: Record<string, number> = {
@@ -550,9 +553,18 @@ export async function offlineReply(
     ctx.leak_diameter_m <= 0 &&
     /\b(soporte\s*vital|life[- ]?support|pod|c[aá]psula|capsula)\b/i.test(q)
   ) {
-    const caller = "BASE";
-    const route = ["SUIT.VOICE-EXEC", "BASE"];
-    trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
+    const isPurePodCalc =
+      /(?<![\p{L}\d])(calcul[\p{L}]*|c[aá]lculo|trayectoria|trajectory|caer[ií]a|would\s+land|flight\s+time|tiempo\s+de\s+vuelo|par[aá]metros\s+bal[ií]sticos|ballistic\s+parameters)(?![\p{L}\d])/iu.test(
+        q,
+      ) &&
+      !/(?<![\p{L}\d])(lanz(?:ar|[aáe](?!miento)[\p{L}]*)|dispar[aáe][\p{L}]*|env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|tir[aáe][\p{L}]*|solt[aáe][\p{L}]*|launch\s+(?:a|the|an|pod|capsule)|fire|drop|send|necesito|need)(?![\p{L}\d])/iu.test(
+        q,
+      );
+    const caller = isPurePodCalc ? "SUIT.VOICE-EXEC" : "BASE";
+    const route = isPurePodCalc ? ["SUIT.VOICE-EXEC"] : ["SUIT.VOICE-EXEC", "BASE"];
+    if (!isPurePodCalc) {
+      trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
+    }
 
     const calc = await execRead("calculate_pod_launch", {}, ctx, caller, trace);
     if (!calc?.reachable) {
@@ -563,6 +575,21 @@ export async function offlineReply(
           fr: "Cible hors de portée balistique du lanceur de survie.",
           de: "Ziel außerhalb der ballistischen Reichweite.",
           it: "Bersaglio fuori portata balistica.",
+        }),
+        actions,
+        trace,
+        route,
+      };
+    }
+
+    if (isPurePodCalc) {
+      return {
+        speech: pick(lang, {
+          es: `Cálculo balístico RK4 (pod 8 kg): aterrizaje seguro a ${calc.distance_from_astronaut_m} m en (${calc.safe_target_x}, ${calc.safe_target_z}) m (fuera del radio de exclusión de 15 m), vuelo ${calc.flight_time_s} s, salida ${calc.muzzle_speed_ms} m/s, impacto ${calc.impact_speed_ms} m/s.`,
+          en: `RK4 ballistic calc (8 kg pod): safe landing ${calc.distance_from_astronaut_m} m away at (${calc.safe_target_x}, ${calc.safe_target_z}) m (outside 15 m keep-out), flight ${calc.flight_time_s} s, muzzle ${calc.muzzle_speed_ms} m/s, impact ${calc.impact_speed_ms} m/s.`,
+          fr: `Calcul balistique RK4 (pod 8 kg) : impact sûr à ${calc.distance_from_astronaut_m} m en (${calc.safe_target_x}, ${calc.safe_target_z}) m, vol ${calc.flight_time_s} s, vitesse ${calc.muzzle_speed_ms} m/s.`,
+          de: `RK4-Ballistik (8-kg-Kapsel): sicherer Landepunkt ${calc.distance_from_astronaut_m} m entfernt bei (${calc.safe_target_x}, ${calc.safe_target_z}) m, Flug ${calc.flight_time_s} s, ${calc.muzzle_speed_ms} m/s.`,
+          it: `Calcolo balistico RK4 (pod 8 kg): atterraggio sicuro a ${calc.distance_from_astronaut_m} m in (${calc.safe_target_x}, ${calc.safe_target_z}) m, volo ${calc.flight_time_s} s, ${calc.muzzle_speed_ms} m/s.`,
         }),
         actions,
         trace,
@@ -723,12 +750,103 @@ export async function offlineReply(
   }
 
   // 4. HUD panel controls (fast path)
+  // 3b. VR HUD show/hide & voice language selection (B40)
   if (
-    /(?<![\p{L}\d])(panel|panneau|tafel|pannello|abr[aeií]r?|open|ouvr[\p{L}]*|[oö]ffn[\p{L}]*|oeffn[\p{L}]*|apr[ai][\p{L}]*|cierr[ae]?|cerrar|close|ferm[\p{L}]*|schlie[sß][\p{L}]*|chiud[\p{L}]*|procedencia|provenance|herkunft|provenienza|flota|fleet|flotte|flotta|agentes|agents|agenten|agenti|salud|health|sant[eé]|gesundheit|salute|mapa|map|carte|karte|mappa)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])((?:ocult[\p{L}]*|escond[\p{L}]*|hide|masqu[\p{L}]*|ausblend[\p{L}]*|nascond[\p{L}]*|mostr[\p{L}]*|mu[eé]str[\p{L}]*|show|affich[\p{L}]*|einblend[\p{L}]*|mostra)\s+(?:el\s+|la\s+|le\s+|das\s+|il\s+|the\s+)?(?:hud|visor|interfaz)(?:\s+vr)?)(?![\p{L}\d])/iu.test(
+      q,
+    )
+  ) {
+    const caller = "SUIT.VOICE-EXEC";
+    const visible =
+      /(?<![\p{L}\d])(mostr[\p{L}]*|mu[eé]str[\p{L}]*|show|affich[\p{L}]*|einblend[\p{L}]*|mostra)(?![\p{L}\d])/iu.test(
+        q,
+      );
+    proposeAction("set_hud_visible", { visible }, ctx, caller, actions, trace);
+    return {
+      speech: visible
+        ? pick(lang, {
+            es: "Visor HUD VR restaurado.",
+            en: "VR helmet visor HUD restored.",
+            fr: "HUD de la visière VR restauré.",
+            de: "VR-Helmvisier-HUD wiederhergestellt.",
+            it: "HUD visiera VR ripristinato.",
+          })
+        : pick(lang, {
+            es: "Visor HUD VR ocultado. Di mostrar HUD para restaurarlo.",
+            en: "VR helmet visor HUD hidden. Say show HUD to restore.",
+            fr: "HUD de la visière VR masqué.",
+            de: "VR-Helmvisier-HUD ausgeblendet.",
+            it: "HUD visiera VR nascosto.",
+          }),
+      actions,
+      trace,
+      route: [caller],
+    };
+  }
+
+  const lastAssistantMsg = [...history].reverse().find((h) => h.role === "assistant")?.content ?? "";
+  const prevAskedLanguage =
+    /(?:qu[eé]\s+idioma|which\s+language|quelle\s+langue|welche\s+sprache|quale\s+lingua|espa[ñn]ol.*english)/iu.test(
+      lastAssistantMsg,
+    );
+  const explicitTargetLang: Lang | null = /(?<![\p{L}])(espa[ñn]ol|castellano|spanish|espagnol|spanisch|spagnolo)(?![\p{L}])/iu.test(q)
+    ? "es"
+    : /(?<![\p{L}])(ingl[eé]s|english|anglais|englisch|inglese)(?![\p{L}])/iu.test(q)
+      ? "en"
+      : /(?<![\p{L}])(franc[eé]s|fran[cç]ais|french|franz[oö]sisch|francese)(?![\p{L}])/iu.test(q)
+        ? "fr"
+        : /(?<![\p{L}])(alem[aá]n|deutsch|german|allemand|tedesco)(?![\p{L}])/iu.test(q)
+          ? "de"
+          : /(?<![\p{L}])(italiano|italian|italien|italienisch)(?![\p{L}])/iu.test(q)
+            ? "it"
+            : null;
+  const isLangSwitchIntent =
+    /(?<![\p{L}])(idioma|language|langue|sprache|lingua|habl[aáe]\s+en|speak\s+in|passer\s+en|switch\s+to|cambiar?\s+a)(?![\p{L}])/iu.test(
+      q,
+    ) ||
+    (prevAskedLanguage && explicitTargetLang !== null);
+  if (isLangSwitchIntent) {
+    const caller = "SUIT.VOICE-EXEC";
+    if (explicitTargetLang) {
+      proposeAction("set_lang", { lang: explicitTargetLang }, ctx, caller, actions, trace);
+      return {
+        speech: pick(explicitTargetLang, {
+          es: "Idioma cambiado a español.",
+          en: "Language switched to English.",
+          fr: "Langue changée en français.",
+          de: "Sprache auf Deutsch umgestellt.",
+          it: "Lingua cambiata in italiano.",
+        }),
+        actions,
+        trace,
+        route: [caller],
+      };
+    }
+    return {
+      speech: pick(lang, {
+        es: "¿A qué idioma quieres cambiar? Español, inglés, francés, alemán o italiano.",
+        en: "Which language would you like to use? Spanish, English, French, German, or Italian.",
+        fr: "Quelle langue souhaitez-vous utiliser ? Espagnol, anglais, français, allemand ou italien.",
+        de: "Welche Sprache möchten Sie verwenden? Spanisch, Englisch, Französisch, Deutsch oder Italienisch.",
+        it: "Quale lingua vuoi usare? Spagnolo, inglese, francese, tedesco o italiano.",
+      }),
+      actions,
+      trace,
+      route: [caller],
+    };
+  }
+
+  const isFleetOrLocQuestion =
+    /(?<![\p{L}\d])(cu[aá]nt[oa]s?|how\s+many|combien|wie\s+viele|quanti|qu[eé]\s+(?:veh[ií]culos?|unidades|robots?|rovers?|drones?)|which\s+(?:vehicles?|units?|robots?|rovers?|drones?)|d[oó]nde|where|o[uù]|wo|dov'[eè]|dove|distancia|distance|bater[ií]a|battery|estado\s+de\s+la\s+flota|fleet\s+status)(?![\p{L}\d])/iu.test(
+      q,
+    ) && !/\b(panel|panneau|tafel|pannello|men[uú]|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q);
+  if (
+    !isFleetOrLocQuestion &&
+    /(?<![\p{L}\d])(panel|panneau|tafel|pannello|men[uú]|abr[aeií]r?|open|ouvr[\p{L}]*|[oö]ffn[\p{L}]*|oeffn[\p{L}]*|apr[ai][\p{L}]*|cierr[ae]?|cerrar|close|ferm[\p{L}]*|schlie[sß][\p{L}]*|chiud[\p{L}]*|procedencia|provenance|herkunft|provenienza|flota|fleet|flotte|flotta|agentes|agents|agenten|agenti|salud|health|sant[eé]|gesundheit|salute|mapa|map|carte|karte|mappa)(?![\p{L}\d])/iu.test(
       q,
     ) &&
     !/(?<![\p{L}\d])(ruta|route|env[ií]a|dispatch|send|itin[eé]raire|percorso)(?![\p{L}\d])/iu.test(q) &&
-    (/\b(panel|panneau|tafel|pannello|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q) ||
+    (/\b(panel|panneau|tafel|pannello|men[uú]|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q) ||
       !/\b(biomed\w*|hipercapn\w*|hypercapn\w*|hipox\w*|hypox\w*|spo2|heart|card[ií]ac\w*|vitals|signos|constantes|ews|psi|salud|health|sant[eé]|gesundheit|salute)\b/i.test(
         q,
       ))
@@ -737,15 +855,17 @@ export async function offlineReply(
     const panel =
       /close|cerrar|cierra|ferm|schliess|schließ|chiud/i.test(q)
         ? "none"
-        : /provenance|procedencia|herkunft|provenienza/i.test(q)
-          ? "provenance"
-          : /fleet|flota|flotte|flotta/i.test(q)
-            ? "fleet"
-            : /agents|agentes|agenten|agenti/i.test(q)
-              ? "agents"
-              : /health|salud|sant[eé]|gesundheit|salute/i.test(q)
-                ? "health"
-                : "map";
+        : /men[uú]/i.test(q)
+          ? "menu"
+          : /provenance|procedencia|herkunft|provenienza/i.test(q)
+            ? "provenance"
+            : /fleet|flota|flotte|flotta/i.test(q)
+              ? "fleet"
+              : /agents|agentes|agenten|agenti/i.test(q)
+                ? "agents"
+                : /health|salud|sant[eé]|gesundheit|salute/i.test(q)
+                  ? "health"
+                  : "map";
     proposeAction("open_panel", { panel }, ctx, caller, actions, trace);
     const pName = PANEL_LABELS[panel]?.[lang] ?? panel;
     return {
@@ -765,6 +885,49 @@ export async function offlineReply(
               de: `Panel ${pName} geöffnet.`,
               it: `Pannello ${pName} aperto.`,
             }),
+      actions,
+      trace,
+      route: [caller],
+    };
+  }
+
+  // 4b. Onboard camera / helmet visor vision capture (B39)
+  if (
+    /(?<![\p{L}\d])(lo\s+que\s+(?:estoy\s+viendo|veo)|qu[eé]\s+(?:estoy\s+viendo|veo|hay\s+frente\s+a\s+m[ií]|ves?\s+ah[ií]|ve\s+el\s+(?:rover|drone|dron|rescue|manipulador))|puedes?\s+ver\s+lo\s+que|pod[eé]s\s+ver\s+lo\s+que|what\s+(?:am\s+i\s+seeing|do\s+i\s+see|is\s+in\s+front\s+of\s+me|does\s+(?:the\s+)?(?:rover|drone|rescue)\s+see)|can\s+you\s+see\s+what\s+i|analiz[aáe]\s+(?:la\s+c[aá]mara|mi\s+vista|lo\s+que\s+veo)|inspect\s+(?:the\s+camera|my\s+view))(?![\p{L}\d])/iu.test(
+      q,
+    )
+  ) {
+    const caller = "SUIT.VOICE-EXEC";
+    const explicitUnit = matchExplicitUnitId(q);
+    const isFirstPerson =
+      /(?<![\p{L}\d])(estoy\s+viendo|veo|frente\s+a\s+m[ií]|mi\s+casco|mi\s+visor|am\s+i\s+seeing|do\s+i\s+see|in\s+front\s+of\s+me|what\s+i\s+see|what\s+i'm\s+seeing)(?![\p{L}\d])/iu.test(
+        q,
+      );
+    const unitId = isFirstPerson ? "astronaut" : (explicitUnit ?? "rover-2");
+    proposeAction("capture_vision", { unit_id: unitId, question: q }, ctx, caller, actions, trace);
+    return {
+      speech: pick(lang, {
+        es:
+          unitId === "astronaut"
+            ? "Capturando cámara del visor del casco para analizar tu vista."
+            : `Capturando cámara a bordo de ${unitId}.`,
+        en:
+          unitId === "astronaut"
+            ? "Capturing helmet visor camera frame to analyze your view."
+            : `Capturing onboard camera frame from ${unitId}.`,
+        fr:
+          unitId === "astronaut"
+            ? "Capture de la caméra de visière du casque en cours."
+            : `Capture de la caméra embarquée de ${unitId}.`,
+        de:
+          unitId === "astronaut"
+            ? "Helmkamera-Aufnahme wird analysiert."
+            : `Bordkamera von ${unitId} wird aufgenommen.`,
+        it:
+          unitId === "astronaut"
+            ? "Acquisizione fotocamera visiera casco in corso."
+            : `Acquisizione fotocamera di bordo di ${unitId}.`,
+      }),
       actions,
       trace,
       route: [caller],
@@ -1014,8 +1177,37 @@ export async function offlineReply(
     };
   }
 
-  // 8. Weather & Radiation (WEATHER-RAD)
-  if (/\b(tormenta|storm|temp[eê]te|sturm|tempesta|clima|weather|m[eé]t[eé]o|wetter|meteo|pronost\w*|forecast|solar|sep2017|donki|radiaci[oó]n|radiation|rayonnement|strahlung|radiazione|dosis|dose|polvo|dust|poussi[eè]re|staub|polvere)\b/i.test(q)) {
+  // 8. Weather & Radiation (SUIT.VOICE-EXEC conversational ambient vs. WEATHER-RAD specialist)
+  if (/\b(tormenta|storm|temp[eê]te|sturm|tempesta|clima|weather|m[eé]t[eé]o|wetter|meteo|pronost\w*|forecast|solar|sep2017|donki|radiaci[oó]n|radiation|rayonnement|strahlung|radiazione|dosis|dose|polvo|dust|poussi[eè]re|staub|polvere|temperatura|temperature|temp[eé]rature|temperatur|viento|wind|vent|vento|presi[oó]n\s+atmosf\w*|air\s+pressure|opacidad|tau)\b/i.test(q)) {
+    const isSpecialistWeatherOrRad =
+      /\b(tormenta|storm|temp[eê]te|sturm|tempesta|pronost\w*|forecast|solar|sep2017|donki|radiaci[oó]n|radiation|rayonnement|strahlung|radiazione|dosis|dose|polvo|dust|poussi[eè]re|staub|polvere|eva|salir|go\s+out)\b/i.test(
+        q,
+      );
+    if (!isSpecialistWeatherOrRad) {
+      const caller = "SUIT.VOICE-EXEC";
+      const env = await execRead("get_environment", {}, ctx, caller, trace);
+      const evalRes = await execRead(
+        "evaluate_eva_weather",
+        { duration_min: 120, return_to_shelter_min: 25 },
+        ctx,
+        caller,
+        trace,
+      );
+      const tempC = Math.round((env.air_temp_k ?? 220) - 273.15);
+      return {
+        speech: pick(lang, {
+          es: `Clima actual: ${tempC} °C (${env.air_temp_k} K), viento ${env.wind_ms} m/s, presión ${env.pressure_pa} Pa, opacidad tau ${env.tau.toFixed(2)}, dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h (veredicto EVA: ${evalRes.verdict}).`,
+          en: `Current weather: ${tempC} °C (${env.air_temp_k} K), wind ${env.wind_ms} m/s, pressure ${env.pressure_pa} Pa, dust tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} uGy/h (EVA verdict: ${evalRes.verdict}).`,
+          fr: `Météo actuelle : ${tempC} °C (${env.air_temp_k} K), vent ${env.wind_ms} m/s, pression ${env.pressure_pa} Pa, tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h (verdict EVA : ${evalRes.verdict}).`,
+          de: `Aktuelles Wetter: ${tempC} °C (${env.air_temp_k} K), Wind ${env.wind_ms} m/s, Druck ${env.pressure_pa} Pa, Tau ${env.tau.toFixed(2)}, Dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h (EVA: ${evalRes.verdict}).`,
+          it: `Meteo attuale: ${tempC} °C (${env.air_temp_k} K), vento ${env.wind_ms} m/s, pressione ${env.pressure_pa} Pa, tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h (EVA: ${evalRes.verdict}).`,
+        }),
+        actions,
+        trace,
+        route: [caller],
+      };
+    }
+
     const caller = "WEATHER-RAD";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
@@ -1165,12 +1357,94 @@ export async function offlineReply(
     /(?<![\p{L}\d])(despeg[\p{L}]*|take ?off|décoll[\p{L}]*|abheb[\p{L}]*|decoll[\p{L}]*|aterriz[\p{L}]*|land|atterr[\p{L}]*|fotograf[\p{L}]*|photograph[\p{L}]*|foto|photo|vigil[\p{L}]*|overwatch|hover|sobrevol[\p{L}]*|segu[\p{L}]*|s[ií]gueme|follow|suivre|suis[- ]moi|folg[\p{L}]*|volv[\p{L}]*|regres[\p{L}]*|return|back to base|zur[uü]ck|torna|relev[\p{L}]*|survey|inspeccion[\p{L}]*|erkund[\p{L}]*|qu[eé]date|quedate|hold(?:\s+position)?|stay there|halte|repetidor|relay|relais|ripetitore|traeme|tr[aá]eme|deliver|supplies|suministr[\p{L}]*|bring.*oxygen|apporte|portami)(?![\p{L}\d])/iu.test(
       q,
     );
+  const isMovementOrDispatchVerb =
+    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move|ven[ií]?|come|ac[eé]rcate|approach|go\s+to|ir\s+a|ve\s+a|and[aá]\s+a|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
+      q,
+    );
+  const isReadOnlyFleetOrLoc =
+    !isUnitActionPhrase &&
+    !isMovementOrDispatchVerb &&
+    /(?<![\p{L}\d])(cu[aá]nt[oa]s?|how\s+many|combien|wie\s+viele|quanti|qu[eé]\s+(?:veh[ií]culos?|unidades|robots?|rovers?|drones?)|which\s+(?:vehicles?|units?|robots?|rovers?|drones?)|veh[ií]culos?|vehicles?|unidades|units|flota|fleet|robots?|rover|rvr|drone?|scout|glider|manip(?:ulador|ulator)?|hands|rescue|rescate|localiza[\p{L}]*|lidar|d[oó]nde|where|o[uù]|wo|dov'[eè]|dove|ubicaci[oó]n|coordenada[\p{L}]*|posici[oó]n|position|location|distancia|distance|how\s+far|bater[ií]a|battery)(?![\p{L}\d])/iu.test(
+      q,
+    );
+
+  if (isReadOnlyFleetOrLoc) {
+    const caller = "SUIT.VOICE-EXEC";
+    const explicitUnit = matchExplicitUnitId(q, ctx);
+    const units = await execRead("list_units", {}, ctx, caller, trace);
+    const loc = await execRead(
+      "get_localization_and_lidar",
+      explicitUnit ? { unit_id: explicitUnit } : {},
+      ctx,
+      caller,
+      trace,
+    );
+    const a = loc.astronaut;
+    const fleetList: any[] = Array.isArray(loc.fleet) ? loc.fleet : (Array.isArray(units) ? units : []);
+    const isCountOrListQuery =
+      !explicitUnit &&
+      /(?<![\p{L}\d])(cu[aá]nt[oa]s?|how\s+many|combien|wie\s+viele|quanti|qu[eé]\s+(?:veh[ií]culos?|unidades|robots?|rovers?|drones?)|which\s+(?:vehicles?|units?|robots?|rovers?|drones?)|veh[ií]culos?|vehicles?|unidades|units|flota|fleet|robots?|rovers?|drones?)(?![\p{L}\d])/iu.test(
+        q,
+      );
+
+    if (isCountOrListQuery) {
+      const total = fleetList.length;
+      const rovers = fleetList.filter((u) => String(u.kind).startsWith("rover") || u.kind === "manipulator" || u.kind === "scout").length;
+      const rescues = fleetList.filter((u) => u.kind === "rescue").length;
+      const aircraft = fleetList.filter((u) => u.kind === "drone" || u.kind === "glider").length;
+      const summary = fleetList
+        .map((u) => `${u.id} (${u.x}, ${u.z}) m a ${u.distance_to_astronaut_m ?? 0} m (${Math.round((u.battery ?? 0) * 100)}%)`)
+        .join(", ");
+      return {
+        speech: pick(lang, {
+          es: `Hay ${total} vehículos en la flota (${rovers} rovers, ${rescues} rescate, ${aircraft} drones/aeronaves): ${summary}.`,
+          en: `There are ${total} fleet vehicles (${rovers} rovers, ${rescues} rescue, ${aircraft} drones/aircraft): ${summary}.`,
+          fr: `Il y a ${total} véhicules dans la flotte (${rovers} rovers, ${rescues} secours, ${aircraft} drones) : ${summary}.`,
+          de: `Es gibt ${total} Flottenfahrzeuge (${rovers} Rover, ${rescues} Rettung, ${aircraft} Drohnen): ${summary}.`,
+          it: `Ci sono ${total} veicoli nella flotta (${rovers} rover, ${rescues} soccorso, ${aircraft} droni): ${summary}.`,
+        }),
+        actions,
+        trace,
+        route: [caller],
+      };
+    }
+
+    const u = explicitUnit
+      ? fleetList.find((f: any) => f.id === explicitUnit)
+      : fleetList[0];
+    if (explicitUnit && u) {
+      const batPct = Math.round((u.battery ?? 0) * 100);
+      return {
+        speech: pick(lang, {
+          es: `${u.id} está en (${u.x}, ${u.z}) m, a ${u.distance_to_astronaut_m} m de tu posición (${a.x}, ${a.z}) m, batería ${batPct}%, pendiente ${u.slope_deg}°.`,
+          en: `${u.id} is at (${u.x}, ${u.z}) m, ${u.distance_to_astronaut_m} m from your position (${a.x}, ${a.z}) m, battery ${batPct}%, slope ${u.slope_deg}°.`,
+          fr: `${u.id} est à (${u.x}, ${u.z}) m, à ${u.distance_to_astronaut_m} m de vous (${a.x}, ${a.z}) m, batterie ${batPct}%, pente ${u.slope_deg}°.`,
+          de: `${u.id} ist bei (${u.x}, ${u.z}) m, ${u.distance_to_astronaut_m} m entfernt (${a.x}, ${a.z}) m, Batterie ${batPct}%, Neigung ${u.slope_deg}°.`,
+          it: `${u.id} è a (${u.x}, ${u.z}) m, a ${u.distance_to_astronaut_m} m da te (${a.x}, ${a.z}) m, batteria ${batPct}%, pendenza ${u.slope_deg}°.`,
+        }),
+        actions,
+        trace,
+        route: [caller],
+      };
+    }
+
+    return {
+      speech: pick(lang, {
+        es: `MRL HiRISE + UWB 6.5 GHz + LiDAR: astronauta en (${a.x}, ${a.z}) m (${a.lat_deg}°, ${a.lon_e_deg}°E); ${u?.id ?? "flota"} a ${u?.distance_to_astronaut_m ?? 0} m.`,
+        en: `HiRISE MRL + 6.5 GHz UWB + LiDAR: astronaut at (${a.x}, ${a.z}) m (${a.lat_deg}°, ${a.lon_e_deg}°E); ${u?.id ?? "fleet"} ${u?.distance_to_astronaut_m ?? 0} m away.`,
+        fr: `MRL HiRISE + UWB 6.5 GHz + LiDAR : astronaute à (${a.x}, ${a.z}) m (${a.lat_deg}°, ${a.lon_e_deg}°E) ; ${u?.id ?? "flotte"} à ${u?.distance_to_astronaut_m ?? 0} m.`,
+        de: `HiRISE MRL + 6.5 GHz UWB + LiDAR: Astronaut bei (${a.x}, ${a.z}) m (${a.lat_deg}°, ${a.lon_e_deg}°E); ${u?.id ?? "Flotte"} ${u?.distance_to_astronaut_m ?? 0} m entfernt.`,
+        it: `HiRISE MRL + UWB 6.5 GHz + LiDAR: astronauta a (${a.x}, ${a.z}) m (${a.lat_deg}°, ${a.lon_e_deg}°E); ${u?.id ?? "flotta"} a ${u?.distance_to_astronaut_m ?? 0} m.`,
+      }),
+      actions,
+      trace,
+      route: [caller],
+    };
+  }
 
   if (
     isUnitActionPhrase ||
-    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move|rover|drone?|scout|glider|manip(?:ulador|ulator)?|hands|rescue|rescate|ven[ií]?|come|ac[eé]rcate|go\s+to|ir\s+a|here|aqu[ií]|ac[aá]|posici[oó]n|position|localiza[\p{L}]*|lidar|ubicaci[oó]n|coordenada[\p{L}]*|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
-      q,
-    )
+    isMovementOrDispatchVerb
   ) {
     const unitId = parseUnitId(q, ctx, history);
     const robotAgent = unitId ? `ROBOT.${unitId}` : "BASE";

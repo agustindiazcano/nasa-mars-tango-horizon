@@ -25,6 +25,7 @@ export type HudPanel =
   | "base"
   | "provenance"
   | "language"
+  | "menu"
   | "none";
 
 export interface AstronautSnapshot {
