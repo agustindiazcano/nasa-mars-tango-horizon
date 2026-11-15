@@ -91,17 +91,25 @@ export class TerrainProc {
     scene.add(this.markersGroup);
   }
 
-  /** Attempts to load real NASA/USGS HiRISE height_2048.u16 if served; keeps procedural fallback otherwise. */
+  loadError = "";
+
+  /** Each asset has a 60 s deadline. Startup retries three times, then requires manual retry. */
   async tryLoadRealDem(base = "/data/terrain"): Promise<boolean> {
     try {
-      const metaRes = await fetch(`${base}/meta.json`, { signal: AbortSignal.timeout(2500) });
-      if (!metaRes.ok) return false;
+      const metaRes = await fetch(`${base}/meta.json`, { signal: AbortSignal.timeout(60000) });
+      if (!metaRes.ok) throw new Error(`Metadata HTTP ${metaRes.status}`);
       const meta = (await metaRes.json()) as TerrainMeta;
-      const u16Res = await fetch(`${base}/height_2048.u16`, { signal: AbortSignal.timeout(6000) });
-      if (!u16Res.ok) return false;
+      if (!Number.isInteger(meta.height_px) || meta.height_px < 2 || meta.height_px > 8192 ||
+          meta.size_m !== this.sizeM || !meta.product_id ||
+          ![meta.z_min_m, meta.z_max_m, meta.center_lat, meta.center_lon_e].every(Number.isFinite) ||
+          meta.z_max_m <= meta.z_min_m || Math.abs(meta.center_lat) > 90) {
+        throw new Error("Invalid or incompatible terrain metadata");
+      }
+      const u16Res = await fetch(`${base}/height_2048.u16`, { signal: AbortSignal.timeout(60000) });
+      if (!u16Res.ok) throw new Error(`Height HTTP ${u16Res.status}`);
       const raw = new Uint16Array(await u16Res.arrayBuffer());
       const srcN = meta.height_px;
-      if (raw.length < srcN * srcN) return false;
+      if (raw.length !== srcN * srcN) throw new Error("Incorrect DEM byte length");
       const mid = (meta.z_min_m + meta.z_max_m) / 2;
       const span = meta.z_max_m - meta.z_min_m;
       const n = this.gridN;
@@ -117,9 +125,11 @@ export class TerrainProc {
       this.recomputeDerivedFields();
       this.applyHeightsToGeometry(this.mesh.geometry);
       this.refreshTextures();
-      this.refreshMarkerHeights();
+      this.markersGroup.clear();
+      this.buildMarkers();
       return true;
-    } catch {
+    } catch (error) {
+      this.loadError = error instanceof Error ? error.message : String(error);
       return false;
     }
   }
@@ -490,13 +500,7 @@ export class TerrainProc {
     this.markersGroup.add(line);
   }
 
-  private refreshMarkerHeights(): void {
-    for (const child of this.markersGroup.children) {
-      if (child.name.startsWith("station:")) {
-        child.position.y = this.heightAt(child.position.x, child.position.z);
-      }
-    }
-  }
+
 }
 
 export function makeSpriteLabel(text: string, color = "#35e0ff"): THREE.Sprite {

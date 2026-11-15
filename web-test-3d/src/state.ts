@@ -101,8 +101,8 @@ export class MissionStore {
     dose_rate_ugy_h: 9.8,
     sun_elev_deg: 54,
     earth_light_time_s: 492, // ~8.2 min one-way from JPL Horizons sample
-    storm_source: "REMS MSL baseline (Clear Sol)",
-    rad_source: "RAD MSL quiet baseline",
+    storm_source: "Design clear atmosphere",
+    rad_source: "Design quiet absorbed dose",
   };
 
   fleet: UnitSnapshot[] = [];
