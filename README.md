@@ -83,7 +83,7 @@ Tango Horizon is a real-time 3D Mars surface EVA operations simulator over NASA/
 | Shared Physics & Testing | TypeScript (`@th/shared`: Pandolf metabolic rate, choked orifice flow, RK4 ballistics, sky-view-factor dose, A*/route planners), Vitest (`vitest`) |
 | Data Science & GIS Pipeline | Python 3, NumPy, Pandas, SciPy, scikit-learn, `joblib`, PyTorch (`torch`), `transformers`, Pillow, Matplotlib, Rasterio, PyProj, PyMuPDF (`pymupdf`), Requests |
 | Google Cloud & IaC | Terraform (`infra/terraform/`), Cloud Run, Cloud Build, Artifact Registry, Secret Manager, Vertex AI, Cloud Text-to-Speech, Cloud IAM (`tango-horizon-sa`) |
-| Containers, Hosting & Repo Workflow | Docker (`node:22-slim` multi-stage build), Vercel (Edge CDN + `/remote` rewrite), GitHub (branches & Pull Requests), `deploy.sh` |
+| Containers, Hosting & CI/CD | Docker (`node:22-slim` multi-stage build), GitHub Actions (`.github/workflows/ci.yml` parallel test & build jobs), Vercel (Edge CDN + `/remote` rewrite), GitHub (branches & Pull Requests), `deploy.sh` |
 
 ## Workspaces & Commands
 

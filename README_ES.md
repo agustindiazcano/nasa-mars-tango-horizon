@@ -83,7 +83,7 @@ Tango Horizon es un simulador 3D en tiempo real de operaciones EVA sobre cartogr
 | Física compartida y tests | TypeScript (`@th/shared`: tasa metabólica Pandolf, flujo estrangulado, balística RK4, dosis por factor de vista de cielo, planificadores de ruta), Vitest (`vitest`) |
 | Ciencia de datos y pipeline GIS | Python 3, NumPy, Pandas, SciPy, scikit-learn, `joblib`, PyTorch (`torch`), `transformers`, Pillow, Matplotlib, Rasterio, PyProj, PyMuPDF (`pymupdf`), Requests |
 | Google Cloud e IaC | Terraform (`infra/terraform/`), Cloud Run, Cloud Build, Artifact Registry, Secret Manager, Vertex AI, Cloud Text-to-Speech, Cloud IAM (`tango-horizon-sa`) |
-| Contenedores, hosting y flujo de código | Docker (`node:22-slim` multi-etapa), Vercel (CDN Edge + rewrite `/remote`), GitHub (ramas y Pull Requests), `deploy.sh` |
+| Contenedores, hosting y CI/CD | Docker (`node:22-slim` multi-etapa), GitHub Actions (`.github/workflows/ci.yml` jobs paralelos de test y build), Vercel (CDN Edge + rewrite `/remote`), GitHub (ramas y Pull Requests), `deploy.sh` |
 
 ## Workspaces y comandos
 
