@@ -1,6 +1,6 @@
 import { inject } from "@vercel/analytics";
 import { wsUrl } from "../api";
-import { setLang, t, type Lang, LANGS } from "../core/i18n";
+import { setLang, t, type Lang, LANGS } from "@th/shared";
 
 inject({ mode: import.meta.env.DEV ? "development" : "production" });
 

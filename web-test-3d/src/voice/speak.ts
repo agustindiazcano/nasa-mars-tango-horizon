@@ -1,5 +1,5 @@
 import { apiUrl } from "../api";
-import { getLang, TTS_LOCALE, type Lang } from "../core/i18n";
+import { getLang, TTS_LOCALE, type Lang } from "@th/shared";
 
 export class RadioSpeaker {
   private ctx: AudioContext | null = null;

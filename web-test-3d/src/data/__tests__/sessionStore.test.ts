@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { setLang } from "../../core/i18n";
+import { setLang } from "@th/shared";
 import { MissionStore } from "../../state";
 import {
   ACTIVE_SESSION_LS_KEY,

@@ -1,4 +1,4 @@
-import { getLang, onLangChange, type Lang } from "../core/i18n";
+import { getLang, onLangChange, type Lang } from "@th/shared";
 import type { MissionStore, TranscriptLine } from "../state";
 
 export const SESSION_DB_NAME = "tango-horizon-sessions";

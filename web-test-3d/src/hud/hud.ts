@@ -1,9 +1,9 @@
 import { BASE_ORIGIN, MISSION_SITES } from "@th/shared";
 import { formatCoordinates } from "../world/terrainValidation";
 import { hydrationRgb } from "../world/terrainRasters";
-import { ASR_LOCALE, fmt, getLang, LANG_NAME, LANGS, onLangChange, setLang, t } from "../core/i18n";
-import { C, leakTimeline } from "../core/physics";
-import type { AlertLevel, ArmSkillId, LayerId, PanelId, TraceEvent, VotingTraceDetail } from "../core/types";
+import { ASR_LOCALE, fmt, getLang, LANGS, onLangChange, setLang, t } from "@th/shared";
+import { C, leakTimeline } from "@th/shared";
+import type { AlertLevel, ArmSkillId, LayerId, PanelId, TraceEvent, VotingTraceDetail } from "@th/shared";
 import {
   categorizeProvenanceKey,
   fetchProvenanceManifest,
@@ -192,7 +192,7 @@ export class TacticalHud {
   private buildBottomStatic(): void {
     const langBtns = LANGS.map(
       (l) =>
-        `<button class="hud-btn ${getLang() === l ? "active" : ""}" data-pointable data-lang="${l}">${LANG_NAME[l]}</button>`,
+        `<button class="hud-btn ${getLang() === l ? "active" : ""}" data-pointable data-lang="${l}">${l.toUpperCase()}</button>`,
     ).join("");
 
     const menuItems: { panel: PanelId; key: string }[] = [

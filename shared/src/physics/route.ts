@@ -8,6 +8,9 @@ export interface Grid {
   doseRel: Float32Array; // sky view factor 0..1, length n*n
 }
 
+/** Alias used by terrain/planning callers. */
+export type RouteGrid = Grid;
+
 export interface RouteOpts {
   bodyKg: number;
   loadKg: number;

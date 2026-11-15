@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { ArmSkillId } from "../core/types";
+import type { ArmSkillId } from "@th/shared";
 
 export type ArmTool = "gripper" | "drill" | "scoop" | "camera";
 

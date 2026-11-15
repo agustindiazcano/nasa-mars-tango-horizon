@@ -1,5 +1,5 @@
-import { mulberry32 } from "../core/physics";
-import type { LayerId } from "../core/types";
+import { mulberry32 } from "@th/shared";
+import type { LayerId } from "@th/shared";
 
 export type RenderLayerId = LayerId | "hydration_unc";
 

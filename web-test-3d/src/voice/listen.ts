@@ -1,4 +1,4 @@
-import { ASR_LOCALE, getLang } from "../core/i18n";
+import { ASR_LOCALE, getLang } from "@th/shared";
 
 type SpeechRec = {
   lang: string;

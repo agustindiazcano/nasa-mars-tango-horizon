@@ -7,8 +7,8 @@ import {
 } from "@th/shared";
 import * as THREE from "three";
 import { TerrainLoader } from "./terrainLoader";
-import { mulberry32, terrainFromThermalClass, type RouteGrid } from "../core/physics";
-import type { LayerId } from "../core/types";
+import { mulberry32, terrainFromThermalClass, type RouteGrid } from "@th/shared";
+import type { LayerId } from "@th/shared";
 import {
   DEFAULT_HYDRATION_META,
   decodeHydrationByte,

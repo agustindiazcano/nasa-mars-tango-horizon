@@ -32,11 +32,13 @@ import {
   simulateDelivery,
   aimDelivery,
   landingEllipse,
+  mulberry32,
 } from "../podDelivery.js";
 import { doseRate, doseRateWithAlbedo, cumulativeDose } from "../dose.js";
 import * as radiation from "../radiation.js";
 import { solarPowerW, estimateSolarPower } from "../solar.js";
 import { createInitialSuitState, stepSuitState } from "../suitState.js";
+import { stepSuitTelemetry, type SimSuitTelemetry } from "../suitTelemetry.js";
 import { planRoute, type Grid } from "../route.js";
 
 describe("constants provenance", () => {
@@ -354,5 +356,49 @@ describe("A* EVA route planner", () => {
         doseWeight: 0,
       }),
     ).toBeNull();
+  });
+});
+
+describe("stepSuitTelemetry and mulberry32", () => {
+  it("steps PLSS telemetry under nominal and degraded-fan leak conditions", () => {
+    const base: SimSuitTelemetry = {
+      o2_primary_kg: 1.08,
+      o2_primary_cap_kg: 1.08,
+      o2_reserve_kg: 0.45,
+      o2_reserve_cap_kg: 0.45,
+      suit_pressure_pa: 29600,
+      pao2_pa: 23000,
+      co2_pa: 220,
+      battery_wh: 740,
+      battery_cap_wh: 740,
+      coolant_l: 4.5,
+      coolant_cap_l: 4.5,
+      metabolic_w: 240,
+      heart_rate_bpm: 84,
+      fan_rpm: 28400,
+      body_temp_c: 36.9,
+      cumulative_dose_ugy: 0,
+    };
+    const nom = stepSuitTelemetry(base, 10, 320, 0, 20, 0.5, false);
+    expect(nom.o2_primary_kg).toBeLessThan(base.o2_primary_kg);
+    expect(nom.battery_wh).toBeLessThan(base.battery_wh);
+    expect(nom.cumulative_dose_ugy).toBeCloseTo((20 * 0.5 * 10) / 3600, 6);
+
+    const leak = stepSuitTelemetry(base, 10, 360, 0.002, 20, 1.0, true);
+    expect(leak.suit_pressure_pa).toBeLessThan(base.suit_pressure_pa);
+    expect(leak.o2_reserve_kg).toBeLessThan(base.o2_reserve_kg);
+    expect(leak.co2_pa).toBeGreaterThan(base.co2_pa);
+    expect(leak.fan_rpm).toBeLessThan(base.fan_rpm);
+  });
+
+  it("mulberry32 returns reproducible [0, 1) draws for identical seeds", () => {
+    const a = mulberry32(42);
+    const b = mulberry32(42);
+    for (let i = 0; i < 5; i++) {
+      const va = a();
+      expect(va).toBeGreaterThanOrEqual(0);
+      expect(va).toBeLessThan(1);
+      expect(va).toBe(b());
+    }
   });
 });

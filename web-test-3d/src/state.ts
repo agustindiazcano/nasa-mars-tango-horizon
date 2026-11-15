@@ -1,6 +1,6 @@
 import { ASTRONAUT_START, MISSION_SITES_BY_ID, type TerrainIdentity } from "@th/shared";
-import { ASR_LOCALE, getLang, type Lang } from "./core/i18n";
-import { C, directTransmission } from "./core/physics";
+import { ASR_LOCALE, getLang, type Lang } from "@th/shared";
+import { C, directTransmission } from "@th/shared";
 import type {
   Action,
   ArmSkillId,
@@ -12,10 +12,10 @@ import type {
   PodTelemetry,
   RouteDisplay,
   SampleRecord,
-  SuitTelemetry,
+  SimSuitTelemetry as SuitTelemetry,
   TraceEvent,
   UnitSnapshot,
-} from "./core/types";
+} from "@th/shared";
 
 export interface WorldHooks {
   onLayerChange?(layer: LayerId): void;

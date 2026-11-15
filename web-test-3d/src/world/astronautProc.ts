@@ -1,6 +1,6 @@
 import { ASTRONAUT_START, BASE_ORIGIN } from "@th/shared";
 import * as THREE from "three";
-import { metabolicRateW, terrainFromThermalClass } from "../core/physics";
+import { metabolicRateW, terrainFromThermalClass } from "@th/shared";
 import type { TerrainProc } from "./terrainProc";
 
 export type PovMode = "1st" | "3rd" | "iso";

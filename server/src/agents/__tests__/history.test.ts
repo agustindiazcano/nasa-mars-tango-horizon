@@ -14,7 +14,7 @@ import { ruleCheck } from "../guardian.js";
 import { handleVoice } from "../hierarchy.js";
 import { offlineReply } from "../offline.js";
 import { registerAgentRoutes } from "../routes.js";
-import { setLang } from "../../../../web-test-3d/src/core/i18n";
+import { setLang } from "@th/shared";
 import { MissionStore } from "../../../../web-test-3d/src/state";
 import { VoiceController } from "../../../../web-test-3d/src/voice/voiceController";
 
