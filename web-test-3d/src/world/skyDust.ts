@@ -130,7 +130,7 @@ export class SkyDust {
     this.sunLight.shadow.camera.bottom = -d;
     scene.add(this.sunLight);
 
-    this.ambientLight = new THREE.HemisphereLight(0xd99e72, 0x4d2a18, 0.72);
+    this.ambientLight = new THREE.HemisphereLight(0xe3a67a, 0x6a3c24, 1.0);
     scene.add(this.ambientLight);
   }
 
@@ -159,7 +159,7 @@ export class SkyDust {
     const storm = THREE.MathUtils.clamp((tau - 0.5) / 6.0, 0, 1);
     this.sunLight.intensity = THREE.MathUtils.lerp(2.4, 0.45, storm);
     this.sunLight.position.set(anchorX, anchorY, anchorZ).addScaledVector(this.sunDir, 500);
-    this.ambientLight.intensity = THREE.MathUtils.lerp(0.72, 0.35, storm);
+    this.ambientLight.intensity = THREE.MathUtils.lerp(1.0, 0.45, storm);
 
     const fogColor = new THREE.Color().setRGB(
       THREE.MathUtils.lerp(0.78, 0.56, storm),

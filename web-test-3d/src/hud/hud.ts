@@ -117,7 +117,7 @@ export class TacticalHud {
 
     this.qrCanvas = document.createElement("canvas");
     this.qrUrlEl = document.createElement("div");
-    this.qrUrlEl.style.cssText = "font-size:10px; word-break:break-all; margin:6px 0; color:#8fd8ef;";
+    this.qrUrlEl.style.cssText = "font-size:10px; word-break:break-all; margin:6px 0; color:#e8c9a8;";
     this.buildQrContainer();
     this.buildBottomStatic();
 
@@ -460,7 +460,7 @@ export class TacticalHud {
       .slice(0, 3)
       .map(
         (a) =>
-          `<div style="font-size:10px; margin-top:4px; color:${a.level === "crit" ? "#ff6884" : a.level === "warn" ? "#ffd166" : "#9be8ff"}">• ${a.text}</div>`,
+          `<div style="font-size:10px; margin-top:4px; color:${a.level === "crit" ? "#ff6884" : a.level === "warn" ? "#ffd166" : "#e8c9a8"}">• ${a.text}</div>`,
       )
       .join("");
 
@@ -554,7 +554,7 @@ export class TacticalHud {
         .slice(-4)
         .map(
           (tr) =>
-            `<div><b style="color:${tr.who === "you" ? "#ffb800" : "#35e0ff"}">${tr.who.toUpperCase()}:</b> ${escapeHtml(tr.text)}</div>`,
+            `<div><b style="color:${tr.who === "you" ? "#f3ece3" : "#ffb36b"}">${tr.who.toUpperCase()}:</b> ${escapeHtml(tr.text)}</div>`,
         )
         .join("");
       txBox.scrollTop = txBox.scrollHeight;
@@ -979,7 +979,7 @@ export class TacticalHud {
                 return `
                   <div class="session-entry-row">
                     <div>
-                      <b style="color:${e.who === "you" ? "#ffb800" : "#35e0ff"}">${e.who.toUpperCase()}</b>
+                      <b style="color:${e.who === "you" ? "#f3ece3" : "#ffb36b"}">${e.who.toUpperCase()}</b>
                       <span style="opacity:0.7; font-size:10px; margin-left:6px;">${badges.join(" · ")}</span>
                     </div>
                     <div>${escapeHtml(e.text)}</div>

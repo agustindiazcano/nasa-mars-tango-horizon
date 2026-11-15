@@ -130,7 +130,7 @@ export class TerrainProc {
   private realOptical: THREE.Texture | null = null;
   private activeLayer: LayerId = "optical";
   private detailNormalMap: THREE.DataTexture | null = null;
-  private rippleDetailMap: THREE.DataTexture;
+  private regolithDetailMap: THREE.DataTexture;
   private uIsOptical = { value: 1.0 };
   private material: THREE.MeshStandardMaterial;
   private routeLine: THREE.Line | null = null;
@@ -163,15 +163,15 @@ export class TerrainProc {
       hydration: this.buildLayerTexture("hydration"),
     };
     this.hydrationUncTexture = this.buildLayerTexture("hydration_unc");
-    this.rippleDetailMap = this.buildRippleDetailMap();
+    this.regolithDetailMap = this.buildRegolithDetailMap();
 
     this.material = new THREE.MeshStandardMaterial({
       map: this.textures.optical,
-      roughness: 0.9,
-      metalness: 0.05,
-      normalScale: new THREE.Vector2(0.38, 0.38),
+      roughness: 0.96,
+      metalness: 0,
+      normalScale: new THREE.Vector2(0.55, 0.55),
     });
-    this.attachMartianPomShader();
+    this.attachRegolithShader();
 
     this.initChunks();
     this.updateLod(0, 0, true);
@@ -348,44 +348,111 @@ export class TerrainProc {
     this.material.needsUpdate = true;
   }
 
-  /** Builds a tileable 256x256 eolian sand-ripple normal (RGB) + height (A) texture for POM. */
-  private buildRippleDetailMap(): THREE.DataTexture {
-    const n = 256;
-    const hField = new Float32Array(n * n);
-    const twoPi = Math.PI * 2;
-    for (let y = 0; y < n; y++) {
-      const v = (y / n) * twoPi;
-      for (let x = 0; x < n; x++) {
-        const u = (x / n) * twoPi;
-        const warp = 0.42 * Math.sin(u * 2 + Math.cos(v * 2)) + 0.22 * Math.cos(v * 3 - u);
-        // Asymmetric wind-driven eolian sand ripples + fine regolith grain
-        const phase = u * 7 + v * 2 + warp * 2.2;
-        const primary = 0.5 + 0.5 * Math.sin(phase + 0.32 * Math.sin(phase));
-        const secondary = 0.5 + 0.5 * Math.sin(u * 13 - v * 5 + warp * 1.6);
-        const micro = 0.5 + 0.5 * Math.cos(u * 23 + v * 19);
-        hField[y * n + x] = primary * 0.62 + secondary * 0.26 + micro * 0.12;
+  /**
+   * Builds a tileable 512x512 regolith detail texture from periodic value-noise fBm plus scattered pebbles.
+   * Channels: RG = tangent normal xy, B = height, A = albedo variation (grain and pebble tone).
+   */
+  private buildRegolithDetailMap(): THREE.DataTexture {
+    const n = 512;
+    const rnd = mulberry32(90417);
+    const height = new Float32Array(n * n);
+    const tone = new Float32Array(n * n).fill(0.5);
+
+    const addNoise = (target: Float32Array, period: number, amp: number, ridged: boolean): void => {
+      const lattice = new Float32Array(period * period);
+      for (let k = 0; k < lattice.length; k++) lattice[k] = rnd();
+      const scale = period / n;
+      for (let y = 0; y < n; y++) {
+        const fy = y * scale;
+        const y0 = Math.floor(fy);
+        const ty = fy - y0;
+        const sy = ty * ty * (3 - 2 * ty);
+        const ya = (y0 % period) * period;
+        const yb = ((y0 + 1) % period) * period;
+        for (let x = 0; x < n; x++) {
+          const fx = x * scale;
+          const x0 = Math.floor(fx);
+          const tx = fx - x0;
+          const sx = tx * tx * (3 - 2 * tx);
+          const xa = x0 % period;
+          const xb = (x0 + 1) % period;
+          const top = lattice[ya + xa] * (1 - sx) + lattice[ya + xb] * sx;
+          const bot = lattice[yb + xa] * (1 - sx) + lattice[yb + xb] * sx;
+          let v = top * (1 - sy) + bot * sy;
+          if (ridged) v = 1 - Math.abs(v * 2 - 1);
+          target[y * n + x] += (v - 0.5) * amp;
+        }
+      }
+    };
+
+    // Broad undulation, ridged crusts, then fine grain
+    addNoise(height, 4, 0.5, false);
+    addNoise(height, 8, 0.34, false);
+    addNoise(height, 16, 0.22, true);
+    addNoise(height, 32, 0.14, false);
+    addNoise(height, 64, 0.09, true);
+    addNoise(height, 128, 0.06, false);
+    addNoise(height, 256, 0.04, false);
+
+    addNoise(tone, 6, 0.42, false);
+    addNoise(tone, 24, 0.24, false);
+    addNoise(tone, 96, 0.2, false);
+    addNoise(tone, 256, 0.22, false);
+
+    // Pebbles and clasts: domes with a power-law size distribution, each with its own tone
+    const pebbles = 1500;
+    for (let k = 0; k < pebbles; k++) {
+      const cx = rnd() * n;
+      const cy = rnd() * n;
+      const r = 1.6 + Math.pow(rnd(), 5) * 15;
+      const lift = 0.1 + r * 0.03;
+      const pebbleTone = 0.26 + rnd() * 0.5;
+      const squash = 0.7 + rnd() * 0.6;
+      const ang = rnd() * Math.PI;
+      const ca = Math.cos(ang);
+      const sa = Math.sin(ang);
+      const ext = Math.ceil(r * 1.5);
+      for (let dy = -ext; dy <= ext; dy++) {
+        for (let dx = -ext; dx <= ext; dx++) {
+          const u = (dx * ca + dy * sa) / squash;
+          const v = (-dx * sa + dy * ca) * squash;
+          const d = Math.hypot(u, v) / r;
+          if (d >= 1) continue;
+          const px = (((Math.round(cx) + dx) % n) + n) % n;
+          const py = (((Math.round(cy) + dy) % n) + n) % n;
+          const idx = py * n + px;
+          const dome = Math.sqrt(1 - d * d);
+          height[idx] = Math.max(height[idx], height[idx] * 0.35 + lift * dome);
+          const edge = Math.min(1, (1 - d) * 4);
+          tone[idx] = tone[idx] * (1 - edge) + pebbleTone * edge;
+        }
       }
     }
 
+    let hMin = Infinity;
+    let hMax = -Infinity;
+    for (let k = 0; k < height.length; k++) {
+      if (height[k] < hMin) hMin = height[k];
+      if (height[k] > hMax) hMax = height[k];
+    }
+    const hSpan = hMax - hMin || 1;
+
     const rgba = new Uint8Array(n * n * 4);
-    const amp = 2.8;
+    const amp = 46;
     for (let y = 0; y < n; y++) {
       const ym = (y - 1 + n) % n;
       const yp = (y + 1) % n;
       for (let x = 0; x < n; x++) {
         const xm = (x - 1 + n) % n;
         const xp = (x + 1) % n;
-        const dhdx = (hField[y * n + xp] - hField[y * n + xm]) * amp;
-        const dhdy = (hField[yp * n + x] - hField[ym * n + x]) * amp;
+        const dhdx = ((height[y * n + xp] - height[y * n + xm]) / hSpan) * amp;
+        const dhdy = ((height[yp * n + x] - height[ym * n + x]) / hSpan) * amp;
         const inv = 1 / Math.hypot(dhdx, dhdy, 1);
-        const nx = -dhdx * inv;
-        const ny = -dhdy * inv;
-        const nz = inv;
         const p = (y * n + x) * 4;
-        rgba[p] = Math.round((nx * 0.5 + 0.5) * 255);
-        rgba[p + 1] = Math.round((ny * 0.5 + 0.5) * 255);
-        rgba[p + 2] = Math.round((nz * 0.5 + 0.5) * 255);
-        rgba[p + 3] = Math.round(THREE.MathUtils.clamp(hField[y * n + x], 0, 1) * 255);
+        rgba[p] = Math.round((-dhdx * inv * 0.5 + 0.5) * 255);
+        rgba[p + 1] = Math.round((-dhdy * inv * 0.5 + 0.5) * 255);
+        rgba[p + 2] = Math.round(((height[y * n + x] - hMin) / hSpan) * 255);
+        rgba[p + 3] = Math.round(THREE.MathUtils.clamp(tone[y * n + x], 0, 1) * 255);
       }
     }
 
@@ -394,15 +461,20 @@ export class TerrainProc {
     tex.wrapT = THREE.RepeatWrapping;
     tex.magFilter = THREE.LinearFilter;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.anisotropy = 8;
     tex.generateMipmaps = true;
     tex.needsUpdate = true;
     return tex;
   }
 
-  /** Injects Steep Parallax / Parallax Occlusion Mapping (POM), ferric-oxide Martian regolith tinting, and horizon rim glow. */
-  private attachMartianPomShader(): void {
+  /**
+   * Shades the optical layer as Martian regolith: the grayscale HiRISE orthoimage drives albedo through a
+   * dust/basalt/bedrock palette, and a multi-scale detail texture adds grain, pebbles and micro-relief
+   * below the orthoimage resolution. Analytical layers bypass all of it (uIsOptical = 0).
+   */
+  private attachRegolithShader(): void {
     this.material.onBeforeCompile = (shader) => {
-      shader.uniforms.uRippleMap = { value: this.rippleDetailMap };
+      shader.uniforms.uDetailMap = { value: this.regolithDetailMap };
       shader.uniforms.uIsOptical = this.uIsOptical;
 
       shader.vertexShader = shader.vertexShader
@@ -428,78 +500,69 @@ export class TerrainProc {
           "#include <common>",
           /* glsl */ `
           #include <common>
-          uniform sampler2D uRippleMap;
+          uniform sampler2D uDetailMap;
           uniform float uIsOptical;
           varying vec3 vMarsWorldPos;
           varying vec3 vMarsWorldNorm;
-
-          vec2 marsPomUv(vec2 baseUv, vec3 viewDirWorld, float fade) {
-            if (fade <= 0.001) return baseUv;
-            const float numSteps = 8.0;
-            const float heightScale = 0.038;
-            vec2 rayDir = (vec2(viewDirWorld.x, viewDirWorld.z) / max(abs(viewDirWorld.y), 0.22)) * heightScale * fade;
-            vec2 stepUv = rayDir / numSteps;
-            vec2 currUv = baseUv;
-            float currLayer = 0.0;
-            float stepDepth = 1.0 / numSteps;
-            float currMap = 1.0 - texture2D(uRippleMap, currUv).a;
-            for (int i = 0; i < 8; i++) {
-              if (currLayer < currMap) {
-                currUv -= stepUv;
-                currMap = 1.0 - texture2D(uRippleMap, currUv).a;
-                currLayer += stepDepth;
-              }
-            }
-            vec2 prevUv = currUv + stepUv;
-            float afterDepth = currMap - currLayer;
-            float beforeDepth = (1.0 - texture2D(uRippleMap, prevUv).a) - currLayer + stepDepth;
-            float w = clamp(afterDepth / max(afterDepth - beforeDepth, 1e-4), 0.0, 1.0);
-            return mix(currUv, prevUv, w);
-          }
+          // Rotations between detail scales hide the tile grid
+          const mat2 MARS_ROT_B = mat2(0.7986, -0.6018, 0.6018, 0.7986);
+          const mat2 MARS_ROT_C = mat2(0.3584, 0.9336, -0.9336, 0.3584);
+          const mat2 MARS_ROT_D = mat2(-0.4695, 0.8829, -0.8829, -0.4695);
           `,
         )
         .replace(
           "#include <map_fragment>",
           /* glsl */ `
+          vec2 marsDetailN = vec2(0.0);
           #ifdef USE_MAP
-            vec3 marsCamToFrag = vMarsWorldPos - cameraPosition;
-            float marsCamDist = length(marsCamToFrag);
-            vec3 marsViewDirW = normalize(-marsCamToFrag);
-            float marsPomFade = smoothstep(190.0, 16.0, marsCamDist) * uIsOptical;
-            vec2 marsRippleUv = marsPomUv(vMarsWorldPos.xz * 0.34, marsViewDirW, marsPomFade);
-            vec4 marsRippleSample = texture2D(uRippleMap, marsRippleUv);
-            vec4 marsMacroSample = texture2D(uRippleMap, vMarsWorldPos.xz * 0.045);
-
-            vec2 orthoUv = vMapUv + (marsRippleUv - vMarsWorldPos.xz * 0.34) * 0.0012 * marsPomFade;
-            vec4 sampledDiffuseColor = texture2D(map, orthoUv);
-
+            vec4 sampledDiffuseColor = texture2D(map, vMapUv);
             if (uIsOptical > 0.5) {
-              float hiRiseLum = dot(sampledDiffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+              vec2 marsWp = vMarsWorldPos.xz;
+              float marsDist = length(vMarsWorldPos - cameraPosition);
+              float wNear = smoothstep(42.0, 3.0, marsDist);
+              float wMid = smoothstep(380.0, 24.0, marsDist);
+
+              vec4 dA = texture2D(uDetailMap, marsWp * 0.61);
+              vec4 dB = texture2D(uDetailMap, MARS_ROT_B * marsWp * 0.217 + 0.37);
+              vec4 dC = texture2D(uDetailMap, MARS_ROT_C * marsWp * 0.047 + 0.71);
+              vec4 dD = texture2D(uDetailMap, MARS_ROT_D * marsWp * 0.0083 + 0.13);
+
+              // Perceptual luminance of the HiRISE RED-band orthoimage
+              float lumLin = dot(sampledDiffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+              float lum = pow(max(lumLin, 0.0), 0.4545);
               float sat = max(sampledDiffuseColor.r, max(sampledDiffuseColor.g, sampledDiffuseColor.b)) -
                           min(sampledDiffuseColor.r, min(sampledDiffuseColor.g, sampledDiffuseColor.b));
-              float slopeFactor = clamp((1.0 - clamp(vMarsWorldNorm.y, 0.0, 1.0)) * 3.8, 0.0, 1.0);
-              float rippleCrest = mix(0.5, marsRippleSample.a, marsPomFade * 0.85 + 0.15);
-              float duneBand = marsMacroSample.a;
 
-              // Realistic Gale Crater palette: ferric-oxide ochre sand, bright hematite dust crests, dark basaltic bedrock
-              vec3 darkBasalt   = vec3(0.26, 0.14, 0.10);
-              vec3 ferricSand   = vec3(0.74, 0.34, 0.18);
-              vec3 ochreCrest   = vec3(0.89, 0.49, 0.27);
-              vec3 sulfateLight = vec3(0.94, 0.64, 0.40);
+              // Linear-space albedo anchors approximating Curiosity Mastcam natural-color scenes
+              vec3 basaltSand = vec3(0.075, 0.056, 0.046);
+              vec3 dustyRegolith = vec3(0.470, 0.245, 0.125);
+              vec3 greyRegolith = vec3(0.370, 0.255, 0.180);
+              vec3 paleBedrock = vec3(0.860, 0.585, 0.375);
 
-              float contrastLum = smoothstep(0.08, 0.92, hiRiseLum);
-              vec3 marsRegolith = mix(darkBasalt, ferricSand, smoothstep(0.0, 0.58, contrastLum));
-              marsRegolith = mix(marsRegolith, ochreCrest, smoothstep(0.45, 0.88, contrastLum));
-              marsRegolith = mix(marsRegolith, sulfateLight, smoothstep(0.84, 0.99, contrastLum) * 0.65);
+              // Chroma varies with large-scale noise, not with luminance, so the result is not a gradient map
+              float dustiness = smoothstep(0.30, 0.70, dD.a * 0.65 + dC.a * 0.35);
+              vec3 midTone = mix(greyRegolith, dustyRegolith, dustiness);
+              vec3 marsAlbedo = mix(basaltSand, midTone, smoothstep(0.04, 0.52, lum));
+              marsAlbedo = mix(marsAlbedo, paleBedrock, smoothstep(0.50, 0.97, lum));
 
-              // Blend steeper rocky slopes toward darker basaltic outcrop and ripple troughs/crests
-              marsRegolith = mix(marsRegolith, darkBasalt * (0.75 + 0.5 * hiRiseLum), slopeFactor * 0.58);
-              marsRegolith *= (0.86 + 0.24 * rippleCrest) * (0.93 + 0.14 * duneBand);
+              float slopeFactor = clamp((1.0 - clamp(vMarsWorldNorm.y, 0.0, 1.0)) * 3.2, 0.0, 1.0);
+              marsAlbedo = mix(marsAlbedo, marsAlbedo * vec3(0.72, 0.74, 0.80), slopeFactor * 0.5);
 
-              // If real grayscale HiRISE ortho is active (low saturation), apply full Martian colorization;
-              // if procedural fallback is active, enrich with ripple/slope relief.
-              vec3 baseOpt = mix(marsRegolith, sampledDiffuseColor.rgb * (0.88 + 0.24 * rippleCrest), clamp(sat * 1.4, 0.0, 0.45));
+              // Grain, pebble tone and cavity shading below ortho resolution
+              float grain = (dA.a - 0.5) * 0.55 * wNear + (dB.a - 0.5) * 0.42 * wMid * (1.0 - 0.35 * wNear);
+              float patchTone = (dC.a - 0.5) * 0.26 + (dD.b - 0.5) * 0.16;
+              float cavity = mix(1.0, 0.70 + 0.46 * dA.b, wNear) * mix(1.0, 0.82 + 0.30 * dB.b, wMid);
+              marsAlbedo *= max(0.0, 1.0 + grain + patchTone) * cavity;
+
+              // Non-grayscale procedural fallback keeps part of its own color
+              vec3 baseOpt = mix(marsAlbedo, sampledDiffuseColor.rgb * cavity, clamp(sat * 1.4, 0.0, 0.45));
               diffuseColor.rgb *= baseOpt;
+
+              // World-space xz normal perturbation, rotated back from each detail scale
+              vec2 nA = dA.rg * 2.0 - 1.0;
+              vec2 nB = (dB.rg * 2.0 - 1.0) * MARS_ROT_B;
+              vec2 nC = (dC.rg * 2.0 - 1.0) * MARS_ROT_C;
+              marsDetailN = nA * 0.50 * wNear + nB * 0.34 * wMid + nC * 0.14;
             } else {
               diffuseColor *= sampledDiffuseColor;
             }
@@ -510,24 +573,7 @@ export class TerrainProc {
           "#include <normal_fragment_maps>",
           /* glsl */ `
           #include <normal_fragment_maps>
-          #ifdef USE_MAP
-            if (uIsOptical > 0.5) {
-              vec3 rippleN = normalize(marsRippleSample.rgb * 2.0 - 1.0);
-              vec3 macroN  = normalize(marsMacroSample.rgb * 2.0 - 1.0);
-              float detailWeight = mix(0.22, 0.58, marsPomFade);
-              normal = normalize(normal + vec3(rippleN.x + macroN.x * 0.45, 0.0, rippleN.y + macroN.y * 0.45) * detailWeight);
-            }
-          #endif
-          `,
-        )
-        .replace(
-          "#include <dithering_fragment>",
-          /* glsl */ `
-          if (uIsOptical > 0.5) {
-            float rim = pow(1.0 - max(dot(normalize(vViewPosition), normal), 0.0), 3.4);
-            gl_FragColor.rgb += vec3(0.86, 0.42, 0.22) * rim * 0.18;
-          }
-          #include <dithering_fragment>
+          normal = normalize(normal - (viewMatrix * vec4(marsDetailN.x, 0.0, marsDetailN.y, 0.0)).xyz);
           `,
         );
     };
@@ -641,7 +687,7 @@ export class TerrainProc {
     }
     for (const tex of Object.values(this.textures)) tex.dispose();
     this.hydrationUncTexture.dispose();
-    this.rippleDetailMap.dispose();
+    this.regolithDetailMap.dispose();
     this.realOptical?.dispose();
     this.detailNormalMap?.dispose();
     this.material.dispose();

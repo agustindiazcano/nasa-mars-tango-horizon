@@ -4,7 +4,8 @@ import { ARCHIVE_IDS, parseHistoricalSeries, SampleReplay, type HistoricalSeries
 export function installHistoricalArchive(): void {
   const open = document.createElement("button");
   open.textContent = "Historical data archive";
-  open.style.cssText = "position:fixed;right:16px;bottom:8px;z-index:100";
+  open.style.cssText =
+    "position:fixed;right:22px;bottom:14px;z-index:100;background:rgba(16,10,7,.72);color:#e8c9a8;border:0;border-bottom:1px solid #ffb36b;padding:6px 10px;font:600 11px Rajdhani,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer";
   document.body.append(open);
   const dialog = document.createElement("dialog");
   dialog.style.cssText = "max-width:750px;background:#07111e;color:white;padding:24px";
