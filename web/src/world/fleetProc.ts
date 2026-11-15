@@ -1,4 +1,5 @@
 import { fleetStartPos, MANIP_TARGETS } from "@th/shared";
+import { LIDAR_RING_RADIUS_M, LidarRing } from "./lidarRing";
 import { footprintContacts, groundPlacement, type ContactPoint } from "./groundPlacement";
 import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "@th/shared";
@@ -223,6 +224,8 @@ export class FleetProc {
   private handedItemMesh: THREE.Mesh;
   /** While true, `rescue-bot-1` rides in the rear bay of `rescue-1`. */
   private rescueBotStowed = true;
+  /** Yellow LiDAR coverage discs on the ground (visual only), keyed by unit id. */
+  private lidarRings = new Map<string, LidarRing>();
 
   constructor(
     private scene: THREE.Scene,
@@ -245,6 +248,12 @@ export class FleetProc {
       const unit = this.createUnit(spec);
       this.units.set(spec.id, unit);
       this.group.add(unit.object);
+      const ring = new LidarRing(
+        spec.flies ? LIDAR_RING_RADIUS_M.air : LIDAR_RING_RADIUS_M.ground,
+        (x, z) => this.terrain.heightAt(x, z),
+      );
+      this.lidarRings.set(spec.id, ring);
+      this.group.add(ring.mesh);
     }
 
     this.orbiterGroup.name = "orbiter:mro";
@@ -533,6 +542,12 @@ export class FleetProc {
       u.update(dt, tau);
     }
     this.updateRescueBotStow();
+    for (const [id, ring] of this.lidarRings) {
+      const u = this.units.get(id);
+      if (!u) continue;
+      const stowed = id === "rescue-bot-1" && this.rescueBotStowed;
+      ring.update(u.object.position.x, u.object.position.z, u.object.visible && !stowed && !(u.spec.flies && u.grounded));
+    }
     this.updateOrbiter(dt);
     this.manipRunner.update(dt);
     void this.pendingSkill;
