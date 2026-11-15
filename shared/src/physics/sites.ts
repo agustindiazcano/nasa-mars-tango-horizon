@@ -65,17 +65,21 @@ export const BASE_ORIGIN = {
   label: "Mars Base Alpha",
 } as const;
 
-export const AIRLOCK_OFFSET: Readonly<Coord2D> = { x: -9, z: 0 };
+export const AIRLOCK_OFFSET: Readonly<Coord2D> = { x: -17, z: 0 };
 
-/** Primary EVA airlock world coordinate (`hab-1` west hatch). */
+/** Primary EVA airlock world coordinate (west hatch of the main complex `hab-1`). */
 export const AIRLOCK_COORD: Readonly<Coord2D> = {
   x: BASE_ORIGIN.x + AIRLOCK_OFFSET.x,
   z: BASE_ORIGIN.z + AIRLOCK_OFFSET.z,
 };
 
-/** Initial EVA astronaut spawn coordinate near the habitat airlock. */
+/**
+ * Initial EVA astronaut spawn coordinate, south-west of the main complex. From here the base is ahead and the
+ * Starship on the launch pad (`LAUNCH_SITE_COORD`) rises behind it: the sight line to 40 m above the pad clears the
+ * real DEM (min clearance 2 m), 3.5 deg ground slope.
+ */
 export const ASTRONAUT_START: Readonly<Coord2D> = {
-  x: BASE_ORIGIN.x + 28,
+  x: BASE_ORIGIN.x - 40,
   z: BASE_ORIGIN.z + 36,
 };
 
@@ -87,8 +91,8 @@ export const FISSION_COORD: Readonly<Coord2D> = {
   z: BASE_ORIGIN.z + FISSION_OFFSET.z,
 };
 
-/** Idle position of the second base astronaut (`crew-4`) beside `hab-1`. */
-export const CREW4_START: Readonly<Coord2D> = { x: BASE_ORIGIN.x + 8, z: BASE_ORIGIN.z + 7 };
+/** Idle position of the second base astronaut (`crew-4`) in front of the main complex. */
+export const CREW4_START: Readonly<Coord2D> = { x: BASE_ORIGIN.x + 8, z: BASE_ORIGIN.z + 17 };
 
 export const LAUNCHER_PRIMARY_OFFSET: Readonly<Coord2D> = { x: 55, z: 24 };
 
@@ -141,24 +145,37 @@ export function pitSurfaceOffsetAt(x: number, z: number): number {
   return Math.max(-depthM, -(sTop - s) * tan);
 }
 
-/** Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` for all 16 base modules. */
+/**
+ * Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` of every base module and annex.
+ * Layout (docs/impl/24): `hab-1` is the `conae-base-mars` complex at `BASE_ORIGIN`; annexes, the solar field, the
+ * antenna farm, connectors and the garage display piece were placed by a scan of the real HiRISE DEM (greedy search
+ * around the desired spots for footprints whose slope is below 4.8 deg on both the DEM and `slope_1024.png`,
+ * non-overlapping with 3 to 6 m of spacing and clear of the fleet start, spawn and launcher zones).
+ */
 export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
-  { id: "hab-1", offsetX: 0, offsetZ: 0, widthM: 12, depthM: 9 },
-  { id: "airlock", offsetX: -9, offsetZ: 0, widthM: 4.5, depthM: 4 },
-  { id: "compute", offsetX: 10, offsetZ: 0, widthM: 4, depthM: 4 },
-  { id: "lab", offsetX: 0, offsetZ: 12, widthM: 8, depthM: 6 },
-  { id: "med", offsetX: 10, offsetZ: 12, widthM: 5, depthM: 4.5 },
-  { id: "greenhouse", offsetX: -14, offsetZ: -12, widthM: 13, depthM: 6 },
-  { id: "eclss", offsetX: 10, offsetZ: -10, widthM: 5.5, depthM: 4.5 },
-  { id: "isru", offsetX: 26, offsetZ: 0, widthM: 7, depthM: 5 },
-  { id: "solar", offsetX: 0, offsetZ: -40, widthM: 48, depthM: 22 },
-  { id: "battery", offsetX: 20, offsetZ: -24, widthM: 6, depthM: 4 },
+  { id: "hab-1", offsetX: 0, offsetZ: 0, widthM: 26, depthM: 24.6 },
+  { id: "airlock", offsetX: -17, offsetZ: 0, widthM: 4.5, depthM: 4 },
+  { id: "compute", offsetX: 17, offsetZ: 0, widthM: 4, depthM: 4 },
+  { id: "lab", offsetX: 3, offsetZ: -24, widthM: 14, depthM: 8.5 },
+  { id: "med", offsetX: 32, offsetZ: -6, widthM: 12, depthM: 11.3 },
+  { id: "greenhouse", offsetX: -28, offsetZ: -24, widthM: 18, depthM: 11.4 },
+  { id: "eclss", offsetX: 22, offsetZ: -18, widthM: 5.5, depthM: 4.5 },
+  { id: "isru", offsetX: 36, offsetZ: -26, widthM: 10, depthM: 8.6 },
+  { id: "solar", offsetX: 0, offsetZ: -52, widthM: 36, depthM: 13 },
+  { id: "battery", offsetX: 22, offsetZ: -34, widthM: 6, depthM: 4 },
   { id: "fission", offsetX: 220, offsetZ: -40, widthM: 5, depthM: 5 },
-  { id: "garage", offsetX: -26, offsetZ: 12, widthM: 11, depthM: 9 },
-  { id: "comms", offsetX: 24, offsetZ: 18, widthM: 3, depthM: 3 },
+  { id: "garage", offsetX: -52, offsetZ: 18, widthM: 20, depthM: 12.6 },
+  { id: "comms", offsetX: 28, offsetZ: 12, widthM: 3, depthM: 3 },
   { id: "launcher-1", offsetX: 55, offsetZ: 24, widthM: 4, depthM: 4 },
   { id: "launcher-2", offsetX: 65, offsetZ: 24, widthM: 4, depthM: 4 },
-  { id: "shelter", offsetX: -7, offsetZ: 7, widthM: 5, depthM: 4 },
+  { id: "shelter", offsetX: -31, offsetZ: 7, widthM: 14, depthM: 5 },
+  // Unselectable parts: antenna farm, garage display piece and the tube connectors to the lab and the medical bay.
+  { id: "antenna-1", offsetX: 46, offsetZ: -6, widthM: 7.4, depthM: 7.1 },
+  { id: "antenna-2", offsetX: 52, offsetZ: 7, widthM: 7.4, depthM: 7.1 },
+  { id: "antenna-3", offsetX: 52, offsetZ: -17, widthM: 7.4, depthM: 7.1 },
+  { id: "garage-display", offsetX: -52, offsetZ: 31, widthM: 3.4, depthM: 6 },
+  { id: "connector-lab", offsetX: 3, offsetZ: -16.05, widthM: 1.8, depthM: 7.4 },
+  { id: "connector-med", offsetX: 19.5, offsetZ: -6, widthM: 13, depthM: 1.8 },
 ];
 
 /** Fleet spawn offsets relative to `BASE_ORIGIN`. */

@@ -4,10 +4,12 @@ import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  AIRLOCK_COORD,
   ASTRONAUT_START,
   BASE_MODULE_FOOTPRINTS,
   BASE_ORIGIN,
   CURIOSITY_TRAVERSE,
+  FISSION_COORD,
   FLEET_START_OFFSETS,
   LAUNCH_SITE_COORD,
   MANIP_TARGETS,
@@ -419,5 +421,54 @@ describe("RESCUE_PIT access ramp", () => {
     expect(slope).toBeCloseTo(RESCUE_PIT.rampSlopeDeg, 3);
     expect(off(-2)).toBeLessThan(off(0));
     expect(off(-2)).toBeGreaterThan(-RESCUE_PIT.depthM);
+  });
+});
+
+describe("Base layout with models (docs/impl/24)", () => {
+  const assets = loadTerrainAssets();
+  const rect = (m: (typeof BASE_MODULE_FOOTPRINTS)[number]) => ({
+    x0: m.offsetX - m.widthM / 2,
+    x1: m.offsetX + m.widthM / 2,
+    z0: m.offsetZ - m.depthM / 2,
+    z1: m.offsetZ + m.depthM / 2,
+  });
+
+  it("keeps module footprints from overlapping each other (touching edges allowed)", () => {
+    const mods = BASE_MODULE_FOOTPRINTS.filter((m) => m.id !== "fission");
+    for (let i = 0; i < mods.length; i++) {
+      for (let j = i + 1; j < mods.length; j++) {
+        const a = rect(mods[i]);
+        const b = rect(mods[j]);
+        const overlapX = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
+        const overlapZ = Math.min(a.z1, b.z1) - Math.max(a.z0, b.z0);
+        expect(overlapX > 0.05 && overlapZ > 0.05, `${mods[i].id} overlaps ${mods[j].id}`).toBe(false);
+      }
+    }
+  });
+
+  it("keeps everything except the fission unit outside its 100 m keep-out and the airlock beside the main complex", () => {
+    for (const m of BASE_MODULE_FOOTPRINTS) {
+      if (m.id === "fission") continue;
+      const d = Math.hypot(BASE_ORIGIN.x + m.offsetX - FISSION_COORD.x, BASE_ORIGIN.z + m.offsetZ - FISSION_COORD.z);
+      expect(d, m.id).toBeGreaterThan(100);
+    }
+    const hab = BASE_MODULE_FOOTPRINTS.find((m) => m.id === "hab-1")!;
+    expect(hab.offsetX).toBe(0);
+    expect(hab.offsetZ).toBe(0);
+    expect(AIRLOCK_COORD.x).toBeLessThan(BASE_ORIGIN.x - hab.widthM / 2);
+  });
+
+  it("gives the astronaut spawn a sight line to the launch pad skyline over the real DEM", () => {
+    const { heightAt } = assets;
+    const padY = heightAt(LAUNCH_SITE_COORD.x, LAUNCH_SITE_COORD.z);
+    const y0 = heightAt(ASTRONAUT_START.x, ASTRONAUT_START.z) + 1.7;
+    const y1 = padY + 40;
+    let minClear = Infinity;
+    for (let t = 0.02; t < 0.99; t += 0.01) {
+      const x = ASTRONAUT_START.x + (LAUNCH_SITE_COORD.x - ASTRONAUT_START.x) * t;
+      const z = ASTRONAUT_START.z + (LAUNCH_SITE_COORD.z - ASTRONAUT_START.z) * t;
+      minClear = Math.min(minClear, y0 + (y1 - y0) * t - heightAt(x, z));
+    }
+    expect(minClear).toBeGreaterThan(0.5);
   });
 });
