@@ -4,6 +4,10 @@ import {
   FISSION_COORD,
   MISSION_SITES,
   MISSION_SITES_BY_ID,
+  PIT_AXIS_ANGLE,
+  PIT_OUTLINE,
+  RESCUE_PIT,
+  pitOutlineRadiusAt,
 } from "@th/shared";
 import * as THREE from "three";
 import { TerrainLoader } from "./terrainLoader";
@@ -132,8 +136,14 @@ export class TerrainProc {
   private detailNormalMap: THREE.DataTexture | null = null;
   private regolithDetailMap: THREE.DataTexture;
   private uIsOptical = { value: 1.0 };
-  /** Circular hole cut in the terrain surface (x, z, radius m); radius 0 disables it. Used by the rescue pit. */
+  /** Irregular hole cut in the terrain surface: (x, z, max radius m); radius 0 disables it. Used by the rescue pit. */
   private uPitHole = { value: new THREE.Vector3(0, 0, 0) };
+  /** Outline parameters mirrored from `pitOutlineRadiusAt`: (baseM, minM, axisAngle, rampRadiusM). */
+  private uPitShape = { value: new THREE.Vector4(0, 0, 0, 0) };
+  /** Ramp blend (near, far rad). */
+  private uPitBlend = { value: new THREE.Vector2(0, 1) };
+  /** Harmonics (k, amp, phase) of the outline. */
+  private uPitHarm = { value: [0, 1, 2, 3, 4].map(() => new THREE.Vector3(0, 0, 0)) };
   private material: THREE.MeshStandardMaterial;
   private routeLine: THREE.Line | null = null;
   private beaconsGroup = new THREE.Group();
@@ -479,6 +489,9 @@ export class TerrainProc {
       shader.uniforms.uDetailMap = { value: this.regolithDetailMap };
       shader.uniforms.uIsOptical = this.uIsOptical;
       shader.uniforms.uPitHole = this.uPitHole;
+      shader.uniforms.uPitShape = this.uPitShape;
+      shader.uniforms.uPitBlend = this.uPitBlend;
+      shader.uniforms.uPitHarm = this.uPitHarm;
 
       shader.vertexShader = shader.vertexShader
         .replace(
@@ -506,6 +519,19 @@ export class TerrainProc {
           uniform sampler2D uDetailMap;
           uniform float uIsOptical;
           uniform vec3 uPitHole;
+          uniform vec4 uPitShape;
+          uniform vec2 uPitBlend;
+          uniform vec3 uPitHarm[5];
+          // Mirrors pitOutlineRadiusAt() in @th/shared (shared/src/physics/sites.ts).
+          float marsPitOutlineR(float theta) {
+            float r = uPitShape.x;
+            for (int i = 0; i < 5; i++) r += uPitHarm[i].y * sin(uPitHarm[i].x * theta + uPitHarm[i].z);
+            r = max(uPitShape.y, r);
+            float d = abs(atan(sin(theta - uPitShape.z), cos(theta - uPitShape.z)));
+            float t = clamp((d - uPitBlend.x) / (uPitBlend.y - uPitBlend.x), 0.0, 1.0);
+            float k = t * t * (3.0 - 2.0 * t);
+            return uPitShape.w + (r - uPitShape.w) * k;
+          }
           varying vec3 vMarsWorldPos;
           varying vec3 vMarsWorldNorm;
           // Rotations between detail scales hide the tile grid
@@ -517,7 +543,11 @@ export class TerrainProc {
         .replace(
           "#include <map_fragment>",
           /* glsl */ `
-          if (uPitHole.z > 0.0 && distance(vMarsWorldPos.xz, uPitHole.xy) < uPitHole.z) discard;
+          if (uPitHole.z > 0.0) {
+            vec2 marsPitD = vMarsWorldPos.xz - uPitHole.xy;
+            float marsPitL = length(marsPitD);
+            if (marsPitL < uPitHole.z && marsPitL < marsPitOutlineR(atan(marsPitD.y, marsPitD.x))) discard;
+          }
           vec2 marsDetailN = vec2(0.0);
           #ifdef USE_MAP
             vec4 sampledDiffuseColor = texture2D(map, vMapUv);
@@ -584,9 +614,14 @@ export class TerrainProc {
     };
   }
 
-  /** Cuts a circular opening in the terrain surface so a designed pit mesh is visible below it. */
-  setPitHole(x: number, z: number, radiusM: number): void {
-    this.uPitHole.value.set(x, z, radiusM);
+  /** Cuts the irregular `pitOutlineRadiusAt` opening centred at (x, z) so the designed pit mesh is visible below it. */
+  setPitHole(x: number, z: number): void {
+    let maxR = 0;
+    for (let i = 0; i < 360; i++) maxR = Math.max(maxR, pitOutlineRadiusAt((i / 360) * Math.PI * 2 - Math.PI));
+    this.uPitHole.value.set(x, z, maxR + 0.05);
+    this.uPitShape.value.set(PIT_OUTLINE.baseM, PIT_OUTLINE.minM, PIT_AXIS_ANGLE, RESCUE_PIT.radiusM);
+    this.uPitBlend.value.set(PIT_OUTLINE.rampBlendNearRad, PIT_OUTLINE.rampBlendFarRad);
+    PIT_OUTLINE.harmonics.forEach((h, i) => this.uPitHarm.value[i].set(h.k, h.amp, h.phase));
   }
 
   getLayerTexture(layer: LayerId): THREE.DataTexture {

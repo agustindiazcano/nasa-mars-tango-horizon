@@ -17,6 +17,9 @@ import {
   RESCUE_PIT_AXIS,
   RESCUE_SITE,
   pitSurfaceOffsetAt,
+  pitOutlineRadiusAt,
+  PIT_AXIS_ANGLE,
+  PIT_WALL_RUN_M,
   MISSION_SITES,
   MISSION_SITES_BY_ID,
   fleetStartPos,
@@ -421,6 +424,37 @@ describe("RESCUE_PIT access ramp", () => {
     expect(slope).toBeCloseTo(RESCUE_PIT.rampSlopeDeg, 3);
     expect(off(-2)).toBeLessThan(off(0));
     expect(off(-2)).toBeGreaterThan(-RESCUE_PIT.depthM);
+  });
+});
+
+describe("RESCUE_PIT natural outline", () => {
+  const angles = Array.from({ length: 360 }, (_, i) => (i / 360) * Math.PI * 2 - Math.PI);
+
+  it("is irregular, bounded and never smaller than the contract radius", () => {
+    const rs = angles.map(pitOutlineRadiusAt);
+    expect(Math.min(...rs)).toBeGreaterThanOrEqual(RESCUE_PIT.radiusM - 1e-9);
+    expect(Math.max(...rs)).toBeLessThan(8.5);
+    expect(Math.max(...rs) - Math.min(...rs)).toBeGreaterThan(1.2);
+  });
+
+  it("matches the contract radius on the ramp axis and is continuous in angle", () => {
+    expect(pitOutlineRadiusAt(PIT_AXIS_ANGLE)).toBeCloseTo(RESCUE_PIT.radiusM, 9);
+    for (let i = 1; i < angles.length; i++) {
+      expect(Math.abs(pitOutlineRadiusAt(angles[i]) - pitOutlineRadiusAt(angles[i - 1]))).toBeLessThan(0.15);
+    }
+  });
+
+  it("keeps a floor disc of at least 4 m and a wall that rises monotonically to the rim", () => {
+    for (const a of angles) {
+      const rim = pitOutlineRadiusAt(a);
+      const off = (d: number) => pitSurfaceOffsetAt(RESCUE_SITE.x + Math.cos(a) * d, RESCUE_SITE.z + Math.sin(a) * d);
+      if (Math.abs(rim * Math.sin(a - PIT_AXIS_ANGLE)) > RESCUE_PIT.rampHalfWidthM + 1.0) {
+        expect(off(rim - PIT_WALL_RUN_M - 0.01)).toBe(-RESCUE_PIT.depthM);
+        expect(off(rim - PIT_WALL_RUN_M / 2)).toBeGreaterThan(-RESCUE_PIT.depthM);
+        expect(off(rim - PIT_WALL_RUN_M / 2)).toBeLessThan(0);
+        expect(off(rim + 0.01)).toBe(0);
+      }
+    }
   });
 });
 

@@ -37,8 +37,9 @@ export const LOCAL_INTENTS: LocalIntentDef[] = [
   {
     id: "open_map",
     patterns: [
-      /(?<![\p{L}])(?:abr[aeií]r?|mostr(?:a|ar|ame)|mu[eé]str(?:a|ame)|open|show|ouvr(?:ir|e)|[oö]ffne(?:n)?|zeig(?:e|en)?|apr[ai](?:re)?)\s+(?:el\s+|la\s+|le\s+|die\s+|the\s+)?(?:mapa|map|carte|karte|mappa)(?![\p{L}])/iu,
+      /(?<![\p{L}])(?:abr[aeií]r?|abrime|mostr(?:a|ar|ame|ami)|mostrami|mu[eé]str(?:a|ame)|open|show|display|ouvr(?:ir|e)|montr(?:e|er|ez)|affich(?:er|e)|[oö]ffne(?:n)?|zeig(?:e|en)?|apr[ai](?:re)?)(?:[\s-]+(?:me|mir|moi|mi))?\s+(?:el\s+|la\s+|le\s+|die\s+|the\s+|l['’]\s*|il\s+)?(?:mapa|map|carte|karte|mappa)(?![\p{L}])/iu,
       /(?<![\p{L}])karte\s+[oö]ffnen(?![\p{L}])/iu,
+      /^[\s.,!¡?¿]*(?:die\s+)?karte\s+anzeigen[\s.,!¡?¿]*$/iu,
     ],
   },
   {
@@ -53,8 +54,8 @@ export const LOCAL_INTENTS: LocalIntentDef[] = [
     id: "close_panel",
     patterns: [
       /^[\s.,!¡?¿]*(?:cerrar|cerr[aá]|cierr[ae](?:lo)?|ci[eé]rralo|close|fermer|schlie(?:ss|ß)en|chiudi)[\s.,!¡?¿]*$/iu,
-      /(?<![\p{L}])(?:cerr[aá]r?|cierr[ae]|close|fermer|schlie(?:ss|ß)en|chiud[ei](?:re)?)\s+(?:el\s+|la\s+|le\s+|das\s+|il\s+|the\s+)?(?:panel|men[uú]|menu|ventana|window|todo|all|tutto)(?![\p{L}])/iu,
-      /(?<![\p{L}])(?:panel|men[uú]|menu|alles)\s+schlie(?:ss|ß)en(?![\p{L}])/iu,
+      /(?<![\p{L}])(?:cerr[aá]r?|cierr[ae]|close|fermer|ferme|fermez|schlie(?:ss|ß)(?:en|e)?|chiud[ei](?:re)?)\s+(?:el\s+|la\s+|le\s+|das\s+|die\s+|il\s+|the\s+)?(?:panel|men[uú]|menu|map(?:a|pa)?|carte|karte|ventana|window|todo|all|tutto)(?![\p{L}])/iu,
+      /(?<![\p{L}])(?:panel|men[uú]|menu|karte|alles)\s+schlie(?:ss|ß)en(?![\p{L}])/iu,
     ],
   },
   {

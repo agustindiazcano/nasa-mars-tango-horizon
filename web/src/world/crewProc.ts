@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { CREW4_START, CREW_ROSTER, type CrewId } from "@th/shared";
 import { models } from "./modelLibrary";
+import { attachShoulderPatches } from "./shoulderPatches";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
 /** Local front axis of every crew group and of the `astronaut-animated` model. */
@@ -185,7 +186,8 @@ export class CrewProc {
     m.anim = new CrewAnimator(spawned.object, spawned.clips);
     m.anim.request(m.pose === "walk" ? "walk" : m.pose === "lying" ? "lying" : "idle", { instant: true });
     m.modelReady = true;
-    // SHOULDER-PATCH HOOK (single place): call `attachShoulderPatches(root, m.id)` here for every crew model.
+    // SHOULDER-PATCH HOOK (single place): every crew model gets the flag and CONAE patches here.
+    attachShoulderPatches(spawned.object);
   }
 
   private build(id: Exclude<CrewId, "crew-1">): CrewMember {

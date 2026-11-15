@@ -1,6 +1,6 @@
-import { BASE_ORIGIN, LAUNCH_SITE_COORD, MISSION_SITES } from "@th/shared";
+import { BASE_ORIGIN } from "@th/shared";
+import { CartographyRenderer, MAP_HEIGHT, MAP_WIDTH } from "./cartography";
 import { formatCoordinates } from "../world/terrainValidation";
-import { hydrationRgb } from "../world/terrainRasters";
 import { estimateCassonTwin } from "../world/cassonTwin";
 import { ASR_LOCALE, fmt, getLang, LANGS, onLangChange, setLang, t } from "@th/shared";
 import { C, leakTimeline } from "@th/shared";
@@ -94,6 +94,8 @@ export class TacticalHud {
   private qrUrlEl: HTMLElement;
   private qrContainer: HTMLElement;
   private modalEl: HTMLElement;
+  private mapCanvas: HTMLCanvasElement | null = null;
+  private cartography: CartographyRenderer | null = null;
   private leftEl: HTMLElement;
   private rightEl: HTMLElement;
   private crewEl: HTMLElement;
@@ -858,6 +860,7 @@ export class TacticalHud {
     }
 
     this.modalEl.style.display = "block";
+    this.modalEl.classList.toggle("hud-modal-map", s.panel === "map");
     const closeHdr = (title: string) => `
       <div class="panel-hdr">
         <span>${title}</span>
@@ -965,25 +968,34 @@ export class TacticalHud {
       const uncHere = this.terrain.hydrationUncAt(s.astronaut.x, s.astronaut.z);
       this.modalEl.innerHTML = `
         ${closeHdr(t("map.title"))}
-        <div class="hud-map-layout" style="display:flex; gap:12px; align-items:flex-start;">
-          <canvas id="minimap-canvas" width="260" height="260" style="border:1px solid var(--border); border-radius:6px;"></canvas>
-          <div style="font-size:11px;">
-            <div>${t("map.layer")}: <b>${t(`hud.layer.${s.layer}`)}${s.layer === "hydration" && this.terrain.hydrationUncMode ? ` (${t("hud.hydration_unc")})` : ""}</b></div>
-            <div>${t("map.grid")}: 4000×4000 m (${this.terrain.realRastersLoaded ? t("map.real", { n: 1024 }) : t("map.fallback", { n: 256 })})</div>
-            <div>${t("map.astronaut")}</div>
-            <div>${t("map.fleet")}</div>
-            <div>${t("map.circles", { n: this.terrain.danPoints.length })}: ${escapeHtml(t("hud.dan_stations"))}</div>
-            <div>${t("map.keepout")}</div>
-            ${s.layer === "hydration" ? `<div style="margin-top:6px;"><b>${escapeHtml(t("hud.hydration_index"))}:</b> ${fmt(hydHere, 2)} ± ${fmt(uncHere, 2)}<br/><span style="opacity:0.8;">${escapeHtml(t("hud.hydration_note"))}</span><br/><span style="opacity:0.8;">${t("common.range")} ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}</span><div style="margin-top:4px;"><button class="hud-btn ${this.terrain.hydrationUncMode ? "active" : ""}" data-pointable id="map-hyd-unc">${escapeHtml(t("hud.layer.hydration_unc"))}</button></div></div>` : ""}
-            ${s.activeRoute ? `<div style="margin-top:8px;"><b>${t("map.route")} (${s.activeRoute.algorithm})</b><br/>${t("map.distance")}: ${fmt(s.activeRoute.distanceM, 0)} m<br/>${t("map.time")}: ${fmt(s.activeRoute.timeS / 60, 1)} min<br/>O2: ${fmt(s.activeRoute.o2Kg * 1000, 0)} g</div>` : ""}
-          </div>
+        <div id="map-host"></div>
+        <div class="hud-map-foot">
+          <span>${t("map.circles", { n: this.terrain.danPoints.length })}: ${escapeHtml(t("hud.dan_stations"))}</span>
+          ${s.activeRoute ? `<span><b>${t("map.route")} (${s.activeRoute.algorithm})</b>: ${fmt(s.activeRoute.distanceM, 0)} m, ${fmt(s.activeRoute.timeS / 60, 1)} min, O2 ${fmt(s.activeRoute.o2Kg * 1000, 0)} g</span>` : ""}
+          ${s.layer === "hydration" ? `<span><b>${escapeHtml(t("hud.hydration_index"))}:</b> ${fmt(hydHere, 2)} ± ${fmt(uncHere, 2)} (${t("common.range")} ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}) <button class="hud-btn ${this.terrain.hydrationUncMode ? "active" : ""}" data-pointable id="map-hyd-unc">${escapeHtml(t("hud.layer.hydration_unc"))}</button></span>` : ""}
         </div>
       `;
       this.modalEl.querySelector("#map-hyd-unc")?.addEventListener("click", () => {
         this.terrain.setHydrationUncMode(!this.terrain.hydrationUncMode);
         this.store.notify();
       });
-      this.drawMinimap(document.getElementById("minimap-canvas") as HTMLCanvasElement);
+      // The base map is rendered once and cached; every update only repaints the moving symbols.
+      if (!this.mapCanvas) {
+        this.mapCanvas = document.createElement("canvas");
+        this.mapCanvas.width = MAP_WIDTH;
+        this.mapCanvas.height = MAP_HEIGHT;
+        this.mapCanvas.className = "hud-map-canvas";
+        this.cartography = new CartographyRenderer(this.terrain);
+      }
+      this.modalEl.querySelector("#map-host")!.appendChild(this.mapCanvas);
+      const mapCtx = this.mapCanvas.getContext("2d");
+      if (mapCtx && this.cartography) {
+        this.cartography.draw(
+          mapCtx,
+          { fleet: s.fleet, crew: s.crew, astronaut: s.astronaut },
+          s.activeRoute ? { algorithm: s.activeRoute.algorithm, points: s.activeRoute.points } : null,
+        );
+      }
     } else if (s.panel === "base") {
       const mod = BASE_MODULES.find((m) => m.id === s.selectedBaseModuleId) ?? BASE_MODULES[0];
       const solarKw = 18 * s.solarTransmission;
@@ -1324,122 +1336,6 @@ export class TacticalHud {
     }
 
     this.modalEl.querySelector("#modal-close")?.addEventListener("click", () => s.setPanel("none"));
-  }
-
-  private drawMinimap(canvas: HTMLCanvasElement): void {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const w = canvas.width;
-    const h = canvas.height;
-    const opticalImg = this.store.layer === "optical" ? this.terrain.getOpticalImage() : null;
-    if (opticalImg) {
-      ctx.drawImage(opticalImg, 0, 0, w, h);
-    } else {
-      const tex = this.terrain.getLayerTexture(this.store.layer);
-      const data = tex.image.data as Uint8Array;
-      const tw = tex.image.width || this.terrain.gridN;
-      const th = tex.image.height || this.terrain.gridN;
-      const img = ctx.createImageData(tw, th);
-      img.data.set(data);
-      const tmp = document.createElement("canvas");
-      tmp.width = tw;
-      tmp.height = th;
-      tmp.getContext("2d")!.putImageData(img, 0, 0);
-      ctx.drawImage(tmp, 0, 0, w, h);
-    }
-
-    const toPx = (wx: number, wz: number) => ({
-      x: ((wx / this.terrain.sizeM) + 0.5) * w,
-      y: ((wz / this.terrain.sizeM) + 0.5) * h,
-    });
-
-    // Real MSL DAN passive neutron measurement stations (377 in-scene circles)
-    if (this.terrain.danPoints.length > 0) {
-      const minIdx = this.terrain.hydrationMeta.weh_min;
-      const maxIdx = this.terrain.hydrationMeta.weh_max;
-      ctx.lineWidth = 0.8;
-      for (const d of this.terrain.danPoints) {
-        const pt = toPx(d.x, d.z);
-        const [r, g, b] = hydrationRgb(d.hydration_index, minIdx, maxIdx);
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.strokeStyle = "rgba(230,250,255,0.85)";
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 2.1, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-    }
-
-    // Base origin and canonical S1-S4 science stations
-    const bp = toPx(BASE_ORIGIN.x, BASE_ORIGIN.z);
-    ctx.fillStyle = "#e6edf2";
-    ctx.fillRect(bp.x - 3, bp.y - 3, 6, 6);
-    ctx.fillStyle = "#9aa6b2";
-    ctx.font = "9px monospace";
-    ctx.fillText("BASE", bp.x + 5, bp.y + 3);
-
-    const lp = toPx(LAUNCH_SITE_COORD.x, LAUNCH_SITE_COORD.z);
-    ctx.fillStyle = "#ff7a3a";
-    ctx.beginPath();
-    ctx.moveTo(lp.x, lp.y - 6);
-    ctx.lineTo(lp.x + 4, lp.y + 4);
-    ctx.lineTo(lp.x - 4, lp.y + 4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillText("LAUNCH", lp.x - 36, lp.y + 3);
-
-    for (const site of MISSION_SITES) {
-      const sp = toPx(site.x, site.z);
-      ctx.strokeStyle = "#35e0ff";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(sp.x, sp.y, 3, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = "#35e0ff";
-      ctx.fillText(site.id, sp.x + 5, sp.y + 3);
-    }
-
-    // Active route
-    if (this.store.activeRoute && this.store.activeRoute.points.length > 1) {
-      ctx.strokeStyle = "#35e0ff";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      this.store.activeRoute.points.forEach((p, idx) => {
-        const pt = toPx(p.x, p.z);
-        if (idx === 0) ctx.moveTo(pt.x, pt.y);
-        else ctx.lineTo(pt.x, pt.y);
-      });
-      ctx.stroke();
-    }
-
-    // Fleet
-    for (const u of this.store.fleet) {
-      const pt = toPx(u.x, u.z);
-      ctx.fillStyle = "#ffb800";
-      ctx.fillRect(pt.x - 2, pt.y - 2, 5, 5);
-    }
-
-    // Astronaut
-    const ap = toPx(this.store.astronaut.x, this.store.astronaut.z);
-    ctx.fillStyle = "#35e0ff";
-    ctx.beginPath();
-    ctx.arc(ap.x, ap.y, 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Crew by callsign
-    ctx.font = "9px monospace";
-    for (const c of this.store.crew) {
-      const pt = toPx(c.x, c.z);
-      ctx.fillStyle = c.status === "nominal" ? "#8ee6a0" : c.status === "recovering" ? "#ffd23f" : "#ff4d5e";
-      ctx.strokeStyle = "#101010";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 3.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = "#f3ece3";
-      ctx.fillText(c.name, pt.x + 6, pt.y - 4);
-    }
   }
 
   private ensureProvenanceLoaded(force = false): void {
