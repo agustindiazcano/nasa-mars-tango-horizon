@@ -52,6 +52,31 @@ export interface EnvironmentSnapshot {
   cumulative_dose_ugy?: number;
   sol?: number;
   lst_h?: number;
+  sun_elev_deg?: number;
+  solar_demand_w?: number;
+  solar_area_m2?: number;
+  solar_efficiency?: number;
+}
+
+/** Single bounded environmental telemetry sample in the rolling history window (max 48). */
+export interface EnvTelemetrySample {
+  t_s: number;
+  sol?: number;
+  lst_h?: number;
+  pressure_pa: number;
+  air_temp_k: number;
+  ground_temp_k?: number;
+  tau: number;
+  wind_ms: number;
+  dose_rate_ugy_h: number;
+  sun_elev_deg?: number;
+}
+
+/** Cached CCMC DONKI / WSA-Enlil space-weather alert state. */
+export interface DonkiAlert {
+  active_sep: boolean;
+  wsa_enlil_mars_arrival_h?: number;
+  source_id?: string;
 }
 
 export interface FleetUnitSnapshot {
@@ -169,6 +194,12 @@ export interface MissionContext {
   astronaut: AstronautSnapshot;
   suit: Record<string, number>;
   env: EnvironmentSnapshot;
+  /** Rolling environmental telemetry window (max 48 samples). */
+  env_window?: EnvTelemetrySample[];
+  /** Base energy storage reserve in Wh. */
+  base_battery_wh?: number;
+  /** Cached DONKI / WSA-Enlil solar energetic particle alert state. */
+  donki_alert?: DonkiAlert;
   fleet: FleetUnitSnapshot[];
   hud: HudSnapshot;
   leak_diameter_m: number;
