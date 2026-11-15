@@ -92,6 +92,18 @@ export interface FleetUnitSnapshot {
   task?: string | null;
 }
 
+export type CrewStatus = "active" | "idle" | "injured" | "boarded";
+
+/** Position and status of one crew member (`crew-1`..`crew-4`) in the mission snapshot. */
+export interface CrewSnapshot {
+  id: string;
+  x: number;
+  z: number;
+  status: CrewStatus;
+  /** True while the crew member lies at the bottom of the rescue pit. */
+  in_pit?: boolean;
+}
+
 export interface HudSnapshot {
   layer: HudLayer | (string & {});
   panel: HudPanel | (string & {}) | null;
@@ -204,6 +216,8 @@ export interface MissionContext {
   /** Cached DONKI / WSA-Enlil solar energetic particle alert state. */
   donki_alert?: DonkiAlert;
   fleet: FleetUnitSnapshot[];
+  /** Crew positions; the drone standoff rule in GUARDIAN uses them. */
+  crew?: CrewSnapshot[];
   hud: HudSnapshot;
   leak_diameter_m: number;
   /** True once the O2 pod has been launched for the current leak. */
