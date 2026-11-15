@@ -102,6 +102,62 @@ export interface VitalsSample {
   suit_pressure_pa?: number;
 }
 
+export type FaultCode =
+  | "PLSS-FAN-01"
+  | "PLSS-SCRUB-01"
+  | "PLSS-COOL-01"
+  | "RVR-MOB-01"
+  | "RVR-THM-01"
+  | "ARM-TORQ-01"
+  | "HAB-PWR-01"
+  | "ISRU-MOX-01";
+
+export type FaultSeverity = "nominal" | "degraded" | "critical";
+
+export interface SuitWindowSample {
+  t_s: number;
+  fan_pri_rpm?: number;
+  fan_sec_rpm?: number;
+  fan_delta_p_pa?: number;
+  scrubber_a_co2_storage?: number;
+  scrubber_b_co2_storage?: number;
+  suit_co2_pa?: number;
+  helmet_co2_pa?: number;
+  coolant_ml?: number;
+  coolant_liquid_pressure?: number;
+  coolant_gas_pressure?: number;
+  suit_temp_k?: number;
+  battery_temp_c?: number;
+}
+
+export interface FleetUnitHealth {
+  motor_current_a?: number;
+  actuator_temp_c?: number;
+  slip_ratio?: number;
+  drill_torque_nm?: number;
+  isolated?: boolean;
+  fault_codes?: string[];
+}
+
+export interface FleetWindowSample {
+  t_s: number;
+  motor_current_a?: number;
+  actuator_temp_c?: number;
+  slip_ratio?: number;
+  drill_torque_nm?: number;
+  battery?: number;
+}
+
+export interface PowerIsruWindowSample {
+  t_s: number;
+  solar_dust_factor?: number;
+  hab_bus_v?: number;
+  hab_battery_temp_c?: number;
+  moxie_compressor_a?: number;
+  moxie_soxe_asr?: number;
+  moxie_o2_rate_g_h?: number;
+}
+
 /**
  * Stateless mission state snapshot sent from the browser to backend agents
  * on every `/api/agent/*` request. The browser remains the single source of truth.
@@ -122,6 +178,14 @@ export interface MissionContext {
   crew_profile?: CrewProfile;
   /** Optional sliding window of recent physiological samples for trend prediction. */
   vitals_window?: VitalsSample[];
+  /** Bounded sliding window (<= 90 samples) of PLSS suit component telemetry. */
+  suit_window?: SuitWindowSample[];
+  /** Latest hardware health snapshot per fleet unit ID. */
+  fleet_health?: Record<string, FleetUnitHealth>;
+  /** Bounded sliding window (<= 90 samples) per fleet unit ID. */
+  fleet_windows?: Record<string, FleetWindowSample[]>;
+  /** Bounded sliding window (<= 90 samples) of habitat power & MOXIE ISRU telemetry. */
+  power_isru_window?: PowerIsruWindowSample[];
 }
 
 export type VerdictDecision = "allow" | "deny" | "ask_human";
@@ -140,6 +204,7 @@ export type ActionType =
   | "launch_pod"
   | "deploy_beacons"
   | "arm_skill"
+  | "isolate_component"
   | "set_layer"
   | "open_panel"
   | "show_route"
