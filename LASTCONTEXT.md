@@ -4,20 +4,17 @@
 
 ## Summary of work done
 
-- Merged PR #29 (`web-test-3d` renamed to `web`) and PR #30 (reconciliation); deployed Cloud Run `tangohorizon-api` revision `00027` and Vercel from `main`.
-- Branch `feat/storm-forecast-fft-cinematic-cams`:
-  - `F8`: 3-sol storm forecast fan chart and EVA verdict in the right HUD panel (`web/src/hud/stormForecast.ts`, data from `public/data/env/storm_forecast.json`). The chart caption shows the held-out coverage of the q10–q90 band (44–52 %), lower than the nominal 80 %.
-  - `F6`: 32-band FFT canvas in the voice HUD (`RadioSpeaker` analyser in `speak.ts`, canvas in `hud.ts`), delivered by a subagent and cherry-picked. Playback falls back to the destination when `AnalyserNode` is missing.
-  - Plan `docs/impl/22_RESCUE_SCENARIO_AND_BASE_REVISION.md` (rescue scenario, three astronauts, unit renames, base revision) and task `B24` in `PENDING.md`.
-- `F14` (merged after `F6`/`F8`): five cinematic cameras (Shift+1..5 and HUD buttons), Casson bio-twin panel, Sky-Crane tether pendulum and LiDAR cone; built by a subagent, checked in a browser (CAM-3, no console errors). Sky-Crane toggle position and the Casson panel were not inspected visually.
+- Branch `docs/readme-comprehensive-overview`:
+  - Updated `README.md` and `README_ES.md` with a two-paragraph executive summary at the top covering the 3D simulator, deterministic physics, hands-free 5-language voice, multi-agent hierarchy, 3-provider LLM failover (`gemini-4-carbon`, `gemini-4-argon`, `gemini-4-hydrogen`, `muse-wonder-1.0`, `muse-spark-1.3`, `offline.ts`), local base compute design for Mars operations, Google Cloud Neural TTS (`Journey` voices) + Quindar/FFT radio DSP, `<2 ms` in-memory BM25 RAG (predictive biomedical, FDIR maintenance, and weather/radiation), simulated robotics (4-DOF IK arm, Sky-Crane tether, A* routing), 8.0 kg RK4 ballistic life-support drop-pod, 4-astronaut cooperative rescue scenario, 3 custom-trained ML models (`Hydration Prospector`, `Storm Nowcaster`, `Mineral Vein Detector`), real vs. simulated vs. engineering design assumption tables, and NASA/USGS dataset roles.
+  - Added a collapsible `<details>` toggle right below the Team section and updated the project index (`## Index` / `## Índice`).
+  - Synced `AUTO:DATA` in `README.md` (`53 entries` from `web/public/data/provenance.json`) via `python tools/generate_readme.py --check`.
 
 ## Decisions made
 
 - Frontend ships through Vercel only; Cloud Run stays API-only.
-- The `rover-2` sign/injection demo stays removed.
+- Keep `README.md` and `README_ES.md` structured with a concise two-paragraph summary, updated index, and team roster visible at the top, followed by a collapsible toggle containing the full technical documentation.
 
 ## Where the work was left
 
-- Waiting for the user's GLB models: 3 astronauts, solar panels, antennas, Starship and launch base, rescue robot (see plan 22, section 2).
-- Open: voice `open_panel` in `server/src/agents/tools/registry.ts` and `offline.ts` cannot target the `casson` panel; the Sky-Crane toggle button (`right:12px; bottom:84px`) may overlap other HUD elements.
-- Visual verification of the remaining HUD pieces is pending (`B37`).
+- PR for `docs/readme-comprehensive-overview` opened against `main`.
+- Next pending tasks in `PENDING.md` (`B15`, `B24`) and `PENDING_FRONT.md` (`F7`, `F11`, `F13`).
