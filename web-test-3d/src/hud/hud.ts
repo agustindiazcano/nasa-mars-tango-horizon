@@ -465,7 +465,7 @@ export class TacticalHud {
         <div class="btn-row" style="margin-bottom:8px;">
           <span>Route: <b>${s.routePath.join(" -> ") || "idle"}</b></span>
           <button class="hud-btn ${s.earthLinkDelay ? "active" : ""}" data-pointable id="btn-earth-delay">
-            ${t("agents.earth_link")}: ${s.earthLinkDelay ? `${s.env.earth_light_time_s * 2}s RTT` : "LOCAL"}
+            ${t("agents.earth_link")}: ${s.earthLinkDelay ? `${s.env.earth_light_time_s * 2}s RTT [design]` : "LOCAL"}
           </button>
         </div>
         ${pendingHtml}
