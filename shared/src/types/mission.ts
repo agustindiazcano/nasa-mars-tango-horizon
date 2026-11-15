@@ -1,5 +1,6 @@
 import type { TerrainIdentity } from "../terrainContract.js";
 import type { Lang } from "../i18n/index.js";
+import type { CrewSnapshot } from "./crew.js";
 
 /** Fleet unit archetypes supported across terrain, flight, and manipulation tasks. */
 export type UnitKind =
@@ -90,18 +91,6 @@ export interface FleetUnitSnapshot {
   battery: number;
   busy: boolean;
   task?: string | null;
-}
-
-export type CrewStatus = "active" | "idle" | "injured" | "boarded";
-
-/** Position and status of one crew member (`crew-1`..`crew-4`) in the mission snapshot. */
-export interface CrewSnapshot {
-  id: string;
-  x: number;
-  z: number;
-  status: CrewStatus;
-  /** True while the crew member lies at the bottom of the rescue pit. */
-  in_pit?: boolean;
 }
 
 export interface HudSnapshot {
@@ -216,7 +205,7 @@ export interface MissionContext {
   /** Cached DONKI / WSA-Enlil solar energetic particle alert state. */
   donki_alert?: DonkiAlert;
   fleet: FleetUnitSnapshot[];
-  /** Crew positions; the drone standoff rule in GUARDIAN uses them. */
+  /** The four astronauts by callsign: who is where, assignment and status. */
   crew?: CrewSnapshot[];
   /** True while the crew rescue scenario runs; enables the drone standoff rule for implicit targets. */
   rescue_active?: boolean;
