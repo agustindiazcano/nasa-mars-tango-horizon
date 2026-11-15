@@ -23,6 +23,7 @@ import type { VoiceController } from "../voice/voiceController";
 import { BASE_MODULES } from "../world/baseProc";
 import type { TerrainProc } from "../world/terrainProc";
 import type { DeckButton } from "./demoDeck";
+import { crewDistanceM } from "../world/crewTracker";
 import {
   buildChartModel,
   drawStormChart,
@@ -95,6 +96,7 @@ export class TacticalHud {
   private modalEl: HTMLElement;
   private leftEl: HTMLElement;
   private rightEl: HTMLElement;
+  private crewEl: HTMLElement;
   private topEl: HTMLElement;
   private bottomEl: HTMLElement;
   private confirmEl: HTMLElement;
@@ -109,6 +111,7 @@ export class TacticalHud {
   private provenanceData: ProvenanceManifest | null = null;
   private provenanceError = "";
   private stormData: StormForecastData | null = null;
+  private crewKey = "";
   private stormState: "loading" | "ready" | "error" = "loading";
 
   constructor(
@@ -126,6 +129,7 @@ export class TacticalHud {
       <div id="hud-confirm" class="hud-panel hud-confirm" data-level="warn" style="display:none"></div>
       <div id="hud-left" class="hud-panel hud-left"></div>
       <div id="hud-right" class="hud-panel hud-right"></div>
+      <div id="hud-crew" class="hud-panel hud-crew"></div>
       <div id="hud-modal" class="hud-panel hud-modal" style="display:none"></div>
       <div id="hud-qr" class="hud-panel hud-modal" style="display:none; width:300px; text-align:center;"></div>
       <div id="hud-bottom" class="hud-panel hud-bottom"></div>
@@ -135,6 +139,7 @@ export class TacticalHud {
     this.confirmEl = document.getElementById("hud-confirm")!;
     this.leftEl = document.getElementById("hud-left")!;
     this.rightEl = document.getElementById("hud-right")!;
+    this.crewEl = document.getElementById("hud-crew")!;
     this.modalEl = document.getElementById("hud-modal")!;
     this.qrContainer = document.getElementById("hud-qr")!;
     this.bottomEl = document.getElementById("hud-bottom")!;
@@ -565,6 +570,7 @@ export class TacticalHud {
     `;
 
     this.drawStormCanvas();
+    this.renderCrew();
 
     // Bottom live controls
     this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-layer]").forEach((b) => {
@@ -592,6 +598,7 @@ export class TacticalHud {
     this.topEl.style.display = hudVis ? "flex" : "none";
     this.leftEl.style.display = hudVis ? "block" : "none";
     this.rightEl.style.display = hudVis ? "block" : "none";
+    this.crewEl.style.display = hudVis ? "block" : "none";
     this.bottomEl.style.display = hudVis ? "flex" : "none";
     const restorePill = document.getElementById("hud-restore-pill");
     if (restorePill) {
@@ -666,6 +673,26 @@ export class TacticalHud {
     }
 
     this.renderModal();
+  }
+
+  /** Bottom-left roster: the four astronauts by callsign with assignment, location, status and distance to base. */
+  private renderCrew(): void {
+    const rows = this.store.crew
+      .map((c) => {
+        const d = crewDistanceM(c, BASE_ORIGIN);
+        const level = c.status === "nominal" ? "good" : c.status === "recovering" ? "warn" : "crit";
+        const badge = t(`crew.assignment.${c.assignment}`);
+        return `<div class="crew-row ${level}">
+          <div class="crew-name"><span class="crew-dot"></span>${escapeHtml(c.name)}<span class="crew-badge">${escapeHtml(badge)}</span></div>
+          <div class="crew-line">${escapeHtml(t(`crew.location.${c.location}`))} · ${escapeHtml(t(`crew.status.${c.status}`))}</div>
+          <div class="crew-line">${escapeHtml(t("crew.dist", { m: fmt(d, 0) }))}</div>
+        </div>`;
+      })
+      .join("");
+    const key = rows;
+    if (key === this.crewKey) return;
+    this.crewKey = key;
+    this.crewEl.innerHTML = `<div class="panel-hdr"><span>${t("crew.title")}</span><span>${this.store.crew.length}</span></div>${rows}`;
   }
 
   private stormBlockHtml(tau: number): string {
@@ -1397,6 +1424,21 @@ export class TacticalHud {
     ctx.beginPath();
     ctx.arc(ap.x, ap.y, 4, 0, Math.PI * 2);
     ctx.fill();
+
+    // Crew by callsign
+    ctx.font = "9px monospace";
+    for (const c of this.store.crew) {
+      const pt = toPx(c.x, c.z);
+      ctx.fillStyle = c.status === "nominal" ? "#8ee6a0" : c.status === "recovering" ? "#ffd23f" : "#ff4d5e";
+      ctx.strokeStyle = "#101010";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#f3ece3";
+      ctx.fillText(c.name, pt.x + 6, pt.y - 4);
+    }
   }
 
   private ensureProvenanceLoaded(force = false): void {

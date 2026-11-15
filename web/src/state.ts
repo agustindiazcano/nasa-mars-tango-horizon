@@ -1,4 +1,5 @@
-import { ASTRONAUT_START, MISSION_SITES_BY_ID, type TerrainIdentity } from "@th/shared";
+import { ASTRONAUT_START, BASE_ORIGIN, MISSION_SITES_BY_ID, fleetStartPos, initialCrewSnapshots } from "@th/shared";
+import type { CrewSnapshot, TerrainIdentity } from "@th/shared";
 import { ASR_LOCALE, getLang, setLang, type Lang } from "@th/shared";
 import { C, directTransmission } from "@th/shared";
 import type {
@@ -152,6 +153,8 @@ export class MissionStore {
   env: EnvState = createInitialEnv();
 
   fleet: UnitSnapshot[] = [];
+  /** The four astronauts by callsign (DIAZ-CANO, SALERNO, SOTELO, YACONIS). */
+  crew: CrewSnapshot[] = initialCrewSnapshots(BASE_ORIGIN, fleetStartPos("rover-1"));
   alerts: HudAlert[] = [];
   trace: TraceEvent[] = [];
   routePath: string[] = [];
@@ -242,6 +245,7 @@ export class MissionStore {
         battery: Number(u.battery.toFixed(3)),
         busy: u.busy,
       })),
+      crew: this.crew.map((c) => ({ ...c, x: Number(c.x.toFixed(1)), z: Number(c.z.toFixed(1)) })),
       hud: {
         layer: this.layer,
         panel: this.panel === "none" ? null : this.panel,
