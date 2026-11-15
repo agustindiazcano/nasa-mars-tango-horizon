@@ -26,4 +26,6 @@ On branch `feat/voice-vision-hud-shaders`, implemented `B38`–`B40` and `F17`�
 
 ## Where the work was left
 
-- Tasks `B38`–`B40` and `F17`–`F20` are complete, tested locally, and ready on branch `feat/voice-vision-hud-shaders` for PR and CI verification.
+- Tasks `B38`–`B40` and `F17`–`F20` are merged in `main` (PR #23, `f6c8447`) and deployed to Cloud Run (`tangohorizon-api`).
+- Keyless GitHub Actions Continuous Deployment to Cloud Run via Workload Identity Federation (`github-actions-pool` / `github-provider` + `tango-horizon-cd@nasa-tango-horizon.iam.gserviceaccount.com`) is provisioned in [`infra/terraform/main.tf`](infra/terraform/main.tf) and wired in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) on push to `main`.
+- `B22` (`web-test-3d/` → `web/` consolidation) is on hold while a teammate finishes styling changes.
