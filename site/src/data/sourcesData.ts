@@ -101,7 +101,7 @@ export const SOURCE_CATEGORY_FILTERS: SourceCategoryFilter[] = [
   {
     id: 'all',
     label: { en: 'All', es: 'Todas' },
-    accent: '#7df9ff',
+    accent: '#fbbf24',
   },
   {
     id: 'cartography',
@@ -111,27 +111,27 @@ export const SOURCE_CATEGORY_FILTERS: SourceCategoryFilter[] = [
   {
     id: 'atmosphere',
     label: { en: 'Atmosphere & Rad', es: 'Atmósfera y Rad' },
-    accent: '#38bdf8',
+    accent: '#f97316',
   },
   {
     id: 'ml-spectra',
     label: { en: 'ML & Spectra', es: 'ML y Espectros' },
-    accent: '#c4b5fd',
+    accent: '#fb7185',
   },
   {
     id: 'biomed-rag',
     label: { en: 'Biomed RAG', es: 'RAG Biomédico' },
-    accent: '#34d399',
+    accent: '#ea580c',
   },
   {
     id: 'models-3d',
     label: { en: '3D Models (CC BY 4.0)', es: 'Modelos 3D (CC BY 4.0)' },
-    accent: '#fde68a',
+    accent: '#fdba74',
   },
   {
     id: 'partners',
     label: { en: 'Partners & Challenge', es: 'Aliados y Desafío' },
-    accent: '#f472b6',
+    accent: '#fda4af',
   },
 ];
 
@@ -143,7 +143,7 @@ export const PROVENANCE_SUMMARY_STATS: ProvenanceSummaryStat[] = [
       en: 'Tracked Runtime Assets (SHA-256)',
       es: 'Activos Verificados en Runtime (SHA-256)',
     },
-    accent: '#7df9ff',
+    accent: '#fbbf24',
   },
   {
     id: 'rag-chunks',
@@ -152,7 +152,7 @@ export const PROVENANCE_SUMMARY_STATS: ProvenanceSummaryStat[] = [
       en: 'BM25 RAG Chunks (<2 ms Offline)',
       es: 'Chunks RAG BM25 (<2 ms Offline)',
     },
-    accent: '#34d399',
+    accent: '#ea580c',
   },
   {
     id: 'ml-models',
@@ -161,7 +161,7 @@ export const PROVENANCE_SUMMARY_STATS: ProvenanceSummaryStat[] = [
       en: 'Empirical NASA PDS ML Models',
       es: 'Modelos ML Empíricos NASA PDS',
     },
-    accent: '#c4b5fd',
+    accent: '#fb7185',
   },
   {
     id: 'physics-constants',
@@ -384,7 +384,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'mslrem_1001 · rems_clear.json · rems_storm2018.json',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA PDS', es: 'Verificado NASA PDS' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     description: {
       en: 'Hourly Rover Environmental Monitoring Station surface pressure, air/ground temperature, wind speed, and UV radiation records at Gale Crater.',
       es: 'Registros horarios de presión superficial, temperatura de aire y suelo, viento y radiación UV de la estación REMS en el Cráter Gale.',
@@ -407,7 +407,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'msl_tau_880.csv (doi:10.17189/fjh0-2978)',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA PDS', es: 'Verificado NASA PDS' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     description: {
       en: 'Derived column atmospheric dust opacity (tau at 880 nm) measured from direct solar imaging by Curiosity Mastcam across Martian years.',
       es: 'Opacidad columnar de polvo atmosférico (tau a 880 nm) derivada de observaciones solares directas con Mastcam de Curiosity.',
@@ -430,7 +430,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'MSL-M-RAD-3-RDR-V1.0 (Sols 1773–1779 & 1811–1817)',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA PDS', es: 'Verificado NASA PDS' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     description: {
       en: 'Reduced surface radiation dose rates in Gale Crater covering both nominal Galactic Cosmic Ray (GCR) background and the September 2017 SEP solar storm.',
       es: 'Tasas reducidas de dosis de radiación superficial en el Cráter Gale cubriendo fondo nominal de Rayos Cósmicos Galácticos (GCR) y el evento SEP de septiembre 2017.',
@@ -453,7 +453,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'Target 399 (Earth) w.r.t. 499 (Mars) + Target 10 (Sun)',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA API', es: 'Verificado API NASA' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     description: {
       en: 'High-precision planetary ephemeris service delivering Earth–Mars one-way light time and Sun zenith/azimuth geometry at Gale Crater.',
       es: 'Servicio de efemérides planetarias de alta precisión que entrega el tiempo-luz unidireccional Tierra–Marte y ángulos solares horarios en el Cráter Gale.',
@@ -476,7 +476,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'DONKI/SEP · CMEAnalysis · WSAEnlilSimulations',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA API', es: 'Verificado API NASA' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     description: {
       en: 'Space Weather Database Of Notifications, Knowledge, Information tracking solar energetic particle events, CMEs, and heliospheric WSA-Enlil propagation toward Mars.',
       es: 'Base de datos de clima espacial con alertas de partículas energéticas solares (SEP), eyecciones coronales (CME) y simulaciones heliosféricas WSA-Enlil hacia Marte.',
@@ -509,7 +509,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'Mars-GRAM User Guide (20210023957)',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA NTRS', es: 'Verificado NASA NTRS' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     description: {
       en: 'Engineering-oriented Martian atmosphere model defining vertical density profiles, scale height, wind shears, and dust perturbations for EDL and flight.',
       es: 'Modelo atmosférico de ingeniería marciana para perfiles verticales de densidad, altura de escala, cizalladura de viento y perturbaciones por polvo.',
@@ -532,7 +532,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'MCD v5.2 Atmospheric & Dust Climatology',
     badge: 'open-standard',
     badgeLabel: { en: 'Open Scientific Model', es: 'Modelo Científico Abierto' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     description: {
       en: 'General Circulation Model climatology of Mars atmospheric temperature, density, winds, and seasonal dust scenarios across solar longitudes (Ls).',
       es: 'Climatología basada en Modelo de Circulación General de Marte para temperatura, densidad, vientos y escenarios estacionales de polvo según longitud solar (Ls).',
@@ -555,7 +555,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'mars2020_moxie (Sols 0–659)',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA PDS', es: 'Verificado NASA PDS' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     description: {
       en: '1 Hz raw, calibrated, and derived oxygen mass production rate logs (g/hr) from the Mars Oxygen In-Situ Resource Utilization Experiment.',
       es: 'Registros a 1 Hz de tasa másica de producción de oxígeno (g/h) del experimento Mars Oxygen In-Situ Resource Utilization Experiment.',
@@ -578,7 +578,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'Perseverance SuperCam & EDL Microphone Archive',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA', es: 'Verificado NASA' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     description: {
       en: 'First direct acoustic recordings captured on the Martian surface, capturing low-pressure wind attenuation, rover wheels, and Ingenuity rotor blades.',
       es: 'Primeras grabaciones acústicas directas en la superficie marciana, capturando atenuación del viento en baja presión, ruedas y rotores de Ingenuity.',
@@ -605,7 +605,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'MSL-M-DAN-3/4-RDR-V1.0 (msldan_1000)',
     badge: 'empirical-ml',
     badgeLabel: { en: 'ML Ground Truth', es: 'Verdad de Campo ML' },
-    accent: '#c4b5fd',
+    accent: '#fb7185',
     description: {
       en: 'Dynamic Albedo of Neutrons thermal and epithermal neutron counts measuring subsurface hydrogen/OH moderation along Curiosity’s Gale Crater traverse.',
       es: 'Conteos de neutrones térmicos y epitérmicos del instrumento DAN midiendo moderación subsuperficial de hidrógeno/OH en la ruta de Curiosity.',
@@ -628,7 +628,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: '9 MTRDR Cubes · BD1900_2 & SINDEX2',
     badge: 'empirical-ml',
     badgeLabel: { en: 'ML Orbital Features', es: 'Features Orbitales ML' },
-    accent: '#c4b5fd',
+    accent: '#fb7185',
     description: {
       en: 'Compact Reconnaissance Imaging Spectrometer for Mars map-projected targeted reduced data records capturing 1.9 µm H2O band depth and hydrated sulfates.',
       es: 'Registros espectrales reducidos y proyectados de CRISM capturando la banda de absorción H2O a 1.9 µm e índices de sulfatos hidratados.',
@@ -651,7 +651,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'mars.nasa.gov/api/v1/raw_image_items · Sols 170, 925, 929, 931, 1190',
     badge: 'empirical-ml',
     badgeLabel: { en: 'ML Vision Dataset', es: 'Dataset Visión ML' },
-    accent: '#c4b5fd',
+    accent: '#fb7185',
     description: {
       en: 'Real Curiosity outcrop photography (Garden City, Sheepbed, Bagnold Dunes) audited frame-by-frame (41 positive vein, 76 negative across 22 sols).',
       es: 'Fotografía real de afloramientos de Curiosity (Garden City, Sheepbed, Dunas Bagnold) auditada cuadro a cuadro (41 positivos con vetas, 76 negativos en 22 soles).',
@@ -674,7 +674,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'dinov2-small-vits14 (384-d CLS + 32×32 patch tokens)',
     badge: 'open-standard',
     badgeLabel: { en: 'Open Foundation Model', es: 'Modelo Base Abierto' },
-    accent: '#c4b5fd',
+    accent: '#fb7185',
     description: {
       en: 'Frozen self-supervised Vision Transformer used as a deterministic spatial patch feature extractor paired with sol-grouped LogisticRegression.',
       es: 'Vision Transformer auto-supervisado congelado usado como extractor espacial determinístico acoplado a regresión logística agrupada por sol.',
@@ -701,7 +701,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'OCHMO Standards Portal (BM25 RAG Corpus)',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA OCHMO', es: 'Verificado NASA OCHMO' },
-    accent: '#34d399',
+    accent: '#ea580c',
     description: {
       en: 'Central authority hub governing crew health, medical risk frameworks, environmental exposure limits, and EVA suit operational tolerances.',
       es: 'Portal rector oficial para salud de tripulación, marcos de riesgo médico, límites de exposición ambiental y tolerancias operativas de trajes EVA.',
@@ -724,7 +724,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'NASA-STD-3001 Volume 1',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA Standard', es: 'Estándar NASA Verificado' },
-    accent: '#34d399',
+    accent: '#ea580c',
     description: {
       en: 'Spaceflight human-system standards specifying physiological health criteria, radiation career/acute limits, hypoxia margins, and clinical care capabilities.',
       es: 'Estándar espacial que especifica criterios fisiológicos de salud, límites de radiación, márgenes de hipoxia y capacidades de atención médica.',
@@ -747,7 +747,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'NASA-STD-3001 Volume 2 Rev E',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA Standard', es: 'Estándar NASA Verificado' },
-    accent: '#34d399',
+    accent: '#ea580c',
     description: {
       en: 'Authoritative standard governing EVA suit nominal pressure (29.6 kPa / 4.3 psi), inspired CO2 limits, thermal strain, metabolic workloads, and Armstrong limit.',
       es: 'Estándar oficial que regula la presión nominal de traje EVA (29.6 kPa / 4.3 psi), límites de CO2 inspirado, estrés térmico, carga metabólica y límite de Armstrong.',
@@ -770,7 +770,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'OCHMO-TB-004',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA OCHMO', es: 'Verificado NASA OCHMO' },
-    accent: '#34d399',
+    accent: '#ea580c',
     description: {
       en: 'Operational technical brief detailing hypercapnia cognitive symptoms, PICO2 scrubber breakthrough thresholds, and suit ventilation mitigation.',
       es: 'Boletín técnico operativo sobre síntomas cognitivos por hipercapnia, umbrales de saturación del depurador PICO2 y mitigación por ventilación.',
@@ -793,7 +793,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'NASA/TM-20240012058 · NTRS 20230013414',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA NTRS', es: 'Verificado NASA NTRS' },
-    accent: '#34d399',
+    accent: '#ea580c',
     description: {
       en: 'Informing Mission Planning via Analysis of Complex Tradespaces (IMPACT) and MEDPRAT dynamic Bayesian medical risk tools for deep-space exploration.',
       es: 'Herramientas probabilísticas IMPACT y MEDPRAT de análisis dinámico de riesgo médico y tradespaces para exploración humana profunda.',
@@ -822,7 +822,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'NASA/TM-2022-220299 (NTRS 20220003136)',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA NTRS', es: 'Verificado NASA NTRS' },
-    accent: '#34d399',
+    accent: '#ea580c',
     description: {
       en: 'Canonical NASA reference list of acute and chronic medical conditions modeled for long-duration lunar and Martian surface missions.',
       es: 'Lista canónica de NASA de condiciones médicas agudas y crónicas modeladas para misiones de larga duración en Luna y Marte.',
@@ -845,7 +845,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'visualization.osdr.nasa.gov/biodata/api',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA API', es: 'Verificado API NASA' },
-    accent: '#34d399',
+    accent: '#ea580c',
     description: {
       en: 'Programmatic access to spaceflight omics, physiological adaptation, and radiation-response datasets from NASA GeneLab and space biology archives.',
       es: 'Acceso programático a conjuntos de datos ómicos, de adaptación fisiológica y respuesta a radiación de NASA GeneLab y biología espacial.',
@@ -868,7 +868,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'SUITS-Techteam/TSS_2024',
     badge: 'verified-nasa',
     badgeLabel: { en: 'Verified NASA Schema', es: 'Esquema NASA Verificado' },
-    accent: '#34d399',
+    accent: '#ea580c',
     description: {
       en: 'Open NASA SUITS reference server defining EVA suit telemetry JSON fields (oxygen primary/secondary, suit pressure, fan RPM, scrubber, heart rate, coolant).',
       es: 'Servidor de referencia oficial de NASA SUITS que define los campos JSON de telemetría EVA (O2 primario/secundario, presión, RPM de ventilador, depurador, FC, refrigerante).',
@@ -895,7 +895,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: '16+ Custom Mission GLBs · CC BY 4.0 International',
     badge: 'cc-by-4',
     badgeLabel: { en: 'Free to Use · CC BY 4.0', es: 'Uso Libre · CC BY 4.0' },
-    accent: '#fde68a',
+    accent: '#fdba74',
     description: {
       en: 'Original habitats, Starship-class rocket, animated & static astronauts, rescue robot, rescue rover, reconnaissance rovers, solar panels, antenna, and base modules created by Team Tango Horizon and optimized with meshoptimizer.',
       es: 'Hábitats originales, cohete clase Starship, astronautas animados y estáticos, robot de rescate, rover de rescate, rovers de reconocimiento, paneles solares, antena y módulos base creados por Team Tango Horizon y optimizados con meshoptimizer.',
@@ -918,7 +918,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'ingenuity.glb · mro.glb · rover.glb',
     badge: 'verified-nasa',
     badgeLabel: { en: 'NASA Media Guidelines', es: 'Directrices NASA Media' },
-    accent: '#fde68a',
+    accent: '#fdba74',
     description: {
       en: 'Official NASA 3D spacecraft and robotic explorer models (Ingenuity Mars Helicopter, Mars Reconnaissance Orbiter, and Mars 2020/MSL chassis) integrated into the 3D Gale Crater scene.',
       es: 'Modelos 3D oficiales de NASA (helicóptero Ingenuity, orbitador MRO y rover clase Mars 2020/MSL) integrados en la escena 3D del Cráter Gale.',
@@ -959,7 +959,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'nasa.gov',
     badge: 'official-partner',
     badgeLabel: { en: 'Space Agency', es: 'Agencia Espacial' },
-    accent: '#f472b6',
+    accent: '#fda4af',
     description: {
       en: 'Primary sponsor and data steward behind the Mars missions, Planetary Data System archives, OCHMO standards, and open APIs powering Tango Horizon.',
       es: 'Agencia impulsora y custodia de datos detrás de las misiones marcianas, archivos PDS, estándares OCHMO y APIs abiertas que impulsan Tango Horizon.',
@@ -982,7 +982,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'spaceappschallenge.org · 2026 Edition',
     badge: 'official-partner',
     badgeLabel: { en: 'Global Hackathon', es: 'Hackatón Global' },
-    accent: '#f472b6',
+    accent: '#fda4af',
     description: {
       en: 'The world’s largest annual global space & science hackathon inviting multidisciplinary teams to build open solutions with NASA Earth and space data.',
       es: 'La hackatón global anual de ciencia y espacio más grande del mundo, convocando equipos interdisciplinarios a crear soluciones abiertas con datos de NASA.',
@@ -1015,7 +1015,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'interplanetary-survival-guide-martian-map',
     badge: 'official-partner',
     badgeLabel: { en: 'Official Challenge', es: 'Desafío Oficial' },
-    accent: '#f472b6',
+    accent: '#fda4af',
     description: {
       en: '2026 challenge calling for interactive Martian mapping, hazard awareness, and survival guidance for future human and robotic explorers.',
       es: 'Desafío 2026 orientado a crear mapas marcianos interactivos, conciencia de peligros y guías de supervivencia para futuros exploradores humanos y robóticos.',
@@ -1038,7 +1038,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'tango-horizon',
     badge: 'official-partner',
     badgeLabel: { en: 'Team Submission', es: 'Presentación del Equipo' },
-    accent: '#f472b6',
+    accent: '#fda4af',
     description: {
       en: 'Official Space Apps 2026 project submission profile for Team Tango Horizon (Agustín Díaz-Cano, Baltazar Salerno, Milagros Sotelo, Federico Yaconis).',
       es: 'Perfil oficial de presentación en Space Apps 2026 del Equipo Tango Horizon (Agustín Díaz-Cano, Baltazar Salerno, Milagros Sotelo, Federico Yaconis).',
@@ -1061,7 +1061,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'local-events/buenos-aires',
     badge: 'official-partner',
     badgeLabel: { en: 'Local Host Node', es: 'Sede Local' },
-    accent: '#f472b6',
+    accent: '#fda4af',
     description: {
       en: 'Official Buenos Aires, Argentina local event hub hosting Team Tango Horizon during the November 14–15, 2026 hackathon weekend.',
       es: 'Sede oficial de Buenos Aires, Argentina, anfitriona del Equipo Tango Horizon durante el fin de semana del 14 y 15 de noviembre de 2026.',
@@ -1084,7 +1084,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'conae · Space Agency Partner',
     badge: 'official-partner',
     badgeLabel: { en: 'Agency Partner', es: 'Agencia Aliada' },
-    accent: '#f472b6',
+    accent: '#fda4af',
     description: {
       en: 'Argentina’s national space agency and official NASA Space Apps Challenge space agency partner supporting local innovation since 2021.',
       es: 'Agencia espacial nacional de Argentina y socia oficial del NASA Space Apps Challenge acompañando la innovación local desde 2021.',
@@ -1107,7 +1107,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'palermo.edu',
     badge: 'official-partner',
     badgeLabel: { en: 'Academic Host', es: 'Sede Académica' },
-    accent: '#f472b6',
+    accent: '#fda4af',
     description: {
       en: 'Host university campus for the Buenos Aires Space Apps 2026 node and academic home of our lunar and Martian robotics/AI research chronicled on this site.',
       es: 'Campus anfitrión de la sede Buenos Aires de Space Apps 2026 y casa académica de las tesis sobre robótica e IA lunar y marciana publicadas en este sitio.',
@@ -1130,7 +1130,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'ibm.com/ar-es',
     badge: 'official-partner',
     badgeLabel: { en: 'Local Sponsor', es: 'Sponsor Local' },
-    accent: '#f472b6',
+    accent: '#fda4af',
     description: {
       en: 'Enterprise technology sponsor supporting the Buenos Aires Space Apps Challenge node and AI/cloud engineering mentorship.',
       es: 'Sponsor tecnológico corporativo que apoya al nodo Buenos Aires de Space Apps Challenge y la mentoría en IA y nube.',
@@ -1153,7 +1153,7 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     productId: 'afaw-anti-fragile-agentic-workflow',
     badge: 'open-standard',
     badgeLabel: { en: 'Open Methodology', es: 'Metodología Abierta' },
-    accent: '#7df9ff',
+    accent: '#fbbf24',
     description: {
       en: 'Multi-agent engineering methodology used to build Tango Horizon with isolated git worktrees, shared contract files, automated CI/test verification, and human-in-the-loop review.',
       es: 'Metodología de ingeniería multi-agente utilizada para construir Tango Horizon con worktrees aislados, contratos compartidos, CI automatizado y revisión humana.',

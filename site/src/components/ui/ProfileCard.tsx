@@ -269,13 +269,13 @@ function ProfileCardInner({
         }
         :where(.pc-card) {
           position: relative;
-          border-radius: 24px;
+          border-radius: 2px;
           padding: 10px;
-          background: linear-gradient(155deg, rgba(42, 48, 72, 0.72) 0%, rgba(13, 18, 34, 0.88) 100%);
-          border: 1px solid rgba(125, 249, 255, 0.22);
+          background: linear-gradient(155deg, rgba(44, 20, 26, 0.78) 0%, rgba(17, 8, 12, 0.92) 100%);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           box-shadow:
             0 24px 52px -18px rgba(0, 0, 0, 0.85),
-            0 0 28px rgba(56, 189, 248, 0.12),
+            0 0 28px rgba(249, 115, 22, 0.16),
             inset 0 1px 0 rgba(255, 255, 255, 0.14);
           backdrop-filter: blur(18px) saturate(1.4);
           transform: rotateX(var(--rotate-x)) rotateY(var(--rotate-y));
@@ -284,9 +284,9 @@ function ProfileCardInner({
         }
         :where(.pc-inside) {
           position: relative;
-          border-radius: 16px;
+          border-radius: 2px;
           overflow: hidden;
-          background: radial-gradient(circle at 30% 20%, #1e293b 0%, #090e1c 70%, #030712 100%);
+          background: radial-gradient(circle at 30% 20%, #2a1219 0%, #11080c 70%, #090406 100%);
           display: flex;
           flex-direction: column;
         }
@@ -298,22 +298,21 @@ function ProfileCardInner({
           background-image:
             repeating-linear-gradient(
               0deg,
-              hsl(2, 100%, 73%) 5%,
-              hsl(53, 100%, 69%) 10%,
-              hsl(93, 100%, 69%) 15%,
-              hsl(176, 100%, 76%) 20%,
-              hsl(228, 100%, 74%) 25%,
-              hsl(260, 100%, 76%) 30%,
-              hsl(2, 100%, 73%) 35%
+              hsl(12, 95%, 64%) 5%,
+              hsl(32, 98%, 62%) 12%,
+              hsl(45, 96%, 64%) 18%,
+              hsl(350, 90%, 68%) 25%,
+              hsl(20, 95%, 60%) 32%,
+              hsl(12, 95%, 64%) 38%
             ),
             repeating-linear-gradient(
               -45deg,
-              #0e152e 0%,
-              hsl(180, 10%, 60%) 3.8%,
-              hsl(180, 29%, 66%) 4.5%,
-              hsl(180, 10%, 60%) 5.2%,
-              #0e152e 10%,
-              #0e152e 12%
+              #1a0c12 0%,
+              hsl(24, 22%, 52%) 3.8%,
+              hsl(34, 34%, 62%) 4.5%,
+              hsl(24, 22%, 52%) 5.2%,
+              #1a0c12 10%,
+              #1a0c12 12%
             ),
             var(--pc-grain);
           background-position:
@@ -336,8 +335,8 @@ function ProfileCardInner({
           pointer-events: none;
           background: radial-gradient(
             farthest-corner circle at var(--pc-light-x) var(--pc-light-y),
-            rgba(255, 255, 255, 0.65) 0%,
-            rgba(125, 249, 255, 0.22) 24%,
+            rgba(255, 248, 241, 0.65) 0%,
+            rgba(251, 146, 60, 0.24) 24%,
             rgba(255, 255, 255, 0) 62%
           );
           mix-blend-mode: overlay;
@@ -349,7 +348,7 @@ function ProfileCardInner({
           width: 100%;
           overflow: hidden;
           isolation: isolate;
-          background: radial-gradient(circle at 50% 35%, rgba(56, 189, 248, 0.16), rgba(3, 7, 18, 0.96) 75%);
+          background: radial-gradient(circle at 50% 35%, rgba(249, 115, 22, 0.18), rgba(9, 4, 6, 0.96) 75%);
         }
         :where(.pc-avatar-content img) {
           position: absolute;
@@ -367,11 +366,11 @@ function ProfileCardInner({
           left: 14px;
           z-index: 6;
           padding: 0.28rem 0.72rem;
-          border-radius: 999px;
-          background: rgba(6, 10, 22, 0.78);
-          border: 1px solid rgba(125, 249, 255, 0.42);
+          border-radius: 2px;
+          background: rgba(17, 8, 12, 0.84);
+          border: 1px solid rgba(251, 146, 60, 0.48);
           backdrop-filter: blur(8px);
-          color: #7df9ff;
+          color: #fbbf24;
           font-size: 0.7rem;
           font-weight: 700;
           letter-spacing: 0.08em;
@@ -383,9 +382,9 @@ function ProfileCardInner({
           z-index: 3;
           background: linear-gradient(
             to top,
-            rgba(2, 6, 23, 0.94) 0%,
-            rgba(2, 6, 23, 0.68) 32%,
-            rgba(2, 6, 23, 0.08) 65%,
+            rgba(9, 4, 6, 0.94) 0%,
+            rgba(9, 4, 6, 0.68) 32%,
+            rgba(9, 4, 6, 0.08) 65%,
             transparent 100%
           );
           pointer-events: none;
@@ -395,27 +394,27 @@ function ProfileCardInner({
           z-index: 6;
           padding: 0.25rem 1.15rem 0.95rem 1.15rem;
           margin-top: -4.2rem;
-          color: #f8fafc;
+          color: #fff8f1;
         }
         :where(.pc-details h3) {
           margin: 0;
           font-size: 1.25rem;
           font-weight: 700;
           letter-spacing: -0.01em;
-          color: #ffffff;
+          color: #fff8f1;
           text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
         }
         :where(.pc-details p) {
           margin: 0.2rem 0 0 0;
           font-size: 0.86rem;
           font-weight: 500;
-          color: #bae6fd;
+          color: #fdba74;
         }
         :where(.pc-bio) {
           margin: 0.55rem 0 0 0;
           font-size: 0.82rem;
           line-height: 1.5;
-          color: #cbd5e1;
+          color: #f3dfd1;
           display: -webkit-box;
           -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
@@ -430,9 +429,9 @@ function ProfileCardInner({
           gap: 0.65rem;
           margin: 0 0.75rem 0.75rem 0.75rem;
           padding: 0.65rem 0.8rem;
-          border-radius: 14px;
-          background: rgba(15, 23, 42, 0.78);
-          border: 1px solid rgba(148, 163, 184, 0.2);
+          border-radius: 2px;
+          background: rgba(26, 12, 18, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           backdrop-filter: blur(12px);
         }
         :where(.pc-user-details) {
@@ -447,12 +446,12 @@ function ProfileCardInner({
           border-radius: 50%;
           overflow: hidden;
           flex-shrink: 0;
-          border: 1px solid rgba(125, 249, 255, 0.35);
-          background: linear-gradient(135deg, #1e293b, #0f172a);
+          border: 1px solid rgba(251, 146, 60, 0.42);
+          background: linear-gradient(135deg, #2a1219, #11080c);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #7df9ff;
+          color: #fbbf24;
           font-size: 0.74rem;
           font-weight: 700;
         }
@@ -470,7 +469,7 @@ function ProfileCardInner({
         :where(.pc-handle) {
           font-size: 0.82rem;
           font-weight: 600;
-          color: #f8fafc;
+          color: #fff8f1;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -480,7 +479,7 @@ function ProfileCardInner({
           align-items: center;
           gap: 0.35rem;
           font-size: 0.72rem;
-          color: #94a3b8;
+          color: #b89b8c;
           white-space: nowrap;
         }
         :where(.pc-status-dot) {
@@ -499,10 +498,10 @@ function ProfileCardInner({
         :where(.pc-action-link) {
           width: 32px;
           height: 32px;
-          border-radius: 10px;
-          background: rgba(30, 41, 59, 0.9);
-          border: 1px solid rgba(148, 163, 184, 0.25);
-          color: #e2e8f0;
+          border-radius: 2px;
+          background: rgba(28, 12, 18, 0.9);
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          color: #f3dfd1;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -510,12 +509,12 @@ function ProfileCardInner({
           transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
         }
         :where(.pc-action-link:hover) {
-          border-color: #7df9ff;
-          color: #7df9ff;
+          border-color: #f97316;
+          color: #fbbf24;
           transform: translateY(-1px);
         }
         :where(.pc-action-link:focus-visible) {
-          outline: 2px solid #7df9ff;
+          outline: 2px solid #f97316;
           outline-offset: 2px;
         }
       `}</style>
@@ -557,14 +556,14 @@ function ProfileCardInner({
                 >
                   <defs>
                     <radialGradient id={`crest-glow-${crestUid}`} cx="50%" cy="46%" r="50%">
-                      <stop offset="0%" stopColor="#7df9ff" stopOpacity="0.32" />
-                      <stop offset="55%" stopColor="#fb923c" stopOpacity="0.14" />
-                      <stop offset="100%" stopColor="#020617" stopOpacity="0" />
+                      <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.32" />
+                      <stop offset="55%" stopColor="#f97316" stopOpacity="0.16" />
+                      <stop offset="100%" stopColor="#090406" stopOpacity="0" />
                     </radialGradient>
                     <linearGradient id={`crest-ring-${crestUid}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#fde68a" />
-                      <stop offset="50%" stopColor="#7df9ff" />
-                      <stop offset="100%" stopColor="#fb923c" />
+                      <stop offset="0%" stopColor="#fbbf24" />
+                      <stop offset="50%" stopColor="#f97316" />
+                      <stop offset="100%" stopColor="#fb7185" />
                     </linearGradient>
                   </defs>
 
@@ -592,16 +591,16 @@ function ProfileCardInner({
                     <circle cx="130" cy="126" r="56" strokeWidth="1.5" />
                   </g>
 
-                  <circle cx="52" cy="88" r="3.5" fill="#fde68a" />
-                  <circle cx="208" cy="164" r="3.5" fill="#7df9ff" />
-                  <circle cx="182" cy="54" r="2.8" fill="#fb923c" />
+                  <circle cx="52" cy="88" r="3.5" fill="#fbbf24" />
+                  <circle cx="208" cy="164" r="3.5" fill="#fda4af" />
+                  <circle cx="182" cy="54" r="2.8" fill="#f97316" />
 
                   <circle
                     cx="130"
                     cy="126"
                     r="48"
-                    fill="rgba(9, 14, 28, 0.88)"
-                    stroke="rgba(125, 249, 255, 0.45)"
+                    fill="rgba(17, 8, 12, 0.88)"
+                    stroke="rgba(251, 146, 60, 0.45)"
                     strokeWidth="1.2"
                   />
                   <text
@@ -612,7 +611,7 @@ function ProfileCardInner({
                     fontSize="34"
                     fontWeight="800"
                     letterSpacing="3"
-                    fontFamily="system-ui, -apple-system, sans-serif"
+                    fontFamily="var(--font-raleway), 'Raleway', sans-serif"
                   >
                     {initials}
                   </text>

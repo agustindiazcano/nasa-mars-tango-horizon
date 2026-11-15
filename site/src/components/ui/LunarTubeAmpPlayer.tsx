@@ -230,10 +230,10 @@ export function LunarTubeAmpPlayer({
           position: relative;
           display: flex;
           flex-direction: column;
-          border-radius: 16px;
+          border-radius: 2px;
           box-shadow: 0 36px 80px rgba(0, 0, 0, 0.85), 0 8px 20px rgba(0, 0, 0, 0.7);
           overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.24);
         }
         :where(.tube-amp-wood-case) {
           position: absolute;
@@ -371,14 +371,14 @@ export function LunarTubeAmpPlayer({
           gap: 4px;
           height: 28px;
           padding: 4px 10px;
-          border-radius: 6px;
-          background: #0f172a;
-          border: 1px solid rgba(51, 65, 85, 0.8);
+          border-radius: 2px;
+          background: #11080c;
+          border: 1px solid rgba(255, 255, 255, 0.24);
         }
         :where(.tube-amp-wave-bar) {
           flex: 1;
           border-radius: 2px;
-          background: linear-gradient(to top, #f59e0b, #7df9ff);
+          background: linear-gradient(to top, #f97316, #fbbf24);
           transition: height 0.08s linear;
           min-height: 3px;
         }
@@ -390,14 +390,15 @@ export function LunarTubeAmpPlayer({
         :where(.tube-amp-scrub-meta) {
           display: flex;
           justify-content: space-between;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+          font-variant-numeric: tabular-nums;
           font-size: 0.7rem;
           font-weight: 700;
-          color: #334155;
+          color: #291814;
         }
         :where(.tube-amp-range) {
           width: 100%;
-          accent-color: #d97706;
+          accent-color: #f97316;
           cursor: pointer;
         }
         :where(.tube-amp-controls) {
@@ -435,10 +436,10 @@ export function LunarTubeAmpPlayer({
           align-items: center;
           gap: 0.45rem;
           padding: 0.55rem 1.05rem;
-          border-radius: 999px;
-          border: 1px solid #475569;
-          background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-          color: #f8fafc;
+          border-radius: 2px;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          background: linear-gradient(180deg, #2a1219 0%, #11080c 100%);
+          color: #fff8f1;
           font-size: 0.82rem;
           font-weight: 700;
           letter-spacing: 0.04em;
@@ -447,7 +448,7 @@ export function LunarTubeAmpPlayer({
           transition: transform 0.15s ease, border-color 0.2s ease;
         }
         :where(.tube-amp-switch-btn:hover) {
-          border-color: #f59e0b;
+          border-color: #f97316;
           transform: translateY(-1px);
         }
         :where(.tube-amp-jewel) {
@@ -480,11 +481,11 @@ export function LunarTubeAmpPlayer({
         :where(.tube-amp-caption-title) {
           font-size: 0.95rem;
           font-weight: 700;
-          color: #fde68a;
+          color: #fbbf24;
         }
         :where(.tube-amp-caption-sub) {
           font-size: 0.82rem;
-          color: #bae6fd;
+          color: #f3dfd1;
           font-style: italic;
         }
       `}</style>

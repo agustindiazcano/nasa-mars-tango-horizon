@@ -102,15 +102,22 @@ export function SourcesLandingView() {
   }, [activeCategory, searchQuery]);
 
   return (
-    <div className="era-detail-page">
+    <div
+      className="era-detail-page"
+      style={{ fontFamily: "var(--font-raleway), 'Raleway', sans-serif" }}
+    >
       <div className="era-detail-container th-sources-container">
         {/* TOPBAR */}
         <div className="era-detail-topbar">
-          <Link href="/" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
+          <Link
+            href="/"
+            className="ac-readmore-wrap"
+            style={{ textDecoration: 'none', borderRadius: '2px' }}
+          >
             <GlassSurface
               width="auto"
-              height={46}
-              borderRadius={999}
+              height={40}
+              borderRadius={2}
               borderWidth={0.12}
               brightness={58}
               opacity={0.95}
@@ -128,8 +135,16 @@ export function SourcesLandingView() {
             </GlassSurface>
           </Link>
 
-          <ElectricBorder color="#7df9ff" speed={1.15} chaos={0.45} borderRadius={16}>
-            <div className="era-detail-period-pill" style={{ color: '#7df9ff' }}>
+          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.45} borderRadius={2}>
+            <div
+              className="era-detail-period-pill"
+              style={{
+                color: '#fbbf24',
+                borderRadius: '2px',
+                fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
               NASA Space Apps Challenge 2026 · 2026-11-15
             </div>
           </ElectricBorder>
@@ -140,7 +155,7 @@ export function SourcesLandingView() {
           <GlassSurface
             width="100%"
             height="auto"
-            borderRadius={30}
+            borderRadius={4}
             borderWidth={0.08}
             brightness={52}
             opacity={0.95}
@@ -164,7 +179,14 @@ export function SourcesLandingView() {
                     className="th-sources-stat-card"
                     style={{ borderColor: `${stat.accent}44` }}
                   >
-                    <span className="th-sources-stat-value th-mono" style={{ color: stat.accent }}>
+                    <span
+                      className="th-sources-stat-value th-mono"
+                      style={{
+                        color: stat.accent,
+                        fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
                       {stat.value}
                     </span>
                     <span className="th-sources-stat-label">{t(stat.label, lang)}</span>
@@ -173,18 +195,18 @@ export function SourcesLandingView() {
               </div>
 
               <div className="th-sources-hero-actions">
-                <ElectricBorder color="#7df9ff" speed={1.2} chaos={0.45} borderRadius={999}>
+                <ElectricBorder color="#f97316" speed={1.2} chaos={0.45} borderRadius={2}>
                   <a
                     href={SIMULATOR_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ac-readmore-wrap"
-                    style={{ textDecoration: 'none' }}
+                    style={{ textDecoration: 'none', borderRadius: '2px' }}
                   >
                     <GlassSurface
                       width="auto"
-                      height={50}
-                      borderRadius={999}
+                      height={42}
+                      borderRadius={2}
                       borderWidth={0.12}
                       brightness={60}
                       opacity={0.96}
@@ -196,19 +218,23 @@ export function SourcesLandingView() {
                       className="ac-glass-btn-surface"
                     >
                       <span className="ac-readmore-label" style={{ padding: '0 1.45rem' }}>
-                        <Rocket size={17} style={{ color: '#7df9ff' }} aria-hidden="true" />
+                        <Rocket size={17} style={{ color: '#fbbf24' }} aria-hidden="true" />
                         <span>{t(copy.openSimulator, lang)}</span>
-                        <ExternalLink size={14} style={{ color: '#7df9ff' }} aria-hidden="true" />
+                        <ExternalLink size={14} style={{ color: '#fbbf24' }} aria-hidden="true" />
                       </span>
                     </GlassSurface>
                   </a>
                 </ElectricBorder>
 
-                <Link href="/proyecto" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
+                <Link
+                  href="/proyecto"
+                  className="ac-readmore-wrap"
+                  style={{ textDecoration: 'none', borderRadius: '2px' }}
+                >
                   <GlassSurface
                     width="auto"
-                    height={50}
-                    borderRadius={999}
+                    height={42}
+                    borderRadius={2}
                     borderWidth={0.1}
                     brightness={55}
                     opacity={0.94}
@@ -220,7 +246,7 @@ export function SourcesLandingView() {
                     className="ac-glass-btn-surface"
                   >
                     <span className="ac-readmore-label" style={{ padding: '0 1.35rem' }}>
-                      <Cpu size={16} style={{ color: '#c4b5fd' }} aria-hidden="true" />
+                      <Cpu size={16} style={{ color: '#fb7185' }} aria-hidden="true" />
                       <span>{t(copy.projectOverview, lang)}</span>
                     </span>
                   </GlassSurface>
@@ -235,7 +261,7 @@ export function SourcesLandingView() {
           <GlassSurface
             width="100%"
             height="auto"
-            borderRadius={24}
+            borderRadius={4}
             borderWidth={0.07}
             brightness={50}
             opacity={0.94}
@@ -247,15 +273,15 @@ export function SourcesLandingView() {
           >
             <div className="th-sources-rigor-box">
               <div className="th-sources-rigor-head">
-                <ShieldCheck size={22} style={{ color: '#34d399', flexShrink: 0 }} aria-hidden="true" />
+                <ShieldCheck size={22} style={{ color: '#fbbf24', flexShrink: 0 }} aria-hidden="true" />
                 <h2 id="verified-vs-sim-title" className="th-sources-rigor-title">
                   {t(copy.verifiedVsSimTitle, lang)}
                 </h2>
               </div>
 
               <div className="th-sources-rigor-grid">
-                <div className="th-sources-rigor-col" style={{ borderColor: 'rgba(52, 211, 153, 0.35)' }}>
-                  <h3 style={{ color: '#34d399' }}>{t(copy.verifiedVsSimEmpiricalTitle, lang)}</h3>
+                <div className="th-sources-rigor-col" style={{ borderColor: 'rgba(251, 191, 36, 0.35)' }}>
+                  <h3 style={{ color: '#fbbf24' }}>{t(copy.verifiedVsSimEmpiricalTitle, lang)}</h3>
                   <p>{t(copy.verifiedVsSimEmpiricalBody, lang)}</p>
                 </div>
                 <div className="th-sources-rigor-col" style={{ borderColor: 'rgba(251, 146, 60, 0.35)' }}>
@@ -269,11 +295,11 @@ export function SourcesLandingView() {
 
         {/* 3. 3D MODELS CC BY 4.0 FREE-TO-USE LICENSE HIGHLIGHT BOX */}
         <section className="th-sources-section" aria-labelledby="cc-by-4-heading">
-          <ElectricBorder color="#fde68a" speed={1.0} chaos={0.35} borderRadius={26}>
+          <ElectricBorder color="#fdba74" speed={1.0} chaos={0.35} borderRadius={4}>
             <GlassSurface
               width="100%"
               height="auto"
-              borderRadius={26}
+              borderRadius={4}
               borderWidth={0.08}
               brightness={54}
               opacity={0.95}
@@ -286,11 +312,11 @@ export function SourcesLandingView() {
               <div className="th-sources-license-box">
                 <div className="th-sources-license-top">
                   <div className="th-sources-license-title-wrap">
-                    <span className="ac-timeline-badge" style={{ borderColor: '#fde68a66', color: '#fde68a' }}>
+                    <span className="ac-timeline-badge" style={{ borderColor: '#fdba7466', color: '#fdba74' }}>
                       {t(copy.licenseBoxBadge, lang)}
                     </span>
                     <h2 id="cc-by-4-heading" className="th-sources-license-title">
-                      <Box size={22} style={{ color: '#fde68a', flexShrink: 0 }} aria-hidden="true" />
+                      <Box size={22} style={{ color: '#fdba74', flexShrink: 0 }} aria-hidden="true" />
                       <span>{t(copy.licenseBoxTitle, lang)}</span>
                     </h2>
                   </div>
@@ -301,6 +327,7 @@ export function SourcesLandingView() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="th-sources-link-btn th-sources-link-btn--gold"
+                      style={{ borderRadius: '2px' }}
                     >
                       <span>{t(copy.licenseCta, lang)}</span>
                       <ExternalLink size={14} aria-hidden="true" />
@@ -310,6 +337,7 @@ export function SourcesLandingView() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="th-sources-link-btn"
+                      style={{ borderRadius: '2px' }}
                     >
                       <span>{t(copy.nasa3dCta, lang)}</span>
                       <ExternalLink size={14} aria-hidden="true" />
@@ -351,7 +379,7 @@ export function SourcesLandingView() {
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="th-sources-glb-chip th-sources-glb-chip--cyan th-mono"
+                          className="th-sources-glb-chip th-sources-glb-chip--sunset th-mono"
                           title={item.name}
                         >
                           {item.file}
@@ -380,19 +408,28 @@ export function SourcesLandingView() {
                     aria-selected={isActive}
                     onClick={() => setActiveCategory(cat.id)}
                     className={`th-sources-pill ${isActive ? 'th-sources-pill--active' : ''}`}
-                    style={
-                      isActive
+                    style={{
+                      borderRadius: '2px',
+                      ...(isActive
                         ? {
                             borderColor: cat.accent,
                             backgroundColor: `${cat.accent}22`,
-                            color: '#ffffff',
+                            color: '#fff8f1',
                             boxShadow: `0 0 18px ${cat.accent}33`,
                           }
-                        : undefined
-                    }
+                        : undefined),
+                    }}
                   >
                     <span>{t(cat.label, lang)}</span>
-                    <span className="th-sources-pill-count th-mono">{categoryCounts[cat.id]}</span>
+                    <span
+                      className="th-sources-pill-count th-mono"
+                      style={{
+                        fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      {categoryCounts[cat.id]}
+                    </span>
                   </button>
                 );
               })}
@@ -534,7 +571,7 @@ export function SourcesLandingView() {
               <article
                 key={item.id}
                 className="th-project__card"
-                style={{ borderLeft: '3px solid #7df9ff' }}
+                style={{ borderLeft: '3px solid #fb923c' }}
               >
                 <div className="th-sources-physics-mod th-mono">{item.modulePath}</div>
                 <h3 className="th-sources-card-title">{t(item.domain, lang)}</h3>
@@ -548,7 +585,62 @@ export function SourcesLandingView() {
         </section>
       </div>
 
-      <style jsx>{`
+      <style>{`
+        .th-sources-container,
+        .th-sources-container .th-mono,
+        .th-sources-container code {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
+        .th-sources-container .th-eyebrow {
+          border-radius: 2px;
+          background: rgba(249, 115, 22, 0.14);
+          border: 1px solid rgba(251, 191, 36, 0.36);
+          color: #fbbf24;
+        }
+        .th-sources-container .era-detail-period-pill {
+          border-radius: 2px;
+          min-height: 40px;
+          display: inline-flex;
+          align-items: center;
+          background: rgba(26, 12, 17, 0.82);
+          border-color: rgba(251, 146, 60, 0.38);
+          font-variant-numeric: tabular-nums;
+        }
+        .th-sources-container .ac-timeline-badge {
+          border-radius: 2px;
+          background: rgba(249, 115, 22, 0.14);
+          border: 1px solid rgba(251, 191, 36, 0.36);
+          color: #fbbf24;
+        }
+        .th-sources-container .ac-readmore-wrap {
+          border-radius: 2px;
+        }
+        .th-sources-container .ac-readmore-wrap:hover {
+          filter: drop-shadow(0 0 18px rgba(249, 115, 22, 0.45));
+        }
+        .th-sources-container .ac-glass-btn-surface {
+          border-radius: 2px !important;
+          border: 1px solid rgba(251, 146, 60, 0.4);
+          box-shadow:
+            0 0 18px rgba(249, 115, 22, 0.18),
+            inset 0 0 12px rgba(255, 248, 241, 0.08);
+        }
+        .th-sources-container .ac-readmore-label {
+          color: #fff8f1;
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
+        .th-sources-container .th-project__card {
+          border-radius: 4px;
+          background: rgba(26, 12, 17, 0.82);
+          border-color: rgba(255, 255, 255, 0.24);
+        }
+        .th-sources-container .th-project__card:hover {
+          border-color: rgba(251, 146, 60, 0.56);
+        }
+        .th-sources-container .th-section-title {
+          color: #fff8f1;
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
         .th-sources-container {
           display: flex;
           flex-direction: column;
@@ -574,14 +666,14 @@ export function SourcesLandingView() {
           font-weight: 850;
           line-height: 1.12;
           letter-spacing: -0.025em;
-          color: #ffffff;
+          color: #fff8f1;
         }
         .th-sources-hero-sub {
           margin: 0;
           max-width: 820px;
           font-size: clamp(1rem, 1.35vw, 1.15rem);
           line-height: 1.65;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         .th-sources-stats-grid {
           width: 100%;
@@ -592,9 +684,9 @@ export function SourcesLandingView() {
         }
         .th-sources-stat-card {
           padding: 0.95rem 1.05rem;
-          border-radius: 16px;
-          background: rgba(7, 11, 20, 0.78);
-          border: 1px solid rgba(148, 163, 184, 0.25);
+          border-radius: 4px;
+          background: rgba(20, 10, 14, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           display: flex;
           flex-direction: column;
           gap: 0.25rem;
@@ -602,11 +694,12 @@ export function SourcesLandingView() {
         .th-sources-stat-value {
           font-size: 1.65rem;
           font-weight: 800;
+          font-variant-numeric: tabular-nums;
           line-height: 1.1;
         }
         .th-sources-stat-label {
           font-size: 0.78rem;
-          color: #cbd5e1;
+          color: #f3dfd1;
           line-height: 1.35;
         }
         .th-sources-hero-actions {
@@ -631,7 +724,7 @@ export function SourcesLandingView() {
           margin: 0;
           font-size: 1.25rem;
           font-weight: 800;
-          color: #ffffff;
+          color: #fff8f1;
         }
         .th-sources-rigor-grid {
           display: grid;
@@ -640,9 +733,9 @@ export function SourcesLandingView() {
         }
         .th-sources-rigor-col {
           padding: 1.1rem 1.2rem;
-          border-radius: 16px;
-          background: rgba(5, 8, 16, 0.72);
-          border: 1px solid rgba(148, 163, 184, 0.22);
+          border-radius: 4px;
+          background: rgba(20, 10, 14, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.24);
         }
         .th-sources-rigor-col h3 {
           margin: 0 0 0.45rem 0;
@@ -653,7 +746,7 @@ export function SourcesLandingView() {
           margin: 0;
           font-size: 0.87rem;
           line-height: 1.6;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         .th-sources-license-box {
           width: 100%;
@@ -682,7 +775,7 @@ export function SourcesLandingView() {
           gap: 0.6rem;
           font-size: 1.32rem;
           font-weight: 800;
-          color: #ffffff;
+          color: #fff8f1;
         }
         .th-sources-license-actions {
           display: flex;
@@ -693,7 +786,7 @@ export function SourcesLandingView() {
           margin: 0;
           font-size: 0.92rem;
           line-height: 1.65;
-          color: #e2e8f0;
+          color: #f3dfd1;
         }
         .th-sources-glb-grid {
           display: grid;
@@ -705,7 +798,7 @@ export function SourcesLandingView() {
           display: block;
           font-size: 0.7rem;
           letter-spacing: 0.08em;
-          color: #94a3b8;
+          color: #b89b8c;
           margin-bottom: 0.5rem;
         }
         .th-sources-glb-chips {
@@ -717,36 +810,36 @@ export function SourcesLandingView() {
           display: inline-flex;
           align-items: center;
           gap: 0.3rem;
-          padding: 0.25rem 0.58rem;
-          border-radius: 8px;
-          background: rgba(253, 230, 138, 0.1);
-          border: 1px solid rgba(253, 230, 138, 0.35);
-          color: #fde68a;
+          padding: 0.28rem 0.6rem;
+          border-radius: 2px;
+          background: rgba(253, 186, 116, 0.12);
+          border: 1px solid rgba(253, 186, 116, 0.36);
+          color: #fdba74;
           font-size: 0.72rem;
           text-decoration: none;
           transition: background-color 0.18s ease, border-color 0.18s ease;
         }
         .th-sources-glb-chip:hover {
-          background: rgba(253, 230, 138, 0.2);
-          border-color: #fde68a;
+          background: rgba(253, 186, 116, 0.22);
+          border-color: #fbbf24;
         }
-        .th-sources-glb-chip--cyan {
-          background: rgba(125, 249, 255, 0.1);
-          border-color: rgba(125, 249, 255, 0.35);
-          color: #7df9ff;
+        .th-sources-glb-chip--sunset {
+          background: rgba(249, 115, 22, 0.12);
+          border-color: rgba(251, 146, 60, 0.38);
+          color: #fbbf24;
         }
-        .th-sources-glb-chip--cyan:hover {
-          background: rgba(125, 249, 255, 0.2);
-          border-color: #7df9ff;
+        .th-sources-glb-chip--sunset:hover {
+          background: rgba(249, 115, 22, 0.22);
+          border-color: #fbbf24;
         }
         .th-sources-controls {
           display: flex;
           flex-direction: column;
           gap: 1rem;
           padding: 1.25rem 1.35rem;
-          border-radius: 20px;
-          background: rgba(9, 13, 22, 0.74);
-          border: 1px solid rgba(148, 163, 184, 0.22);
+          border-radius: 4px;
+          background: rgba(26, 12, 17, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           backdrop-filter: blur(10px);
         }
         .th-sources-pills {
@@ -758,11 +851,12 @@ export function SourcesLandingView() {
           display: inline-flex;
           align-items: center;
           gap: 0.45rem;
-          padding: 0.5rem 0.9rem;
-          border-radius: 999px;
-          background: rgba(15, 23, 42, 0.8);
-          border: 1px solid rgba(148, 163, 184, 0.28);
-          color: #cbd5e1;
+          min-height: 40px;
+          padding: 0.45rem 0.95rem;
+          border-radius: 2px;
+          background: rgba(28, 14, 19, 0.86);
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          color: #f3dfd1;
           font-family: inherit;
           font-size: 0.82rem;
           font-weight: 700;
@@ -770,15 +864,16 @@ export function SourcesLandingView() {
           transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
         }
         .th-sources-pill:hover {
-          border-color: rgba(125, 249, 255, 0.55);
-          color: #ffffff;
+          border-color: rgba(251, 146, 60, 0.6);
+          color: #fff8f1;
           transform: translateY(-1px);
         }
         .th-sources-pill-count {
           font-size: 0.72rem;
+          font-variant-numeric: tabular-nums;
           padding: 0.1rem 0.42rem;
-          border-radius: 999px;
-          background: rgba(255, 255, 255, 0.1);
+          border-radius: 2px;
+          background: rgba(255, 248, 241, 0.1);
         }
         .th-sources-search-row {
           display: flex;
@@ -796,44 +891,54 @@ export function SourcesLandingView() {
         .th-sources-search-icon {
           position: absolute;
           left: 0.95rem;
-          color: #94a3b8;
+          color: #b89b8c;
           pointer-events: none;
         }
         .th-sources-search-input {
           width: 100%;
-          padding: 0.65rem 2.4rem 0.65rem 2.55rem;
-          border-radius: 12px;
-          background: rgba(5, 8, 16, 0.85);
-          border: 1px solid rgba(148, 163, 184, 0.3);
-          color: #f8fafc;
+          min-height: 42px;
+          padding: 0.6rem 2.6rem 0.6rem 2.55rem;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.88);
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          color: #fff8f1;
           font-family: inherit;
           font-size: 0.88rem;
           outline: none;
           transition: border-color 0.2s ease;
         }
+        .th-sources-search-input::placeholder {
+          color: #b89b8c;
+        }
         .th-sources-search-input:focus {
-          border-color: #7df9ff;
+          border-color: #fbbf24;
         }
         .th-sources-search-clear {
           position: absolute;
-          right: 0.65rem;
+          right: 0.25rem;
+          min-width: 38px;
+          min-height: 38px;
+          border-radius: 2px;
           background: transparent;
           border: none;
-          color: #94a3b8;
+          color: #b89b8c;
           cursor: pointer;
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           padding: 0.25rem;
         }
         .th-sources-search-clear:hover {
-          color: #ffffff;
+          color: #fff8f1;
+          background: rgba(251, 146, 60, 0.14);
         }
         .th-sources-count-label {
           font-size: 0.78rem;
-          color: #94a3b8;
+          font-variant-numeric: tabular-nums;
+          color: #b89b8c;
         }
         .th-sources-count-label strong {
-          color: #7df9ff;
+          color: #fbbf24;
         }
         .th-sources-cards-grid {
           display: grid;
@@ -860,8 +965,8 @@ export function SourcesLandingView() {
         .th-sources-card-badge {
           font-size: 0.7rem;
           font-weight: 700;
-          padding: 0.2rem 0.58rem;
-          border-radius: 999px;
+          padding: 0.22rem 0.6rem;
+          border-radius: 2px;
           border: 1px solid;
           white-space: nowrap;
         }
@@ -869,35 +974,35 @@ export function SourcesLandingView() {
           margin: 0;
           font-size: 1.08rem;
           font-weight: 800;
-          color: #ffffff;
+          color: #fff8f1;
           line-height: 1.3;
         }
         .th-sources-product-id {
           font-size: 0.74rem;
-          color: #bae6fd;
-          padding: 0.28rem 0.6rem;
-          border-radius: 8px;
-          background: rgba(5, 8, 16, 0.78);
-          border: 1px solid rgba(148, 163, 184, 0.2);
+          color: #fdba74;
+          padding: 0.3rem 0.6rem;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.84);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           word-break: break-word;
         }
         .th-sources-card-desc {
           margin: 0;
           font-size: 0.87rem;
           line-height: 1.58;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         .th-sources-role-box {
           padding: 0.68rem 0.85rem;
-          border-radius: 12px;
-          background: rgba(15, 23, 42, 0.74);
-          border: 1px solid rgba(148, 163, 184, 0.18);
+          border-radius: 2px;
+          background: rgba(28, 14, 19, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           font-size: 0.82rem;
           line-height: 1.5;
-          color: #e2e8f0;
+          color: #f3dfd1;
         }
         .th-sources-role-box strong {
-          color: #7df9ff;
+          color: #fbbf24;
         }
         .th-sources-tags {
           display: flex;
@@ -906,71 +1011,76 @@ export function SourcesLandingView() {
         }
         .th-sources-tag {
           font-size: 0.69rem;
-          padding: 0.16rem 0.5rem;
-          border-radius: 999px;
-          background: rgba(148, 163, 184, 0.12);
-          color: #cbd5e1;
+          padding: 0.18rem 0.52rem;
+          border-radius: 2px;
+          background: rgba(251, 146, 60, 0.12);
+          border: 1px solid rgba(251, 146, 60, 0.24);
+          color: #f3dfd1;
         }
         .th-sources-card-links {
           display: flex;
           flex-wrap: wrap;
           align-items: center;
           gap: 0.55rem;
-          padding-top: 0.35rem;
-          border-top: 1px solid rgba(148, 163, 184, 0.16);
+          padding-top: 0.55rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.24);
         }
         .th-sources-link-btn {
           display: inline-flex;
           align-items: center;
           gap: 0.4rem;
-          padding: 0.45rem 0.85rem;
-          border-radius: 10px;
-          background: rgba(15, 23, 42, 0.86);
-          border: 1px solid rgba(125, 249, 255, 0.45);
-          color: #f8fafc;
+          min-height: 38px;
+          padding: 0.42rem 0.9rem;
+          border-radius: 2px;
+          background: rgba(28, 14, 19, 0.88);
+          border: 1px solid rgba(251, 146, 60, 0.48);
+          color: #fff8f1;
+          font-family: inherit;
           font-size: 0.79rem;
           font-weight: 700;
           text-decoration: none;
           cursor: pointer;
-          transition: background-color 0.2s ease, transform 0.2s ease;
+          transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
         }
         .th-sources-link-btn:hover {
-          background: rgba(30, 41, 59, 0.95);
+          background: rgba(42, 19, 25, 0.96);
+          border-color: #fbbf24;
           transform: translateY(-1px);
         }
         .th-sources-link-btn--gold {
-          border-color: rgba(253, 230, 138, 0.65);
-          color: #fde68a;
-          background: rgba(253, 230, 138, 0.1);
+          border-color: rgba(253, 186, 116, 0.65);
+          color: #fdba74;
+          background: rgba(251, 191, 36, 0.12);
         }
         .th-sources-sec-link {
           display: inline-flex;
           align-items: center;
           gap: 0.3rem;
-          padding: 0.36rem 0.65rem;
-          border-radius: 8px;
-          background: rgba(5, 8, 16, 0.75);
-          border: 1px solid rgba(148, 163, 184, 0.26);
-          color: #bae6fd;
+          min-height: 38px;
+          padding: 0.38rem 0.7rem;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          color: #fdba74;
           font-size: 0.73rem;
           font-weight: 600;
           text-decoration: none;
         }
         .th-sources-sec-link:hover {
-          border-color: #7df9ff;
-          color: #ffffff;
+          border-color: #fbbf24;
+          color: #fff8f1;
         }
         .th-sources-empty {
           padding: 2.2rem;
-          border-radius: 20px;
-          background: rgba(9, 13, 22, 0.76);
-          border: 1px solid rgba(148, 163, 184, 0.25);
+          border-radius: 4px;
+          background: rgba(26, 12, 17, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           text-align: center;
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: 1rem;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         .th-sources-section-head {
           display: flex;
@@ -980,15 +1090,15 @@ export function SourcesLandingView() {
         }
         .th-sources-physics-mod {
           font-size: 0.73rem;
-          color: #7df9ff;
+          color: #fbbf24;
         }
         .th-sources-formula {
           display: block;
           padding: 0.5rem 0.7rem;
-          border-radius: 10px;
-          background: rgba(5, 8, 16, 0.8);
-          border: 1px solid rgba(125, 249, 255, 0.2);
-          color: #fde68a;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.86);
+          border: 1px solid rgba(251, 146, 60, 0.28);
+          color: #fdba74;
           font-size: 0.75rem;
           line-height: 1.45;
           word-break: break-word;

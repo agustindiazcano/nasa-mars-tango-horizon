@@ -91,12 +91,13 @@ const PLANET_BANNER_STYLES = `
     align-items: center;
     gap: 0.38rem;
     padding: 0.28rem 0.72rem;
-    border-radius: 999px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    border-radius: 2px;
+    font-family: var(--font-raleway), 'Raleway', sans-serif;
+    font-variant-numeric: tabular-nums;
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.06em;
-    background: rgba(9, 13, 24, 0.8);
+    background: rgba(17, 8, 12, 0.84);
     backdrop-filter: blur(8px);
   }
   @media (prefers-reduced-motion: reduce) {
@@ -124,8 +125,8 @@ export function PhotorealisticMoonBanner({
           aria-hidden="true"
           style={{
             boxShadow:
-              '0 0 42px rgba(226, 232, 240, 0.24), inset 0 0 22px rgba(186, 230, 253, 0.16)',
-            border: '1px solid rgba(226, 232, 240, 0.18)',
+              '0 0 42px rgba(251, 191, 36, 0.22), inset 0 0 22px rgba(253, 186, 116, 0.16)',
+            border: '1px solid rgba(255, 255, 255, 0.24)',
           }}
         />
         <div
@@ -150,8 +151,8 @@ export function PhotorealisticMoonBanner({
           <span
             className="planet-telemetry-chip"
             style={{
-              color: '#fde68a',
-              border: '1px solid rgba(253, 230, 138, 0.35)',
+              color: '#fbbf24',
+              border: '1px solid rgba(255, 255, 255, 0.24)',
             }}
           >
             {isEs ? 'BASE TRANQUILIDAD · APOLO 11' : 'TRANQUILITY BASE · APOLLO 11'}
@@ -159,8 +160,8 @@ export function PhotorealisticMoonBanner({
           <span
             className="planet-telemetry-chip"
             style={{
-              color: '#bae6fd',
-              border: '1px solid rgba(125, 249, 255, 0.28)',
+              color: '#fdba74',
+              border: '1px solid rgba(255, 255, 255, 0.24)',
             }}
           >
             {isEs ? '384.400 KM · 0.165 G' : '384,400 KM · 0.165 G'}
@@ -323,9 +324,9 @@ export function EarthGlobe({
             <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
           </radialGradient>
           <radialGradient id={`earth-atmo-${uid}`} cx="50%" cy="50%" r="54%">
-            <stop offset="76%" stopColor="#38bdf8" stopOpacity="0" />
-            <stop offset="92%" stopColor="#38bdf8" stopOpacity="0.34" />
-            <stop offset="100%" stopColor="#0284c7" stopOpacity="0" />
+            <stop offset="76%" stopColor="#fb923c" stopOpacity="0" />
+            <stop offset="92%" stopColor="#f97316" stopOpacity="0.34" />
+            <stop offset="100%" stopColor="#ea580c" stopOpacity="0" />
           </radialGradient>
         </defs>
 
@@ -375,7 +376,7 @@ export function EarthGlobe({
           cy="50"
           r={radius}
           fill="none"
-          stroke={showAtmosphere ? '#7dd3fc' : 'rgba(186, 230, 253, 0.35)'}
+          stroke={showAtmosphere ? '#fdba74' : 'rgba(255, 255, 255, 0.24)'}
           strokeOpacity="0.55"
           strokeWidth="1.1"
         />
@@ -384,10 +385,10 @@ export function EarthGlobe({
           x="50"
           y="112"
           textAnchor="middle"
-          fill="#bae6fd"
+          fill="#fdba74"
           fontSize="9"
           fontWeight="700"
-          fontFamily="system-ui, sans-serif"
+          fontFamily="var(--font-raleway), 'Raleway', sans-serif"
           letterSpacing="1.2"
         >
           {isEs ? 'TIERRA' : 'EARTH'}

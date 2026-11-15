@@ -49,7 +49,7 @@ export function GlassSurface({
   children,
   width = '100%',
   height = 'auto',
-  borderRadius = 20,
+  borderRadius = 2,
   borderWidth = 0.07,
   brightness = 50,
   opacity = 0.93,

@@ -30,6 +30,19 @@ const ERA_ICON_MAP: Record<string, LucideIcon> = {
   Telescope,
 };
 
+function toSunsetAccent(color: string): string {
+  const normalized = color.trim().toLowerCase();
+  if (normalized === '#7df9ff') return '#fbbf24';
+  if (normalized === '#38bdf8' || normalized === '#0ea5e9' || normalized === '#0284c7') {
+    return '#f97316';
+  }
+  if (normalized === '#c4b5fd' || normalized === '#a78bfa' || normalized === '#5227ff') {
+    return '#fb7185';
+  }
+  if (normalized === '#fde68a') return '#fbbf24';
+  return color;
+}
+
 function EraIcon({ name, color }: { name: string; color: string }) {
   const Icon = ERA_ICON_MAP[name] ?? Compass;
   return <Icon size={20} style={{ color }} aria-hidden="true" />;
@@ -51,6 +64,8 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
     currentIndex >= 0 && currentIndex < allEras.length - 1
       ? allEras[currentIndex + 1]
       : null;
+  const eraAccent = toSunsetAccent(era.accentColor);
+  const nextAccent = nextEra ? toSunsetAccent(nextEra.accentColor) : '#fb923c';
 
   return (
     <section className="te-detail-shell" aria-label={era.eraTitle}>
@@ -64,8 +79,8 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           >
             <GlassSurface
               width="auto"
-              height={46}
-              borderRadius={999}
+              height={44}
+              borderRadius={2}
               className="te-glass-pill-btn"
             >
               <span className="te-btn-label">
@@ -76,13 +91,13 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           </button>
 
           <ElectricBorder
-            color={era.accentColor}
+            color={eraAccent}
             speed={1.1}
-            borderRadius={999}
+            borderRadius={2}
             className="te-period-electric"
           >
-            <div className="te-period-pill" style={{ color: era.accentColor }}>
-              <EraIcon name={era.iconName} color={era.accentColor} />
+            <div className="te-period-pill" style={{ color: eraAccent }}>
+              <EraIcon name={era.iconName} color={eraAccent} />
               <span>{era.yearRange}</span>
             </div>
           </ElectricBorder>
@@ -94,9 +109,9 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           <span
             className="te-badge"
             style={{
-              color: era.accentColor,
-              borderColor: `${era.accentColor}55`,
-              background: `${era.accentColor}18`,
+              color: eraAccent,
+              borderColor: `${eraAccent}55`,
+              background: `${eraAccent}18`,
             }}
           >
             {isEs
@@ -115,7 +130,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
               <span
                 key={figure}
                 className="te-figure-pill"
-                style={{ borderColor: `${era.accentColor}45` }}
+                style={{ borderColor: `${eraAccent}45` }}
               >
                 {figure}
               </span>
@@ -123,7 +138,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           </div>
         </header>
 
-        <GlassSurface width="100%" height="auto" borderRadius={32} className="te-detail-glass">
+        <GlassSurface width="100%" height="auto" borderRadius={24} className="te-detail-glass">
           <article className="te-detail-article">
             <div className="te-sections-stack">
               {era.detailSections.map((section, idx) => (
@@ -132,7 +147,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
                   className={`te-section-row ${idx % 2 === 1 ? 'is-reversed' : ''}`}
                 >
                   <div className="te-section-text">
-                    <div className="te-section-index" style={{ color: era.accentColor }}>
+                    <div className="te-section-index" style={{ color: eraAccent }}>
                       <span>0{idx + 1}</span>
                       <span className="te-section-divider" />
                       <span>{isEs ? 'Capítulo Histórico' : 'Historical Chapter'}</span>
@@ -146,11 +161,11 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
                       <div
                         className="te-section-highlight"
                         style={{
-                          borderLeftColor: era.accentColor,
-                          background: `${era.accentColor}12`,
+                          borderLeftColor: eraAccent,
+                          background: `${eraAccent}14`,
                         }}
                       >
-                        <Sparkles size={16} style={{ color: era.accentColor, flexShrink: 0 }} />
+                        <Sparkles size={16} style={{ color: eraAccent, flexShrink: 0 }} />
                         <span>{section.highlight}</span>
                       </div>
                     )}
@@ -204,7 +219,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
               onClick={() => onSelectEra(prevEra)}
               className="te-btn-reset"
             >
-              <GlassSurface width="auto" height={52} borderRadius={999} className="te-glass-pill-btn">
+              <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
                 <span className="te-btn-label">
                   <ArrowLeft size={16} aria-hidden="true" />
                   <span>
@@ -217,7 +232,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
             </button>
           ) : (
             <button type="button" onClick={onBack} className="te-btn-reset">
-              <GlassSurface width="auto" height={52} borderRadius={999} className="te-glass-pill-btn">
+              <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
                 <span className="te-btn-label">
                   <ArrowLeft size={16} aria-hidden="true" />
                   <span>{isEs ? 'Volver a la Cronología' : 'Back to Timeline'}</span>
@@ -233,15 +248,15 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
                 onClick={() => onSelectEra(nextEra)}
                 className="te-btn-reset"
               >
-                <ElectricBorder color={nextEra.accentColor} speed={1.15} borderRadius={999}>
-                  <GlassSurface width="auto" height={52} borderRadius={999} className="te-glass-pill-btn">
+                <ElectricBorder color={nextAccent} speed={1.15} borderRadius={2}>
+                  <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
                     <span className="te-btn-label">
                       <span>
                         {isEs
                           ? `Siguiente Etapa: ${nextEra.yearRange}`
                           : `Next Stage: ${nextEra.yearRange}`}
                       </span>
-                      <ArrowRight size={16} style={{ color: nextEra.accentColor }} aria-hidden="true" />
+                      <ArrowRight size={16} style={{ color: nextAccent }} aria-hidden="true" />
                     </span>
                   </GlassSurface>
                 </ElectricBorder>
@@ -249,12 +264,12 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
             )}
 
             <Link href="/tesis-lunar" className="te-link-reset">
-              <ElectricBorder color="#fde68a" speed={1.15} borderRadius={999}>
-                <GlassSurface width="auto" height={52} borderRadius={999} className="te-glass-pill-btn">
+              <ElectricBorder color="#fbbf24" speed={1.15} borderRadius={2}>
+                <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
                   <span className="te-btn-label">
-                    <BookOpen size={16} style={{ color: '#fde68a' }} aria-hidden="true" />
+                    <BookOpen size={16} style={{ color: '#fbbf24' }} aria-hidden="true" />
                     <span>{isEs ? 'Ir a Tesis Lunar' : 'Go to Lunar Thesis'}</span>
-                    <ArrowRight size={16} style={{ color: '#fde68a' }} aria-hidden="true" />
+                    <ArrowRight size={16} style={{ color: '#fbbf24' }} aria-hidden="true" />
                   </span>
                 </GlassSurface>
               </ElectricBorder>
@@ -262,11 +277,11 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
 
             {!nextEra && (
               <Link href="/marte" className="te-link-reset">
-                <ElectricBorder color="#fb923c" speed={1.2} borderRadius={999}>
-                  <GlassSurface width="auto" height={52} borderRadius={999} className="te-glass-pill-btn">
+                <ElectricBorder color="#fb7185" speed={1.2} borderRadius={2}>
+                  <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
                     <span className="te-btn-label">
                       <span>{isEs ? 'Explorar Horizonte Marciano' : 'Explore Mars Exploration'}</span>
-                      <ArrowRight size={16} style={{ color: '#fb923c' }} aria-hidden="true" />
+                      <ArrowRight size={16} style={{ color: '#fb7185' }} aria-hidden="true" />
                     </span>
                   </GlassSurface>
                 </ElectricBorder>
@@ -277,6 +292,10 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
       </div>
 
       <style jsx>{`
+        .te-detail-shell,
+        .te-detail-shell :global(*) {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
         .te-detail-shell {
           width: 100%;
           padding-bottom: 6rem;
@@ -288,8 +307,8 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           padding: 1rem 1.5rem;
           backdrop-filter: blur(14px);
           -webkit-backdrop-filter: blur(14px);
-          background: linear-gradient(180deg, rgba(6, 0, 16, 0.88) 0%, rgba(6, 0, 16, 0.45) 100%);
-          border-bottom: 1px solid rgba(125, 249, 255, 0.14);
+          background: linear-gradient(180deg, rgba(20, 10, 14, 0.9) 0%, rgba(20, 10, 14, 0.5) 100%);
+          border-bottom: 1px solid rgba(251, 146, 60, 0.22);
         }
         .te-sticky-topbar-inner {
           max-width: 1180px;
@@ -304,12 +323,14 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           display: inline-flex;
           align-items: center;
           gap: 0.6rem;
-          padding: 0.55rem 1.25rem;
-          border-radius: 999px;
-          background: rgba(9, 13, 24, 0.86);
+          min-height: 40px;
+          padding: 0.45rem 1.2rem;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.88);
           font-weight: 700;
           font-size: 0.95rem;
           letter-spacing: 0.03em;
+          font-variant-numeric: tabular-nums;
         }
         .te-detail-container {
           max-width: 1180px;
@@ -324,20 +345,20 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
         .te-detail-title {
           font-size: clamp(2rem, 4vw, 3.2rem);
           font-weight: 800;
-          color: #f8fafc;
+          color: #f3dfd1;
           margin: 0.9rem 0 0.85rem 0;
           line-height: 1.15;
           letter-spacing: -0.02em;
         }
         .te-detail-subtitle {
           font-size: clamp(1.1rem, 1.7vw, 1.35rem);
-          color: #bae6fd;
+          color: #fdba74;
           margin: 0 0 1.1rem 0;
           line-height: 1.55;
         }
         .te-detail-summary {
           font-size: 1.04rem;
-          color: #cbd5e1;
+          color: #f3dfd1;
           line-height: 1.75;
           margin: 0 0 1.65rem 0;
         }
@@ -349,12 +370,12 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
         }
         .te-figure-pill {
           padding: 0.38rem 0.9rem;
-          border-radius: 999px;
+          border-radius: 2px;
           font-size: 0.86rem;
           font-weight: 600;
-          color: #e2e8f0;
-          background: rgba(15, 23, 42, 0.72);
-          border: 1px solid rgba(148, 163, 184, 0.3);
+          color: #f3dfd1;
+          background: rgba(20, 10, 14, 0.78);
+          border: 1px solid rgba(253, 186, 116, 0.3);
         }
         .te-detail-article {
           width: 100%;
@@ -387,6 +408,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           letter-spacing: 0.14em;
           text-transform: uppercase;
           margin-bottom: 0.6rem;
+          font-variant-numeric: tabular-nums;
         }
         .te-section-divider {
           width: 22px;
@@ -397,13 +419,13 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
         .te-section-title {
           font-size: clamp(1.4rem, 2.4vw, 1.95rem);
           font-weight: 800;
-          color: #ffffff;
+          color: #f3dfd1;
           margin: 0 0 0.45rem 0;
           line-height: 1.25;
         }
         .te-section-sub {
           font-size: 0.98rem;
-          color: #94a3b8;
+          color: #b89b8c;
           margin: 0 0 1.15rem 0;
           font-style: italic;
         }
@@ -412,9 +434,9 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           align-items: center;
           gap: 0.65rem;
           padding: 0.75rem 1rem;
-          border-left: 3px solid #7df9ff;
-          border-radius: 0 12px 12px 0;
-          color: #f8fafc;
+          border-left: 3px solid #f97316;
+          border-radius: 0 2px 2px 0;
+          color: #f3dfd1;
           font-size: 0.94rem;
           font-weight: 600;
           margin-bottom: 1.25rem;
@@ -428,20 +450,20 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           margin: 0;
           font-size: 1.04rem;
           line-height: 1.8;
-          color: #e2e8f0;
+          color: #f3dfd1;
         }
         .te-section-visual {
           display: flex;
           justify-content: center;
           align-items: center;
           padding: 0.75rem;
-          border-radius: 24px;
-          background: radial-gradient(circle at 50% 45%, rgba(56, 189, 248, 0.08), transparent 72%);
+          border-radius: 20px;
+          background: radial-gradient(circle at 50% 45%, rgba(249, 115, 22, 0.1), transparent 72%);
         }
         .te-audio-embed {
           margin-top: 3.5rem;
           padding-top: 2.5rem;
-          border-top: 1px solid rgba(148, 163, 184, 0.2);
+          border-top: 1px solid rgba(253, 186, 116, 0.22);
           display: grid;
           grid-template-columns: minmax(0, 1fr) auto;
           gap: 2rem;
@@ -449,11 +471,11 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
         }
         .te-audio-copy h3 {
           font-size: 1.45rem;
-          color: #f8fafc;
+          color: #f3dfd1;
           margin: 0.65rem 0 0.5rem 0;
         }
         .te-audio-copy p {
-          color: #cbd5e1;
+          color: #b89b8c;
           line-height: 1.7;
           margin: 0;
         }
@@ -474,10 +496,10 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
         .te-badge {
           display: inline-block;
           padding: 0.35rem 1rem;
-          border-radius: 999px;
-          background: rgba(56, 189, 248, 0.12);
-          border: 1px solid rgba(125, 249, 255, 0.32);
-          color: #7df9ff;
+          border-radius: 2px;
+          background: rgba(249, 115, 22, 0.14);
+          border: 1px solid rgba(251, 191, 36, 0.35);
+          color: #fbbf24;
           font-size: 0.78rem;
           font-weight: 700;
           letter-spacing: 0.14em;
@@ -486,6 +508,8 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
         .te-btn-reset {
           background: none;
           border: none;
+          border-radius: 2px;
+          min-height: 40px;
           padding: 0;
           cursor: pointer;
           color: inherit;
@@ -495,6 +519,8 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           text-decoration: none;
           color: inherit;
           display: inline-flex;
+          border-radius: 2px;
+          min-height: 40px;
         }
         .te-btn-label {
           display: inline-flex;
@@ -503,7 +529,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           padding: 0 1.45rem;
           font-weight: 700;
           font-size: 0.96rem;
-          color: #f8fafc;
+          color: #f3dfd1;
           white-space: nowrap;
         }
         @media (max-width: 900px) {
@@ -625,7 +651,7 @@ export function TimelineExperience() {
             : 'Earth, Moon Telemetry and Apollo 11 Audio'
         }
       >
-        <GlassSurface width="100%" height="auto" borderRadius={30} className="te-showcase-glass">
+        <GlassSurface width="100%" height="auto" borderRadius={24} className="te-showcase-glass">
           <div className="te-showcase-grid">
             <div className="te-planets-duo">
               <div className="te-planet-unit">
@@ -686,6 +712,7 @@ export function TimelineExperience() {
           {eras.map((era, idx) => {
             const isAlt = idx % 2 === 1;
             const isActive = activeIndex === idx;
+            const eraAccent = toSunsetAccent(era.accentColor);
 
             return (
               <div
@@ -699,46 +726,46 @@ export function TimelineExperience() {
                   <div
                     className="te-era-dot"
                     style={{
-                      borderColor: isActive ? era.accentColor : 'rgba(148, 163, 184, 0.45)',
-                      boxShadow: isActive ? `0 0 24px ${era.accentColor}88` : undefined,
+                      borderColor: isActive ? eraAccent : 'rgba(253, 186, 116, 0.42)',
+                      boxShadow: isActive ? `0 0 24px ${eraAccent}88` : undefined,
                     }}
                   >
-                    <EraIcon name={era.iconName} color={era.accentColor} />
+                    <EraIcon name={era.iconName} color={eraAccent} />
                   </div>
 
                   <ElectricBorder
-                    color={era.accentColor}
+                    color={eraAccent}
                     speed={isActive ? 1.35 : 0.85}
-                    borderRadius={18}
+                    borderRadius={2}
                     className="te-year-electric"
                   >
                     <div className="te-year-box">
                       <span className="te-era-step">
                         {isEs ? `Etapa 0${idx + 1}` : `Stage 0${idx + 1}`}
                       </span>
-                      <strong style={{ color: era.accentColor }}>{era.yearRange}</strong>
+                      <strong style={{ color: eraAccent }}>{era.yearRange}</strong>
                     </div>
                   </ElectricBorder>
                 </div>
 
                 <div className="te-era-card-col">
                   <ElectricBorder
-                    color={era.accentColor}
+                    color={eraAccent}
                     speed={isActive ? 1.15 : 0.75}
-                    borderRadius={28}
+                    borderRadius={22}
                     className="te-card-electric"
                   >
                     <GlassSurface
                       width="100%"
                       height="auto"
-                      borderRadius={28}
+                      borderRadius={22}
                       className="te-era-card-glass"
                     >
                       <div className="te-era-card-inner">
                         <div className="te-era-card-top">
                           <span
                             className="te-mobile-year"
-                            style={{ color: era.accentColor, borderColor: `${era.accentColor}55` }}
+                            style={{ color: eraAccent, borderColor: `${eraAccent}55` }}
                           >
                             {isEs
                               ? `Etapa 0${idx + 1} · ${era.yearRange}`
@@ -767,15 +794,15 @@ export function TimelineExperience() {
                             onClick={() => setSelectedEraId(era.id)}
                             className="te-explore-btn"
                             style={{
-                              borderColor: `${era.accentColor}77`,
-                              color: '#f8fafc',
-                              boxShadow: `0 0 22px ${era.accentColor}22`,
+                              borderColor: `${eraAccent}88`,
+                              color: '#f3dfd1',
+                              boxShadow: `0 0 22px ${eraAccent}22`,
                             }}
                           >
                             <span>{isEs ? 'Explorar Etapa' : 'Explore Stage'}</span>
                             <ArrowRight
                               size={17}
-                              style={{ color: era.accentColor }}
+                              style={{ color: eraAccent }}
                               aria-hidden="true"
                             />
                           </button>
@@ -794,7 +821,7 @@ export function TimelineExperience() {
         className="te-bottom-cta"
         aria-label={isEs ? 'Navegación a monografías' : 'Monograph navigation'}
       >
-        <GlassSurface width="100%" height="auto" borderRadius={32} className="te-cta-glass">
+        <GlassSurface width="100%" height="auto" borderRadius={24} className="te-cta-glass">
           <div className="te-cta-inner">
             <span className="te-badge">
               {isEs ? 'Monografías Especiales · Tango Horizon' : 'Special Monographs · Tango Horizon'}
@@ -811,28 +838,28 @@ export function TimelineExperience() {
             </p>
             <div className="te-cta-actions">
               <Link href="/tesis-lunar" className="te-link-reset">
-                <ElectricBorder color="#fde68a" speed={1.2} borderRadius={999}>
-                  <GlassSurface width="auto" height={58} borderRadius={999} className="te-glass-pill-btn">
+                <ElectricBorder color="#fbbf24" speed={1.2} borderRadius={2}>
+                  <GlassSurface width="auto" height={50} borderRadius={2} className="te-glass-pill-btn">
                     <span className="te-cta-label">
                       <span>
                         {isEs
                           ? 'Tesis I · La Conquista de la Luna'
                           : 'Thesis I · The Conquest of the Moon'}
                       </span>
-                      <ArrowRight size={18} style={{ color: '#fde68a' }} aria-hidden="true" />
+                      <ArrowRight size={18} style={{ color: '#fbbf24' }} aria-hidden="true" />
                     </span>
                   </GlassSurface>
                 </ElectricBorder>
               </Link>
 
               <Link href="/marte" className="te-link-reset">
-                <ElectricBorder color="#fb923c" speed={1.2} borderRadius={999}>
-                  <GlassSurface width="auto" height={58} borderRadius={999} className="te-glass-pill-btn">
+                <ElectricBorder color="#f97316" speed={1.2} borderRadius={2}>
+                  <GlassSurface width="auto" height={50} borderRadius={2} className="te-glass-pill-btn">
                     <span className="te-cta-label">
                       <span>
                         {isEs ? 'Tesis II · Horizonte Marciano' : 'Thesis II · Martian Horizon'}
                       </span>
-                      <ArrowRight size={18} style={{ color: '#fb923c' }} aria-hidden="true" />
+                      <ArrowRight size={18} style={{ color: '#f97316' }} aria-hidden="true" />
                     </span>
                   </GlassSurface>
                 </ElectricBorder>
@@ -843,6 +870,10 @@ export function TimelineExperience() {
       </section>
 
       <style jsx>{`
+        .te-timeline-page,
+        .te-timeline-page :global(*) {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
         .te-timeline-page {
           width: 100%;
           max-width: 1200px;
@@ -858,10 +889,10 @@ export function TimelineExperience() {
         .te-badge {
           display: inline-block;
           padding: 0.36rem 1.05rem;
-          border-radius: 999px;
-          background: rgba(56, 189, 248, 0.12);
-          border: 1px solid rgba(125, 249, 255, 0.32);
-          color: #7df9ff;
+          border-radius: 2px;
+          background: rgba(249, 115, 22, 0.14);
+          border: 1px solid rgba(251, 191, 36, 0.35);
+          color: #fbbf24;
           font-size: 0.78rem;
           font-weight: 700;
           letter-spacing: 0.14em;
@@ -870,14 +901,14 @@ export function TimelineExperience() {
         .te-main-title {
           font-size: clamp(2rem, 4.1vw, 3.25rem);
           font-weight: 800;
-          color: #f8fafc;
+          color: #f3dfd1;
           margin: 1rem 0 1rem 0;
           line-height: 1.15;
           letter-spacing: -0.02em;
         }
         .te-main-subtitle {
           font-size: clamp(1.05rem, 1.5vw, 1.24rem);
-          color: #cbd5e1;
+          color: #b89b8c;
           line-height: 1.7;
           margin: 0;
         }
@@ -918,7 +949,7 @@ export function TimelineExperience() {
         .te-planet-caption {
           font-size: 0.86rem;
           font-weight: 600;
-          color: #bae6fd;
+          color: #fdba74;
         }
         .te-orbital-bridge {
           display: flex;
@@ -929,13 +960,14 @@ export function TimelineExperience() {
         .te-bridge-line {
           width: 44px;
           height: 1px;
-          background: linear-gradient(90deg, transparent, #7df9ff, transparent);
+          background: linear-gradient(90deg, transparent, #f97316, transparent);
         }
         .te-bridge-tag {
           font-size: 0.76rem;
           font-weight: 700;
-          color: #fde68a;
+          color: #fbbf24;
           letter-spacing: 0.06em;
+          font-variant-numeric: tabular-nums;
         }
         .te-amp-column {
           display: flex;
@@ -947,12 +979,12 @@ export function TimelineExperience() {
         .te-amp-header h2 {
           font-size: 1.35rem;
           font-weight: 800;
-          color: #f8fafc;
+          color: #f3dfd1;
           margin: 0.55rem 0 0.35rem 0;
         }
         .te-amp-header p {
           font-size: 0.94rem;
-          color: #cbd5e1;
+          color: #b89b8c;
           line-height: 1.6;
           margin: 0;
           max-width: 380px;
@@ -971,17 +1003,17 @@ export function TimelineExperience() {
           background: linear-gradient(
             to bottom,
             transparent 0%,
-            rgba(148, 163, 184, 0.25) 8%,
-            rgba(148, 163, 184, 0.25) 92%,
+            rgba(253, 186, 116, 0.24) 8%,
+            rgba(253, 186, 116, 0.24) 92%,
             transparent 100%
           );
           z-index: 1;
         }
         .te-track-beam {
           width: 100%;
-          background: linear-gradient(to bottom, #38bdf8 0%, #7df9ff 65%, #fde68a 100%);
-          box-shadow: 0 0 16px rgba(125, 249, 255, 0.8);
-          border-radius: 999px;
+          background: linear-gradient(to bottom, #fbbf24 0%, #f97316 58%, #fb7185 100%);
+          box-shadow: 0 0 16px rgba(249, 115, 22, 0.78);
+          border-radius: 2px;
           transition: height 0.16s ease-out;
         }
         .te-eras-list {
@@ -1014,8 +1046,8 @@ export function TimelineExperience() {
           width: 48px;
           height: 48px;
           border-radius: 50%;
-          background: rgba(9, 13, 24, 0.94);
-          border: 1.5px solid rgba(148, 163, 184, 0.45);
+          background: rgba(20, 10, 14, 0.94);
+          border: 1.5px solid rgba(253, 186, 116, 0.42);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1029,21 +1061,23 @@ export function TimelineExperience() {
           display: flex;
           flex-direction: column;
           gap: 0.15rem;
-          padding: 0.75rem 1.3rem;
-          border-radius: 18px;
-          background: rgba(9, 13, 24, 0.85);
+          min-height: 40px;
+          padding: 0.72rem 1.3rem;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.88);
           min-width: 195px;
         }
         .te-era-step {
           font-size: 0.74rem;
           text-transform: uppercase;
           letter-spacing: 0.14em;
-          color: #94a3b8;
+          color: #b89b8c;
           font-weight: 700;
         }
         .te-year-box strong {
           font-size: 1.22rem;
           font-weight: 800;
+          font-variant-numeric: tabular-nums;
         }
         .te-era-card-col {
           min-width: 0;
@@ -1064,29 +1098,30 @@ export function TimelineExperience() {
           display: none;
           align-self: flex-start;
           padding: 0.3rem 0.85rem;
-          border-radius: 999px;
+          border-radius: 2px;
           border: 1px solid;
           font-size: 0.8rem;
           font-weight: 700;
           margin-bottom: 0.5rem;
+          font-variant-numeric: tabular-nums;
         }
         .te-era-title {
           margin: 0 0 0.35rem 0;
           font-size: clamp(1.38rem, 2.2vw, 1.78rem);
           font-weight: 800;
-          color: #ffffff;
+          color: #f3dfd1;
           line-height: 1.25;
         }
         .te-era-sub {
           margin: 0;
           font-size: 0.98rem;
-          color: #bae6fd;
+          color: #fdba74;
           line-height: 1.5;
         }
         .te-era-summary {
           margin: 0;
           font-size: 1.01rem;
-          color: #e2e8f0;
+          color: #f3dfd1;
           line-height: 1.75;
         }
         .te-era-footer {
@@ -1104,20 +1139,21 @@ export function TimelineExperience() {
         }
         .te-tag {
           padding: 0.34rem 0.82rem;
-          border-radius: 999px;
+          border-radius: 2px;
           font-size: 0.82rem;
           font-weight: 600;
-          color: #bae6fd;
-          background: rgba(15, 23, 42, 0.72);
-          border: 1px solid rgba(125, 249, 255, 0.24);
+          color: #fdba74;
+          background: rgba(20, 10, 14, 0.78);
+          border: 1px solid rgba(251, 146, 60, 0.28);
         }
         .te-explore-btn {
           display: inline-flex;
           align-items: center;
           gap: 0.55rem;
-          padding: 0.68rem 1.35rem;
-          border-radius: 999px;
-          background: rgba(15, 23, 42, 0.85);
+          min-height: 40px;
+          padding: 0.55rem 1.35rem;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.88);
           border: 1px solid;
           font-weight: 700;
           font-size: 0.95rem;
@@ -1126,7 +1162,7 @@ export function TimelineExperience() {
         }
         .te-explore-btn:hover {
           transform: translateY(-2px);
-          background: rgba(30, 41, 59, 0.95);
+          background: rgba(42, 18, 22, 0.96);
         }
         .te-bottom-cta {
           margin-top: 4rem;
@@ -1139,13 +1175,13 @@ export function TimelineExperience() {
         }
         .te-cta-inner h2 {
           font-size: clamp(1.5rem, 2.8vw, 2.25rem);
-          color: #ffffff;
+          color: #f3dfd1;
           margin: 0.85rem 0 0.75rem 0;
         }
         .te-cta-inner p {
           max-width: 680px;
           margin: 0 auto 1.75rem auto;
-          color: #cbd5e1;
+          color: #b89b8c;
           line-height: 1.7;
         }
         .te-cta-actions {
@@ -1158,6 +1194,8 @@ export function TimelineExperience() {
           text-decoration: none;
           color: inherit;
           display: inline-flex;
+          border-radius: 2px;
+          min-height: 40px;
         }
         .te-cta-label {
           display: inline-flex;
@@ -1166,7 +1204,7 @@ export function TimelineExperience() {
           padding: 0 1.75rem;
           font-weight: 700;
           font-size: 1.02rem;
-          color: #f8fafc;
+          color: #f3dfd1;
           white-space: nowrap;
         }
         @media (max-width: 960px) {

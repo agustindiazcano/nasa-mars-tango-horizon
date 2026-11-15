@@ -14,9 +14,9 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
   const isEs = lang === 'es';
   const isMoon = variant === 'moon';
   const thesis = isMoon ? getMoonThesisData(lang) : getMarsThesisData(lang);
-  const accent = isMoon ? '#fde68a' : '#fb923c';
-  const accentBorder = isMoon ? 'rgba(253, 230, 138, 0.36)' : 'rgba(251, 146, 60, 0.36)';
-  const accentBg = isMoon ? 'rgba(253, 230, 138, 0.12)' : 'rgba(251, 146, 60, 0.12)';
+  const accent = isMoon ? '#fbbf24' : '#fb923c';
+  const accentBorder = isMoon ? 'rgba(251, 191, 36, 0.38)' : 'rgba(251, 146, 60, 0.38)';
+  const accentBg = isMoon ? 'rgba(251, 191, 36, 0.12)' : 'rgba(251, 146, 60, 0.12)';
   const pillLabel = isMoon
     ? isEs
       ? 'Tesis Universitaria · Selenología'
@@ -38,15 +38,19 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
   };
 
   return (
-    <section className="era-detail-page" aria-labelledby="thesis-main-title">
+    <section className="era-detail-page th-thesis-reader" aria-labelledby="thesis-main-title">
       <div className="era-detail-container">
         {/* Topbar */}
         <div className="era-detail-topbar">
-          <Link href="/cronologia" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
+          <Link
+            href="/cronologia"
+            className="ac-readmore-wrap"
+            style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
+          >
             <GlassSurface
               width="auto"
-              height={46}
-              borderRadius={999}
+              height={44}
+              borderRadius={2}
               borderWidth={0.12}
               brightness={58}
               opacity={0.95}
@@ -68,9 +72,12 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
             color={accent}
             speed={1.15}
             chaos={0.5}
-            borderRadius={16}
+            borderRadius={2}
           >
-            <div className="era-detail-period-pill" style={{ color: accent }}>
+            <div
+              className="era-detail-period-pill"
+              style={{ color: accent, borderRadius: '2px', minHeight: '40px' }}
+            >
               {pillLabel}
             </div>
           </ElectricBorder>
@@ -89,6 +96,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
               color: accent,
               borderColor: accentBorder,
               background: accentBg,
+              borderRadius: '2px',
             }}
           >
             {thesis.kicker}
@@ -96,13 +104,13 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
           <h1
             id="thesis-main-title"
             className="era-detail-main-title"
-            style={{ fontSize: 'clamp(2.4rem, 4.8vw, 3.8rem)' }}
+            style={{ fontSize: 'clamp(2.4rem, 4.8vw, 3.8rem)', color: '#f3dfd1' }}
           >
             {thesis.title}
           </h1>
           <p
             className="era-detail-subtitle"
-            style={!isMoon ? { color: '#fed7aa' } : undefined}
+            style={{ color: isMoon ? '#fdba74' : '#fed7aa' }}
           >
             {thesis.subtitle}
           </p>
@@ -122,9 +130,11 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                 onClick={() => handleJumpToChapter(chap.id)}
                 className={`th-chapter-jump-btn ${isActive ? 'is-active' : ''}`}
                 style={{
-                  borderColor: isActive ? accent : 'rgba(148, 163, 184, 0.25)',
-                  background: isActive ? accentBg : 'rgba(9, 13, 22, 0.72)',
-                  color: isActive ? accent : '#e2e8f0',
+                  borderColor: isActive ? accent : 'rgba(253, 186, 116, 0.28)',
+                  background: isActive ? accentBg : 'rgba(20, 10, 14, 0.78)',
+                  color: isActive ? accent : '#f3dfd1',
+                  borderRadius: '2px',
+                  minHeight: '40px',
                 }}
               >
                 <span className="th-chapter-jump-num">0{idx + 1}</span>
@@ -138,7 +148,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={32}
+          borderRadius={24}
           borderWidth={0.07}
           brightness={50}
           opacity={0.94}
@@ -157,7 +167,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
               <span className="thesis-abstract-label" style={{ color: accent }}>
                 {isEs ? 'Resumen Ejecutivo (Abstract)' : 'Executive Summary (Abstract)'}
               </span>
-              <p className="thesis-abstract-text">{thesis.abstract}</p>
+              <p className="thesis-abstract-text" style={{ color: '#f3dfd1' }}>{thesis.abstract}</p>
             </div>
 
             {/* Métricas Científicas */}
@@ -168,10 +178,15 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                   className="era-metric-box"
                   style={{ borderColor: accentBorder }}
                 >
-                  <span className="era-metric-value" style={{ color: accent }}>
+                  <span
+                    className="era-metric-value"
+                    style={{ color: accent, fontVariantNumeric: 'tabular-nums' }}
+                  >
                     {metric.value}
                   </span>
-                  <span className="era-metric-label">{metric.label}</span>
+                  <span className="era-metric-label" style={{ color: '#b89b8c' }}>
+                    {metric.label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -185,15 +200,15 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                   style={{ scrollMarginTop: '6.5rem' }}
                 >
                   <ElectricBorder
-                    color={idx % 2 === 0 ? accent : '#7df9ff'}
+                    color={idx % 2 === 0 ? accent : '#fb7185'}
                     speed={1.0}
                     chaos={0.38}
-                    borderRadius={24}
+                    borderRadius={20}
                   >
                     <GlassSurface
                       width="100%"
                       height="auto"
-                      borderRadius={24}
+                      borderRadius={20}
                       borderWidth={0.08}
                       brightness={54}
                       opacity={0.92}
@@ -214,11 +229,15 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                               color: accent,
                               borderColor: accentBorder,
                               background: accentBg,
+                              borderRadius: '2px',
                             }}
                           >
                             {chap.num}
                           </span>
-                          <h2 className="era-section-heading" style={{ marginTop: '0.6rem' }}>
+                          <h2
+                            className="era-section-heading"
+                            style={{ marginTop: '0.6rem', color: '#f3dfd1' }}
+                          >
                             {chap.title}
                           </h2>
                           {chap.paragraphs.map((pText, pIdx) => (
@@ -227,6 +246,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                               className="era-section-body"
                               style={{
                                 marginBottom: pIdx < chap.paragraphs.length - 1 ? '1.1rem' : '0',
+                                color: '#f3dfd1',
                               }}
                             >
                               {pText}
@@ -237,10 +257,19 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                               className="thesis-formula-bar"
                               style={{
                                 borderLeftColor: accent,
-                                color: isMoon ? '#fde68a' : '#fed7aa',
+                                color: isMoon ? '#fbbf24' : '#fdba74',
+                                borderRadius: '2px',
                               }}
                             >
-                              <code>{chap.formula}</code>
+                              <code
+                                style={{
+                                  fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                                  fontVariantNumeric: 'tabular-nums',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {chap.formula}
+                              </code>
                             </div>
                           )}
                         </section>
@@ -260,7 +289,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
               <h3 className="thesis-conclusion-title" style={{ color: accent }}>
                 {isEs ? 'Conclusión General' : 'General Conclusion'}
               </h3>
-              <p className="era-section-body">{thesis.conclusion}</p>
+              <p className="era-section-body" style={{ color: '#f3dfd1' }}>{thesis.conclusion}</p>
             </div>
           </article>
         </GlassSurface>
@@ -270,12 +299,12 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
           <Link
             href={isMoon ? '/cronologia' : '/tesis-lunar'}
             className="ac-readmore-wrap"
-            style={{ textDecoration: 'none' }}
+            style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
           >
             <GlassSurface
               width="auto"
-              height={54}
-              borderRadius={999}
+              height={48}
+              borderRadius={2}
               borderWidth={0.12}
               brightness={56}
               opacity={0.94}
@@ -302,18 +331,18 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
           <Link
             href={isMoon ? '/tesis-marte' : '/marte'}
             className="ac-readmore-wrap"
-            style={{ textDecoration: 'none' }}
+            style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
           >
             <ElectricBorder
-              color="#fb923c"
+              color="#f97316"
               speed={1.25}
               chaos={0.45}
-              borderRadius={999}
+              borderRadius={2}
             >
               <GlassSurface
                 width="auto"
-                height={54}
-                borderRadius={999}
+                height={48}
+                borderRadius={2}
                 borderWidth={0.12}
                 brightness={58}
                 opacity={0.95}
@@ -343,6 +372,10 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
       </div>
 
       <style>{`
+        .th-thesis-reader,
+        .th-thesis-reader * {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
         .th-chapter-jump-nav {
           display: flex;
           flex-wrap: wrap;
@@ -354,9 +387,11 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          padding: 0.55rem 1.15rem;
-          border-radius: 999px;
-          border: 1px solid rgba(148, 163, 184, 0.25);
+          min-height: 40px;
+          padding: 0.5rem 1.15rem;
+          border-radius: 2px;
+          border: 1px solid rgba(253, 186, 116, 0.28);
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
           font-size: 0.88rem;
           font-weight: 700;
           cursor: pointer;
@@ -367,7 +402,8 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
           transform: translateY(-2px);
         }
         .th-chapter-jump-num {
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+          font-variant-numeric: tabular-nums;
           font-size: 0.78rem;
           opacity: 0.85;
         }

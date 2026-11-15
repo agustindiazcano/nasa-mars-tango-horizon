@@ -34,6 +34,7 @@ function Frame({ id, label, viewBox = '0 0 420 420', children }: FrameProps) {
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label={label}
+      fontFamily="'Raleway', sans-serif"
     >
       <defs>
         <radialGradient id={`${id}-sun`}>
@@ -47,9 +48,9 @@ function Frame({ id, label, viewBox = '0 0 420 420', children }: FrameProps) {
           <stop offset="1" stopColor="#0b2a55" />
         </radialGradient>
         <radialGradient id={`${id}-moon`} cx="35%" cy="30%" r="75%">
-          <stop offset="0" stopColor="#f1f5f9" />
-          <stop offset="0.6" stopColor="#94a3b8" />
-          <stop offset="1" stopColor="#334155" />
+          <stop offset="0" stopColor="#f3dfd1" />
+          <stop offset="0.6" stopColor="#b89b8c" />
+          <stop offset="1" stopColor="#3b2622" />
         </radialGradient>
         <radialGradient id={`${id}-mars`} cx="35%" cy="30%" r="75%">
           <stop offset="0" stopColor="#fdba74" />
@@ -62,9 +63,9 @@ function Frame({ id, label, viewBox = '0 0 420 420', children }: FrameProps) {
           <stop offset="1" stopColor="#5b3a22" />
         </radialGradient>
         <linearGradient id={`${id}-metal`} x1="0" x2="1">
-          <stop offset="0" stopColor="#f8fafc" />
-          <stop offset="0.5" stopColor="#94a3b8" />
-          <stop offset="1" stopColor="#e2e8f0" />
+          <stop offset="0" stopColor="#f3dfd1" />
+          <stop offset="0.5" stopColor="#b89b8c" />
+          <stop offset="1" stopColor="#e8d2c3" />
         </linearGradient>
         <linearGradient id={`${id}-brass`} x1="0" x2="1">
           <stop offset="0" stopColor="#fef3c7" />
@@ -73,8 +74,8 @@ function Frame({ id, label, viewBox = '0 0 420 420', children }: FrameProps) {
         </linearGradient>
         <linearGradient id={`${id}-flame`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.35" stopColor="#7df9ff" />
-          <stop offset="1" stopColor="#0ea5e9" stopOpacity="0" />
+          <stop offset="0.35" stopColor="#fbbf24" />
+          <stop offset="1" stopColor="#f97316" stopOpacity="0" />
         </linearGradient>
       </defs>
       {STARS.map(([x, y], i) => (
@@ -83,7 +84,7 @@ function Frame({ id, label, viewBox = '0 0 420 420', children }: FrameProps) {
           cx={x}
           cy={y}
           r={i % 3 === 0 ? 2 : 1.3}
-          fill="#e0f2fe"
+          fill="#fde68a"
           opacity="0.75"
         >
           <animate
@@ -113,7 +114,7 @@ function LabelText({
   y,
   children,
   size = 13,
-  fill = '#e0f2fe',
+  fill = '#f3dfd1',
   anchor = 'middle',
 }: LabelTextProps) {
   return (
@@ -123,8 +124,8 @@ function LabelText({
       textAnchor={anchor}
       fill={fill}
       fontSize={size}
-      fontFamily="Georgia, serif"
-      fontStyle="italic"
+      fontFamily="'Raleway', sans-serif"
+      fontWeight="600"
     >
       {children}
     </text>
@@ -146,8 +147,8 @@ function Orbit({
   cy = 210,
   rx,
   ry,
-  stroke = '#7dd3fc',
-  op = 0.4,
+  stroke = '#fdba74',
+  op = 0.42,
   dash,
 }: OrbitProps) {
   return (
@@ -273,25 +274,25 @@ function CelestialMapSvg({ id }: { id: string }) {
         </radialGradient>
         <radialGradient id={`${id}-rigel`} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-          <stop offset="30%" stopColor="#e0f2fe" stopOpacity="0.95" />
-          <stop offset="60%" stopColor="#38bdf8" stopOpacity="0.65" />
-          <stop offset="100%" stopColor="#0284c7" stopOpacity="0" />
+          <stop offset="30%" stopColor="#fde68a" stopOpacity="0.95" />
+          <stop offset="60%" stopColor="#fb7185" stopOpacity="0.65" />
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
         </radialGradient>
       </defs>
       <text
         x="230"
         y="38"
         textAnchor="middle"
-        fill="#f8fafc"
-        fontFamily="Georgia, serif"
+        fill="#f3dfd1"
+        fontFamily="'Raleway', sans-serif"
         fontSize="24"
-        fontStyle="italic"
+        fontWeight="700"
       >
         Orión · El Cazador Celeste
       </text>
       <g
-        fill="rgba(56, 189, 248, 0.05)"
-        stroke="rgba(186, 230, 253, 0.36)"
+        fill="rgba(249, 115, 22, 0.08)"
+        stroke="rgba(253, 186, 116, 0.38)"
         strokeWidth="1.25"
       >
         <path d="M218,122 C228,116 242,120 244,134 C245,144 238,154 228,156 C216,156 212,142 218,122 Z" />
@@ -302,8 +303,8 @@ function CelestialMapSvg({ id }: { id: string }) {
         <path d="M198,266 L176,336 L192,408 L210,406 L204,336 L228,294 L268,334 L288,392 L304,388 L286,322 L256,262 Z" />
       </g>
       <g
-        stroke="#7df9ff"
-        strokeOpacity="0.65"
+        stroke="#fb923c"
+        strokeOpacity="0.68"
         strokeWidth="1.2"
         strokeDasharray="3 3"
         fill="none"
@@ -319,7 +320,7 @@ function CelestialMapSvg({ id }: { id: string }) {
           y2="260"
           strokeDasharray="none"
           strokeWidth="1.8"
-          stroke="#e0f2fe"
+          stroke="#fbbf24"
         />
         <line x1="206" y1="272" x2="192" y2="406" />
         <line x1="250" y1="260" x2="296" y2="390" />
@@ -329,7 +330,7 @@ function CelestialMapSvg({ id }: { id: string }) {
           <animate attributeName="r" values="20;25;20" dur="4s" repeatCount="indefinite" />
         </circle>
         <circle r="5" fill="#ffffff" />
-        <text x="-48" y="-12" fill="#fed7aa" fontSize="11" fontFamily="Georgia, serif">
+        <text x="-48" y="-12" fill="#fdba74" fontSize="11" fontFamily="'Raleway', sans-serif" fontWeight="600">
           α Betelgeuse
         </text>
       </g>
@@ -348,11 +349,11 @@ function CelestialMapSvg({ id }: { id: string }) {
           <animate attributeName="r" values="22;27;22" dur="4.6s" repeatCount="indefinite" />
         </circle>
         <circle r="5.5" fill="#ffffff" />
-        <text x="16" y="18" fill="#e0f2fe" fontSize="12" fontFamily="Georgia, serif">
+        <text x="16" y="18" fill="#fda4af" fontSize="12" fontFamily="'Raleway', sans-serif" fontWeight="600">
           β Rigel
         </text>
       </g>
-      <LabelText x={230} y={456} size={13} fill="#fde68a">
+      <LabelText x={230} y={456} size={13} fill="#fbbf24">
         Constelación de Orión (SIPA.ZI.ANNA) · Catálogo MUL.APIN
       </LabelText>
     </Frame>
@@ -364,9 +365,9 @@ function GeocentricSphereSvg({ id }: { id: string }) {
     <Frame id={id} label="Astrolabio y esfera geocéntrica">
       <g transform="translate(210 212)" fill="none" strokeLinecap="round">
         <circle r="144" stroke={`url(#${id}-brass)`} strokeWidth="12" />
-        <circle r="114" stroke="#fde68a" strokeOpacity="0.75" strokeWidth="1.5" />
+        <circle r="114" stroke="#fbbf24" strokeOpacity="0.75" strokeWidth="1.5" />
         <g>
-          <circle r="86" stroke="#bae6fd" strokeOpacity="0.65" strokeDasharray="4 5" />
+          <circle r="86" stroke="#fdba74" strokeOpacity="0.65" strokeDasharray="4 5" />
           <circle cx="86" cy="0" r="5" fill="#fbbf24" />
           <animateTransform
             attributeName="transform"
@@ -378,8 +379,8 @@ function GeocentricSphereSvg({ id }: { id: string }) {
           />
         </g>
         <g>
-          <circle r="56" stroke="#7df9ff" strokeOpacity="0.75" strokeWidth="1.5" />
-          <circle cx="0" cy="-56" r="4" fill="#e2e8f0" />
+          <circle r="56" stroke="#fb7185" strokeOpacity="0.75" strokeWidth="1.5" />
+          <circle cx="0" cy="-56" r="4" fill="#f3dfd1" />
           <animateTransform
             attributeName="transform"
             type="rotate"
@@ -389,10 +390,10 @@ function GeocentricSphereSvg({ id }: { id: string }) {
             repeatCount="indefinite"
           />
         </g>
-        <path d="M-114 0H114M0-114V114" stroke="#bae6fd" strokeOpacity="0.45" />
-        <path d="M-120 58C-40-28 40-28 120 58" stroke="#7df9ff" strokeWidth="1.5" />
+        <path d="M-114 0H114M0-114V114" stroke="#fdba74" strokeOpacity="0.45" />
+        <path d="M-120 58C-40-28 40-28 120 58" stroke="#f97316" strokeWidth="1.5" />
         <path d="M-6 0L98-82" stroke={`url(#${id}-brass)`} strokeWidth="6" />
-        <circle r="16" fill={`url(#${id}-planet)`} stroke="#7df9ff" strokeWidth="1.5" />
+        <circle r="16" fill={`url(#${id}-planet)`} stroke="#fbbf24" strokeWidth="1.5" />
         <circle cy="-162" r="13" stroke={`url(#${id}-brass)`} strokeWidth="5" />
         {Array.from({ length: 36 }, (_, i) => (
           <line
@@ -401,13 +402,13 @@ function GeocentricSphereSvg({ id }: { id: string }) {
             y1="-138"
             x2="0"
             y2={i % 3 === 0 ? -128 : -133}
-            stroke="#fff"
+            stroke="#f3dfd1"
             strokeOpacity="0.6"
             transform={`rotate(${i * 10})`}
           />
         ))}
       </g>
-      <LabelText x={210} y={404} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={404} size={13.5} fill="#fbbf24">
         Esfera armilar y astrolabio · Cosmos geocéntrico
       </LabelText>
     </Frame>
@@ -424,24 +425,24 @@ function SiriusCalendarSvg({ id }: { id: string }) {
       <LabelText x={300} y={148} size={14}>
         Sirio · Sopdet
       </LabelText>
-      <path d="M40 330L170 150L300 330Z" fill="#d6a85f" stroke="#fde68a" strokeWidth="2" />
+      <path d="M40 330L170 150L300 330Z" fill="#d6a85f" stroke="#fbbf24" strokeWidth="2" />
       <path d="M170 150L300 330H220Z" fill="#a9772d" opacity="0.8" />
       <path
         d="M150 330L240 210L330 330Z"
         fill="#c8964a"
-        stroke="#fde68a"
+        stroke="#fbbf24"
         strokeWidth="1.5"
         opacity="0.9"
       />
       <path
         d="M20 335C100 320 300 345 400 330"
-        stroke="#38bdf8"
+        stroke="#fb923c"
         strokeWidth="6"
         fill="none"
         strokeLinecap="round"
-        opacity="0.7"
+        opacity="0.78"
       />
-      <LabelText x={210} y={385} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={385} size={13.5} fill="#fbbf24">
         Orto helíaco de Sirio (365.25 d) · Ciclo de Venus (584 d)
       </LabelText>
     </Frame>
@@ -484,7 +485,7 @@ function CopernicusSvg({ id }: { id: string }) {
       <LabelText x={210} y={40} size={17}>
         Sol · Centro Heliocéntrico
       </LabelText>
-      <LabelText x={210} y={400} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={400} size={13.5} fill="#fbbf24">
         Nicolás Copérnico · De revolutionibus (1543)
       </LabelText>
     </Frame>
@@ -505,8 +506,8 @@ function GalileoJupiterSvg({ id }: { id: string }) {
         y1="205"
         x2="375"
         y2="196"
-        stroke="#7df9ff"
-        strokeOpacity="0.3"
+        stroke="#fb923c"
+        strokeOpacity="0.4"
         strokeDasharray="4 4"
       />
       <Body id={id} kind="gas" cx={210} cy={200} r={62} />
@@ -518,7 +519,7 @@ function GalileoJupiterSvg({ id }: { id: string }) {
       <ellipse cx="226" cy="222" rx="14" ry="8" fill="#b45309" opacity="0.7" />
       {moons.map(([x, y, name], i) => (
         <g key={i}>
-          <circle cx={x} cy={y} r={7 - (i % 2)} fill="#f1f5f9">
+          <circle cx={x} cy={y} r={7 - (i % 2)} fill="#f3dfd1">
             <animate
               attributeName="opacity"
               values="0.75;1;0.75"
@@ -531,9 +532,9 @@ function GalileoJupiterSvg({ id }: { id: string }) {
           </LabelText>
         </g>
       ))}
-      <path d="M40 330L120 292L130 308L50 346Z" fill="#d97706" stroke="#fde68a" />
-      <circle cx="132" cy="298" r="9" fill="none" stroke="#bae6fd" strokeWidth="2" />
-      <LabelText x={210} y={400} size={13.5} fill="#fde68a">
+      <path d="M40 330L120 292L130 308L50 346Z" fill="#d97706" stroke="#fbbf24" />
+      <circle cx="132" cy="298" r="9" fill="none" stroke="#fdba74" strokeWidth="2" />
+      <LabelText x={210} y={400} size={13.5} fill="#fbbf24">
         Sidereus Nuncius (1610): las lunas de Júpiter
       </LabelText>
     </Frame>
@@ -543,24 +544,24 @@ function GalileoJupiterSvg({ id }: { id: string }) {
 function KeplerEllipseSvg({ id }: { id: string }) {
   return (
     <Frame id={id} label="Órbita elíptica y leyes de Kepler">
-      <ellipse cx="170" cy="215" rx="150" ry="95" fill="none" stroke="#7dd3fc" strokeWidth="1.8" />
+      <ellipse cx="170" cy="215" rx="150" ry="95" fill="none" stroke="#fb923c" strokeWidth="1.8" />
       <path
         d="M232 215L320 128A150 95 0 0 1 345 190Z"
-        fill="#7dd3fc"
+        fill="#f97316"
         opacity="0.28"
-        stroke="#bae6fd"
+        stroke="#fdba74"
       />
       <path
         d="M232 215L60 190A150 95 0 0 0 60 240Z"
-        fill="#7dd3fc"
+        fill="#fb7185"
         opacity="0.28"
-        stroke="#bae6fd"
+        stroke="#fda4af"
       />
       <circle cx="232" cy="215" r="24" fill={`url(#${id}-sun)`}>
         <animate attributeName="r" values="22;27;22" dur="4s" repeatCount="indefinite" />
       </circle>
       <circle cx="232" cy="215" r="8" fill="#fffbe6" />
-      <circle cx="108" cy="215" r="3" fill="#bae6fd" />
+      <circle cx="108" cy="215" r="3" fill="#fdba74" />
       <Body id={id} kind="planet" cx={322} cy={152} r={9} />
       <LabelText x={232} y={252} size={12}>
         Sol (foco F₁)
@@ -574,7 +575,7 @@ function KeplerEllipseSvg({ id }: { id: string }) {
       <LabelText x={90} y={160} size={13}>
         en tiempos iguales
       </LabelText>
-      <LabelText x={210} y={400} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={400} size={13.5} fill="#fbbf24">
         Leyes de Kepler · Astronomia Nova (1609) · T² ∝ a³
       </LabelText>
     </Frame>
@@ -585,11 +586,11 @@ function NewtonAppleSvg({ id }: { id: string }) {
   return (
     <Frame id={id} label="Gravitación universal de Newton">
       <EarthSphere id={id} cx={210} cy={235} r={62} />
-      <Orbit cx={210} cy={235} rx={150} ry={150} stroke="#fde68a" op={0.5} dash="4 6" />
+      <Orbit cx={210} cy={235} rx={150} ry={150} stroke="#fbbf24" op={0.55} dash="4 6" />
       <Body id={id} kind="moon" cx={316} cy={129} r={14} />
-      <path d="M303 142L255 190" stroke="#7df9ff" strokeWidth="2" strokeDasharray="5 5" />
-      <path d="M262 183l2 10-10-2" stroke="#7df9ff" fill="none" strokeWidth="2" />
-      <LabelText x={210} y={56} size={19} fill="#fde68a">
+      <path d="M303 142L255 190" stroke="#fb923c" strokeWidth="2" strokeDasharray="5 5" />
+      <path d="M262 183l2 10-10-2" stroke="#fb923c" fill="none" strokeWidth="2" />
+      <LabelText x={210} y={56} size={19} fill="#fbbf24">
         F = G·M·m / r²
       </LabelText>
       <g>
@@ -603,7 +604,7 @@ function NewtonAppleSvg({ id }: { id: string }) {
           repeatCount="indefinite"
         />
       </g>
-      <LabelText x={210} y={400} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={400} size={13.5} fill="#fbbf24">
         Isaac Newton · Principia Mathematica (1687)
       </LabelText>
     </Frame>
@@ -617,16 +618,16 @@ function TsiolkovskyRocketSvg({ id }: { id: string }) {
         <path
           d="M0-140C-34-90-38-30-30 70H30C38-30 34-90 0-140Z"
           fill={`url(#${id}-metal)`}
-          stroke="#e0f2fe"
+          stroke="#f3dfd1"
           strokeWidth="2"
         />
-        <circle cy="-60" r="16" fill="#0f172a" stroke="#7df9ff" strokeWidth="3" />
+        <circle cy="-60" r="16" fill="#140a0e" stroke="#fbbf24" strokeWidth="3" />
         <path
           d="M-30 30L-68 90L-30 70M30 30L68 90L30 70"
-          fill="#0ea5e9"
-          stroke="#bae6fd"
+          fill="#f97316"
+          stroke="#fdba74"
         />
-        <rect x="-18" y="70" width="36" height="18" fill="#475569" />
+        <rect x="-18" y="70" width="36" height="18" fill="#4a251d" />
         <path d="M-16 88C-30 155 30 155 16 88Z" fill={`url(#${id}-flame)`}>
           <animate
             attributeName="d"
@@ -639,7 +640,7 @@ function TsiolkovskyRocketSvg({ id }: { id: string }) {
       <LabelText x={210} y={38} size={16}>
         Δv = v_e · ln(m₀ / m_f)
       </LabelText>
-      <LabelText x={210} y={400} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={400} size={13.5} fill="#fbbf24">
         Tsiolkovski (1903) y Robert Goddard (1926)
       </LabelText>
     </Frame>
@@ -650,17 +651,17 @@ function SputnikSvg({ id }: { id: string }) {
   return (
     <Frame id={id} label="Sputnik 1 y amanecer orbital">
       <EarthSphere id={id} cx={210} cy={290} r={95} />
-      <Orbit cx={210} cy={290} rx={160} ry={140} stroke="#fde68a" op={0.55} dash="5 6" />
+      <Orbit cx={210} cy={290} rx={160} ry={140} stroke="#fbbf24" op={0.55} dash="5 6" />
       <g transform="translate(210 112)">
-        <circle r="22" fill={`url(#${id}-metal)`} stroke="#fff" />
+        <circle r="22" fill={`url(#${id}-metal)`} stroke="#f3dfd1" />
         <circle cx="-7" cy="-7" r="6" fill="#fff" opacity="0.7" />
         <path
           d="M-18-8L-110-48M-20-2L-120-10M18-8L110-48M20-2L120-10"
-          stroke="#e2e8f0"
+          stroke="#f3dfd1"
           strokeWidth="2.5"
           strokeLinecap="round"
         />
-        <circle r="34" fill="none" stroke="#7df9ff" strokeOpacity="0.45" strokeWidth="1.2">
+        <circle r="34" fill="none" stroke="#fb923c" strokeOpacity="0.55" strokeWidth="1.2">
           <animate attributeName="r" values="24;54" dur="2.2s" repeatCount="indefinite" />
           <animate attributeName="stroke-opacity" values="0.7;0" dur="2.2s" repeatCount="indefinite" />
         </circle>
@@ -668,7 +669,7 @@ function SputnikSvg({ id }: { id: string }) {
       <LabelText x={210} y={45} size={15.5}>
         Sputnik 1 (1957) · Vostok 1 (1961)
       </LabelText>
-      <LabelText x={210} y={402} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={402} size={13.5} fill="#fbbf24">
         83.6 kg · 7.91 km/s primera velocidad cósmica
       </LabelText>
     </Frame>
@@ -679,20 +680,20 @@ function ApolloSvg({ id }: { id: string }) {
   return (
     <Frame id={id} label="Saturno V y la Luna">
       <Body id={id} kind="moon" cx={300} cy={110} r={58} />
-      <circle cx="285" cy="95" r="9" fill="#475569" opacity="0.5" />
-      <circle cx="322" cy="132" r="13" fill="#475569" opacity="0.4" />
+      <circle cx="285" cy="95" r="9" fill="#4a251d" opacity="0.5" />
+      <circle cx="322" cy="132" r="13" fill="#4a251d" opacity="0.4" />
       <g transform="translate(120 190)">
         <path
           d="M0-120C-14-100-16-85-16-70H16C16-85 14-100 0-120Z"
-          fill="#f8fafc"
-          stroke="#cbd5e1"
+          fill="#f3dfd1"
+          stroke="#d6bfb2"
         />
-        <rect x="-16" y="-70" width="32" height="50" fill="#f8fafc" stroke="#cbd5e1" />
-        <rect x="-18" y="-20" width="36" height="60" fill="#e2e8f0" stroke="#94a3b8" />
-        <rect x="-20" y="40" width="40" height="80" fill="#f8fafc" stroke="#94a3b8" />
-        <rect x="-20" y="-40" width="40" height="6" fill="#0f172a" />
-        <rect x="-20" y="60" width="40" height="6" fill="#0f172a" />
-        <path d="M-20 120L-34 140H34L20 120Z" fill="#475569" />
+        <rect x="-16" y="-70" width="32" height="50" fill="#f3dfd1" stroke="#d6bfb2" />
+        <rect x="-18" y="-20" width="36" height="60" fill="#e8d2c3" stroke="#b89b8c" />
+        <rect x="-20" y="40" width="40" height="80" fill="#f3dfd1" stroke="#b89b8c" />
+        <rect x="-20" y="-40" width="40" height="6" fill="#140a0e" />
+        <rect x="-20" y="60" width="40" height="6" fill="#140a0e" />
+        <path d="M-20 120L-34 140H34L20 120Z" fill="#4a251d" />
         <path d="M-16 140C-30 200 30 200 16 140Z" fill={`url(#${id}-flame)`}>
           <animate
             attributeName="d"
@@ -704,7 +705,7 @@ function ApolloSvg({ id }: { id: string }) {
       </g>
       <path
         d="M140 150C200 100 240 120 252 118"
-        stroke="#7df9ff"
+        stroke="#fbbf24"
         strokeWidth="2"
         strokeDasharray="6 6"
         fill="none"
@@ -712,7 +713,7 @@ function ApolloSvg({ id }: { id: string }) {
       <LabelText x={210} y={38} size={15.5}>
         Saturno V · 34.5 MN de empuje
       </LabelText>
-      <LabelText x={210} y={400} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={400} size={13.5} fill="#fbbf24">
         Inyección translunar · Apolo 11 (20 de julio de 1969)
       </LabelText>
     </Frame>
@@ -723,15 +724,15 @@ function SatellitesSvg({ id }: { id: string }) {
   return (
     <Frame id={id} label="Estaciones orbitales y satélites">
       <EarthSphere id={id} cx={350} cy={360} r={90} />
-      <Orbit cx={210} cy={210} rx={165} ry={95} stroke="#7df9ff" op={0.3} dash="5 6" />
+      <Orbit cx={210} cy={210} rx={165} ry={95} stroke="#fb923c" op={0.38} dash="5 6" />
       <g transform="translate(200 190) rotate(-12)">
-        <rect x="-130" y="-70" width="70" height="30" fill="#1d4ed8" stroke="#93c5fd" />
-        <rect x="-130" y="40" width="70" height="30" fill="#1d4ed8" stroke="#93c5fd" />
-        <rect x="60" y="-70" width="70" height="30" fill="#1d4ed8" stroke="#93c5fd" />
-        <rect x="60" y="40" width="70" height="30" fill="#1d4ed8" stroke="#93c5fd" />
-        <rect x="-95" y="-40" width="6" height="80" fill="#cbd5e1" />
-        <rect x="90" y="-40" width="6" height="80" fill="#cbd5e1" />
-        <rect x="-95" y="-4" width="190" height="8" fill="#e2e8f0" />
+        <rect x="-130" y="-70" width="70" height="30" fill="#2c1518" stroke="#fb923c" />
+        <rect x="-130" y="40" width="70" height="30" fill="#2c1518" stroke="#fb923c" />
+        <rect x="60" y="-70" width="70" height="30" fill="#2c1518" stroke="#fb923c" />
+        <rect x="60" y="40" width="70" height="30" fill="#2c1518" stroke="#fb923c" />
+        <rect x="-95" y="-40" width="6" height="80" fill="#d6bfb2" />
+        <rect x="90" y="-40" width="6" height="80" fill="#d6bfb2" />
+        <rect x="-95" y="-4" width="190" height="8" fill="#e8d2c3" />
         <rect
           x="-45"
           y="-18"
@@ -739,17 +740,17 @@ function SatellitesSvg({ id }: { id: string }) {
           height="36"
           rx="14"
           fill={`url(#${id}-metal)`}
-          stroke="#fff"
+          stroke="#f3dfd1"
         />
-        <circle cx="0" cy="0" r="9" fill="#0f172a" stroke="#7df9ff" strokeWidth="2" />
+        <circle cx="0" cy="0" r="9" fill="#140a0e" stroke="#fbbf24" strokeWidth="2" />
       </g>
-      <circle cx="96" cy="94" r="5" fill="#fde68a">
+      <circle cx="96" cy="94" r="5" fill="#fbbf24">
         <animate attributeName="opacity" values="0.4;1;0.4" dur="2.4s" repeatCount="indefinite" />
       </circle>
       <LabelText x={210} y={48} size={15.5}>
         Saliut · Skylab · Mir · EEI
       </LabelText>
-      <LabelText x={210} y={400} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={400} size={13.5} fill="#fbbf24">
         Módulo Zaryá (1998) · 408 km en órbita baja
       </LabelText>
     </Frame>
@@ -785,18 +786,18 @@ function JamesWebbSvg({ id }: { id: string }) {
 
   return (
     <Frame id={id} label="Telescopio Espacial James Webb">
-      <path d="M60 345L210 300L360 345L210 380Z" fill="#cbd5e1" opacity="0.65" stroke="#fff" />
-      <path d="M90 325L210 288L330 325L210 358Z" fill="#94a3b8" opacity="0.7" />
+      <path d="M60 345L210 300L360 345L210 380Z" fill="#d6bfb2" opacity="0.65" stroke="#f3dfd1" />
+      <path d="M90 325L210 288L330 325L210 358Z" fill="#b89b8c" opacity="0.7" />
       {hexPositions.map(([x, y]) => renderHex(x, y))}
-      <rect x="205" y="210" width="10" height="80" fill="#cbd5e1" />
-      <path d="M170 290H250" stroke="#7df9ff" strokeWidth="3" />
-      <circle cx="210" cy="130" r="95" fill="none" stroke="#fde68a" strokeOpacity="0.22" strokeDasharray="4 6">
+      <rect x="205" y="210" width="10" height="80" fill="#d6bfb2" />
+      <path d="M170 290H250" stroke="#fb7185" strokeWidth="3" />
+      <circle cx="210" cy="130" r="95" fill="none" stroke="#fbbf24" strokeOpacity="0.24" strokeDasharray="4 6">
         <animate attributeName="r" values="92;104;92" dur="5s" repeatCount="indefinite" />
       </circle>
       <LabelText x={210} y={38} size={15.5}>
         JWST · Espejo segmentado de 6.5 m
       </LabelText>
-      <LabelText x={210} y={404} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={404} size={13.5} fill="#fbbf24">
         Punto de Lagrange L2 · 1.5 millones de km
       </LabelText>
     </Frame>
@@ -807,12 +808,12 @@ function ArtemisSvg({ id }: { id: string }) {
   return (
     <Frame id={id} label="Cápsula Orión y Programa Artemis">
       <Body id={id} kind="moon" cx={110} cy={290} r={85} />
-      <circle cx="85" cy="270" r="14" fill="#475569" opacity="0.5" />
-      <circle cx="140" cy="320" r="18" fill="#475569" opacity="0.4" />
+      <circle cx="85" cy="270" r="14" fill="#4a251d" opacity="0.5" />
+      <circle cx="140" cy="320" r="18" fill="#4a251d" opacity="0.4" />
       <EarthSphere id={id} cx={355} cy={85} r={32} />
       <path
         d="M130 215C200 120 280 100 325 100"
-        stroke="#7df9ff"
+        stroke="#fbbf24"
         strokeWidth="2"
         strokeDasharray="6 7"
         fill="none"
@@ -821,17 +822,17 @@ function ArtemisSvg({ id }: { id: string }) {
         <path
           d="M-30 24L-18-30H18L30 24Z"
           fill={`url(#${id}-metal)`}
-          stroke="#fff"
+          stroke="#f3dfd1"
           strokeWidth="2"
         />
-        <rect x="-24" y="24" width="48" height="36" fill="#e2e8f0" stroke="#94a3b8" />
-        <rect x="-110" y="34" width="84" height="14" fill="#1d4ed8" stroke="#93c5fd" />
-        <rect x="26" y="34" width="84" height="14" fill="#1d4ed8" stroke="#93c5fd" />
+        <rect x="-24" y="24" width="48" height="36" fill="#e8d2c3" stroke="#b89b8c" />
+        <rect x="-110" y="34" width="84" height="14" fill="#2c1518" stroke="#fb923c" />
+        <rect x="26" y="34" width="84" height="14" fill="#2c1518" stroke="#fb923c" />
       </g>
       <LabelText x={210} y={38} size={15.5}>
         Artemis · Polo sur lunar
       </LabelText>
-      <LabelText x={210} y={404} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={404} size={13.5} fill="#fbbf24">
         Cápsula Orión + Estación cislunar Gateway
       </LabelText>
     </Frame>
@@ -845,7 +846,7 @@ function MarsRouteSvg({ id }: { id: string }) {
       <Body id={id} kind="mars" cx={330} cy={115} r={46} />
       <path
         d="M120 295C190 190 250 160 288 135"
-        stroke="#fde68a"
+        stroke="#fbbf24"
         strokeWidth="2.2"
         strokeDasharray="7 8"
         fill="none"
@@ -858,17 +859,17 @@ function MarsRouteSvg({ id }: { id: string }) {
           height="16"
           rx="5"
           fill={`url(#${id}-metal)`}
-          stroke="#fff"
+          stroke="#f3dfd1"
         />
-        <rect x="-42" y="-3" width="22" height="6" fill="#1d4ed8" />
-        <rect x="20" y="-3" width="22" height="6" fill="#1d4ed8" />
-        <circle cx="0" cy="0" r="24" fill="none" stroke="#7df9ff" strokeOpacity="0.35">
+        <rect x="-42" y="-3" width="22" height="6" fill="#f97316" />
+        <rect x="20" y="-3" width="22" height="6" fill="#f97316" />
+        <circle cx="0" cy="0" r="24" fill="none" stroke="#fb7185" strokeOpacity="0.45">
           <animate attributeName="r" values="18;28;18" dur="3s" repeatCount="indefinite" />
         </circle>
       </g>
       <path
         d="M270 100l46 4M300 140l50-2M316 78l36 8"
-        stroke="#fed7aa"
+        stroke="#fdba74"
         strokeWidth="4"
         opacity="0.5"
         strokeLinecap="round"
@@ -879,7 +880,7 @@ function MarsRouteSvg({ id }: { id: string }) {
       <LabelText x={330} y={180} size={13}>
         Marte
       </LabelText>
-      <LabelText x={210} y={404} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={404} size={13.5} fill="#fbbf24">
         225 M km · Ventana de transferencia de Hohmann
       </LabelText>
     </Frame>
@@ -890,11 +891,11 @@ function FallbackOrbitalSvg({ id }: { id: string }) {
   return (
     <Frame id={id} label="Diagrama de telemetría orbital">
       <g transform="translate(210 210)" fill="none" strokeLinecap="round">
-        <circle r="136" stroke="#7df9ff" strokeOpacity="0.22" strokeDasharray="4 8" />
-        <circle r="96" stroke="#38bdf8" strokeOpacity="0.45" strokeWidth="1.5" />
-        <ellipse rx="140" ry="58" transform="rotate(-24)" stroke="#fde68a" strokeOpacity="0.55" />
-        <circle r="28" fill={`url(#${id}-planet)`} stroke="#bae6fd" strokeWidth="1.5" />
-        <circle cx="96" cy="0" r="6" fill="#7df9ff">
+        <circle r="136" stroke="#fbbf24" strokeOpacity="0.25" strokeDasharray="4 8" />
+        <circle r="96" stroke="#f97316" strokeOpacity="0.5" strokeWidth="1.5" />
+        <ellipse rx="140" ry="58" transform="rotate(-24)" stroke="#fb7185" strokeOpacity="0.55" />
+        <circle r="28" fill={`url(#${id}-planet)`} stroke="#fdba74" strokeWidth="1.5" />
+        <circle cx="96" cy="0" r="6" fill="#fbbf24">
           <animateTransform
             attributeName="transform"
             type="rotate"
@@ -905,7 +906,7 @@ function FallbackOrbitalSvg({ id }: { id: string }) {
           />
         </circle>
       </g>
-      <LabelText x={210} y={400} size={13.5} fill="#fde68a">
+      <LabelText x={210} y={400} size={13.5} fill="#fbbf24">
         Telemetría astronáutica · Tango Horizon
       </LabelText>
     </Frame>
@@ -962,13 +963,14 @@ export function CelestialVisual({ type }: { type: string }) {
           display: flex;
           align-items: center;
           justify-content: center;
-          filter: drop-shadow(0 18px 36px rgba(6, 12, 30, 0.55));
+          filter: drop-shadow(0 18px 36px rgba(20, 10, 14, 0.55));
         }
         .cv-visual-wrap :global(.cv-celestial-svg) {
           width: 100%;
           height: auto;
           display: block;
           overflow: visible;
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
         }
       `}</style>
     </div>

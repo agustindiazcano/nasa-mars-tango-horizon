@@ -9,6 +9,20 @@ import { getMarsExplorationPages } from '@/data/thesesAndMars';
 import { ThesisVisual } from '@/components/visuals/ThesisAndMarsVisuals';
 import { useLanguage } from '@/context/LanguageContext';
 
+function toSunsetAccent(color: string): string {
+  const normalized = color.trim().toLowerCase();
+  if (normalized === '#7df9ff' || normalized === '#38bdf8' || normalized === '#0ea5e9') {
+    return '#fb7185';
+  }
+  if (normalized === '#fde68a') {
+    return '#fbbf24';
+  }
+  if (normalized === '#c4b5fd' || normalized === '#a78bfa') {
+    return '#fda4af';
+  }
+  return color;
+}
+
 export function MarsPhasesReader() {
   const { lang } = useLanguage();
   const isEs = lang === 'es';
@@ -28,11 +42,13 @@ export function MarsPhasesReader() {
   }, [phases]);
 
   const currentPhase = phases[activeIndex] ?? phases[0];
+  const currentAccent = toSunsetAccent(currentPhase.accent);
   const prevPhase = activeIndex > 0 ? phases[activeIndex - 1] : null;
   const nextPhase =
     activeIndex < phases.length - 1
       ? phases[activeIndex + 1]
       : null;
+  const nextAccent = nextPhase ? toSunsetAccent(nextPhase.accent) : '#fb7185';
   const isMarteIII = currentPhase.id === 'marte-arquitectura-humana';
 
   const selectPhase = (idx: number) => {
@@ -45,15 +61,19 @@ export function MarsPhasesReader() {
   };
 
   return (
-    <section className="era-detail-page" aria-labelledby="mars-phase-title">
+    <section className="era-detail-page th-mars-phases-reader" aria-labelledby="mars-phase-title">
       <div className="era-detail-container">
         {/* Topbar */}
         <div className="era-detail-topbar">
-          <Link href="/tesis-marte" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
+          <Link
+            href="/tesis-marte"
+            className="ac-readmore-wrap"
+            style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
+          >
             <GlassSurface
               width="auto"
-              height={46}
-              borderRadius={999}
+              height={44}
+              borderRadius={2}
               borderWidth={0.12}
               brightness={58}
               opacity={0.95}
@@ -72,12 +92,15 @@ export function MarsPhasesReader() {
           </Link>
 
           <ElectricBorder
-            color={currentPhase.accent}
+            color={currentAccent}
             speed={1.15}
             chaos={0.48}
-            borderRadius={16}
+            borderRadius={2}
           >
-            <div className="era-detail-period-pill" style={{ color: currentPhase.accent }}>
+            <div
+              className="era-detail-period-pill"
+              style={{ color: currentAccent, borderRadius: '2px', minHeight: '40px' }}
+            >
               {currentPhase.title}
             </div>
           </ElectricBorder>
@@ -93,9 +116,10 @@ export function MarsPhasesReader() {
             className="ac-timeline-badge"
             style={{
               marginTop: '1.6rem',
-              color: currentPhase.accent,
+              color: currentAccent,
               borderColor: 'rgba(251, 146, 60, 0.42)',
               background: 'rgba(251, 146, 60, 0.12)',
+              borderRadius: '2px',
             }}
           >
             {currentPhase.kicker}
@@ -103,11 +127,11 @@ export function MarsPhasesReader() {
           <h1
             id="mars-phase-title"
             className="era-detail-main-title"
-            style={{ fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)' }}
+            style={{ fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)', color: '#f3dfd1' }}
           >
             {currentPhase.heading}
           </h1>
-          <p className="era-detail-subtitle" style={{ color: '#fed7aa' }}>
+          <p className="era-detail-subtitle" style={{ color: '#fdba74' }}>
             {currentPhase.subtitle}
           </p>
         </header>
@@ -120,6 +144,7 @@ export function MarsPhasesReader() {
         >
           {phases.map((phase, idx) => {
             const isSelected = idx === activeIndex;
+            const tabAccent = toSunsetAccent(phase.accent);
             const tabButton = (
               <button
                 key={phase.id}
@@ -129,11 +154,13 @@ export function MarsPhasesReader() {
                 onClick={() => selectPhase(idx)}
                 className={`th-mars-tab-btn ${isSelected ? 'is-selected' : ''}`}
                 style={{
-                  borderColor: isSelected ? phase.accent : 'rgba(148, 163, 184, 0.25)',
+                  borderColor: isSelected ? tabAccent : 'rgba(253, 186, 116, 0.28)',
                   background: isSelected
-                    ? 'rgba(15, 23, 42, 0.9)'
-                    : 'rgba(9, 13, 22, 0.62)',
-                  color: isSelected ? phase.accent : '#cbd5e1',
+                    ? 'rgba(20, 10, 14, 0.92)'
+                    : 'rgba(20, 10, 14, 0.65)',
+                  color: isSelected ? tabAccent : '#f3dfd1',
+                  borderRadius: '2px',
+                  minHeight: '40px',
                 }}
               >
                 <span className="th-mars-tab-code">{phase.tabLabel}</span>
@@ -144,10 +171,10 @@ export function MarsPhasesReader() {
             return isSelected ? (
               <ElectricBorder
                 key={phase.id}
-                color={phase.accent}
+                color={tabAccent}
                 speed={1.15}
                 chaos={0.42}
-                borderRadius={999}
+                borderRadius={2}
               >
                 {tabButton}
               </ElectricBorder>
@@ -161,7 +188,7 @@ export function MarsPhasesReader() {
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={32}
+          borderRadius={24}
           borderWidth={0.07}
           brightness={50}
           opacity={0.94}
@@ -180,10 +207,10 @@ export function MarsPhasesReader() {
               className="thesis-abstract-box"
               style={{ borderColor: 'rgba(251, 146, 60, 0.35)' }}
             >
-              <span className="thesis-abstract-label" style={{ color: currentPhase.accent }}>
+              <span className="thesis-abstract-label" style={{ color: currentAccent }}>
                 {isEs ? 'Panorama de Fase' : 'Phase Overview'} · {currentPhase.title}
               </span>
-              <p className="thesis-abstract-text" style={{ marginBottom: '1.1rem' }}>
+              <p className="thesis-abstract-text" style={{ marginBottom: '1.1rem', color: '#f3dfd1' }}>
                 {currentPhase.description}
               </p>
               <div className="th-phase-tags">
@@ -201,12 +228,17 @@ export function MarsPhasesReader() {
                 <div
                   key={mIdx}
                   className="era-metric-box"
-                  style={{ borderColor: 'rgba(251, 146, 60, 0.28)' }}
+                  style={{ borderColor: 'rgba(251, 146, 60, 0.3)' }}
                 >
-                  <span className="era-metric-value" style={{ color: currentPhase.accent }}>
+                  <span
+                    className="era-metric-value"
+                    style={{ color: currentAccent, fontVariantNumeric: 'tabular-nums' }}
+                  >
                     {m.value}
                   </span>
-                  <span className="era-metric-label">{m.label}</span>
+                  <span className="era-metric-label" style={{ color: '#b89b8c' }}>
+                    {m.label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -216,15 +248,15 @@ export function MarsPhasesReader() {
               {currentPhase.sections.map((sec, sIdx) => (
                 <ElectricBorder
                   key={sec.id}
-                  color={sIdx % 2 === 0 ? currentPhase.accent : '#fb923c'}
+                  color={sIdx % 2 === 0 ? currentAccent : '#f97316'}
                   speed={1.0}
                   chaos={0.38}
-                  borderRadius={24}
+                  borderRadius={20}
                 >
                   <GlassSurface
                     width="100%"
                     height="auto"
-                    borderRadius={24}
+                    borderRadius={20}
                     borderWidth={0.08}
                     brightness={54}
                     opacity={0.92}
@@ -244,17 +276,21 @@ export function MarsPhasesReader() {
                         <span
                           className="thesis-chapter-pill"
                           style={{
-                            color: currentPhase.accent,
+                            color: currentAccent,
                             borderColor: 'rgba(251, 146, 60, 0.42)',
                             background: 'rgba(251, 146, 60, 0.14)',
+                            borderRadius: '2px',
                           }}
                         >
                           {isEs ? 'Módulo' : 'Module'} 0{sIdx + 1}
                         </span>
-                        <h2 className="era-section-heading" style={{ marginTop: '0.6rem' }}>
+                        <h2
+                          className="era-section-heading"
+                          style={{ marginTop: '0.6rem', color: '#f3dfd1' }}
+                        >
                           {sec.title}
                         </h2>
-                        <p className="era-section-body">{sec.body}</p>
+                        <p className="era-section-body" style={{ color: '#f3dfd1' }}>{sec.body}</p>
 
                         {sec.highlights && sec.highlights.length > 0 && (
                           <div className="th-section-highlights">
@@ -279,25 +315,25 @@ export function MarsPhasesReader() {
             {/* Cita Académica */}
             <blockquote
               className="era-academic-quote"
-              style={{ borderColor: 'rgba(251, 146, 60, 0.32)' }}
+              style={{ borderColor: 'rgba(251, 146, 60, 0.34)', color: '#f3dfd1' }}
             >
               <p>“{currentPhase.quote.text}”</p>
-              <footer>— {currentPhase.quote.author}</footer>
+              <footer style={{ color: '#fdba74' }}>— {currentPhase.quote.author}</footer>
             </blockquote>
 
             {/* Tarjeta Destacada al final de Marte III */}
             {isMarteIII && (
               <div style={{ marginTop: '3rem' }}>
                 <ElectricBorder
-                  color="#7df9ff"
+                  color="#fb7185"
                   speed={1.3}
                   chaos={0.5}
-                  borderRadius={26}
+                  borderRadius={20}
                 >
                   <GlassSurface
                     width="100%"
                     height="auto"
-                    borderRadius={26}
+                    borderRadius={20}
                     borderWidth={0.1}
                     brightness={58}
                     opacity={0.96}
@@ -309,9 +345,10 @@ export function MarsPhasesReader() {
                       <span
                         className="thesis-chapter-pill"
                         style={{
-                          color: '#7df9ff',
-                          borderColor: 'rgba(125, 249, 255, 0.45)',
-                          background: 'rgba(56, 189, 248, 0.14)',
+                          color: '#fbbf24',
+                          borderColor: 'rgba(251, 191, 36, 0.45)',
+                          background: 'rgba(249, 115, 22, 0.16)',
+                          borderRadius: '2px',
                         }}
                       >
                         {isEs
@@ -323,7 +360,7 @@ export function MarsPhasesReader() {
                           ? 'De la Teoría Marciana a la Simulación EVA en Superficie'
                           : 'From Martian Theory to Surface EVA Simulation'}
                       </h3>
-                      <p className="era-section-body" style={{ maxWidth: '780px' }}>
+                      <p className="era-section-body" style={{ maxWidth: '780px', color: '#f3dfd1' }}>
                         {isEs
                           ? 'Explorá la matriz comparativa integral entre la Luna y Marte en el Compendio General, o ingresá al Simulador 3D de Tango Horizon para operar robótica autónoma, reconocimiento de tubos de lava y misiones humano–IA sobre terreno marciano.'
                           : 'Explore the comprehensive comparative matrix between the Moon and Mars in the General Compendium, or enter the Tango Horizon 3D Simulator to operate autonomous robotics, lava tube reconnaissance, and human–AI missions across Martian terrain.'}
@@ -333,12 +370,12 @@ export function MarsPhasesReader() {
                         <Link
                           href="/compendio"
                           className="ac-readmore-wrap"
-                          style={{ textDecoration: 'none' }}
+                          style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
                         >
                           <GlassSurface
                             width="auto"
-                            height={52}
-                            borderRadius={999}
+                            height={48}
+                            borderRadius={2}
                             borderWidth={0.12}
                             brightness={58}
                             opacity={0.95}
@@ -349,7 +386,7 @@ export function MarsPhasesReader() {
                           >
                             <span className="ac-readmore-label" style={{ padding: '0 1.6rem' }}>
                               {isEs ? 'Ir al Compendio General' : 'Go to General Compendium'}
-                              <span className="ac-readmore-arrow" style={{ color: '#c4b5fd' }}>
+                              <span className="ac-readmore-arrow" style={{ color: '#fbbf24' }}>
                                 →
                               </span>
                             </span>
@@ -361,18 +398,18 @@ export function MarsPhasesReader() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="ac-readmore-wrap"
-                          style={{ textDecoration: 'none' }}
+                          style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
                         >
                           <ElectricBorder
-                            color="#7df9ff"
+                            color="#f97316"
                             speed={1.25}
                             chaos={0.48}
-                            borderRadius={999}
+                            borderRadius={2}
                           >
                             <GlassSurface
                               width="auto"
-                              height={52}
-                              borderRadius={999}
+                              height={48}
+                              borderRadius={2}
                               borderWidth={0.12}
                               brightness={60}
                               opacity={0.96}
@@ -383,7 +420,7 @@ export function MarsPhasesReader() {
                             >
                               <span
                                 className="ac-readmore-label"
-                                style={{ padding: '0 1.75rem', color: '#7df9ff' }}
+                                style={{ padding: '0 1.75rem', color: '#fbbf24' }}
                               >
                                 {isEs
                                   ? 'Explorar Simulador 3D Tango Horizon ↗'
@@ -408,11 +445,12 @@ export function MarsPhasesReader() {
               type="button"
               onClick={() => selectPhase(activeIndex - 1)}
               className="ac-readmore-wrap th-nav-button-reset"
+              style={{ borderRadius: '2px', minHeight: '40px' }}
             >
               <GlassSurface
                 width="auto"
-                height={54}
-                borderRadius={999}
+                height={48}
+                borderRadius={2}
                 borderWidth={0.12}
                 brightness={56}
                 opacity={0.94}
@@ -431,12 +469,12 @@ export function MarsPhasesReader() {
             <Link
               href="/tesis-marte"
               className="ac-readmore-wrap"
-              style={{ textDecoration: 'none' }}
+              style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
             >
               <GlassSurface
                 width="auto"
-                height={54}
-                borderRadius={999}
+                height={48}
+                borderRadius={2}
                 borderWidth={0.12}
                 brightness={56}
                 opacity={0.94}
@@ -458,17 +496,18 @@ export function MarsPhasesReader() {
               type="button"
               onClick={() => selectPhase(activeIndex + 1)}
               className="ac-readmore-wrap th-nav-button-reset"
+              style={{ borderRadius: '2px', minHeight: '40px' }}
             >
               <ElectricBorder
-                color={nextPhase.accent}
+                color={nextAccent}
                 speed={1.2}
                 chaos={0.45}
-                borderRadius={999}
+                borderRadius={2}
               >
                 <GlassSurface
                   width="auto"
-                  height={54}
-                  borderRadius={999}
+                  height={48}
+                  borderRadius={2}
                   borderWidth={0.12}
                   brightness={58}
                   opacity={0.95}
@@ -479,7 +518,7 @@ export function MarsPhasesReader() {
                 >
                   <span className="ac-readmore-label" style={{ padding: '0 1.75rem' }}>
                     {isEs ? 'Siguiente' : 'Next'} · {nextPhase.title}
-                    <span className="ac-readmore-arrow" style={{ color: nextPhase.accent }}>
+                    <span className="ac-readmore-arrow" style={{ color: nextAccent }}>
                       →
                     </span>
                   </span>
@@ -490,18 +529,18 @@ export function MarsPhasesReader() {
             <Link
               href="/compendio"
               className="ac-readmore-wrap"
-              style={{ textDecoration: 'none' }}
+              style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
             >
               <ElectricBorder
-                color="#a78bfa"
+                color="#fb7185"
                 speed={1.2}
                 chaos={0.45}
-                borderRadius={999}
+                borderRadius={2}
               >
                 <GlassSurface
                   width="auto"
-                  height={54}
-                  borderRadius={999}
+                  height={48}
+                  borderRadius={2}
                   borderWidth={0.12}
                   brightness={58}
                   opacity={0.95}
@@ -512,7 +551,7 @@ export function MarsPhasesReader() {
                 >
                   <span className="ac-readmore-label" style={{ padding: '0 1.75rem' }}>
                     {isEs ? 'Siguiente · Compendio General' : 'Next · General Compendium'}
-                    <span className="ac-readmore-arrow" style={{ color: '#c4b5fd' }}>
+                    <span className="ac-readmore-arrow" style={{ color: '#fda4af' }}>
                       →
                     </span>
                   </span>
@@ -524,6 +563,10 @@ export function MarsPhasesReader() {
       </div>
 
       <style>{`
+        .th-mars-phases-reader,
+        .th-mars-phases-reader * {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
         .th-mars-tabs {
           display: flex;
           flex-wrap: wrap;
@@ -536,9 +579,11 @@ export function MarsPhasesReader() {
           display: inline-flex;
           align-items: center;
           gap: 0.6rem;
-          padding: 0.72rem 1.4rem;
-          border-radius: 999px;
-          border: 1px solid rgba(148, 163, 184, 0.25);
+          min-height: 40px;
+          padding: 0.55rem 1.35rem;
+          border-radius: 2px;
+          border: 1px solid rgba(253, 186, 116, 0.28);
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
           cursor: pointer;
           backdrop-filter: blur(10px);
           transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
@@ -562,10 +607,10 @@ export function MarsPhasesReader() {
         }
         .th-phase-tag-chip {
           padding: 0.3rem 0.78rem;
-          border-radius: 999px;
+          border-radius: 2px;
           background: rgba(251, 146, 60, 0.12);
-          border: 1px solid rgba(251, 146, 60, 0.28);
-          color: #fed7aa;
+          border: 1px solid rgba(251, 146, 60, 0.3);
+          color: #fdba74;
           font-size: 0.82rem;
           font-weight: 600;
         }
@@ -579,13 +624,15 @@ export function MarsPhasesReader() {
           margin-top: 1.15rem;
         }
         .th-highlight-chip {
-          padding: 0.26rem 0.72rem;
-          border-radius: 10px;
-          background: rgba(9, 13, 22, 0.75);
-          border: 1px solid rgba(125, 249, 255, 0.25);
-          color: #bae6fd;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          padding: 0.28rem 0.72rem;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.78);
+          border: 1px solid rgba(251, 191, 36, 0.3);
+          color: #fdba74;
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+          font-variant-numeric: tabular-nums;
           font-size: 0.78rem;
+          font-weight: 600;
         }
         .th-tango-cta-card {
           padding: 2.2rem 2.3rem;
@@ -597,7 +644,7 @@ export function MarsPhasesReader() {
           margin: 0;
           font-size: clamp(1.45rem, 2.5vw, 1.95rem);
           font-weight: 800;
-          color: #f8fafc;
+          color: #f3dfd1;
         }
         .th-tango-cta-actions {
           display: flex;
@@ -609,6 +656,8 @@ export function MarsPhasesReader() {
         .th-nav-button-reset {
           background: transparent;
           border: none;
+          border-radius: 2px;
+          min-height: 40px;
           padding: 0;
           cursor: pointer;
           color: inherit;

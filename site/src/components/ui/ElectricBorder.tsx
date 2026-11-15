@@ -118,10 +118,10 @@ function sampleRoundedRectPoint(
 
 export function ElectricBorder({
   children,
-  color = '#7df9ff',
+  color = '#f97316',
   speed = 1,
   chaos = 0.5,
-  borderRadius = 24,
+  borderRadius = 2,
   className = '',
   style,
 }: ElectricBorderProps) {
@@ -266,7 +266,7 @@ export function ElectricBorder({
         t * 1.4,
         71.1,
         2.6 * chaosScale,
-        '#ffffff',
+        '#fff8f1',
         0.95,
         4,
         0.85,

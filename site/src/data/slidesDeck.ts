@@ -124,7 +124,7 @@ export const SLIDES_DECK: SlideDeckItem[] = [
   {
     number: 1,
     code: '01',
-    accent: '#7df9ff',
+    accent: '#fbbf24',
     eyebrow: {
       en: 'Slide 01 · Title & Vision',
       es: 'Slide 01 · Portada y Visión',
@@ -156,10 +156,10 @@ export const SLIDES_DECK: SlideDeckItem[] = [
       },
     ],
     metrics: [
-      { label: { en: 'Terrain Grid', es: 'Grilla de Terreno' }, value: '4×4 km · 1 m/px', accent: '#7df9ff' },
-      { label: { en: 'Multi-Agent AI', es: 'IA Multi-Agente' }, value: '14 Agents · 6 MCP', accent: '#c4b5fd' },
-      { label: { en: 'Voice Control', es: 'Control por Voz' }, value: '5 Languages', accent: '#38bdf8' },
-      { label: { en: 'Render Target', es: 'Fluidez Visual' }, value: '60 FPS WebGL2', accent: '#fde68a' },
+      { label: { en: 'Terrain Grid', es: 'Grilla de Terreno' }, value: '4×4 km · 1 m/px', accent: '#fbbf24' },
+      { label: { en: 'Multi-Agent AI', es: 'IA Multi-Agente' }, value: '14 Agents · 6 MCP', accent: '#fb7185' },
+      { label: { en: 'Voice Control', es: 'Control por Voz' }, value: '5 Languages', accent: '#f97316' },
+      { label: { en: 'Render Target', es: 'Fluidez Visual' }, value: '60 FPS WebGL2', accent: '#fdba74' },
     ],
     visual: {
       kind: 'hero-patch',
@@ -245,9 +245,9 @@ export const SLIDES_DECK: SlideDeckItem[] = [
     ],
     metrics: [
       { label: { en: 'Radio Latency', es: 'Latencia Radio' }, value: '4–24 min (48 RT)', accent: '#fb923c' },
-      { label: { en: 'EVA Suit Pressure', es: 'Presión Traje EVA' }, value: '29.6 kPa Pure O₂', accent: '#fde68a' },
-      { label: { en: 'Martian Gravity', es: 'Gravedad Marciana' }, value: '3.72076 m/s²', accent: '#7df9ff' },
-      { label: { en: 'Local Execution', es: 'Ejecución Local' }, value: 'In-Habitat Ready', accent: '#34d399' },
+      { label: { en: 'EVA Suit Pressure', es: 'Presión Traje EVA' }, value: '29.6 kPa Pure O₂', accent: '#fdba74' },
+      { label: { en: 'Martian Gravity', es: 'Gravedad Marciana' }, value: '3.72076 m/s²', accent: '#fbbf24' },
+      { label: { en: 'Local Execution', es: 'Ejecución Local' }, value: 'In-Habitat Ready', accent: '#ea580c' },
     ],
     visual: {
       kind: 'mars-globe',
@@ -300,7 +300,7 @@ export const SLIDES_DECK: SlideDeckItem[] = [
   {
     number: 3,
     code: '03',
-    accent: '#c4b5fd',
+    accent: '#fb7185',
     eyebrow: {
       en: 'Slide 03 · Multi-Agent AI Architecture',
       es: 'Slide 03 · Arquitectura Multi-Agente Jerárquica',
@@ -332,9 +332,9 @@ export const SLIDES_DECK: SlideDeckItem[] = [
       },
     ],
     metrics: [
-      { label: { en: 'Total Agents', es: 'Agentes Totales' }, value: '14 AI Agents', accent: '#c4b5fd' },
-      { label: { en: 'MCP Transport', es: 'Transporte MCP' }, value: '6 InMemory', accent: '#7df9ff' },
-      { label: { en: 'Voice Reflex', es: 'Reflejo de Voz' }, value: '~400–600 ms', accent: '#38bdf8' },
+      { label: { en: 'Total Agents', es: 'Agentes Totales' }, value: '14 AI Agents', accent: '#fb7185' },
+      { label: { en: 'MCP Transport', es: 'Transporte MCP' }, value: '6 InMemory', accent: '#fbbf24' },
+      { label: { en: 'Voice Reflex', es: 'Reflejo de Voz' }, value: '~400–600 ms', accent: '#f97316' },
       { label: { en: 'Failover Chain', es: 'Cadena Failover' }, value: '3 Clouds + Offline', accent: '#fb923c' },
     ],
     visual: {
@@ -373,7 +373,7 @@ export const SLIDES_DECK: SlideDeckItem[] = [
   {
     number: 4,
     code: '04',
-    accent: '#38bdf8',
+    accent: '#f97316',
     eyebrow: {
       en: 'Slide 04 · Hands-Free Voice & Mobile Pointer',
       es: 'Slide 04 · Voz Manos Libres y Puntero Móvil',
@@ -405,10 +405,10 @@ export const SLIDES_DECK: SlideDeckItem[] = [
       },
     ],
     metrics: [
-      { label: { en: 'Supported Languages', es: 'Idiomas Soportados' }, value: 'EN · ES · FR · DE · IT', accent: '#38bdf8' },
-      { label: { en: 'Local Voice Intent', es: 'Intención Local' }, value: '<5 ms', accent: '#7df9ff' },
-      { label: { en: 'Visor Audio DSP', es: 'Audio DSP Visor' }, value: '32-Band FFT · Quindar', accent: '#fde68a' },
-      { label: { en: 'Remote Gyro WS', es: 'Giroscopio /ws/remote' }, value: '<16 ms + Haptics', accent: '#c4b5fd' },
+      { label: { en: 'Supported Languages', es: 'Idiomas Soportados' }, value: 'EN · ES · FR · DE · IT', accent: '#f97316' },
+      { label: { en: 'Local Voice Intent', es: 'Intención Local' }, value: '<5 ms', accent: '#fbbf24' },
+      { label: { en: 'Visor Audio DSP', es: 'Audio DSP Visor' }, value: '32-Band FFT · Quindar', accent: '#fdba74' },
+      { label: { en: 'Remote Gyro WS', es: 'Giroscopio /ws/remote' }, value: '<16 ms + Haptics', accent: '#fb7185' },
     ],
     visual: {
       kind: 'telemetry',
@@ -446,7 +446,7 @@ export const SLIDES_DECK: SlideDeckItem[] = [
   {
     number: 5,
     code: '05',
-    accent: '#a78bfa',
+    accent: '#fda4af',
     eyebrow: {
       en: 'Slide 05 · Predictive In-Memory RAG',
       es: 'Slide 05 · RAG Predictivo en Memoria',
@@ -478,10 +478,10 @@ export const SLIDES_DECK: SlideDeckItem[] = [
       },
     ],
     metrics: [
-      { label: { en: 'Retrieval Speed', es: 'Velocidad RAG' }, value: '<2 ms BM25', accent: '#a78bfa' },
-      { label: { en: 'Corpus Size', es: 'Tamaño Corpus' }, value: '1,002 Chunks', accent: '#7df9ff' },
-      { label: { en: 'NASA Standards', es: 'Estándares NASA' }, value: '15 Documents', accent: '#fde68a' },
-      { label: { en: 'External DB', es: 'Base Externa' }, value: '0 Dependencies', accent: '#34d399' },
+      { label: { en: 'Retrieval Speed', es: 'Velocidad RAG' }, value: '<2 ms BM25', accent: '#fda4af' },
+      { label: { en: 'Corpus Size', es: 'Tamaño Corpus' }, value: '1,002 Chunks', accent: '#fbbf24' },
+      { label: { en: 'NASA Standards', es: 'Estándares NASA' }, value: '15 Documents', accent: '#fdba74' },
+      { label: { en: 'External DB', es: 'Base Externa' }, value: '0 Dependencies', accent: '#ea580c' },
     ],
     visual: {
       kind: 'telemetry',
@@ -518,7 +518,7 @@ export const SLIDES_DECK: SlideDeckItem[] = [
   {
     number: 6,
     code: '06',
-    accent: '#38bdf8',
+    accent: '#f97316',
     eyebrow: {
       en: 'Slide 06 · 3 Custom ML Models on NASA PDS Data',
       es: 'Slide 06 · 3 Modelos Propios de ML sobre Datos NASA PDS',
@@ -546,10 +546,10 @@ export const SLIDES_DECK: SlideDeckItem[] = [
       },
     ],
     metrics: [
-      { label: { en: 'Hydration (1,567 DAN)', es: 'Hidratación (1,567 DAN)' }, value: 'Spearman 0.5823', accent: '#38bdf8' },
+      { label: { en: 'Hydration (1,567 DAN)', es: 'Hidratación (1,567 DAN)' }, value: 'Spearman 0.5823', accent: '#f97316' },
       { label: { en: 'Storm (3,953–4,050 sols)', es: 'Tormentas (3,953–4,050 sols)' }, value: 'Spearman 0.765–0.796', accent: '#fb923c' },
-      { label: { en: 'Veins (117 Frames)', es: 'Vetas (117 Frames)' }, value: 'ROC-AUC 0.8453', accent: '#a78bfa' },
-      { label: { en: 'CV Policy', es: 'Política CV' }, value: 'Zero Leakage', accent: '#34d399' },
+      { label: { en: 'Veins (117 Frames)', es: 'Vetas (117 Frames)' }, value: 'ROC-AUC 0.8453', accent: '#fda4af' },
+      { label: { en: 'CV Policy', es: 'Política CV' }, value: 'Zero Leakage', accent: '#ea580c' },
     ],
     visual: {
       kind: 'ml-charts',
@@ -628,7 +628,7 @@ export const SLIDES_DECK: SlideDeckItem[] = [
   {
     number: 7,
     code: '07',
-    accent: '#fde68a',
+    accent: '#fdba74',
     eyebrow: {
       en: 'Slide 07 · Simulated Robotics, Vision & Ballistics',
       es: 'Slide 07 · Robótica Simulada, Visión y Balística',
@@ -660,10 +660,10 @@ export const SLIDES_DECK: SlideDeckItem[] = [
       },
     ],
     metrics: [
-      { label: { en: 'Manipulator Arm', es: 'Brazo Manipulador' }, value: '4-DOF · 1.7 m', accent: '#fde68a' },
-      { label: { en: 'Mast Camera Feed', es: 'Cámara Mástil' }, value: '512×384 Vision', accent: '#7df9ff' },
+      { label: { en: 'Manipulator Arm', es: 'Brazo Manipulador' }, value: '4-DOF · 1.7 m', accent: '#fdba74' },
+      { label: { en: 'Mast Camera Feed', es: 'Cámara Mástil' }, value: '512×384 Vision', accent: '#fbbf24' },
       { label: { en: 'Drop-Pod Solver', es: 'Solver Pod Balístico' }, value: '8.0 kg RK4', accent: '#fb923c' },
-      { label: { en: 'Localization', es: 'Localización' }, value: '6.5 GHz UWB + LiDAR', accent: '#38bdf8' },
+      { label: { en: 'Localization', es: 'Localización' }, value: '6.5 GHz UWB + LiDAR', accent: '#f97316' },
     ],
     visual: {
       kind: 'telemetry',
@@ -700,7 +700,7 @@ export const SLIDES_DECK: SlideDeckItem[] = [
   {
     number: 8,
     code: '08',
-    accent: '#f87171',
+    accent: '#e11d48',
     eyebrow: {
       en: 'Slide 08 · Autonomous Rescue & GUARDIAN Voting',
       es: 'Slide 08 · Rescate Autónomo y Votación GUARDIAN',
@@ -733,9 +733,9 @@ export const SLIDES_DECK: SlideDeckItem[] = [
     ],
     metrics: [
       { label: { en: 'Natural Pit', es: 'Fosa Natural' }, value: '24 m × 4 m @ 290 m E', accent: '#fb923c' },
-      { label: { en: 'Suit Leak / HR', es: 'Fuga / Pulso' }, value: '-0.12 kPa/s · 148 bpm', accent: '#f87171' },
-      { label: { en: 'A* & Ramp Slope', es: 'Ruta A* y Rampa' }, value: '≤ 16° · 11.3° North', accent: '#7df9ff' },
-      { label: { en: 'GUARDIAN Vote', es: 'Votación GUARDIAN' }, value: '2/3 + Asymmetric Override', accent: '#34d399' },
+      { label: { en: 'Suit Leak / HR', es: 'Fuga / Pulso' }, value: '-0.12 kPa/s · 148 bpm', accent: '#e11d48' },
+      { label: { en: 'A* & Ramp Slope', es: 'Ruta A* y Rampa' }, value: '≤ 16° · 11.3° North', accent: '#fbbf24' },
+      { label: { en: 'GUARDIAN Vote', es: 'Votación GUARDIAN' }, value: '2/3 + Asymmetric Override', accent: '#ea580c' },
     ],
     visual: {
       kind: 'architecture',
@@ -772,7 +772,7 @@ export const SLIDES_DECK: SlideDeckItem[] = [
   {
     number: 9,
     code: '09',
-    accent: '#34d399',
+    accent: '#ea580c',
     eyebrow: {
       en: 'Slide 09 · Provenance & Physics Audit',
       es: 'Slide 09 · Auditoría de Datos Reales vs. Simulación',
@@ -796,9 +796,9 @@ export const SLIDES_DECK: SlideDeckItem[] = [
       },
     ],
     metrics: [
-      { label: { en: 'Provenance Assets', es: 'Activos Trazables' }, value: '57 SHA-256 Entries', accent: '#34d399' },
-      { label: { en: 'Data Sources', es: 'Fuentes Oficiales' }, value: '9 NASA / USGS', accent: '#7df9ff' },
-      { label: { en: 'Physics Package', es: 'Núcleo Físico' }, value: '@th/shared · Vitest', accent: '#fde68a' },
+      { label: { en: 'Provenance Assets', es: 'Activos Trazables' }, value: '57 SHA-256 Entries', accent: '#ea580c' },
+      { label: { en: 'Data Sources', es: 'Fuentes Oficiales' }, value: '9 NASA / USGS', accent: '#fbbf24' },
+      { label: { en: 'Physics Package', es: 'Núcleo Físico' }, value: '@th/shared · Vitest', accent: '#fdba74' },
       { label: { en: '3D Graphics', es: 'Motor Gráfico' }, value: '16 GLBs + WebGL2', accent: '#fb923c' },
     ],
     twoColumn: {
@@ -881,7 +881,7 @@ export const SLIDES_DECK: SlideDeckItem[] = [
   {
     number: 10,
     code: '10',
-    accent: '#7df9ff',
+    accent: '#fbbf24',
     eyebrow: {
       en: 'Slide 10 · Closing & Live Deployment',
       es: 'Slide 10 · Cierre y Demo en Vivo',
@@ -909,9 +909,9 @@ export const SLIDES_DECK: SlideDeckItem[] = [
       },
     ],
     metrics: [
-      { label: { en: 'Frontend Edge', es: 'Frontend Edge' }, value: 'tangohorizon.vercel.app', accent: '#7df9ff' },
-      { label: { en: 'Backend Cloud', es: 'Backend Cloud' }, value: 'Cloud Run · us-central1', accent: '#38bdf8' },
-      { label: { en: 'Challenge', es: 'Desafío' }, value: 'NASA Space Apps 2026', accent: '#fde68a' },
+      { label: { en: 'Frontend Edge', es: 'Frontend Edge' }, value: 'tangohorizon.vercel.app', accent: '#fbbf24' },
+      { label: { en: 'Backend Cloud', es: 'Backend Cloud' }, value: 'Cloud Run · us-central1', accent: '#f97316' },
+      { label: { en: 'Challenge', es: 'Desafío' }, value: 'NASA Space Apps 2026', accent: '#fdba74' },
       { label: { en: 'Team Node', es: 'Nodo Equipo' }, value: 'Buenos Aires · 4 Crew', accent: '#fb923c' },
     ],
     links: [

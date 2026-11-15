@@ -40,7 +40,7 @@ export function FlexCarousel({
   speed = 0.6,
   cardSize = 'md',
   gap = 24,
-  borderRadius = 18,
+  borderRadius = 2,
   className = '',
 }: FlexCarouselProps) {
   const carouselId = useId().replace(/:/g, '');
@@ -433,9 +433,9 @@ export function FlexCarousel({
           position: relative;
           width: 100%;
           overflow: hidden;
-          border-radius: 22px;
-          background: radial-gradient(circle at 50% 45%, rgba(30, 41, 59, 0.42) 0%, rgba(2, 6, 23, 0.72) 100%);
-          border: 1px solid rgba(125, 249, 255, 0.18);
+          border-radius: 2px;
+          background: radial-gradient(circle at 50% 45%, rgba(44, 18, 24, 0.46) 0%, rgba(9, 4, 6, 0.8) 100%);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           cursor: grab;
           touch-action: pan-y;
           outline: none;
@@ -444,7 +444,7 @@ export function FlexCarousel({
           cursor: grabbing;
         }
         :where(.fc-viewport:focus-visible) {
-          box-shadow: 0 0 0 2px rgba(125, 249, 255, 0.75);
+          box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.8);
         }
         :where(.fc-track) {
           position: relative;
@@ -458,14 +458,14 @@ export function FlexCarousel({
           transform-origin: center center;
           will-change: transform, opacity;
           overflow: hidden;
-          background: #060b18;
-          border: 1px solid rgba(148, 163, 184, 0.24);
+          background: #11080c;
+          border: 1px solid rgba(255, 255, 255, 0.24);
           box-shadow: 0 18px 42px rgba(0, 0, 0, 0.6);
           transition: border-color 0.28s ease, box-shadow 0.28s ease;
         }
         :where(.fc-slide.fc-slide--active) {
-          border-color: rgba(125, 249, 255, 0.65);
-          box-shadow: 0 24px 56px rgba(0, 0, 0, 0.78), 0 0 28px rgba(56, 189, 248, 0.22);
+          border-color: rgba(249, 115, 22, 0.72);
+          box-shadow: 0 24px 56px rgba(0, 0, 0, 0.78), 0 0 28px rgba(249, 115, 22, 0.26);
         }
         :where(.fc-slide-media) {
           position: relative;
@@ -483,7 +483,7 @@ export function FlexCarousel({
         :where(.fc-slide-overlay) {
           position: absolute;
           inset: 0;
-          background: linear-gradient(180deg, rgba(2, 6, 23, 0.45) 0%, transparent 38%, rgba(2, 6, 23, 0.9) 100%);
+          background: linear-gradient(180deg, rgba(9, 4, 6, 0.48) 0%, transparent 38%, rgba(9, 4, 6, 0.9) 100%);
           display: flex;
           flex-direction: column;
           justify-content: space-between;
@@ -497,10 +497,10 @@ export function FlexCarousel({
         }
         :where(.fc-slide-year) {
           padding: 0.2rem 0.65rem;
-          border-radius: 999px;
-          background: rgba(9, 13, 22, 0.82);
-          border: 1px solid rgba(253, 230, 138, 0.48);
-          color: #fde68a;
+          border-radius: 2px;
+          background: rgba(17, 8, 12, 0.86);
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          color: #fbbf24;
           font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.08em;
@@ -508,10 +508,10 @@ export function FlexCarousel({
         :where(.fc-zoom-btn) {
           width: 32px;
           height: 32px;
-          border-radius: 50%;
-          border: 1px solid rgba(125, 249, 255, 0.4);
-          background: rgba(9, 13, 22, 0.82);
-          color: #e0f2fe;
+          border-radius: 2px;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          background: rgba(17, 8, 12, 0.85);
+          color: #fff8f1;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -519,12 +519,12 @@ export function FlexCarousel({
           transition: background 0.2s ease, transform 0.2s ease;
         }
         :where(.fc-zoom-btn:hover) {
-          background: rgba(56, 189, 248, 0.3);
+          background: rgba(249, 115, 22, 0.35);
           transform: scale(1.08);
         }
         :where(.fc-slide-title) {
           margin: 0;
-          color: #f8fafc;
+          color: #fff8f1;
           font-size: 0.96rem;
           font-weight: 700;
           line-height: 1.3;
@@ -541,11 +541,11 @@ export function FlexCarousel({
           z-index: 140;
           width: 42px;
           height: 42px;
-          border-radius: 50%;
-          border: 1px solid rgba(125, 249, 255, 0.42);
-          background: rgba(6, 10, 22, 0.82);
+          border-radius: 2px;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          background: rgba(17, 8, 12, 0.85);
           backdrop-filter: blur(10px);
-          color: #f8fafc;
+          color: #fff8f1;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -553,8 +553,8 @@ export function FlexCarousel({
           transition: background 0.2s ease, box-shadow 0.2s ease;
         }
         :where(.fc-nav-btn:hover) {
-          background: rgba(56, 189, 248, 0.28);
-          box-shadow: 0 0 18px rgba(125, 249, 255, 0.45);
+          background: rgba(249, 115, 22, 0.32);
+          box-shadow: 0 0 18px rgba(249, 115, 22, 0.45);
         }
         :where(.fc-nav-btn--prev) { left: 0.85rem; }
         :where(.fc-nav-btn--next) { right: 0.85rem; }
@@ -576,35 +576,35 @@ export function FlexCarousel({
           width: 8px;
           height: 8px;
           padding: 0;
-          border-radius: 999px;
+          border-radius: 2px;
           border: none;
-          background: rgba(148, 163, 184, 0.4);
+          background: rgba(184, 155, 140, 0.4);
           cursor: pointer;
           transition: width 0.25s ease, background 0.25s ease;
         }
         :where(.fc-dot.is-active) {
           width: 24px;
-          background: #7df9ff;
-          box-shadow: 0 0 10px rgba(125, 249, 255, 0.65);
+          background: #f97316;
+          box-shadow: 0 0 10px rgba(249, 115, 22, 0.65);
         }
         :where(.fc-play-toggle) {
           display: inline-flex;
           align-items: center;
           gap: 0.4rem;
           padding: 0.35rem 0.8rem;
-          border-radius: 999px;
-          border: 1px solid rgba(148, 163, 184, 0.32);
-          background: rgba(15, 23, 42, 0.75);
-          color: #cbd5e1;
+          border-radius: 2px;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          background: rgba(28, 12, 18, 0.82);
+          color: #f3dfd1;
           font-size: 0.78rem;
           font-weight: 600;
           cursor: pointer;
         }
         :where(.fc-caption-card) {
           padding: 1.25rem 1.45rem;
-          border-radius: 18px;
-          background: linear-gradient(135deg, rgba(15, 23, 42, 0.82) 0%, rgba(9, 13, 24, 0.9) 100%);
-          border: 1px solid rgba(125, 249, 255, 0.22);
+          border-radius: 2px;
+          background: linear-gradient(135deg, rgba(26, 12, 18, 0.86) 0%, rgba(17, 8, 12, 0.94) 100%);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           backdrop-filter: blur(12px);
           display: flex;
           flex-direction: column;
@@ -622,30 +622,31 @@ export function FlexCarousel({
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: #fde68a;
+          color: #fbbf24;
         }
         :where(.fc-caption-counter) {
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+          font-variant-numeric: tabular-nums;
           font-size: 0.8rem;
-          color: #7df9ff;
+          color: #fb923c;
         }
         :where(.fc-caption-title) {
           margin: 0;
           font-size: 1.2rem;
           font-weight: 700;
-          color: #f8fafc;
+          color: #fff8f1;
         }
         :where(.fc-caption-desc) {
           margin: 0;
           font-size: 0.96rem;
           line-height: 1.65;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         :where(.fc-lightbox) {
           position: fixed;
           inset: 0;
           z-index: 9999;
-          background: rgba(2, 6, 23, 0.88);
+          background: rgba(9, 4, 6, 0.9);
           backdrop-filter: blur(14px);
           display: flex;
           align-items: center;
@@ -657,9 +658,9 @@ export function FlexCarousel({
           width: 100%;
           max-width: 920px;
           max-height: 90vh;
-          border-radius: 22px;
-          background: rgba(9, 14, 28, 0.96);
-          border: 1px solid rgba(125, 249, 255, 0.35);
+          border-radius: 2px;
+          background: rgba(17, 8, 12, 0.96);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           box-shadow: 0 32px 80px rgba(0, 0, 0, 0.85);
           overflow: hidden;
           display: flex;
@@ -669,7 +670,7 @@ export function FlexCarousel({
           position: relative;
           width: 100%;
           height: clamp(240px, 52vh, 520px);
-          background: #020617;
+          background: #090406;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -686,10 +687,10 @@ export function FlexCarousel({
           z-index: 10;
           width: 38px;
           height: 38px;
-          border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.25);
-          background: rgba(9, 13, 22, 0.85);
-          color: #f8fafc;
+          border-radius: 2px;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          background: rgba(17, 8, 12, 0.88);
+          color: #fff8f1;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -772,8 +773,8 @@ export function FlexCarousel({
                         padding: '1.25rem',
                         textAlign: 'center',
                         background:
-                          'radial-gradient(circle at 35% 30%, rgba(56,189,248,0.22), rgba(6,10,22,0.96))',
-                        color: '#bae6fd',
+                          'radial-gradient(circle at 35% 30%, rgba(249,115,22,0.22), rgba(9,4,6,0.96))',
+                        color: '#fdba74',
                         fontSize: '0.88rem',
                       }}
                     >
@@ -894,7 +895,7 @@ export function FlexCarousel({
                   alt={lightboxSlide.alt || lightboxSlide.title || 'Imagen ampliada'}
                 />
               ) : (
-                <div style={{ color: '#bae6fd', padding: '2rem', textAlign: 'center' }}>
+                <div style={{ color: '#fdba74', padding: '2rem', textAlign: 'center' }}>
                   No se pudo cargar la imagen completa.
                 </div>
               )}

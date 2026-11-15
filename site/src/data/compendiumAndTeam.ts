@@ -351,7 +351,7 @@ const FINAL_SYNTHESIS_DATA_EN: FinalSynthesisData = {
       step: '01 · EARTH',
       world: 'Cradle of Measurement',
       metric: '1 R_E = 6,371 km · 1 AU = 149.6 M km',
-      accent: '#38bdf8',
+      accent: '#fbbf24',
       summary:
         'From Babylonian eclipse tablets and Galileo’s optics to Kepler’s elliptical laws and Newton’s gravitational synthesis, humanity transformed the sky into a calculable physical system.',
     },
@@ -360,7 +360,7 @@ const FINAL_SYNTHESIS_DATA_EN: FinalSynthesisData = {
       step: '02 · MOON',
       world: 'First Cislunar Testbed',
       metric: '384,400 km · 0.165 g · 1.28 s delay',
-      accent: '#fde68a',
+      accent: '#fdba74',
       summary:
         'Lunar Orbit Rendezvous (LOR), Saturn V propulsion, and the Apollo surface EVAs validated portable life-support systems (PLSS) and field geology in hard vacuum.',
     },
@@ -378,7 +378,7 @@ const FINAL_SYNTHESIS_DATA_EN: FinalSynthesisData = {
       step: '04 · TANGO HORIZON 2026',
       world: 'Human–AI EVA Simulation',
       metric: 'Gale Crater 4×4 km · GUARDIAN · 2026-11-15',
-      accent: '#c4b5fd',
+      accent: '#fb7185',
       summary:
         'Built on real NASA/USGS Gale Crater cartography, Tango Horizon unites deterministic EVA physiology, multilingual voice control, and runtime-verified AI agents to safeguard the crew.',
     },
@@ -387,7 +387,7 @@ const FINAL_SYNTHESIS_DATA_EN: FinalSynthesisData = {
     {
       code: 'MODULE 01 · ARCHAEOASTRONOMY & PARALLAX',
       sphere: 'Lunar & Martian Thesis (Antiquity – 17th Century)',
-      accent: '#fde68a',
+      accent: '#fdba74',
       title: 'Geometrizing the Sky: From the Saros Cycle to Solar System Scale',
       synthesis:
         'Physical exploration of a world begins with metric calibration. For the Moon, Chaldean syzygy records (the 223-synodic-month Saros Cycle) evolved into Hipparchus’s diurnal parallax (~60.27 R_E = 384,400 km). For Mars, the 780-day retrograde loop pushed Tycho Brahe and Johannes Kepler beyond crystalline spheres, while simultaneous Paris–Cayenne triangulation (Cassini and Richer, 1672) pinned down the scale of the Astronomical Unit.',
@@ -402,7 +402,7 @@ const FINAL_SYNTHESIS_DATA_EN: FinalSynthesisData = {
     {
       code: 'MODULE 02 · TELESCOPIC OPTICS & CELESTIAL MECHANICS',
       sphere: 'Scientific Revolution (1609 – 1687)',
-      accent: '#7df9ff',
+      accent: '#fbbf24',
       title: 'End of the Aristotelian Aether: Galileo’s Refractor, Kepler’s Ellipses & Gravitation',
       synthesis:
         'Two foundational milestones converged in 1609: Galileo Galilei measured shadows along the lunar terminator (Sidereus Nuncius, 1610), proving celestial bodies carry geological relief, while Johannes Kepler published Astronomia Nova demonstrating Mars follows an ellipse of eccentricity e = 0.0934. In 1659 Christiaan Huygens sketched Syrtis Major and deduced the Martian sol (24 h 39 m 35 s), before Isaac Newton unified celestial and terrestrial mechanics in the Principia (1687).',
@@ -417,7 +417,7 @@ const FINAL_SYNTHESIS_DATA_EN: FinalSynthesisData = {
     {
       code: 'MODULE 03 · PROPULSION DYNAMICS & TRAJECTORIES',
       sphere: 'Aerospace Engineering (20th – 21st Century)',
-      accent: '#38bdf8',
+      accent: '#fbbf24',
       title: 'Tsiolkovsky Equation, Lunar Orbit Rendezvous (LOR) & Hohmann Transfers',
       synthesis:
         'Every maneuver beyond Earth obeys Konstantin Tsiolkovsky’s exponential rocket equation (1903). To reach the Moon, Apollo coupled Lunar Orbit Rendezvous (LOR) with Saturn V thrust (34.5 MN, v_TLI = 10.9 km/s, 3-day transit). Reaching Mars requires escaping Low Earth Orbit via Trans-Mars Injection (Δv_TMI ≈ 3.6 km/s from LEO) onto a heliocentric Hohmann ellipse between 1.00 AU and 1.524 AU lasting ~210 to 259 days.',
@@ -447,7 +447,7 @@ const FINAL_SYNTHESIS_DATA_EN: FinalSynthesisData = {
     {
       code: 'MODULE 05 · ASTROBIOLOGY, ISRU & HUMAN–AI AUTONOMY',
       sphere: 'Artemis Horizon & Tango Horizon (2026)',
-      accent: '#a78bfa',
+      accent: '#fb7185',
       title: 'Sabatier / MOXIE Chemical Plants, Radiation Shielding & Multi-Agent EVA Support',
       synthesis:
         'While 382 kg of Apollo samples confirmed the Giant Impact hypothesis (Theia, ~4,510 Ma) and lunar polar ice anchors Artemis architecture, Mars rovers revealed ancient lacustrine habitability in Gale and Jezero. Sustained human presence demands In-Situ Resource Utilization (ISRU: MOXIE electrolysis and Sabatier CH₄/LOX synthesis) alongside local intelligent systems able to bridge up to 24 minutes of one-way signal delay—the operational domain of Tango Horizon.',
@@ -509,7 +509,7 @@ const FINAL_SYNTHESIS_DATA_EN: FinalSynthesisData = {
       id: 'reflection-continuity',
       badge: 'Reflection I · Epistemological Continuity',
       title: 'From the Celestial Vault to Survival Engineering',
-      accent: '#7df9ff',
+      accent: '#fbbf24',
       paragraphs: [
         'Tracing the arc from Mesopotamian clay tablets to the floor of Gale Crater reveals a single constant: every leap into space began as an equation written on Earth. When Hipparchus solved lunar parallax or Kepler abandoned the perfect circle to match Mars’s orbit, both forged the method that centuries later guided ballistic trajectories, orbital rendezvous, and autonomous planetary landings.',
         'The Moon served as our first proving ground beyond Earth’s gravity well, demonstrating that a spacesuit is a one-person spacecraft and that planetary field science hinges on operational precision on the surface.',
@@ -541,7 +541,7 @@ const FINAL_SYNTHESIS_DATA_ES: FinalSynthesisData = {
       step: '01 · TIERRA',
       world: 'Cuna de la Medición',
       metric: '1 R_T = 6,371 km · 1 UA = 149.6 M km',
-      accent: '#38bdf8',
+      accent: '#fbbf24',
       summary:
         'Desde los registros babilónicos de eclipses y la óptica de Galileo hasta las leyes elípticas de Kepler y la síntesis gravitatoria de Newton, el ser humano transformó el firmamento en un sistema calculable.',
     },
@@ -550,7 +550,7 @@ const FINAL_SYNTHESIS_DATA_ES: FinalSynthesisData = {
       step: '02 · LUNA',
       world: 'Primer Banco Cislunar',
       metric: '384,400 km · 0.165 g · 1.28 s retardo',
-      accent: '#fde68a',
+      accent: '#fdba74',
       summary:
         'La arquitectura de Encuentro en Órbita Lunar (LOR), la propulsión del Saturno V y las caminatas del Programa Apolo validaron el soporte vital portátil (PLSS) y la geología de campo en vacío absoluto.',
     },
@@ -568,7 +568,7 @@ const FINAL_SYNTHESIS_DATA_ES: FinalSynthesisData = {
       step: '04 · TANGO HORIZON 2026',
       world: 'Simulación EVA Humano–IA',
       metric: 'Cráter Gale 4×4 km · GUARDIAN · 2026-11-15',
-      accent: '#c4b5fd',
+      accent: '#fb7185',
       summary:
         'Sobre cartografía real NASA/USGS del Cráter Gale, Tango Horizon une fisiología EVA determinista, control por voz multilingüe y agentes de IA verificados en tiempo de ejecución para proteger a la tripulación.',
     },
@@ -577,7 +577,7 @@ const FINAL_SYNTHESIS_DATA_ES: FinalSynthesisData = {
     {
       code: 'MÓDULO 01 · ARQUEOASTRONOMÍA Y PARALAJE',
       sphere: 'Tesis Lunar & Marciana (Antigüedad – Siglo XVII)',
-      accent: '#fde68a',
+      accent: '#fdba74',
       title: 'La Geometrización del Cielo: Del Ciclo de Saros a la Escala del Sistema Solar',
       synthesis:
         'La exploración física de un astro exige primero su acotación métrica. En la Luna, los registros caldeos de sicigias (Ciclo de Saros de 223 meses sinódicos) evolucionaron hacia la paralaje diurna de Hiparco (~60.27 R_T = 384,400 km). En Marte, el bucle retrógrado cada 780 días permitió a Tycho Brahe y Johannes Kepler abandonar las esferas cristalinas, mientras que la triangulación simultánea París–Cayena (Cassini y Richer, 1672) fijó la escala de la Unidad Astronómica.',
@@ -592,7 +592,7 @@ const FINAL_SYNTHESIS_DATA_ES: FinalSynthesisData = {
     {
       code: 'MÓDULO 02 · ÓPTICA TELESCÓPICA Y MECÁNICA CELESTE',
       sphere: 'Revolución Científica (1609 – 1687)',
-      accent: '#7df9ff',
+      accent: '#fbbf24',
       title: 'El Fin del Éter Aristotélico: Refractor de Galileo, Elipses de Kepler y Gravitación',
       synthesis:
         'En 1609 convergen dos hitos fundacionales: Galileo Galilei mide las sombras en el terminador lunar (Sidereus Nuncius, 1610) demostrando que los cuerpos celestes poseen relieve geológico, y Johannes Kepler publica Astronomia Nova probando que Marte describe una elipse de excentricidad e = 0.0934. En 1659 Christiaan Huygens registra Syrtis Major y deduce el Sol marciano (24 h 39 m 35 s), antes de que Isaac Newton unifique la mecánica celeste y terrestre en los Principia (1687).',
@@ -607,7 +607,7 @@ const FINAL_SYNTHESIS_DATA_ES: FinalSynthesisData = {
     {
       code: 'MÓDULO 03 · DINÁMICA DE PROPULSIÓN Y TRAYECTORIAS',
       sphere: 'Ingeniería Aeroespacial (Siglo XX – Siglo XXI)',
-      accent: '#38bdf8',
+      accent: '#fbbf24',
       title: 'Ecuación de Tsiolkovski, Encuentro en Órbita Lunar (LOR) y Transferencia de Hohmann',
       synthesis:
         'Toda maniobra fuera de la Tierra obedece la ecuación exponencial de Konstantín Tsiolkovski (1903). Para alcanzar la Luna, el Programa Apolo articuló el Encuentro en Órbita Lunar (LOR) impulsado por el Saturno V (34.5 MN de empuje, v_TLI = 10.9 km/s en 3 días). Para viajar a Marte, una nave escapa de la órbita baja terrestre mediante una Inyección Transmarciana (Δv_TMI ≈ 3.6 km/s desde LEO) hacia una elipse heliocéntrica de Hohmann entre 1.00 UA y 1.524 UA durante ~210 a 259 días.',
@@ -637,7 +637,7 @@ const FINAL_SYNTHESIS_DATA_ES: FinalSynthesisData = {
     {
       code: 'MÓDULO 05 · ASTROBIOLOGÍA, ISRU Y AUTONOMÍA HUMANO–IA',
       sphere: 'Horizonte Artemis & Tango Horizon (2026)',
-      accent: '#a78bfa',
+      accent: '#fb7185',
       title: 'Plantas Químicas Sabatier / MOXIE, Protección Radiológica y Soporte EVA Multi-Agente',
       synthesis:
         'Mientras los 382 kg de rocas del Programa Apolo validaron la hipótesis del Gran Impacto (Theia, ~4,510 Ma) y el hielo polar lunar impulsa la arquitectura Artemis, los rovers marcianos demostraron habitabilidad antigua en los sedimentos lacustres de Gale y Jezero. La permanencia humana exige Utilización de Recursos In Situ (ISRU: electrólisis MOXIE y síntesis Sabatier de CH₄/LOX) junto con sistemas inteligentes locales que compensen hasta 24 minutos de retardo de señal: ese es el dominio operativo de Tango Horizon.',
@@ -699,7 +699,7 @@ const FINAL_SYNTHESIS_DATA_ES: FinalSynthesisData = {
       id: 'reflection-continuity',
       badge: 'Reflexión I · Continuidad Epistemológica',
       title: 'De la Bóveda Celeste a la Ingeniería de Supervivencia',
-      accent: '#7df9ff',
+      accent: '#fbbf24',
       paragraphs: [
         'Recorrer la historia desde las tablillas mesopotámicas hasta la superficie del Cráter Gale revela una constante: cada salto hacia el espacio comenzó siendo una ecuación sobre la Tierra. Cuando Hiparco calculó la paralaje lunar o Kepler renunció al círculo perfecto para seguir la órbita de Marte, ambos establecieron el método que siglos más tarde guiaría trayectorias balísticas, acoplamientos orbitales y descensos autónomos.',
         'La Luna funcionó como el primer laboratorio fuera del pozo gravitatorio terrestre, validando que el traje espacial es una nave unipersonal y que el conocimiento geológico de otro mundo depende de la destreza operativa en campo.',
@@ -748,12 +748,12 @@ const TANGO_HORIZON_TEAM_EN: ProfileCardProps[] = [
   },
   {
     name: 'Milagros Sotelo',
-    title: 'Systems Engineering Student (UTN, FRBA) · Astrobiology & Human Factors',
+    title: 'Full Stack & 3D · Systems Engineering Student (UTN, FRBA)',
     handle: 'Milagros-Sotelo',
     status: 'UTN, FRBA · Buenos Aires · Tango Horizon 2026',
     avatarUrl: undefined,
-    roleBadge: 'Human Factors & Research',
-    bio: 'Systems Engineering Student (UTN, FRBA). Leads human factors research, Martian astrobiology, NASA-STD-3001 / OCHMO biomedical standards, and scientific mission curation.',
+    roleBadge: 'Full Stack & 3D',
+    bio: 'Full Stack & 3D Developer and Systems Engineering Student (UTN, FRBA). Builds full-stack interfaces, interactive 3D Mars mission scenes, and real-time operational UI components.',
     githubUrl: 'https://github.com/Milagros-Sotelo',
   },
   {
@@ -790,12 +790,12 @@ const TANGO_HORIZON_TEAM_ES: ProfileCardProps[] = [
   },
   {
     name: 'Milagros Sotelo',
-    title: 'Systems Engineering Student (UTN, FRBA) · Astrobiología y Factores Humanos',
+    title: 'Full Stack & 3D · Systems Engineering Student (UTN, FRBA)',
     handle: 'Milagros-Sotelo',
     status: 'UTN, FRBA · Buenos Aires · Tango Horizon 2026',
     avatarUrl: undefined,
-    roleBadge: 'Factores Humanos e Investigación',
-    bio: 'Systems Engineering Student (UTN, FRBA). Investigación en factores humanos, astrobiología marciana, estándares biomédicos NASA-STD-3001 / OCHMO y curaduría científica de misión.',
+    roleBadge: 'Full Stack & 3D',
+    bio: 'Desarrolladora Full Stack & 3D y estudiante de Ingeniería en Sistemas (UTN, FRBA). Desarrolla interfaces full-stack, escenas 3D interactivas de misión en Marte y componentes UI operacionales en tiempo real.',
     githubUrl: 'https://github.com/Milagros-Sotelo',
   },
   {
@@ -887,7 +887,7 @@ const ARCHITECTURE_HIGHLIGHTS_EN: ArchitectureHighlight[] = [
     badge: 'Deterministic @th/shared Kernel',
     title: 'Offline Bioastronautics & Ballistics',
     metric: '1 Hz PLSS · RK4 · A*',
-    accent: '#7df9ff',
+    accent: '#fbbf24',
     description:
       'Pandolf-Santee metabolic rate scaled to 0.379 g, compressible suit leaks, cosmic and SEP radiation dose, RK4 ballistic drop-pod trajectory with parachute, and FDIR fault detection.',
   },
@@ -896,7 +896,7 @@ const ARCHITECTURE_HIGHLIGHTS_EN: ArchitectureHighlight[] = [
     badge: 'Multi-Agent & BM25 RAG',
     title: '6 MCP Servers + GUARDIAN RTA',
     metric: 'NASA-STD-3001 · 3 Providers',
-    accent: '#fde68a',
+    accent: '#f97316',
     description:
       'In-process MCP servers (terrain, suit, environment, fleet, hud, knowledge) with BM25 citations across NASA standards, hard GUARDIAN safety bounds, and automatic Vertex / AI Studio / offline failover.',
   },
@@ -905,7 +905,7 @@ const ARCHITECTURE_HIGHLIGHTS_EN: ArchitectureHighlight[] = [
     badge: 'Data Science & Voice',
     title: 'Martian ML Models & Mobile Remote',
     metric: '5 Languages · QR WebSocket',
-    accent: '#a78bfa',
+    accent: '#fb7185',
     description:
       'Dust storm forecasting (REMS + tau), mineral hydration mapping (DAN/CRISM), visual vein detection (DINOv2), hands-free multilingual voice, and QR-paired smartphone gyroscope pointer.',
   },
@@ -926,7 +926,7 @@ const ARCHITECTURE_HIGHLIGHTS_ES: ArchitectureHighlight[] = [
     badge: 'Núcleo Determinista @th/shared',
     title: 'Bioastronáutica y Balística Offline',
     metric: '1 Hz PLSS · RK4 · A*',
-    accent: '#7df9ff',
+    accent: '#fbbf24',
     description:
       'Tasa metabólica Pandolf-Santee escalada a 0.379 g, fugas compresibles de traje, dosis por radiación cósmica y SEP, trayectoria balística RK4 con paracaídas y detección de fallas FDIR.',
   },
@@ -935,7 +935,7 @@ const ARCHITECTURE_HIGHLIGHTS_ES: ArchitectureHighlight[] = [
     badge: 'Multi-Agente & RAG BM25',
     title: '6 Servidores MCP + GUARDIAN RTA',
     metric: 'NASA-STD-3001 · 3 Proveedores',
-    accent: '#fde68a',
+    accent: '#f97316',
     description:
       'Servidores MCP en proceso (terrain, suit, environment, fleet, hud, knowledge) con citas BM25 sobre estándares NASA, límites duros de seguridad GUARDIAN y failover automático Vertex / AI Studio / offline.',
   },
@@ -944,7 +944,7 @@ const ARCHITECTURE_HIGHLIGHTS_ES: ArchitectureHighlight[] = [
     badge: 'Ciencia de Datos & Voz',
     title: 'Modelos ML Marcianos y Control Remoto',
     metric: '5 Idiomas · WebSocket QR',
-    accent: '#a78bfa',
+    accent: '#fb7185',
     description:
       'Predicción de tormentas de polvo (REMS + tau), mapa de hidratación mineral (DAN/CRISM), detector visual de vetas minerales (DINOv2), voz manos libres y puntero móvil emparejado por QR.',
   },
