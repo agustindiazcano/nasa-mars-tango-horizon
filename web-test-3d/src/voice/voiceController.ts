@@ -106,7 +106,7 @@ export class VoiceController {
 
     try {
       const lang = getLang();
-      const apiLang = lang === "es" ? "es-AR" : "en-US";
+      const apiLang = ASR_LOCALE[lang];
       const res = await fetch(apiUrl("/api/agent/voice"), {
         method: "POST",
         headers: { "content-type": "application/json" },

@@ -2,7 +2,7 @@ import "./hud/hud.css";
 import { inject } from "@vercel/analytics";
 import * as THREE from "three";
 import { apiUrl } from "./api";
-import { getLang, t } from "./core/i18n";
+import { ASR_LOCALE, getLang, t } from "./core/i18n";
 import { AIRCRAFT_GROUNDING_TAU, C, leakTimeline, planRoute, stepSuitTelemetry } from "./core/physics";
 import type { ArmSkillId, LayerId, RouteDisplay } from "./core/types";
 import { createDemoDeck } from "./hud/demoDeck";
@@ -82,7 +82,7 @@ async function captureAndInspectVision(
   hud.openRoverModal();
 
   try {
-    const apiLang = getLang() === "es" ? "es-AR" : "en-US";
+    const apiLang = ASR_LOCALE[getLang()];
     const res = await fetch(apiUrl("/api/agent/vision"), {
       method: "POST",
       headers: { "content-type": "application/json" },
