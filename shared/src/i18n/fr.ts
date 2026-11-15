@@ -211,6 +211,17 @@ export const fr: Record<Key, string> = {
   "scene.s5": "Arrivée du véhicule de secours",
   "scene.s6": "Sauvetage et traînage",
   "scene.s7": "Départ",
+  "scene.present": "PRÉSENTATION",
+  "scene.play_all": "Tout lire",
+  "scene.record_play_all": "Enregistrer + tout lire",
+  "scene.record": "Enregistrer",
+  "scene.record_stop": "Arrêter et sauvegarder",
+  "scene.recording": "Enregistrement de cet onglet. Appuyez sur Arrêter et sauvegarder pour télécharger la vidéo.",
+  "scene.rec_saved": "Enregistré {file}",
+  "scene.rec_unsupported": "Ce navigateur ne peut pas enregistrer l’écran. Utilisez Chrome ou Edge.",
+  "scene.copy_link": "Copier le lien",
+  "scene.link_copied": "Lien copié : {url}",
+  "scene.model_lab": "Labo de modèles",
 
   // Demo deck
   "deck.title": "PUPITRE DÉMO",

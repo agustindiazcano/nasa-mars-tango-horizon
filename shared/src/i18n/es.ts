@@ -211,6 +211,17 @@ export const es: Record<Key, string> = {
   "scene.s5": "Llega el vehículo de rescate",
   "scene.s6": "Rescate y arrastre",
   "scene.s7": "Partida",
+  "scene.present": "PRESENTACIÓN",
+  "scene.play_all": "Reproducir todo",
+  "scene.record_play_all": "Grabar + reproducir todo",
+  "scene.record": "Grabar",
+  "scene.record_stop": "Detener y guardar",
+  "scene.recording": "Grabando esta pestaña. Presioná Detener y guardar para bajar el video.",
+  "scene.rec_saved": "Guardado {file}",
+  "scene.rec_unsupported": "Este navegador no puede grabar la pantalla. Usá Chrome o Edge.",
+  "scene.copy_link": "Copiar link",
+  "scene.link_copied": "Link copiado: {url}",
+  "scene.model_lab": "Laboratorio de modelos",
 
   // Demo deck
   "deck.title": "BOTONERA DEMO",

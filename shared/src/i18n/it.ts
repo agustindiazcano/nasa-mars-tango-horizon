@@ -211,6 +211,17 @@ export const it: Record<Key, string> = {
   "scene.s5": "Arriva il veicolo di soccorso",
   "scene.s6": "Soccorso e trascinamento",
   "scene.s7": "Partenza",
+  "scene.present": "PRESENTAZIONE",
+  "scene.play_all": "Riproduci tutto",
+  "scene.record_play_all": "Registra + riproduci tutto",
+  "scene.record": "Registra",
+  "scene.record_stop": "Ferma e salva",
+  "scene.recording": "Registrazione di questa scheda. Premi Ferma e salva per scaricare il video.",
+  "scene.rec_saved": "Salvato {file}",
+  "scene.rec_unsupported": "Questo browser non può registrare lo schermo. Usa Chrome o Edge.",
+  "scene.copy_link": "Copia link",
+  "scene.link_copied": "Link copiato: {url}",
+  "scene.model_lab": "Laboratorio modelli",
 
   // Demo deck
   "deck.title": "PLANCIA DEMO",

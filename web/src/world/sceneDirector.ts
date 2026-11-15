@@ -202,6 +202,9 @@ export class SceneDirector {
   private smoothedPos: Vec3 | null = null;
   private smoothedTarget: Vec3 | null = null;
   private lastSegment = -1;
+  private queue: string[] = [];
+  /** True from the start of a sequence until its last scene finishes. */
+  inSequence = false;
 
   constructor(
     private scenario: SceneScenario,
@@ -233,6 +236,15 @@ export class SceneDirector {
     return true;
   }
 
+  /** Plays the given scenes (default: all) one after another, hard cut between them. */
+  playSequence(ids: readonly string[] = this.scenes.map((x) => x.id)): boolean {
+    const list = ids.filter((id) => this.scenes.some((x) => x.id === id));
+    if (list.length === 0) return false;
+    this.queue = list.slice(1);
+    this.inSequence = true;
+    return this.play(list[0]);
+  }
+
   restart(): boolean {
     return this.activeId ? this.play(this.activeId) : false;
   }
@@ -255,6 +267,8 @@ export class SceneDirector {
     this.scenario.pause();
     this.state = "idle";
     this.activeId = null;
+    this.queue = [];
+    this.inSequence = false;
   }
 
   /**
@@ -268,9 +282,13 @@ export class SceneDirector {
       this.scenario.pause();
       this.state = "done";
       this.hooks.onFinish?.(s);
+      const next = this.queue.shift();
+      if (next) this.play(next);
+      else this.inSequence = false;
     }
-    const tRel = Math.min(Math.max(this.scenario.elapsedS - s.startS, 0), s.durationS);
-    const pose = scenePose(s, tRel, ctx);
+    const cur = this.active ?? s;
+    const tRel = Math.min(Math.max(this.scenario.elapsedS - cur.startS, 0), cur.durationS);
+    const pose = scenePose(cur, tRel, ctx);
     const cut = pose.segment !== this.lastSegment || !this.smoothedPos || !this.smoothedTarget;
     this.lastSegment = pose.segment;
     if (cut) {

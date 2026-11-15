@@ -211,6 +211,17 @@ export const de: Record<Key, string> = {
   "scene.s5": "Rettungsfahrzeug trifft ein",
   "scene.s6": "Rettung und Abschleppen",
   "scene.s7": "Abfahrt",
+  "scene.present": "PRÄSENTATION",
+  "scene.play_all": "Alles abspielen",
+  "scene.record_play_all": "Aufnehmen + alles abspielen",
+  "scene.record": "Aufnehmen",
+  "scene.record_stop": "Stoppen und speichern",
+  "scene.recording": "Dieser Tab wird aufgenommen. Zum Herunterladen des Videos auf Stoppen und speichern drücken.",
+  "scene.rec_saved": "Gespeichert {file}",
+  "scene.rec_unsupported": "Dieser Browser kann den Bildschirm nicht aufnehmen. Chrome oder Edge verwenden.",
+  "scene.copy_link": "Link kopieren",
+  "scene.link_copied": "Link kopiert: {url}",
+  "scene.model_lab": "Modell-Labor",
 
   // Demo deck
   "deck.title": "DEMO-PULT",
