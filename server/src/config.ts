@@ -99,6 +99,8 @@ export const config = {
   // Reasoning models (Gemini 4, Muse Spark/Wonder) spend 150-450 tokens on thought; keep a safe floor.
   maxTokens: Math.max(1200, Number(env("LLM_MAX_OUTPUT_TOKENS", "1500"))),
   fastTimeoutMs: Math.max(6000, Number(env("LLM_FAST_TIMEOUT_MS", "8000"))),
+  sttTimeoutMs: Math.max(4000, Number(env("LLM_STT_TIMEOUT_MS", env("STT_TIMEOUT_MS", "8000")))),
+  vertexCarbonTimeoutMs: Math.max(5000, Number(env("VERTEX_CARBON_TIMEOUT_MS", "10000"))),
   defaultTimeoutMs: Math.max(15000, Number(env("LLM_DEFAULT_TIMEOUT_MS", "20000"))),
   offline: env("AGENTS_OFFLINE", "0") === "1",
   votingEnabled: env("ESCALATED_VOTING_ENABLED", "1") !== "0",
