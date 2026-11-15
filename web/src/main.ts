@@ -1,5 +1,6 @@
 import { BASE_ORIGIN, LAUNCHER_PRIMARY_COORD, READY_TERRAIN } from "@th/shared";
 import "./hud/hud.css";
+import { createLoadingOverlay } from "./hud/loadingOverlay";
 import { installHistoricalArchive } from "./hud/historicalArchive";
 import { inject } from "@vercel/analytics";
 import * as THREE from "three";
@@ -82,39 +83,42 @@ window.addEventListener("resize", () => {
 async function boot(): Promise<void> {
 const store = new MissionStore();
 const terrain = new TerrainProc(scene);
-const loading = document.createElement("div");
-loading.setAttribute("role", "status");
-loading.style.cssText = "position:fixed;inset:0;z-index:10000;background:#07111e;color:white;display:grid;place-content:center;font:18px monospace;padding:32px";
-document.body.append(loading);
+const loading = createLoadingOverlay();
 terrain.mesh.visible = false;
 terrain.markersGroup.visible = false;
 let leaving = false;
 const cancel = () => terrain.loader.cancel();
-window.addEventListener("pagehide", () => { leaving = true; cancel(); }, { once: true });
+window.addEventListener("pagehide", () => { leaving = true; cancel(); loading.destroy(true); }, { once: true });
 let loaded = false;
 while (!loaded) {
   const cancelButton = document.createElement("button");
   cancelButton.textContent = "Cancel terrain download";
   cancelButton.onclick = cancel;
+  loading.setAction(cancelButton, "cancel");
   loaded = await terrain.tryLoadRealDem("/data/terrain", message => {
-    loading.textContent = message;
-    loading.append(cancelButton);
+    loading.setStatus(message);
+    loading.setAction(cancelButton, "cancel");
   });
   if (leaving) return;
   if (!loaded) {
-    loading.textContent = terrain.loader.state === "cancelled" ? "Terrain download cancelled." : `Terrain unavailable: ${terrain.loadError}.`;
+    loading.setStatus(
+      terrain.loader.state === "cancelled"
+        ? "Terrain download cancelled."
+        : `Terrain unavailable: ${terrain.loadError}.`,
+    );
     const retry = document.createElement("button");
     retry.textContent = "Retry terrain download";
-    loading.append(retry);
+    loading.setAction(retry, "retry");
     await new Promise<void>(resolve => retry.addEventListener("click", () => { retry.disabled = true; resolve(); }, { once: true }));
   }
 }
 store.terrain = { ...READY_TERRAIN };
-loading.textContent = "Loading HiRISE orthoimage";
+loading.setAction(null);
+loading.setStatus("Loading HiRISE orthoimage");
 try { await terrain.loadOptical(); }
 catch { store.pushAlert("warn", "Orthoimage unavailable; optical colors are a design approximation"); }
 if (leaving) return;
-loading.textContent = "Loading scientific rasters & MSL DAN stations";
+loading.setStatus("Loading scientific rasters & MSL DAN stations");
 const rasterStatus = await terrain.loadRealRasters("/data/terrain");
 if (leaving) return;
 if (!rasterStatus.rastersOk) {
@@ -126,7 +130,7 @@ if (rasterStatus.danCount > 0) {
 store.pushAlert("info", `Terrain ready: ${READY_TERRAIN.version}. HiRISE 2048x2048 DEM verified; adaptive chunked LOD active.`);
 terrain.mesh.visible = true;
 terrain.markersGroup.visible = true;
-loading.remove();
+loading.destroy();
 installHistoricalArchive();
 
 const skyDust = new SkyDust(scene);
