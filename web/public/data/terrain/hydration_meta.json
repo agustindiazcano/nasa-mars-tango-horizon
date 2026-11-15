@@ -49,5 +49,67 @@
     "transform": "500 m spatial-block GroupKFold CV: R2=0.364, Spearman=0.582, MAE=0.370 vs baseline 0.486 (n=1567, blocks=36)",
     "limitations": "Predicts near-surface mineral-bound hydrogen indicator (passive thermal/epithermal neutron ratio) in the top ~0.5 m, not liquid water or shallow ice. Limited to orbital predictor resolution (CRISM 18-36 m/px, CTX 20 m/px, THEMIS 100 m/px).",
     "retrieved": "2026-11-14"
+  },
+  "vertical_datum_offset": {
+    "audit_script": "tools/audit_ctx_hirise_offset.py",
+    "hirise_product_id": "DTEEC_009149_1750_009294_1750_U01",
+    "ctx_product_id": "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W",
+    "datum_explanation": "tools/hydration/build_dataset.py sampled the un-geoid-adjusted USGS CTX DEM (-DEM.tif), whose heights are relative to the IAU Mars (2015) Sphere (R=3396190 m) prior to ASP dem_geoid --geoid MOLA adjustment. Both the companion USGS CTX geoid-adjusted product (-DEM-geoid-adj.tif) and the HiRISE SOCET DTM (DTEEC_009149_1750_009294_1750_U01) are referenced to the MOLA areoid, which lies ~562-564 m below the 3396190 m sphere at Gale Crater (-4.745N, 137.400E). The remaining ~25-28 m between HiRISE and CTX -DEM-geoid-adj.tif reflects independent bundle/MOLA-control registration and 1 m vs 20 m posting differences.",
+    "top_candidates_hirise_minus_ctx_dem": {
+      "n": 10,
+      "mean_m": 589.929,
+      "median_m": 588.646,
+      "std_m": 3.354,
+      "min_m": 586.493,
+      "max_m": 597.405
+    },
+    "dan_in_scene_hirise_minus_ctx_dem": {
+      "n": 377,
+      "mean_m": 587.602,
+      "median_m": 587.538,
+      "std_m": 2.956,
+      "min_m": 577.426,
+      "max_m": 593.703
+    },
+    "dan_in_scene_ctx_geoid_minus_ctx_dem": {
+      "n": 377,
+      "mean_m": 562.245,
+      "median_m": 562.205,
+      "std_m": 0.317,
+      "min_m": 561.565,
+      "max_m": 562.789
+    },
+    "dan_in_scene_hirise_minus_ctx_geoid": {
+      "n": 377,
+      "mean_m": 25.356,
+      "median_m": 25.365,
+      "std_m": 2.991,
+      "min_m": 15.861,
+      "max_m": 31.589
+    },
+    "scene_grid_hirise_minus_ctx_dem": {
+      "n": 4194304,
+      "mean_m": 591.791,
+      "median_m": 591.069,
+      "std_m": 7.965,
+      "min_m": 563.958,
+      "max_m": 647.439
+    },
+    "scene_grid_ctx_geoid_minus_ctx_dem": {
+      "n": 4194304,
+      "mean_m": 563.586,
+      "median_m": 563.584,
+      "std_m": 1.292,
+      "min_m": 560.882,
+      "max_m": 566.34
+    },
+    "scene_grid_hirise_minus_ctx_geoid": {
+      "n": 4194304,
+      "mean_m": 28.205,
+      "median_m": 27.577,
+      "std_m": 7.957,
+      "min_m": -1.374,
+      "max_m": 84.621
+    }
   }
 }

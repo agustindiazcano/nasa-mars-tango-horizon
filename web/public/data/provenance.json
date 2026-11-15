@@ -85,7 +85,77 @@
     "source": "Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC)",
     "product_id": "tango-horizon-hydration-v1",
     "url": "https://pds-geosciences.wustl.edu/msl/msl-m-dan-3_4-rdr-v1/msldan_1000/data/",
+    "datasets": [
+      "MSL-M-DAN-3/4-RDR-V1.0",
+      "mro_crism_mtrdr (frt000058a3, frt0000b6f1, frt00021c92, frt0000c518, frt0002037a, hrl0000baba, hrl0000d21c, hrl0000d349, hrl0001233b)",
+      "mc23_aeolis_nir",
+      "mc23_aeolis_dir",
+      "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W"
+    ],
     "transform": "500 m spatial-block GroupKFold CV: R2=0.364, Spearman=0.582, MAE=0.370 vs baseline 0.486 (n=1567, blocks=36)",
+    "notes": "Lateral 1024x1024 WEH map aligned to terrain/meta.json (4000 m HiRISE window). Note that companion hydration_sites.json elev_m values come from pre-geoid CTX DEM (IAU Mars 2015 sphere) and sit ~588-592 m below MOLA-referenced HiRISE DTM elevations.",
+    "vertical_datum_offset": {
+      "audit_script": "tools/audit_ctx_hirise_offset.py",
+      "hirise_product_id": "DTEEC_009149_1750_009294_1750_U01",
+      "ctx_product_id": "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W",
+      "datum_explanation": "tools/hydration/build_dataset.py sampled the un-geoid-adjusted USGS CTX DEM (-DEM.tif), whose heights are relative to the IAU Mars (2015) Sphere (R=3396190 m) prior to ASP dem_geoid --geoid MOLA adjustment. Both the companion USGS CTX geoid-adjusted product (-DEM-geoid-adj.tif) and the HiRISE SOCET DTM (DTEEC_009149_1750_009294_1750_U01) are referenced to the MOLA areoid, which lies ~562-564 m below the 3396190 m sphere at Gale Crater (-4.745N, 137.400E). The remaining ~25-28 m between HiRISE and CTX -DEM-geoid-adj.tif reflects independent bundle/MOLA-control registration and 1 m vs 20 m posting differences.",
+      "top_candidates_hirise_minus_ctx_dem": {
+        "n": 10,
+        "mean_m": 589.929,
+        "median_m": 588.646,
+        "std_m": 3.354,
+        "min_m": 586.493,
+        "max_m": 597.405
+      },
+      "dan_in_scene_hirise_minus_ctx_dem": {
+        "n": 377,
+        "mean_m": 587.602,
+        "median_m": 587.538,
+        "std_m": 2.956,
+        "min_m": 577.426,
+        "max_m": 593.703
+      },
+      "dan_in_scene_ctx_geoid_minus_ctx_dem": {
+        "n": 377,
+        "mean_m": 562.245,
+        "median_m": 562.205,
+        "std_m": 0.317,
+        "min_m": 561.565,
+        "max_m": 562.789
+      },
+      "dan_in_scene_hirise_minus_ctx_geoid": {
+        "n": 377,
+        "mean_m": 25.356,
+        "median_m": 25.365,
+        "std_m": 2.991,
+        "min_m": 15.861,
+        "max_m": 31.589
+      },
+      "scene_grid_hirise_minus_ctx_dem": {
+        "n": 4194304,
+        "mean_m": 591.791,
+        "median_m": 591.069,
+        "std_m": 7.965,
+        "min_m": 563.958,
+        "max_m": 647.439
+      },
+      "scene_grid_ctx_geoid_minus_ctx_dem": {
+        "n": 4194304,
+        "mean_m": 563.586,
+        "median_m": 563.584,
+        "std_m": 1.292,
+        "min_m": 560.882,
+        "max_m": 566.34
+      },
+      "scene_grid_hirise_minus_ctx_geoid": {
+        "n": 4194304,
+        "mean_m": 28.205,
+        "median_m": 27.577,
+        "std_m": 7.957,
+        "min_m": -1.374,
+        "max_m": 84.621
+      }
+    },
     "retrieved": "2026-11-14"
   },
   "veins/index.json": {
@@ -100,6 +170,331 @@
     "product_id": "mslrem_1001 (Sols 1-3953) + msl_tau_880.csv (doi:10.17189/fjh0-2978)",
     "url": "https://atmos.nmsu.edu/PDS/review/PDS4/msl_mmm_tau_bundle/data_derived/msl_tau_880.csv",
     "transform": "Quantile HistGradientBoostingRegressor (q=0.1,0.5,0.9; horizons h=1,2,3 sols) with training-only LOMO-CV CQR calibration on REMS S1/S2 pressure-tide harmonics, daily ranges, noon UV, Ls, and 1/3/7-sol lags; Mars Year 34 held out entirely.",
+    "retrieved": "2026-11-14"
+  },
+  "terrain/hydration_unc_1024.png": {
+    "source": "Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC)",
+    "product_id": "tango-horizon-hydration-v1",
+    "url": "https://pds-geosciences.wustl.edu/msl/msl-m-dan-3_4-rdr-v1/msldan_1000/data/",
+    "datasets": [
+      "MSL-M-DAN-3/4-RDR-V1.0",
+      "mro_crism_mtrdr (frt000058a3, frt0000b6f1, frt00021c92, frt0000c518, frt0002037a, hrl0000baba, hrl0000d21c, hrl0000d349, hrl0001233b)",
+      "mc23_aeolis_nir",
+      "mc23_aeolis_dir",
+      "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W"
+    ],
+    "transform": "Split-conformal 90% prediction interval width (q_hat=0.8065 wt% WEH, coverage=0.903) combining GBR+RF+Ridge ensemble spread; scaled linearly to [0, interval_width_max] in 1024x1024 PNG",
+    "retrieved": "2026-11-14"
+  },
+  "terrain/hydration_meta.json": {
+    "source": "Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC)",
+    "product_id": "tango-horizon-hydration-v1",
+    "url": "https://pds-geosciences.wustl.edu/msl/msl-m-dan-3_4-rdr-v1/msldan_1000/data/",
+    "datasets": [
+      "MSL-M-DAN-3/4-RDR-V1.0",
+      "mro_crism_mtrdr (frt000058a3, frt0000b6f1, frt00021c92, frt0000c518, frt0002037a, hrl0000baba, hrl0000d21c, hrl0000d349, hrl0001233b)",
+      "mc23_aeolis_nir",
+      "mc23_aeolis_dir",
+      "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W"
+    ],
+    "transform": "500 m spatial-block GroupKFold CV: R2=0.364, Spearman=0.582, MAE=0.370 vs baseline 0.486 (n=1567, blocks=36)",
+    "notes": "Hydration scale metadata, GroupKFold validation metrics, limitations, and measured CTX/HiRISE vertical_datum_offset.",
+    "vertical_datum_offset": {
+      "audit_script": "tools/audit_ctx_hirise_offset.py",
+      "hirise_product_id": "DTEEC_009149_1750_009294_1750_U01",
+      "ctx_product_id": "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W",
+      "datum_explanation": "tools/hydration/build_dataset.py sampled the un-geoid-adjusted USGS CTX DEM (-DEM.tif), whose heights are relative to the IAU Mars (2015) Sphere (R=3396190 m) prior to ASP dem_geoid --geoid MOLA adjustment. Both the companion USGS CTX geoid-adjusted product (-DEM-geoid-adj.tif) and the HiRISE SOCET DTM (DTEEC_009149_1750_009294_1750_U01) are referenced to the MOLA areoid, which lies ~562-564 m below the 3396190 m sphere at Gale Crater (-4.745N, 137.400E). The remaining ~25-28 m between HiRISE and CTX -DEM-geoid-adj.tif reflects independent bundle/MOLA-control registration and 1 m vs 20 m posting differences.",
+      "top_candidates_hirise_minus_ctx_dem": {
+        "n": 10,
+        "mean_m": 589.929,
+        "median_m": 588.646,
+        "std_m": 3.354,
+        "min_m": 586.493,
+        "max_m": 597.405
+      },
+      "dan_in_scene_hirise_minus_ctx_dem": {
+        "n": 377,
+        "mean_m": 587.602,
+        "median_m": 587.538,
+        "std_m": 2.956,
+        "min_m": 577.426,
+        "max_m": 593.703
+      },
+      "dan_in_scene_ctx_geoid_minus_ctx_dem": {
+        "n": 377,
+        "mean_m": 562.245,
+        "median_m": 562.205,
+        "std_m": 0.317,
+        "min_m": 561.565,
+        "max_m": 562.789
+      },
+      "dan_in_scene_hirise_minus_ctx_geoid": {
+        "n": 377,
+        "mean_m": 25.356,
+        "median_m": 25.365,
+        "std_m": 2.991,
+        "min_m": 15.861,
+        "max_m": 31.589
+      },
+      "scene_grid_hirise_minus_ctx_dem": {
+        "n": 4194304,
+        "mean_m": 591.791,
+        "median_m": 591.069,
+        "std_m": 7.965,
+        "min_m": 563.958,
+        "max_m": 647.439
+      },
+      "scene_grid_ctx_geoid_minus_ctx_dem": {
+        "n": 4194304,
+        "mean_m": 563.586,
+        "median_m": 563.584,
+        "std_m": 1.292,
+        "min_m": 560.882,
+        "max_m": 566.34
+      },
+      "scene_grid_hirise_minus_ctx_geoid": {
+        "n": 4194304,
+        "mean_m": 28.205,
+        "median_m": 27.577,
+        "std_m": 7.957,
+        "min_m": -1.374,
+        "max_m": 84.621
+      }
+    },
+    "retrieved": "2026-11-14"
+  },
+  "terrain/hydration_sites.json": {
+    "source": "Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC)",
+    "product_id": "tango-horizon-hydration-v1-sites",
+    "url": "https://pds-geosciences.wustl.edu/msl/msl-m-dan-3_4-rdr-v1/msldan_1000/data/",
+    "datasets": [
+      "MSL-M-DAN-3/4-RDR-V1.0",
+      "mro_crism_mtrdr (frt000058a3, frt0000b6f1, frt00021c92, frt0000c518, frt0002037a, hrl0000baba, hrl0000d21c, hrl0000d349, hrl0001233b)",
+      "mc23_aeolis_nir",
+      "mc23_aeolis_dir",
+      "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W"
+    ],
+    "transform": "Top 10 candidate hydration sites extracted from predicted WEH raster and 1567 MSL DAN measurement points projected onto the 4000 m scene frame (377 inside scene). elev_m sampled from CTX stereo DEM (pre-geoid sphere).",
+    "notes": "elev_m values in top_candidates and dan_measurements are referenced to IAU Mars 2015 sphere (R=3396190 m) from T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W-DEM.tif, ~588-590 m below MOLA-referenced HiRISE height_2048.u16.",
+    "vertical_datum_offset": {
+      "audit_script": "tools/audit_ctx_hirise_offset.py",
+      "hirise_product_id": "DTEEC_009149_1750_009294_1750_U01",
+      "ctx_product_id": "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W",
+      "datum_explanation": "tools/hydration/build_dataset.py sampled the un-geoid-adjusted USGS CTX DEM (-DEM.tif), whose heights are relative to the IAU Mars (2015) Sphere (R=3396190 m) prior to ASP dem_geoid --geoid MOLA adjustment. Both the companion USGS CTX geoid-adjusted product (-DEM-geoid-adj.tif) and the HiRISE SOCET DTM (DTEEC_009149_1750_009294_1750_U01) are referenced to the MOLA areoid, which lies ~562-564 m below the 3396190 m sphere at Gale Crater (-4.745N, 137.400E). The remaining ~25-28 m between HiRISE and CTX -DEM-geoid-adj.tif reflects independent bundle/MOLA-control registration and 1 m vs 20 m posting differences.",
+      "top_candidates_hirise_minus_ctx_dem": {
+        "n": 10,
+        "mean_m": 589.929,
+        "median_m": 588.646,
+        "std_m": 3.354,
+        "min_m": 586.493,
+        "max_m": 597.405
+      },
+      "dan_in_scene_hirise_minus_ctx_dem": {
+        "n": 377,
+        "mean_m": 587.602,
+        "median_m": 587.538,
+        "std_m": 2.956,
+        "min_m": 577.426,
+        "max_m": 593.703
+      },
+      "dan_in_scene_ctx_geoid_minus_ctx_dem": {
+        "n": 377,
+        "mean_m": 562.245,
+        "median_m": 562.205,
+        "std_m": 0.317,
+        "min_m": 561.565,
+        "max_m": 562.789
+      },
+      "dan_in_scene_hirise_minus_ctx_geoid": {
+        "n": 377,
+        "mean_m": 25.356,
+        "median_m": 25.365,
+        "std_m": 2.991,
+        "min_m": 15.861,
+        "max_m": 31.589
+      },
+      "scene_grid_hirise_minus_ctx_dem": {
+        "n": 4194304,
+        "mean_m": 591.791,
+        "median_m": 591.069,
+        "std_m": 7.965,
+        "min_m": 563.958,
+        "max_m": 647.439
+      },
+      "scene_grid_ctx_geoid_minus_ctx_dem": {
+        "n": 4194304,
+        "mean_m": 563.586,
+        "median_m": 563.584,
+        "std_m": 1.292,
+        "min_m": 560.882,
+        "max_m": 566.34
+      },
+      "scene_grid_hirise_minus_ctx_geoid": {
+        "n": 4194304,
+        "mean_m": 28.205,
+        "median_m": 27.577,
+        "std_m": 7.957,
+        "min_m": -1.374,
+        "max_m": 84.621
+      }
+    },
+    "retrieved": "2026-11-14"
+  },
+  "veins/manifest.json": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1",
+    "url": "https://mars.nasa.gov/api/v1/raw_image_items/",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.659, roc_auc=0.845, p=0.0020, n=117",
+    "retrieved": "2026-11-14",
+    "notes": "Full vein classifier manifest identical in schema to veins/index.json (validation stats + 8 Curiosity Mastcam/MAHLI detections)."
+  },
+  "veins/0925ML0040680180402771E01_DXXX.jpg": {
+    "source": "NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API)",
+    "product_id": "0925ML0040680180402771E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00925/mcam/0925ML0040680180402771E01_DXXX.jpg",
+    "transform": "Curated MSL Mastcam/MAHLI frame downloaded unmodified from Mars Raw Images API for vein candidate inspection",
+    "notes": "wp-1 (Sol 925, MAST_LEFT): Traverse waypoint 1: light-toned mineral vein network (Sol 925, Garden City) [p=0.864, vein_candidate]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0925ML0040680180402771E01_DXXX_heat.png": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1:0925ML0040680180402771E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00925/mcam/0925ML0040680180402771E01_DXXX.jpg",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.658, roc_auc=0.845, p=0.0020, n=117; 32x32 DINOv2 patch-logit heatmap upsampled onto 0925ML0040680180402771E01_DXXX.jpg (peak u=0.141, v=0.016, score=1.0)",
+    "notes": "wp-1 (Sol 925, MAST_LEFT): Traverse waypoint 1: light-toned mineral vein network (Sol 925, Garden City) [p=0.864, vein_candidate]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0170ML0009051090104788E01_DXXX.jpg": {
+    "source": "NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API)",
+    "product_id": "0170ML0009051090104788E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00170/mcam/0170ML0009051090104788E01_DXXX.jpg",
+    "transform": "Curated MSL Mastcam/MAHLI frame downloaded unmodified from Mars Raw Images API for vein candidate inspection",
+    "notes": "wp-2 (Sol 170, MAST_LEFT): Traverse waypoint 2: Sheepbed fractured mudstone outcrop (Sol 170) [p=0.972, vein_candidate]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0170ML0009051090104788E01_DXXX_heat.png": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1:0170ML0009051090104788E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00170/mcam/0170ML0009051090104788E01_DXXX.jpg",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.658, roc_auc=0.845, p=0.0020, n=117; 32x32 DINOv2 patch-logit heatmap upsampled onto 0170ML0009051090104788E01_DXXX.jpg (peak u=0.141, v=0.484, score=1.0)",
+    "notes": "wp-2 (Sol 170, MAST_LEFT): Traverse waypoint 2: Sheepbed fractured mudstone outcrop (Sol 170) [p=0.972, vein_candidate]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/1190ML0053920190502837E01_DXXX.jpg": {
+    "source": "NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API)",
+    "product_id": "1190ML0053920190502837E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/01190/mcam/1190ML0053920190502837E01_DXXX.jpg",
+    "transform": "Curated MSL Mastcam/MAHLI frame downloaded unmodified from Mars Raw Images API for vein candidate inspection",
+    "notes": "wp-3 (Sol 1190, MAST_LEFT): Traverse waypoint 3: Bagnold Dunes basaltic sand ripples (Sol 1190, negative control) [p=0.048, low_probability]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/1190ML0053920190502837E01_DXXX_heat.png": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1:1190ML0053920190502837E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/01190/mcam/1190ML0053920190502837E01_DXXX.jpg",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.658, roc_auc=0.845, p=0.0020, n=117; 32x32 DINOv2 patch-logit heatmap upsampled onto 1190ML0053920190502837E01_DXXX.jpg (peak u=0.984, v=0.047, score=0.974)",
+    "notes": "wp-3 (Sol 1190, MAST_LEFT): Traverse waypoint 3: Bagnold Dunes basaltic sand ripples (Sol 1190, negative control) [p=0.048, low_probability]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0931ML0040940390402909C00_DXXX.jpg": {
+    "source": "NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API)",
+    "product_id": "0931ML0040940390402909C00_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00931/mcam/0931ML0040940390402909C00_DXXX.jpg",
+    "transform": "Curated MSL Mastcam/MAHLI frame downloaded unmodified from Mars Raw Images API for vein candidate inspection",
+    "notes": "site-1 (Sol 931, MAST_LEFT): Science station S1 (Bradbury Regolith): pebbly regolith without veins (Sol 931) [p=0.0, low_probability]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0931ML0040940390402909C00_DXXX_heat.png": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1:0931ML0040940390402909C00_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00931/mcam/0931ML0040940390402909C00_DXXX.jpg",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.658, roc_auc=0.845, p=0.0020, n=117; 32x32 DINOv2 patch-logit heatmap upsampled onto 0931ML0040940390402909C00_DXXX.jpg (peak u=0.016, v=0.016, score=0.946)",
+    "notes": "site-1 (Sol 931, MAST_LEFT): Science station S1 (Bradbury Regolith): pebbly regolith without veins (Sol 931) [p=0.0, low_probability]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0925MR0040680180501725E01_DXXX.jpg": {
+    "source": "NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API)",
+    "product_id": "0925MR0040680180501725E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00925/mcam/0925MR0040680180501725E01_DXXX.jpg",
+    "transform": "Curated MSL Mastcam/MAHLI frame downloaded unmodified from Mars Raw Images API for vein candidate inspection",
+    "notes": "site-2 (Sol 925, MAST_RIGHT): Science station S2 (Boxwork Ridge Alpha): branching bright ridge veins (Sol 925) [p=0.95, vein_candidate]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0925MR0040680180501725E01_DXXX_heat.png": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1:0925MR0040680180501725E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00925/mcam/0925MR0040680180501725E01_DXXX.jpg",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.658, roc_auc=0.845, p=0.0020, n=117; 32x32 DINOv2 patch-logit heatmap upsampled onto 0925MR0040680180501725E01_DXXX.jpg (peak u=0.109, v=0.016, score=1.0)",
+    "notes": "site-2 (Sol 925, MAST_RIGHT): Science station S2 (Boxwork Ridge Alpha): branching bright ridge veins (Sol 925) [p=0.95, vein_candidate]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0929MR0040870190501785E01_DXXX.jpg": {
+    "source": "NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API)",
+    "product_id": "0929MR0040870190501785E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00929/mcam/0929MR0040870190501785E01_DXXX.jpg",
+    "transform": "Curated MSL Mastcam/MAHLI frame downloaded unmodified from Mars Raw Images API for vein candidate inspection",
+    "notes": "site-3 (Sol 929, MAST_RIGHT): Science station S3 (Sulfate Vein Trough): raised mineral vein ledge (Sol 929) [p=0.064, low_probability]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0929MR0040870190501785E01_DXXX_heat.png": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1:0929MR0040870190501785E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00929/mcam/0929MR0040870190501785E01_DXXX.jpg",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.658, roc_auc=0.845, p=0.0020, n=117; 32x32 DINOv2 patch-logit heatmap upsampled onto 0929MR0040870190501785E01_DXXX.jpg (peak u=0.922, v=0.016, score=1.0)",
+    "notes": "site-3 (Sol 929, MAST_RIGHT): Science station S3 (Sulfate Vein Trough): raised mineral vein ledge (Sol 929) [p=0.064, low_probability]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0925MR0040700000501727E01_DXXX.jpg": {
+    "source": "NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API)",
+    "product_id": "0925MR0040700000501727E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00925/mcam/0925MR0040700000501727E01_DXXX.jpg",
+    "transform": "Curated MSL Mastcam/MAHLI frame downloaded unmodified from Mars Raw Images API for vein candidate inspection",
+    "notes": "hands-target (Sol 925, MAST_RIGHT): Manipulator rover drill candidate: bright vein outcrop beside float rock (Sol 925) [p=0.004, low_probability]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0925MR0040700000501727E01_DXXX_heat.png": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1:0925MR0040700000501727E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00925/mcam/0925MR0040700000501727E01_DXXX.jpg",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.658, roc_auc=0.845, p=0.0020, n=117; 32x32 DINOv2 patch-logit heatmap upsampled onto 0925MR0040700000501727E01_DXXX.jpg (peak u=0.141, v=0.328, score=1.0)",
+    "notes": "hands-target (Sol 925, MAST_RIGHT): Manipulator rover drill candidate: bright vein outcrop beside float rock (Sol 925) [p=0.004, low_probability]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0929ML0040870190402854E01_DXXX.jpg": {
+    "source": "NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API)",
+    "product_id": "0929ML0040870190402854E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00929/mcam/0929ML0040870190402854E01_DXXX.jpg",
+    "transform": "Curated MSL Mastcam/MAHLI frame downloaded unmodified from Mars Raw Images API for vein candidate inspection",
+    "notes": "garden-city (Sol 929, MAST_LEFT): Garden City reference outcrop: dense intersecting mineral veins (Sol 929) [p=0.973, vein_candidate]",
+    "retrieved": "2026-11-14"
+  },
+  "veins/0929ML0040870190402854E01_DXXX_heat.png": {
+    "source": "Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS)",
+    "product_id": "tango-horizon-veins-v1:0929ML0040870190402854E01_DXXX",
+    "url": "https://mars.jpl.nasa.gov/msl-raw-images/msss/00929/mcam/0929ML0040870190402854E01_DXXX.jpg",
+    "transform": "448x448 resize, dinov2-small-vits14 CLS + 32x32 patch tokens, GroupKFold(sol) precision=0.794, recall=0.658, roc_auc=0.845, p=0.0020, n=117; 32x32 DINOv2 patch-logit heatmap upsampled onto 0929ML0040870190402854E01_DXXX.jpg (peak u=0.234, v=0.016, score=1.0)",
+    "notes": "garden-city (Sol 929, MAST_LEFT): Garden City reference outcrop: dense intersecting mineral veins (Sol 929) [p=0.973, vein_candidate]",
+    "retrieved": "2026-11-14"
+  },
+  "models/ingenuity.glb": {
+    "source": "NASA 3D Resources (Ingenuity Mars Helicopter)",
+    "product_id": "ingenuity",
+    "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Ingenuity%20Mars%20Helicopter/Ingenuity%20Mars%20Helicopter.glb",
+    "transform": "Copied binary glTF (.glb) asset from NASA-3D-Resources repository without geometry modification",
+    "retrieved": "2026-11-14"
+  },
+  "models/mro.glb": {
+    "source": "NASA 3D Resources (Mars Reconnaissance Orbiter)",
+    "product_id": "mro",
+    "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A)/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A).glb",
+    "transform": "Copied binary glTF (.glb) asset from NASA-3D-Resources repository without geometry modification",
+    "retrieved": "2026-11-14"
+  },
+  "models/rover.glb": {
+    "source": "NASA 3D Resources (Mars 2020 Perseverance Rover, MSL/Curiosity-class chassis)",
+    "product_id": "rover",
+    "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%202020%20Perseverance%20Rover/Mars%202020%20Perseverance%20Rover.glb",
+    "transform": "Copied binary glTF (.glb) asset from NASA-3D-Resources repository without geometry modification",
     "retrieved": "2026-11-14"
   }
 }
