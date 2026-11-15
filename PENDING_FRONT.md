@@ -37,8 +37,9 @@ Status from a code audit of `web/src`. "Done" means the code exists; live visual
 | F12 | Done | Trace/swarm panel, `ask_human` confirmation, `GUARDIAN` verdicts in `hud.ts`, `state.ts` |
 | F6 | Done | 32-band FFT canvas in the voice HUD (`speak.ts` analyser, `hud.ts`) |
 | F8 | Done | Storm forecast fan chart and EVA verdict in the right panel (`stormForecast.ts`); the q10–q90 band shows its held-out coverage (44–52 %, below the nominal 80 %) |
+| F14 | Done | Cinematic cameras (`cinematicCams.ts`, Shift+1..5), Casson bio-twin panel (`cassonTwin.ts`), Sky-Crane tether and LiDAR cone (`skyCraneProc.ts`). Casson Hct/PaCO2/yield-stress relations are design assumptions |
 | F15 | Done | FR/DE/IT dictionaries and `ASR_LOCALE`/`TTS_LOCALE` used in `listen.ts`, `speak.ts` |
-| F7, F11, F13, F14 | Partial | Remaining work in the table below |
+| F7, F11, F13 | Partial | Remaining work in the table below |
 
 ## Pending tasks
 
@@ -47,7 +48,6 @@ Status from a code audit of `web/src`. "Done" means the code exists; live visual
 | F7 | 🟡 | Step 10 | Check the `leak` sequence against §5.4/§6.2 (hypoxia/Armstrong countdowns, RK4 pod trajectory, `rescue-1` dispatch); no `SimClock` class exists, scenario time lives in `state.ts` and `main.ts` | `09_SCENARIOS_WORLD.md`, `3D_AND_VISUAL_PLAN.md` §5.4, §6.2 | — |
 | F11 | 🟡 | Step 14b | Build the Vein Detector HUD overlay (`*_heat.png`, peak marker, probability and validation metrics) and the one-page human label review tool; `public/data/veins/` exists | `15_VEIN_DETECTOR.md` | — |
 | F13 | 🟡 | Step 16 | Reach the full 9-unit fleet (6 `FLEET_SPECS` units plus the MRO orbiter today) and confirm the Base Resource Balance panel and route algorithm badges | `09_SCENARIOS_WORLD.md`, `3D_AND_VISUAL_PLAN.md` §5.2, §5.5, §5.6 | — |
-| F14 | 🟢 | Step 17 | Remaining extras: 5 cinematic cameras (`CAM-1`..`CAM-5`), Casson bio-twin panel, Sky-Crane Kevlar tether and 532 nm LiDAR cone (science stations, LIBS and post-processing already exist) | `09_SCENARIOS_WORLD.md`, `12_MANIPULATOR_ROBOT.md`, `3D_AND_VISUAL_PLAN.md` §2.3, §4.2, §5.4 | F13 |
 
 ## NASA data audit priority
 

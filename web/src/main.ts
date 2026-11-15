@@ -19,9 +19,11 @@ import { MissionStore } from "./state";
 import { VoiceController } from "./voice/voiceController";
 import { AstronautProc } from "./world/astronautProc";
 import { BaseProc } from "./world/baseProc";
+import { CINEMATIC_CAM_IDS, CinematicCams, type CinematicCamId } from "./world/cinematicCams";
 import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
 import { PodBallistics } from "./world/podBallistics";
+import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
 import { TerrainProc } from "./world/terrainProc";
 
@@ -115,6 +117,11 @@ scene.add(astronaut.group);
 
 const baseProc = new BaseProc(scene, terrain);
 const launchSite = new LaunchSiteProc(scene, terrain);
+const skyCrane = new SkyCraneProc(scene, terrain);
+createSkyCraneToggle(() => {
+  skyCrane.setVisible(!skyCrane.visible);
+  return skyCrane.visible;
+});
 const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [LAUNCHER_PRIMARY_COORD.x, LAUNCHER_PRIMARY_COORD.z, 6];
 const podBallistics = new PodBallistics(scene, terrain, podLauncherOrigin);
 
@@ -453,6 +460,17 @@ function startScenario(id: "storm" | "sep2017" | "leak"): void {
   store.notify();
 }
 
+const cinematic = new CinematicCams(camera);
+function enterCinematic(id: number): void {
+  if (!CINEMATIC_CAM_IDS.includes(id as CinematicCamId)) return;
+  // Astronaut stays in 3rd person underneath (body visible, WASD active); the camera is overridden each frame.
+  if (store.povMode !== "cinematic") astronaut.setPovMode("3rd");
+  cinematic.begin(id as CinematicCamId);
+  store.cinematicCam = id;
+  store.povMode = "cinematic";
+  store.notify();
+}
+
 const deck = createDemoDeck({
   voice: (txt) => void voice.handle(txt),
   scenario: startScenario,
@@ -478,6 +496,7 @@ const hud: TacticalHud = new TacticalHud(store, terrain, voice, deck, {
     store.povMode = astronaut.toggleIso();
     store.notify();
   },
+  setCinematic: (id) => enterCinematic(id),
   setLayer: (l) => store.setLayer(l),
   runManipSkill: (skill, tgt) => {
     void voice.handle(`Hands, ${skill} ${tgt}`);
@@ -548,6 +567,9 @@ window.addEventListener("keydown", (e) => {
     e.preventDefault();
     spaceHeld = true;
     voice.pushStart();
+  } else if (e.shiftKey && /^Digit[1-5]$/.test(e.code)) {
+    // Digit keys 1..0 belong to the demo deck, so cinematic cameras use Shift+1..5.
+    enterCinematic(Number(e.code.replace("Digit", "")));
   } else if (/^Digit[0-9]$/.test(e.code)) {
     const key = e.code.replace("Digit", "");
     deck.find((d) => d.key === key)?.run();
@@ -649,7 +671,16 @@ function animate(now: number): void {
   }
 
   astronaut.updateMovement(realDt);
+  if (store.povMode === "cinematic") {
+    cinematic.update(realDt, {
+      timeS: now / 1000,
+      heightAt: (x, z) => terrain.heightAt(x, z),
+      units: store.fleet,
+      astronaut: astronaut.pos,
+    });
+  }
   launchSite.update(now / 1000);
+  skyCrane.update(realDt, store.env.tau);
 
   skyDust.update(
     now / 1000,

@@ -1,6 +1,7 @@
 import { BASE_ORIGIN, LAUNCH_SITE_COORD, MISSION_SITES } from "@th/shared";
 import { formatCoordinates } from "../world/terrainValidation";
 import { hydrationRgb } from "../world/terrainRasters";
+import { estimateCassonTwin } from "../world/cassonTwin";
 import { ASR_LOCALE, fmt, getLang, LANGS, onLangChange, setLang, t } from "@th/shared";
 import { C, leakTimeline } from "@th/shared";
 import type { AlertLevel, ArmSkillId, LayerId, PanelId, TraceEvent, VotingTraceDetail } from "@th/shared";
@@ -34,6 +35,7 @@ import { barHeight } from "../voice/spectrum";
 export interface HudActions {
   togglePov(): void;
   toggleIso(): void;
+  setCinematic(id: number): void;
   setLayer(layer: LayerId): void;
   runManipSkill(skill: ArmSkillId, targetId: string): void;
   captureRoverVision(unitId: string, question: string): void;
@@ -262,6 +264,7 @@ export class TacticalHud {
       { panel: "base", key: "menu.base" },
       { panel: "provenance", key: "menu.provenance" },
       { panel: "sessions", key: "menu.sessions" },
+      { panel: "casson", key: "menu.casson" },
     ];
     const menuHtml = menuItems
       .map(
@@ -289,8 +292,9 @@ export class TacticalHud {
           ${menuHtml}
           <button class="hud-btn" data-pointable id="btn-rover-cam">${t("menu.rover_cam")}</button>
           <button class="hud-btn" data-pointable id="btn-qr">${t("menu.remote")}</button>
-          <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : this.store.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso")}</button>
+          <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : this.store.povMode === "3rd" ? t("hud.pov_3rd") : this.store.povMode === "cinematic" ? t("hud.pov_cinematic") : t("hud.pov_iso")}</button>
           <button class="hud-btn ${this.store.povMode === "iso" ? "active" : ""}" data-pointable id="btn-iso" title="${t("hud.iso_hint")}">${t("hud.btn_iso")}</button>
+          ${[1, 2, 3, 4, 5].map((n) => `<button class="hud-btn" data-pointable data-cam="${n}" title="${t("hud.cam_hint")}">CAM-${n}</button>`).join("")}
           <button class="hud-btn" data-pointable id="btn-hud-toggle" title="${t("hud.visibility_hint")}">HUD</button>
         </div>
         <div class="btn-row">
@@ -353,6 +357,9 @@ export class TacticalHud {
 
     document.getElementById("btn-pov")!.addEventListener("click", () => this.actions.togglePov());
     document.getElementById("btn-iso")!.addEventListener("click", () => this.actions.toggleIso());
+    this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-cam]").forEach((b) =>
+      b.addEventListener("click", () => this.actions.setCinematic(Number(b.dataset.cam))),
+    );
     document.getElementById("btn-hud-toggle")?.addEventListener("click", () => {
       this.store.setHudVisible(!this.store.hudVisible);
     });
@@ -574,8 +581,11 @@ export class TacticalHud {
     const povBtn = document.getElementById("btn-pov");
     if (povBtn) {
       povBtn.textContent =
-        s.povMode === "1st" ? t("hud.pov_1st") : s.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso");
+        s.povMode === "1st" ? t("hud.pov_1st") : s.povMode === "3rd" ? t("hud.pov_3rd") : s.povMode === "cinematic" ? t("hud.pov_cinematic") : t("hud.pov_iso");
     }
+    this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-cam]").forEach((b) => {
+      b.classList.toggle("active", s.povMode === "cinematic" && Number(b.dataset.cam) === s.cinematicCam);
+    });
     const isoBtn = document.getElementById("btn-iso");
     if (isoBtn) isoBtn.classList.toggle("active", s.povMode === "iso");
     const hudVis = s.hudVisible;
@@ -987,6 +997,27 @@ export class TacticalHud {
           <tr><td>${t("hud.co2")}</td><td>&lt; 667 Pa ${t("health.nominal")}</td><td>NASA-STD-3001 Vol. 2</td></tr>
           <tr><td>${t("health.radiation")}</td><td>600 mSv</td><td>NASA-STD-3001 Vol. 1</td></tr>
         </table>
+      `;
+    } else if (s.panel === "casson") {
+      const tw = estimateCassonTwin({
+        helmetCo2Pa: s.suit.co2_pa,
+        metabolicW: s.suit.metabolic_w,
+        evaTimeS: s.metS,
+      });
+      const statusCls = tw.status === "crit" ? "crit" : tw.status === "warn" ? "warn" : "ok";
+      this.modalEl.innerHTML = `
+        ${closeHdr(t("casson.title"))}
+        <table class="prov-tbl">
+          <tr><td>${t("casson.status")}</td><td class="val ${statusCls}">${t(`casson.status.${tw.status}`)}</td><td>PaCO2 &ge; 45 / 55 mmHg</td></tr>
+          <tr><td>${t("casson.paco2")}</td><td>${fmt(tw.paco2Mmhg, 1)} mmHg</td><td>${t("casson.paco2_src")}</td></tr>
+          <tr><td>${t("casson.hct")}</td><td>${fmt(tw.hematocrit * 100, 1)} %</td><td>${t("casson.hct_src")}</td></tr>
+          <tr><td>${t("casson.yield")}</td><td>${fmt(tw.yieldStressPa * 1000, 2)} mPa</td><td>Casson &tau;<sub>y</sub></td></tr>
+          <tr><td>${t("casson.eta_c")}</td><td>${fmt(tw.cassonViscosityPaS * 1000, 2)} mPa&middot;s</td><td>Casson &eta;<sub>c</sub></td></tr>
+          <tr><td>${t("casson.visc_high")}</td><td>${fmt(tw.viscosityHighShearPaS * 1000, 2)} mPa&middot;s</td><td>&gamma;&#775; = 100 s<sup>-1</sup></td></tr>
+          <tr><td>${t("casson.visc_low")}</td><td>${fmt(tw.viscosityLowShearPaS * 1000, 2)} mPa&middot;s</td><td>&gamma;&#775; = 1 s<sup>-1</sup></td></tr>
+          <tr><td>${t("casson.relative")}</td><td>${fmt(tw.relativeViscosity, 3)}x</td><td>${t("casson.baseline")}</td></tr>
+        </table>
+        <div style="margin-top:6px; font-size:11px; opacity:0.8;">&radic;&tau; = &radic;&tau;<sub>y</sub> + &radic;(&eta;<sub>c</sub>&middot;&gamma;&#775;) &mdash; ${t("casson.note")}</div>
       `;
     } else if (s.panel === "provenance") {
       this.ensureProvenanceLoaded();

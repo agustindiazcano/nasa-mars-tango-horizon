@@ -121,7 +121,9 @@ export class MissionStore {
   terrain?: TerrainIdentity;
   metS = 1420; // 00:23:40 into EVA
   simScale = 1;
-  povMode: "1st" | "3rd" | "iso" = "1st";
+  povMode: "1st" | "3rd" | "iso" | "cinematic" = "1st";
+  /** Active cinematic shot (CAM-1..CAM-5) when `povMode` is "cinematic". */
+  cinematicCam = 1;
   layer: LayerId = "optical";
   panel: PanelId = "none";
   hudVisible = true;
