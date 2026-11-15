@@ -4,9 +4,9 @@ import * as THREE from "three";
 export type RescueSkillId = "descend" | "secure" | "winch";
 
 export const RESCUE_SKILL_DURATION_S: Readonly<Record<RescueSkillId, number>> = {
-  descend: 10,
-  secure: 8,
-  winch: 12,
+  descend: 8,
+  secure: 6,
+  winch: 8,
 };
 
 export type StretcherState = "stowed" | "lowering" | "loaded";
