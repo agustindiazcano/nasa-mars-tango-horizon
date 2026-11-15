@@ -9,7 +9,6 @@ const envCandidates = [
   resolve(process.cwd(), ".env"),
   resolve(process.cwd(), "../.env"),
   fileURLToPath(new URL("../../.env", import.meta.url)),
-  "C:/projects/projects-github-agustindiazcano/nasa-mars-tango-horizon/.env",
 ];
 
 for (const candidate of envCandidates) {
