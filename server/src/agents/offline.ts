@@ -929,36 +929,93 @@ export async function offlineReply(
   }
 
   // 8. Weather & Radiation (WEATHER-RAD)
-  if (/\b(tormenta|storm|temp[eê]te|sturm|tempesta|clima|weather|m[eé]t[eé]o|wetter|meteo|pronost\w*|forecast|solar|sep2017|radiaci[oó]n|radiation|rayonnement|strahlung|radiazione|dosis|dose|polvo|dust|poussi[eè]re|staub|polvere)\b/i.test(q)) {
+  if (/\b(tormenta|storm|temp[eê]te|sturm|tempesta|clima|weather|m[eé]t[eé]o|wetter|meteo|pronost\w*|forecast|solar|sep2017|donki|radiaci[oó]n|radiation|rayonnement|strahlung|radiazione|dosis|dose|polvo|dust|poussi[eè]re|staub|polvere)\b/i.test(q)) {
     const caller = "WEATHER-RAD";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
+    const isRadQuery = /\b(solar|sep2017|donki|radiac\w*|radiation|rayonnement|strahlung|radiazione|dosis|dose)\b/i.test(q);
     const env = await execRead("get_environment", {}, ctx, caller, trace);
-    const evalRes = await execRead("evaluate_eva_weather", { duration_min: 120, return_to_shelter_min: 25 }, ctx, caller, trace);
+    const riskRes = await execRead(
+      "evaluate_environmental_risk",
+      { duration_min: 120, return_to_shelter_min: 25 },
+      ctx,
+      caller,
+      trace,
+    );
+    const evalRes = await execRead(
+      "evaluate_eva_weather",
+      { duration_min: 120, return_to_shelter_min: 25 },
+      ctx,
+      caller,
+      trace,
+    );
+    const docQuery = isRadQuery
+      ? "ALARA radiation SPE shelter NASA-STD-3001 DONKI WSA-Enlil"
+      : "REMS thermal tide dust storm MEDA optical depth solar curtailment";
+    const docs = await execRead("search_docs", { query: docQuery, k: 2 }, ctx, caller, trace);
+    const topDoc =
+      Array.isArray(docs) && docs[0]
+        ? `${docs[0].doc} p.${docs[0].page}`
+        : "NASA-STD-3001_Vol2_RevE p.68";
 
-    if (/\b(solar|sep2017|radiac\w*|radiation|rayonnement|strahlung|radiazione|dosis|dose)\b/i.test(q)) {
+    if (isRadQuery) {
       proposeAction("set_layer", { layer: "radiation" }, ctx, caller, actions, trace);
     }
-    if (evalRes?.verdict !== "go") {
+
+    const combinedVerdict =
+      riskRes?.verdict === "no_go" || evalRes?.verdict === "no_go"
+        ? "no_go"
+        : riskRes?.verdict === "go_with_changes" || evalRes?.verdict === "go_with_changes"
+          ? "go_with_changes"
+          : "go";
+    const maneuvers: string[] = Array.from(
+      new Set([
+        ...(Array.isArray(riskRes?.recommended_maneuvers) ? riskRes.recommended_maneuvers : []),
+        ...(Array.isArray(evalRes?.maneuvers) ? evalRes.maneuvers : []),
+      ]),
+    );
+
+    if (combinedVerdict !== "go") {
+      const onsetS = riskRes?.time_to_storm_onset_s;
+      const etaTxt = onsetS !== null && onsetS !== undefined ? ` onset=${onsetS}s` : "";
       const msg = pick(lang, {
-        es: `Clima ${evalRes.verdict}: q90 tau=${evalRes.worst_q90_tau}. Maniobras: ${evalRes.maneuvers.join(", ")}`,
-        en: `Weather ${evalRes.verdict}: q90 tau=${evalRes.worst_q90_tau}. Maneuvers: ${evalRes.maneuvers.join(", ")}`,
-        fr: `Météo ${evalRes.verdict} : q90 tau=${evalRes.worst_q90_tau}. Manœuvres : ${evalRes.maneuvers.join(", ")}`,
-        de: `Wetter ${evalRes.verdict}: q90 tau=${evalRes.worst_q90_tau}. Maßnahmen: ${evalRes.maneuvers.join(", ")}`,
-        it: `Meteo ${evalRes.verdict}: q90 tau=${evalRes.worst_q90_tau}. Manovre: ${evalRes.maneuvers.join(", ")}`,
+        es: `Clima ${combinedVerdict}: tau=${env.tau.toFixed(2)}${etaTxt}. Maniobras: ${maneuvers.join(", ")} (${topDoc})`,
+        en: `Weather ${combinedVerdict}: tau=${env.tau.toFixed(2)}${etaTxt}. Maneuvers: ${maneuvers.join(", ")} (${topDoc})`,
+        fr: `Météo ${combinedVerdict} : tau=${env.tau.toFixed(2)}${etaTxt}. Manœuvres : ${maneuvers.join(", ")} (${topDoc})`,
+        de: `Wetter ${combinedVerdict}: tau=${env.tau.toFixed(2)}${etaTxt}. Maßnahmen: ${maneuvers.join(", ")} (${topDoc})`,
+        it: `Meteo ${combinedVerdict}: tau=${env.tau.toFixed(2)}${etaTxt}. Manovre: ${maneuvers.join(", ")} (${topDoc})`,
       });
-      proposeAction("show_alert", { level: evalRes.verdict === "no_go" ? "crit" : "warn", text: msg.slice(0, 140) }, ctx, caller, actions, trace);
+      proposeAction(
+        "show_alert",
+        {
+          level: combinedVerdict === "no_go" ? "crit" : "warn",
+          text: msg.slice(0, 140),
+          source: topDoc,
+        },
+        ctx,
+        caller,
+        actions,
+        trace,
+      );
     }
 
+    const onsetSuffix =
+      riskRes?.time_to_storm_onset_s !== null && riskRes?.time_to_storm_onset_s !== undefined
+        ? `, onset ${riskRes.time_to_storm_onset_s} s`
+        : "";
+    const doseSuffix =
+      riskRes?.projected_eva_dose_ugy !== undefined
+        ? `, EVA ${riskRes.projected_eva_dose_ugy} uGy`
+        : "";
     return {
       speech: pick(lang, {
-        es: `Opacidad tau ${env.tau.toFixed(2)}, dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h, evaluación ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
-        en: `Dust tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} uGy/h, EVA verdict ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
-        fr: `Opacité tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h, verdict EVA ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
-        de: `Staub-Tau ${env.tau.toFixed(2)}, Dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h, EVA-Urteil ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
-        it: `Opacità tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h, verdetto EVA ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
+        es: `Opacidad tau ${env.tau.toFixed(2)}, dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h${onsetSuffix}${doseSuffix}, evaluación ${combinedVerdict} (q90=${evalRes.worst_q90_tau}; ${topDoc}).`,
+        en: `Dust tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} uGy/h${onsetSuffix}${doseSuffix}, EVA verdict ${combinedVerdict} (q90=${evalRes.worst_q90_tau}; ${topDoc}).`,
+        fr: `Opacité tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h${onsetSuffix}${doseSuffix}, verdict EVA ${combinedVerdict} (q90=${evalRes.worst_q90_tau} ; ${topDoc}).`,
+        de: `Staub-Tau ${env.tau.toFixed(2)}, Dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h${onsetSuffix}${doseSuffix}, EVA-Urteil ${combinedVerdict} (q90=${evalRes.worst_q90_tau}; ${topDoc}).`,
+        it: `Opacità tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h${onsetSuffix}${doseSuffix}, verdetto EVA ${combinedVerdict} (q90=${evalRes.worst_q90_tau}; ${topDoc}).`,
       }),
       actions,
       trace,

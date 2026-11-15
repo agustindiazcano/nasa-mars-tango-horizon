@@ -31,6 +31,7 @@ Spoken replies: 25 words or fewer, concise radio style.`,
       "get_environment",
       "get_storm_forecast",
       "evaluate_eva_weather",
+      "evaluate_environmental_risk",
       "list_units",
       "get_terrain_at",
       "get_localization_and_lidar",
@@ -76,13 +77,16 @@ Cite the document name and page for every limit. Only propose operational adviso
       "show_route",
       "deploy_beacons",
       "get_environment",
+      "get_storm_forecast",
       "evaluate_eva_weather",
+      "evaluate_environmental_risk",
+      "search_docs",
       "show_alert",
     ],
     system: `You plan safe EVA traverses over Gale Crater terrain using HiRISE 1 m/px MRL, UWB ToF ranging, and 3D LiDAR scans.
 Use plan_route and show_route to compute distance, time, O2 use, and radiation dose.
 In low visibility or emergencies, use deploy_beacons to drop non-pyrotechnic solid-state LED/laser + UWB breadcrumb beacons along the return corridor.
-Check terrain slope and weather go/no-go before approving routes. 35 words or fewer.`,
+Check terrain slope, get_storm_forecast, evaluate_environmental_risk, and search_docs (cite doc and page for storm/radiation limits) before approving routes. 35 words or fewer.`,
   },
   SCIENCE: {
     name: "SCIENCE",
@@ -95,9 +99,18 @@ Any vein detection must be stated as a "vein candidate" requiring spectrometer c
   "WEATHER-RAD": {
     name: "WEATHER-RAD",
     tier: "medium",
-    tools: ["get_environment", "get_storm_forecast", "evaluate_eva_weather", "deploy_beacons", "search_docs", "show_alert"],
-    system: `You monitor Martian weather and space radiation using REMS, RAD, and the 3-sol statistical storm nowcast.
-Use evaluate_eva_weather to state go/no-go verdicts and concrete maneuvers with exact numbers, and deploy_beacons if dust opacity threatens crew return visibility. 40 words or fewer.`,
+    tools: [
+      "get_environment",
+      "get_storm_forecast",
+      "evaluate_eva_weather",
+      "evaluate_environmental_risk",
+      "deploy_beacons",
+      "search_docs",
+      "show_alert",
+    ],
+    system: `You monitor Martian weather and space radiation using REMS, MEDA, RAD, DONKI, and the 3-sol statistical storm nowcast.
+Always call evaluate_environmental_risk (and evaluate_eva_weather when checking forecast quantiles) plus search_docs to verify operational limits.
+State go/no-go verdicts, exact SI ETAs (storm onset, solar margin, battery autonomy, projected EVA dose), concrete maneuvers, and cite (doc, page) from search_docs. Use show_alert for warnings/aborts and deploy_beacons if dust threatens return visibility. 45 words or fewer.`,
   },
   MAINTENANCE: {
     name: "MAINTENANCE",
@@ -197,7 +210,8 @@ export function formatBaseInput(text: string, ctx: MissionContext): string {
   const targets = ctx.targets?.length
     ? ctx.targets.map((t) => `${t.id}(${t.kind},${t.distance_m}m)`).join(", ")
     : "none";
-  return `${text}\n[Mission snapshot: fleet=${fleet}; targets=${targets}; env tau=${ctx.env.tau}, wind_ms=${ctx.env.wind_ms}]`;
+  const sepTag = ctx.donki_alert?.active_sep ? ", donki_sep=active" : "";
+  return `${text}\n[Mission snapshot: fleet=${fleet}; targets=${targets}; env tau=${ctx.env.tau}, wind_ms=${ctx.env.wind_ms}, dose_ugy_h=${ctx.env.dose_rate_ugy_h}${sepTag}]`;
 }
 
 /** True when a leak is active, no pod is on the way yet and the agent reply has no launch_pod: run the deterministic protocol. */
