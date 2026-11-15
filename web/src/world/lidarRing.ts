@@ -16,8 +16,8 @@ function gradientTexture(): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext("2d");
-  if (ctx) {
-    const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  const g = ctx?.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  if (ctx && g) {
     g.addColorStop(0, "rgba(255, 214, 64, 0.04)");
     g.addColorStop(0.8, "rgba(255, 214, 64, 0.14)");
     g.addColorStop(0.93, "rgba(255, 224, 96, 0.5)");
