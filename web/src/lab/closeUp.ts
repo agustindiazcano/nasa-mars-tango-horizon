@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { LabContext } from "./modelLab";
 import { ANIMATIONS, JOINTS, animationPeriod, samplePose, type AnimationName, type JointName } from "./proceduralAstronaut";
+import { attachShoulderPatches } from "../world/shoulderPatches";
 import { buildRigidAstronautRig, type RigidAstronautRig } from "./rigidAstronautRig";
 
 const RIGID_X = -0.9;
@@ -79,6 +80,7 @@ export async function initCloseUp(ctx: LabContext, container: HTMLElement): Prom
   const rigBox = new THREE.Box3().setFromObject(rig.mesh);
   rig.root.position.y = -rigBox.min.y;
   stage.add(rig.root);
+  attachShoulderPatches(rig.root, { arms: { left: rig.bones.upperArmL, right: rig.bones.upperArmR } });
 
   // Skinned reference.
   const animGltf = await ctx.loadGltf("astronaut-animated");
@@ -87,6 +89,8 @@ export async function initCloseUp(ctx: LabContext, container: HTMLElement): Prom
   refRoot.add(ref);
   refRoot.position.set(ANIMATED_X, 0, 0);
   stage.add(refRoot);
+  refRoot.updateMatrixWorld(true);
+  attachShoulderPatches(ref);
   const mixer = new THREE.AnimationMixer(ref);
   const refActions = new Map(animGltf.animations.map((c) => [c.name, mixer.clipAction(c)]));
   let refActive: THREE.AnimationAction | null = null;
