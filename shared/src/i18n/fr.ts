@@ -151,6 +151,10 @@ export const fr: Record<Key, string> = {
   "science.vein_disclaimer": "Signature visuelle de veine uniquement ; la composition minérale exige une confirmation spectrométrique",
   "science.hydration_disclaimer": "Prédit l'indice d'hydrogène minéral proche de la surface (rapport DAN sans dimension), pas l'eau liquide, la glace ni % H2O",
   "storm.nowcast_disclaimer": "Prévision statistique locale à court terme ; ne modélise pas la physique globale des tempêtes",
+  "storm.chart.legend": "points : tau observé · ligne : médiane · bande : q10–q90 · pointillé : niveau de tempête",
+  "storm.chart.coverage": "Couverture hors échantillon de la bande à 80 % : {lo}–{hi} %",
+  "storm.chart.verdict": "Verdict EVA à q90",
+  "storm.chart.unavailable": "Données de prévision indisponibles",
 
   // Demo deck
   "deck.title": "PUPITRE DÉMO",

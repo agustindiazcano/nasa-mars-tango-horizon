@@ -151,6 +151,10 @@ export const it: Record<Key, string> = {
   "science.vein_disclaimer": "Solo firma visiva di vena; la composizione minerale richiede conferma spettrometrica",
   "science.hydration_disclaimer": "Predice l'indice di idrogeno minerale vicino alla superficie (rapporto DAN adimensionale), non acqua liquida, ghiaccio o % H2O",
   "storm.nowcast_disclaimer": "Previsione statistica locale a breve termine; non modella la fisica globale delle tempeste",
+  "storm.chart.legend": "punti: tau osservato · linea: mediana · banda: q10–q90 · tratteggio: livello di tempesta",
+  "storm.chart.coverage": "Copertura fuori campione della banda all’80 %: {lo}–{hi} %",
+  "storm.chart.verdict": "Verdetto EVA a q90",
+  "storm.chart.unavailable": "Dati di previsione non disponibili",
 
   // Demo deck
   "deck.title": "PLANCIA DEMO",

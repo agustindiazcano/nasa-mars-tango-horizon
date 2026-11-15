@@ -149,6 +149,10 @@ export const en = {
   "science.vein_disclaimer": "Visual vein signature only; mineral composition requires spectrometer confirmation",
   "science.hydration_disclaimer": "Predicts near-surface mineral-bound hydrogen index (dimensionless DAN ratio), not liquid water, ice, or wt% H2O",
   "storm.nowcast_disclaimer": "Short-range statistical nowcast at one site; does not model global storm physics",
+  "storm.chart.legend": "dots: observed tau · line: median · band: q10–q90 · dashed: storm level",
+  "storm.chart.coverage": "Held-out coverage of the 80 % band: {lo}–{hi} %",
+  "storm.chart.verdict": "EVA verdict at q90",
+  "storm.chart.unavailable": "Forecast data unavailable",
 
   // Demo deck
   "deck.title": "DEMO DECK",

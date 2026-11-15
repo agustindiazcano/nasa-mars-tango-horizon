@@ -151,6 +151,10 @@ export const de: Record<Key, string> = {
   "science.vein_disclaimer": "Nur visuelles Adersignal; Mineralzusammensetzung erfordert Spektrometer-Bestätigung",
   "science.hydration_disclaimer": "Prognostiziert den oberflächennahen mineralgebundenen Wasserstoffindex (dimensionsloses DAN-Verhältnis), kein flüssiges Wasser, Eis oder Gew.-% H2O",
   "storm.nowcast_disclaimer": "Statistische Kurzfrist-Vorhersage für einen Standort; modelliert keine globale Sturmphysik",
+  "storm.chart.legend": "Punkte: beobachtetes Tau · Linie: Median · Band: q10–q90 · gestrichelt: Sturmniveau",
+  "storm.chart.coverage": "Abdeckung des 80-%-Bands außerhalb der Stichprobe: {lo}–{hi} %",
+  "storm.chart.verdict": "EVA-Urteil bei q90",
+  "storm.chart.unavailable": "Vorhersagedaten nicht verfügbar",
 
   // Demo deck
   "deck.title": "DEMO-PULT",
