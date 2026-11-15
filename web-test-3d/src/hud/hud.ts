@@ -4,6 +4,13 @@ import { ASR_LOCALE, fmt, getLang, LANG_NAME, LANGS, onLangChange, setLang, t } 
 import { C, leakTimeline } from "../core/physics";
 import type { AlertLevel, ArmSkillId, LayerId, PanelId, TraceEvent, VotingTraceDetail } from "../core/types";
 import {
+  categorizeProvenanceKey,
+  fetchProvenanceManifest,
+  formatProvenanceUrl,
+  type ProvenanceCategory,
+  type ProvenanceManifest,
+} from "../data/provenance";
+import {
   exportSessionJson,
   exportSessionMarkdown,
   type ChatSessionManager,
@@ -67,6 +74,10 @@ export class TacticalHud {
   private invY = false;
   private lastModalPanel: PanelId = "none";
   private sessionsRenderKey = "";
+  private provenanceRenderKey = "";
+  private provenanceState: "idle" | "loading" | "ready" | "error" = "idle";
+  private provenanceData: ProvenanceManifest | null = null;
+  private provenanceError = "";
 
   constructor(
     private store: MissionStore,
@@ -106,6 +117,7 @@ export class TacticalHud {
     });
     onLangChange(() => {
       this.sessionsRenderKey = "";
+      this.provenanceRenderKey = "";
       this.buildBottomStatic();
       this.renderDynamic();
     });
@@ -746,20 +758,45 @@ export class TacticalHud {
         </table>
       `;
     } else if (s.panel === "provenance") {
-      const rows = Object.entries(C)
+      this.ensureProvenanceLoaded();
+      const datasetCount = this.provenanceData ? Object.keys(this.provenanceData).length : 0;
+      const provRenderKey = [
+        getLang(),
+        this.provenanceState,
+        this.provenanceError,
+        this.terrain.meta.product_id,
+        datasetCount,
+      ].join("|");
+      if (this.lastModalPanel === "provenance" && this.provenanceRenderKey === provRenderKey) {
+        return;
+      }
+      this.provenanceRenderKey = provRenderKey;
+      this.lastModalPanel = "provenance";
+
+      const constRows = Object.entries(C)
         .map(
           ([k, c]) =>
-            `<tr><td>${k}</td><td>${c.value} ${c.unit}</td><td>${c.source}${("assumption" in c && c.assumption) ? " [Design assumption]" : ""}</td></tr>`,
+            `<tr><td>${escapeHtml(k)}</td><td>${escapeHtml(String(c.value))} ${escapeHtml(c.unit)}</td><td>${escapeHtml(c.source)}${("assumption" in c && c.assumption) ? ` [${escapeHtml(t("prov.assumption"))}]` : ""}</td></tr>`,
         )
         .join("");
+
       this.modalEl.innerHTML = `
-        ${closeHdr("DATA & PHYSICS PROVENANCE")}
-        <div style="margin-bottom:6px;">Terrain DEM: <b>${this.terrain.meta.product_id}</b></div>
-        <table class="prov-tbl">
-          <thead><tr><th>Constant</th><th>Value</th><th>${t("prov.source")}</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
+        ${closeHdr(t("prov.title"))}
+        <div style="margin-bottom:6px;">Terrain DEM: <b>${escapeHtml(this.terrain.meta.product_id)}</b></div>
+        ${this.buildProvenanceManifestHtml(datasetCount)}
+        <div class="prov-section">
+          <div class="panel-hdr"><span>${escapeHtml(t("prov.constants"))}</span></div>
+          <table class="prov-tbl">
+            <thead><tr><th>Constant</th><th>Value</th><th>${escapeHtml(t("prov.source"))}</th></tr></thead>
+            <tbody>${constRows}</tbody>
+          </table>
+        </div>
       `;
+
+      this.modalEl.querySelector("#prov-retry")?.addEventListener("click", () => {
+        this.ensureProvenanceLoaded(true);
+        this.renderDynamic();
+      });
     } else if (s.panel === "sessions") {
       const mgr = this.actions.sessions;
       const active = mgr?.getActiveSession() ?? this.buildFallbackSessionSnapshot();
@@ -875,7 +912,7 @@ export class TacticalHud {
       });
     }
 
-    if (s.panel !== "sessions") {
+    if (s.panel !== "sessions" && s.panel !== "provenance") {
       this.lastModalPanel = s.panel;
     }
 
@@ -948,5 +985,111 @@ export class TacticalHud {
     ctx.beginPath();
     ctx.arc(ap.x, ap.y, 4, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  private ensureProvenanceLoaded(force = false): void {
+    if (!force && (this.provenanceState === "loading" || this.provenanceState === "ready")) {
+      return;
+    }
+    this.provenanceState = "loading";
+    this.provenanceError = "";
+    fetchProvenanceManifest()
+      .then((manifest) => {
+        this.provenanceData = manifest;
+        this.provenanceState = "ready";
+        if (this.store.panel === "provenance") {
+          this.renderDynamic();
+        }
+      })
+      .catch((err: unknown) => {
+        this.provenanceState = "error";
+        this.provenanceError = err instanceof Error ? err.message : String(err);
+        if (this.store.panel === "provenance") {
+          this.renderDynamic();
+        }
+      });
+  }
+
+  private buildProvenanceManifestHtml(datasetCount: number): string {
+    const hdr = `<div class="panel-hdr"><span>${escapeHtml(t("prov.datasets", { n: datasetCount }))}</span></div>`;
+    if (this.provenanceState === "loading" || this.provenanceState === "idle") {
+      return `<div class="prov-section">${hdr}<div class="prov-detail">${escapeHtml(t("prov.loading"))}</div></div>`;
+    }
+    if (this.provenanceState === "error" || !this.provenanceData) {
+      return `
+        <div class="prov-section">
+          ${hdr}
+          <div class="alert-banner" style="border-color:var(--warn); background:rgba(255,184,0,0.14); margin:6px 0;">
+            ${escapeHtml(t("prov.unavailable", { msg: this.provenanceError || "unknown error" }))}
+          </div>
+          <button class="hud-btn" data-pointable id="prov-retry">${escapeHtml(t("prov.retry"))}</button>
+        </div>
+      `;
+    }
+
+    const catOrder: Record<ProvenanceCategory, number> = {
+      terrain: 0,
+      env: 1,
+      veins: 2,
+      models: 3,
+      other: 4,
+    };
+    const entries = Object.entries(this.provenanceData).sort(([ka], [kb]) => {
+      const ca = catOrder[categorizeProvenanceKey(ka)];
+      const cb = catOrder[categorizeProvenanceKey(kb)];
+      return ca !== cb ? ca - cb : ka.localeCompare(kb);
+    });
+
+    const rows = entries
+      .map(([key, entry]) => {
+        const cat = categorizeProvenanceKey(key);
+        const safeUrl = formatProvenanceUrl(entry.url);
+        const linkHtml = safeUrl
+          ? `<div class="prov-detail"><a class="prov-link" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(safeUrl)}</a></div>`
+          : "";
+        const notesHtml = entry.notes
+          ? `<div class="prov-detail">${escapeHtml(entry.notes)}</div>`
+          : "";
+        const offset = entry.vertical_datum_offset;
+        const offsetHtml = offset?.summary
+          ? `<div class="prov-offset-note">${escapeHtml(offset.summary)}</div>`
+          : "";
+        return `
+          <tr>
+            <td>
+              <span class="prov-cat">${escapeHtml(cat)}</span>
+              <div><b>${escapeHtml(key)}</b></div>
+              <div class="prov-detail">${escapeHtml(entry.retrieved)}</div>
+            </td>
+            <td>
+              <div><b>${escapeHtml(entry.product_id)}</b></div>
+              <div class="prov-detail">${escapeHtml(entry.transform)}</div>
+              ${notesHtml}
+              ${offsetHtml}
+            </td>
+            <td>
+              <div>${escapeHtml(entry.source)}</div>
+              ${linkHtml}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    return `
+      <div class="prov-section">
+        ${hdr}
+        <table class="prov-tbl">
+          <thead>
+            <tr>
+              <th>${escapeHtml(t("prov.asset"))}</th>
+              <th>${escapeHtml(t("prov.details"))}</th>
+              <th>${escapeHtml(t("prov.source"))}</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
   }
 }

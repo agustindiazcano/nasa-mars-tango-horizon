@@ -137,6 +137,14 @@ const en = {
   "deck.say.4": "Base, check the suit cooling fan trend",
   "deck.say.8": "Rover two, read the sign in front of you",
   "manip.title": "MANIP-1 (HANDS) 4-DOF IK",
+  "prov.title": "DATA & PHYSICS PROVENANCE",
+  "prov.datasets": "Datasets & Models ({n})",
+  "prov.constants": "Physics Constants",
+  "prov.asset": "Asset",
+  "prov.details": "Product & Transform",
+  "prov.loading": "Loading provenance manifest...",
+  "prov.unavailable": "Provenance manifest unavailable: {msg}",
+  "prov.retry": "Retry",
   "prov.source": "Source",
   "prov.assumption": "Design assumption",
 } as const;
@@ -256,6 +264,14 @@ const es: Dict = {
   "deck.say.4": "Base, revisa la tendencia del ventilador del traje",
   "deck.say.8": "Rover dos, lee el cartel que tenes adelante",
   "manip.title": "MANIP-1 (HANDS) BRAZO IK 4-GDL",
+  "prov.title": "PROCEDENCIA DE DATOS Y FISICA",
+  "prov.datasets": "Conjuntos de Datos y Modelos ({n})",
+  "prov.constants": "Constantes Fisicas",
+  "prov.asset": "Recurso",
+  "prov.details": "Producto y Transformacion",
+  "prov.loading": "Cargando manifiesto de procedencia...",
+  "prov.unavailable": "Manifiesto de procedencia no disponible: {msg}",
+  "prov.retry": "Reintentar",
   "prov.source": "Fuente",
   "prov.assumption": "Supuesto de diseno",
 };
@@ -311,6 +327,16 @@ const fr: Dict = {
   "deck.say.3": "Rover deux, que vois-tu?",
   "deck.say.4": "Base, verifie la tendance du ventilateur",
   "deck.say.8": "Rover deux, lis le panneau devant toi",
+  "prov.title": "PROVENANCE DES DONNEES ET PHYSIQUE",
+  "prov.datasets": "Jeux de donnees et modeles ({n})",
+  "prov.constants": "Constantes physiques",
+  "prov.asset": "Ressource",
+  "prov.details": "Produit et transformation",
+  "prov.loading": "Chargement du manifeste de provenance...",
+  "prov.unavailable": "Manifeste de provenance indisponible : {msg}",
+  "prov.retry": "Reessayer",
+  "prov.source": "Source",
+  "prov.assumption": "Hypothese de conception",
 };
 
 const de: Dict = {
@@ -364,6 +390,16 @@ const de: Dict = {
   "deck.say.3": "Rover zwei, was siehst du?",
   "deck.say.4": "Basis, pruefe den Kuehlventilator-Trend",
   "deck.say.8": "Rover zwei, lies das Schild vor dir",
+  "prov.title": "DATEN- & PHYSIK-PROVENIENZ",
+  "prov.datasets": "Datensaetze & Modelle ({n})",
+  "prov.constants": "Physikalische Konstanten",
+  "prov.asset": "Ressource",
+  "prov.details": "Produkt & Transformation",
+  "prov.loading": "Provenienz-Manifest wird geladen...",
+  "prov.unavailable": "Provenienz-Manifest nicht verfuegbar: {msg}",
+  "prov.retry": "Erneut versuchen",
+  "prov.source": "Quelle",
+  "prov.assumption": "Entwurfsannahme",
 };
 
 const it: Dict = {
@@ -417,6 +453,16 @@ const it: Dict = {
   "deck.say.3": "Rover due, cosa vedi?",
   "deck.say.4": "Base, controlla il trend della ventola",
   "deck.say.8": "Rover due, leggi il cartello davanti a te",
+  "prov.title": "PROVENIENZA DATI E FISICA",
+  "prov.datasets": "Dataset e Modelli ({n})",
+  "prov.constants": "Costanti Fisiche",
+  "prov.asset": "Risorsa",
+  "prov.details": "Prodotto e Trasformazione",
+  "prov.loading": "Caricamento manifesto di provenienza...",
+  "prov.unavailable": "Manifesto di provenienza non disponibile: {msg}",
+  "prov.retry": "Riprova",
+  "prov.source": "Fonte",
+  "prov.assumption": "Ipotesi di progetto",
 };
 
 const DICTS: Record<Lang, Dict> = { en, es, fr, de, it };
