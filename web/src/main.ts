@@ -23,6 +23,7 @@ import { CINEMATIC_CAM_IDS, CinematicCams, type CinematicCamId } from "./world/c
 import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
 import { PodBallistics } from "./world/podBallistics";
+import { trackCrew } from "./world/crewTracker";
 import { RocksProc } from "./world/rocksProc";
 import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
@@ -653,6 +654,7 @@ function stepSimulation(dt: number): void {
 
   fleet.update(dt, store.env.tau);
   store.fleet = fleet.snapshots();
+  store.crew = trackCrew(store.crew, astronaut.pos, store.fleet);
 
   podBallistics.updateKeepoutRing(astronaut.pos.x, astronaut.pos.z);
   podBallistics.update(dt, store.podTelemetry);

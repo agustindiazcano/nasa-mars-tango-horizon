@@ -1,5 +1,6 @@
 import type { TerrainIdentity } from "../terrainContract.js";
 import type { Lang } from "../i18n/index.js";
+import type { CrewSnapshot } from "./crew.js";
 
 /** Fleet unit archetypes supported across terrain, flight, and manipulation tasks. */
 export type UnitKind =
@@ -202,6 +203,8 @@ export interface MissionContext {
   /** Cached DONKI / WSA-Enlil solar energetic particle alert state. */
   donki_alert?: DonkiAlert;
   fleet: FleetUnitSnapshot[];
+  /** The four astronauts by callsign: who is where, assignment and status. */
+  crew?: CrewSnapshot[];
   hud: HudSnapshot;
   leak_diameter_m: number;
   /** True once the O2 pod has been launched for the current leak. */
