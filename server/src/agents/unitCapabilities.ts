@@ -1,3 +1,21 @@
+import type { CrewSnapshot, MissionContext } from "./types.js";
+
+/** Overwatch drones hold at least this horizontal distance from every crew member (design assumption). */
+export const DRONE_CREW_STANDOFF_M = 25;
+/** Overwatch altitude band above local terrain and orbit radius band around the target (design assumptions). */
+export const OVERWATCH_ALT_MIN_M = 20;
+export const OVERWATCH_ALT_MAX_M = 30;
+export const OVERWATCH_RADIUS_MIN_M = 25;
+export const OVERWATCH_RADIUS_MAX_M = 40;
+/** The rescue robot is deployed only while its carrier is within this distance of the casualty. */
+export const RESCUE_ROBOT_MAX_CARRIER_DIST_M = 40;
+
+/** Crew positions from the snapshot; falls back to the astronaut as `crew-1` when the client sent none. */
+export function crewOf(ctx: MissionContext): CrewSnapshot[] {
+  if (ctx.crew?.length) return ctx.crew;
+  return [{ id: "crew-1", x: ctx.astronaut.x, z: ctx.astronaut.z, status: "active" }];
+}
+
 /**
  * Catalog of actions a fleet unit can perform on voice orders.
  * Single source of truth for the `unit_action` tool, GUARDIAN capability checks and ROBOT.<id> prompts.

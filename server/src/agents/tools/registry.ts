@@ -1,5 +1,14 @@
 import { z } from "zod";
-import { MAX_SLOPE, UNIT_ACTION_IDS } from "../unitCapabilities.js";
+import {
+  crewOf,
+  DRONE_CREW_STANDOFF_M,
+  MAX_SLOPE,
+  OVERWATCH_ALT_MAX_M,
+  OVERWATCH_ALT_MIN_M,
+  OVERWATCH_RADIUS_MAX_M,
+  OVERWATCH_RADIUS_MIN_M,
+  UNIT_ACTION_IDS,
+} from "../unitCapabilities.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   aimDelivery,
@@ -689,6 +698,116 @@ export const TOOLS: ToolDef[] = [
     description:
       "Proposes hardware FDIR mitigation (switch_redundant, derate, safe_halt, quarantine) for a fault corroborated by evaluate_component_health; vetted by GUARDIAN.",
     run: (a, _c, caller) => ({ type: "isolate_component", args: a, proposedBy: caller }),
+  }),
+  def({
+    name: "get_crew_status",
+    server: "fleet",
+    effect: false,
+    schema: z.object({
+      crew_id: z.string().optional().describe("Optional crew id ('crew-1'..'crew-4'); omit to list the whole crew"),
+    }),
+    description:
+      "Position, status (active|idle|injured|boarded), pit flag, terrain slope and distance to the nearest fleet unit for each crew member (crew-1 is the player astronaut).",
+    run: (a, ctx) => {
+      const rows = crewOf(ctx)
+        .filter((c) => !a.crew_id || c.id === a.crew_id)
+        .map((c) => {
+          const nearest = ctx.fleet
+            .map((u) => ({ id: u.id, d: Math.hypot(u.x - c.x, u.z - c.z) }))
+            .sort((p, q) => p.d - q.d)[0];
+          return {
+            id: c.id,
+            x: Number(c.x.toFixed(1)),
+            z: Number(c.z.toFixed(1)),
+            status: c.status,
+            in_pit: c.in_pit === true,
+            slope_deg: slopeAt(c.x, c.z),
+            ...(nearest ? { nearest_unit: nearest.id, nearest_unit_distance_m: Number(nearest.d.toFixed(1)) } : {}),
+          };
+        });
+      return { rescue_active: ctx.rescue_active === true, crew: rows };
+    },
+  }),
+  def({
+    name: "dispatch_overwatch",
+    server: "fleet",
+    effect: true,
+    schema: z.object({
+      unit_id: z.string().default("drone-1").describe("Drone unit id ('drone-1' or 'drone-2')"),
+      target_id: z.string().optional().describe("Crew id to watch (e.g. 'crew-3'); the drone orbits it, never on top of it"),
+      x: z.number().optional().describe("Orbit center X when no target_id is given"),
+      z: z.number().optional().describe("Orbit center Z when no target_id is given"),
+      radius_m: z
+        .number()
+        .min(OVERWATCH_RADIUS_MIN_M)
+        .max(OVERWATCH_RADIUS_MAX_M)
+        .default(34)
+        .describe(`Orbit radius around the target (${OVERWATCH_RADIUS_MIN_M}-${OVERWATCH_RADIUS_MAX_M} m)`),
+      altitude_m: z
+        .number()
+        .min(OVERWATCH_ALT_MIN_M)
+        .max(OVERWATCH_ALT_MAX_M)
+        .default(25)
+        .describe(`Altitude above local terrain (${OVERWATCH_ALT_MIN_M}-${OVERWATCH_ALT_MAX_M} m)`),
+    }),
+    description: `Sends an overwatch drone to orbit a crew member or a point at ${OVERWATCH_RADIUS_MIN_M}-${OVERWATCH_RADIUS_MAX_M} m radius and ${OVERWATCH_ALT_MIN_M}-${OVERWATCH_ALT_MAX_M} m altitude, always at least ${DRONE_CREW_STANDOFF_M} m horizontally from every crew member; drone-1 and drone-2 take opposite sides. The tool picks the orbit entry waypoint; GUARDIAN re-checks it.`,
+    run: (a, ctx, caller) => {
+      const crew = crewOf(ctx);
+      const target = a.target_id ? crew.find((c) => c.id === a.target_id) : undefined;
+      const cx = target?.x ?? a.x ?? ctx.astronaut.x;
+      const cz = target?.z ?? a.z ?? ctx.astronaut.z;
+      const baseBearing = a.unit_id === "drone-2" ? 180 : 0;
+      let waypoint = { x: cx, z: cz };
+      let bearing = baseBearing;
+      for (let k = 0; k < 24; k++) {
+        const b = baseBearing + k * 15;
+        const rad = (b * Math.PI) / 180;
+        const wp = { x: cx + a.radius_m * Math.cos(rad), z: cz + a.radius_m * Math.sin(rad) };
+        waypoint = wp;
+        bearing = b % 360;
+        if (crew.every((c) => Math.hypot(wp.x - c.x, wp.z - c.z) >= DRONE_CREW_STANDOFF_M)) break;
+      }
+      return {
+        type: "dispatch_overwatch",
+        args: {
+          unit_id: a.unit_id,
+          ...(a.target_id ? { target_id: a.target_id } : {}),
+          center_x: Number(cx.toFixed(1)),
+          center_z: Number(cz.toFixed(1)),
+          radius_m: a.radius_m,
+          altitude_m: a.altitude_m,
+          bearing_deg: bearing,
+          x: Number(waypoint.x.toFixed(1)),
+          z: Number(waypoint.z.toFixed(1)),
+          task: "overwatch",
+        },
+        proposedBy: caller,
+      };
+    },
+  }),
+  def({
+    name: "deploy_rescue_robot",
+    server: "fleet",
+    effect: true,
+    schema: z.object({
+      unit_id: z.string().default("rescue-bot-1").describe("Rescue robot unit id"),
+      target_id: z.string().default("crew-3").describe("Crew id of the casualty"),
+    }),
+    description:
+      "Deploys the rescue robot from its carrier rescue-1 to the casualty (winch arm, tether and stretcher). GUARDIAN requires the carrier within 40 m of the casualty and human confirmation before the robot approaches an injured crew member.",
+    run: (a, ctx, caller) => {
+      const target = crewOf(ctx).find((c) => c.id === a.target_id);
+      return {
+        type: "deploy_rescue_robot",
+        args: {
+          unit_id: a.unit_id,
+          carrier_id: "rescue-1",
+          target_id: a.target_id,
+          ...(target ? { x: Number(target.x.toFixed(1)), z: Number(target.z.toFixed(1)) } : {}),
+        },
+        proposedBy: caller,
+      };
+    },
   }),
   // --- mcp-hud -----------------------------------------------------------
   def({

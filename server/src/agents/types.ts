@@ -51,6 +51,14 @@ export interface FleetUnitSnapshot {
   busy: boolean;
 }
 
+export interface CrewSnapshot {
+  id: string;
+  x: number;
+  z: number;
+  status: "active" | "idle" | "injured" | "boarded";
+  in_pit?: boolean;
+}
+
 export interface VisionTargetMarker {
   id: string;
   kind: string;
@@ -102,6 +110,10 @@ export interface MissionContext {
   base_battery_wh?: number;
   donki_alert?: DonkiAlert;
   fleet: FleetUnitSnapshot[];
+  /** Crew positions (`crew-1`..`crew-4`); drone standoff and rescue rules use them. */
+  crew?: CrewSnapshot[];
+  /** True while the crew rescue scenario runs. */
+  rescue_active?: boolean;
   hud: {
     layer: string;
     panel: string | null;

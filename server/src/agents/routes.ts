@@ -23,6 +23,7 @@ import { normalizeAudioBase64, transcribeAudioDetailed, transcribeAudioWithLLM }
 import { startMcpServers } from "./tools/mcp.js";
 import {
   normalizeLang,
+  type CrewSnapshot,
   type FleetUnitSnapshot,
   type Lang,
   type MissionContext,
@@ -175,6 +176,29 @@ function sanitizeFleet(raw: unknown): FleetUnitSnapshot[] {
     if (typeof id !== "string" || typeof kind !== "string") continue;
     if (!isNum(x) || !isNum(z) || !isNum(battery)) continue;
     out.push({ id, kind, x, z, battery, busy: Boolean(busy) });
+  }
+  return out;
+}
+
+const MAX_CREW = 8;
+const CREW_STATUS = new Set(["active", "idle", "injured", "boarded"]);
+
+function sanitizeCrew(raw: unknown): CrewSnapshot[] {
+  if (!Array.isArray(raw)) return [];
+  const out: CrewSnapshot[] = [];
+  for (const m of raw) {
+    if (out.length >= MAX_CREW) break;
+    if (!m || typeof m !== "object") continue;
+    const { id, x, z, status, in_pit } = m as Record<string, unknown>;
+    if (typeof id !== "string" || !/^crew-\d{1,2}$/.test(id)) continue;
+    if (!isNum(x) || !isNum(z)) continue;
+    out.push({
+      id,
+      x,
+      z,
+      status: typeof status === "string" && CREW_STATUS.has(status) ? (status as CrewSnapshot["status"]) : "active",
+      ...(in_pit === true ? { in_pit: true } : {}),
+    });
   }
   return out;
 }
@@ -431,6 +455,8 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     ...(baseBatteryWh !== undefined && baseBatteryWh >= 0 ? { base_battery_wh: baseBatteryWh } : {}),
     ...(donkiAlert ? { donki_alert: donkiAlert } : {}),
     fleet: sanitizeFleet(c.fleet),
+    ...(Array.isArray(c.crew) ? { crew: sanitizeCrew(c.crew) } : {}),
+    ...(c.rescue_active === true ? { rescue_active: true } : {}),
     hud: {
       layer: String(c.hud?.layer ?? "optical"),
       panel: typeof c.hud?.panel === "string" ? c.hud.panel : null,

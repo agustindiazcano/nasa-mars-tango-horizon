@@ -62,6 +62,9 @@ Spoken replies: 30 words or fewer, natural concise radio style.`,
       "calculate_pod_launch",
       "launch_pod",
       "deploy_beacons",
+      "get_crew_status",
+      "dispatch_overwatch",
+      "deploy_rescue_robot",
       "show_alert",
       ...READ_SUIT,
       "evaluate_crew_biomed",
@@ -144,7 +147,7 @@ State slope, RUL, fault code, cited source, and action in 40 words or fewer.`,
   },
 };
 
-const KNOWN_ROBOT_ID = /^(rover-\d+|scout-\d+|rescue-\d+|drone-\d+|glider-\d+|manip-1)$/;
+const KNOWN_ROBOT_ID = /^(rover-\d+|scout-\d+|rescue-\d+|rescue-bot-\d+|drone-\d+|glider-\d+|manip-1)$/;
 
 const ID_KIND: Record<string, string> = {
   rover: "rover_crew",
@@ -156,6 +159,7 @@ const ID_KIND: Record<string, string> = {
 };
 
 function kindFromId(id: string): string {
+  if (id.startsWith("rescue-bot")) return "rescue_robot";
   return ID_KIND[id.split("-")[0]] ?? "rover_crew";
 }
 
