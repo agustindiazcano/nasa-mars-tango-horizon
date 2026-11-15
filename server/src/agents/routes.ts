@@ -5,6 +5,7 @@ import { chat, llmAvailable } from "../llm/provider.js";
 import { getAgentSpec, handleVoice } from "./hierarchy.js";
 import { offlineReply } from "./offline.js";
 import { runAgent } from "./runAgent.js";
+import { plainSpeech } from "./speech.js";
 import { startMcpServers } from "./tools/mcp.js";
 import {
   normalizeLang,
@@ -148,19 +149,20 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
       const res = await offlineReply(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, route: res.route, offline: true }, "/api/agent/voice");
-      return { ...res, latency_ms };
+      return { ...res, offline: true, latency_ms };
     }
 
     try {
       const r = await handleVoice(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, route: r.route, offline: false }, "/api/agent/voice");
-      return { speech: r.text, actions: r.actions, trace: r.trace, route: r.route, latency_ms };
+      return { speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, route: r.route, offline: false, latency_ms };
     } catch (err) {
       req.log.error(err);
       const res = await offlineReply(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
-      return { ...res, latency_ms };
+      req.log.warn({ latency_ms, route: res.route, offline: true }, "/api/agent/voice fell back to offline rules");
+      return { ...res, offline: true, latency_ms };
     }
   });
 
@@ -176,19 +178,20 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
     if (!llmAvailable()) {
       const res = await offlineReply(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
-      return { speech: res.speech, actions: res.actions, trace: res.trace, latency_ms };
+      return { speech: res.speech, actions: res.actions, trace: res.trace, offline: true, latency_ms };
     }
 
     try {
       const r = await runAgent(spec, b.data.text, ctx);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, agent: spec.name }, "/api/agent/run");
-      return { speech: r.text, actions: r.actions, trace: r.trace, latency_ms };
+      return { speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, offline: false, latency_ms };
     } catch (err) {
       req.log.error(err);
       const res = await offlineReply(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
-      return { speech: res.speech, actions: res.actions, trace: res.trace, latency_ms };
+      req.log.warn({ latency_ms, agent: spec.name, offline: true }, "/api/agent/run fell back to offline rules");
+      return { speech: res.speech, actions: res.actions, trace: res.trace, offline: true, latency_ms };
     }
   });
 
