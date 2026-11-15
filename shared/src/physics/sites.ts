@@ -100,6 +100,15 @@ export const LAUNCHER_PRIMARY_COORD: Readonly<Coord2D> = {
  */
 export const LAUNCH_SITE_COORD: Readonly<Coord2D> = { x: 1202, z: -1022 };
 
+/**
+ * Crew rescue scenario site (world m): center of the designed pit. About 1.66 km from `BASE_ORIGIN`, found by a DEM scan
+ * for a patch with <1.3 m relief and <5 deg slope within 35 m that is reachable from the base over <=18 deg terrain.
+ */
+export const RESCUE_SITE: Readonly<Coord2D> = { x: 1420, z: 648 };
+
+/** Designed pit at `RESCUE_SITE` (no real pit exists in the HiRISE DEM): open shaft, design assumption. */
+export const RESCUE_PIT = { depthM: 4, radiusM: 1.5 } as const;
+
 /** Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` for all 16 base modules. */
 export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
   { id: "hab-1", offsetX: 0, offsetZ: 0, widthM: 12, depthM: 9 },

@@ -11,6 +11,7 @@ import {
   FLEET_START_OFFSETS,
   LAUNCH_SITE_COORD,
   MANIP_TARGETS,
+  RESCUE_SITE,
   MISSION_SITES,
   MISSION_SITES_BY_ID,
   fleetStartPos,
@@ -311,3 +312,84 @@ describe("LAUNCH_SITE_COORD", () => {
   });
 });
 
+describe("RESCUE_SITE", () => {
+  const n = 2048;
+  const meta = JSON.parse(fs.readFileSync(path.join(TERRAIN_DIR, "meta.json"), "utf8")) as {
+    size_m: number;
+    z_min_m: number;
+    z_max_m: number;
+  };
+  const buf = fs.readFileSync(path.join(TERRAIN_DIR, "height_2048.u16"));
+  const raw = new Uint16Array(buf.buffer, buf.byteOffset, n * n);
+  const span = meta.z_max_m - meta.z_min_m;
+  const mpp = meta.size_m / (n - 1);
+  const hAt = (x: number, z: number) => {
+    const i = Math.min(n - 1, Math.max(0, Math.round((x / meta.size_m + 0.5) * (n - 1))));
+    const j = Math.min(n - 1, Math.max(0, Math.round((z / meta.size_m + 0.5) * (n - 1))));
+    return meta.z_min_m + (raw[j * n + i] / 65535) * span;
+  };
+  const slopeDeg = (x: number, z: number) => {
+    const dx = (hAt(x + mpp, z) - hAt(x - mpp, z)) / (2 * mpp);
+    const dz = (hAt(x, z + mpp) - hAt(x, z - mpp)) / (2 * mpp);
+    return (Math.atan(Math.hypot(dx, dz)) * 180) / Math.PI;
+  };
+
+  it("sits 1.5-2.5 km from the base inside the scene", () => {
+    const d = Math.hypot(RESCUE_SITE.x - BASE_ORIGIN.x, RESCUE_SITE.z - BASE_ORIGIN.z);
+    expect(d).toBeGreaterThan(1500);
+    expect(d).toBeLessThan(2500);
+    expect(Math.abs(RESCUE_SITE.x)).toBeLessThan(1900);
+    expect(Math.abs(RESCUE_SITE.z)).toBeLessThan(1900);
+  });
+
+  it("is flat within 35 m on the real HiRISE DEM", () => {
+    let lo = Infinity;
+    let hi = -Infinity;
+    let maxSlope = 0;
+    for (let dx = -35; dx <= 35; dx += 3) {
+      for (let dz = -35; dz <= 35; dz += 3) {
+        if (dx * dx + dz * dz > 35 * 35) continue;
+        const h = hAt(RESCUE_SITE.x + dx, RESCUE_SITE.z + dz);
+        lo = Math.min(lo, h);
+        hi = Math.max(hi, h);
+        maxSlope = Math.max(maxSlope, slopeDeg(RESCUE_SITE.x + dx, RESCUE_SITE.z + dz));
+      }
+    }
+    expect(hi - lo).toBeLessThan(2);
+    expect(maxSlope).toBeLessThan(6);
+  });
+
+  it("is reachable from the base over terrain at or below 18 deg", () => {
+    const cell = 8;
+    const m = Math.floor(meta.size_m / cell);
+    const half = meta.size_m / 2;
+    const center = (i: number) => -half + (i + 0.5) * cell;
+    const idx = (x: number, z: number) => Math.floor((z + half) / cell) * m + Math.floor((x + half) / cell);
+    const passable = new Uint8Array(m * m);
+    for (let j = 0; j < m; j++) for (let i = 0; i < m; i++) passable[j * m + i] = slopeDeg(center(i), center(j)) <= 18 ? 1 : 0;
+    const seen = new Uint8Array(m * m);
+    const queue = [idx(BASE_ORIGIN.x, BASE_ORIGIN.z)];
+    seen[queue[0]] = 1;
+    for (let h = 0; h < queue.length; h++) {
+      const ci = queue[h] % m;
+      const cj = Math.floor(queue[h] / m);
+      for (let dj = -1; dj <= 1; dj++) {
+        for (let di = -1; di <= 1; di++) {
+          const ni = ci + di;
+          const nj = cj + dj;
+          if (ni < 0 || nj < 0 || ni >= m || nj >= m) continue;
+          const k = nj * m + ni;
+          if (seen[k] || !passable[k]) continue;
+          seen[k] = 1;
+          queue.push(k);
+        }
+      }
+    }
+    expect(seen[idx(RESCUE_SITE.x, RESCUE_SITE.z)]).toBe(1);
+    for (let a = 0; a < 8; a++) {
+      const rx = RESCUE_SITE.x + 30 * Math.cos((a * Math.PI) / 4);
+      const rz = RESCUE_SITE.z + 30 * Math.sin((a * Math.PI) / 4);
+      expect(seen[idx(rx, rz)], `approach ring ${a}`).toBe(1);
+    }
+  });
+});
