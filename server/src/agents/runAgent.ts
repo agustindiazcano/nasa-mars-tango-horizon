@@ -4,6 +4,7 @@ import type { ProviderName, Tier } from "../config.js";
 import { asOpenAI, toolsFor } from "./tools/registry.js";
 import { callTool, missionScope, startMcpServers } from "./tools/mcp.js";
 import { review } from "./guardian.js";
+import { crewBrief } from "./unitCapabilities.js";
 import type { Action, ConversationTurn, Lang, MissionContext, ToolDef, TraceEvent } from "./types.js";
 
 export interface AgentSpec {
@@ -188,7 +189,7 @@ export async function runAgent(
   const messages: any[] = [
     {
       role: "system",
-      content: `${spec.system}\nReply language: ${ctx.lang}. Numbers must come from tools; never estimate them. The reply is spoken aloud: plain text only, no Markdown and no LaTeX.`,
+      content: `${spec.system}\n${crewBrief(ctx)}\nReply language: ${ctx.lang}. Numbers must come from tools; never estimate them. The reply is spoken aloud: plain text only, no Markdown and no LaTeX.`,
     },
     ...priorTurns,
     { role: "user", content: input },

@@ -65,17 +65,21 @@ export const BASE_ORIGIN = {
   label: "Mars Base Alpha",
 } as const;
 
-export const AIRLOCK_OFFSET: Readonly<Coord2D> = { x: -9, z: 0 };
+export const AIRLOCK_OFFSET: Readonly<Coord2D> = { x: -17, z: 0 };
 
-/** Primary EVA airlock world coordinate (`hab-1` west hatch). */
+/** Primary EVA airlock world coordinate (west hatch of the main complex `hab-1`). */
 export const AIRLOCK_COORD: Readonly<Coord2D> = {
   x: BASE_ORIGIN.x + AIRLOCK_OFFSET.x,
   z: BASE_ORIGIN.z + AIRLOCK_OFFSET.z,
 };
 
-/** Initial EVA astronaut spawn coordinate near the habitat airlock. */
+/**
+ * Initial EVA astronaut spawn coordinate, south-west of the main complex. From here the base is ahead and the
+ * Starship on the launch pad (`LAUNCH_SITE_COORD`) rises behind it: the sight line to 40 m above the pad clears the
+ * real DEM (min clearance 2 m), 3.5 deg ground slope.
+ */
 export const ASTRONAUT_START: Readonly<Coord2D> = {
-  x: BASE_ORIGIN.x + 28,
+  x: BASE_ORIGIN.x - 40,
   z: BASE_ORIGIN.z + 36,
 };
 
@@ -86,6 +90,9 @@ export const FISSION_COORD: Readonly<Coord2D> = {
   x: BASE_ORIGIN.x + FISSION_OFFSET.x,
   z: BASE_ORIGIN.z + FISSION_OFFSET.z,
 };
+
+/** Idle position of the second base astronaut (`crew-4`) in front of the main complex. */
+export const CREW4_START: Readonly<Coord2D> = { x: BASE_ORIGIN.x + 8, z: BASE_ORIGIN.z + 17 };
 
 export const LAUNCHER_PRIMARY_OFFSET: Readonly<Coord2D> = { x: 55, z: 24 };
 
@@ -100,24 +107,124 @@ export const LAUNCHER_PRIMARY_COORD: Readonly<Coord2D> = {
  */
 export const LAUNCH_SITE_COORD: Readonly<Coord2D> = { x: 1202, z: -1022 };
 
-/** Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` for all 16 base modules. */
+/**
+ * Crew rescue scenario site (world m): center of the designed pit. About 1.66 km from `BASE_ORIGIN`, found by a DEM scan
+ * for a patch with <1.3 m relief and <5 deg slope within 35 m that is reachable from the base over <=18 deg terrain.
+ */
+export const RESCUE_SITE: Readonly<Coord2D> = { x: 1420, z: 648 };
+
+/**
+ * Designed pit at `RESCUE_SITE` (no real pit exists in the HiRISE DEM), design assumption: a 10 m wide, 4 m deep
+ * hole with a 4 m wide access ramp (27 deg) on the side that faces the base, so a ground robot can drive in and out.
+ */
+export const RESCUE_PIT = { depthM: 4, radiusM: 5, rampSlopeDeg: 27, rampHalfWidthM: 2 } as const;
+
+/** Unit vector (x, z) from `RESCUE_SITE` toward `BASE_ORIGIN`: the direction of the pit access ramp. */
+export const RESCUE_PIT_AXIS: Readonly<Coord2D> = (() => {
+  const dx = BASE_ORIGIN.x - RESCUE_SITE.x;
+  const dz = BASE_ORIGIN.z - RESCUE_SITE.z;
+  const d = Math.hypot(dx, dz);
+  return { x: dx / d, z: dz / d };
+})();
+
+/** Horizontal run (m) of the crumbling wall between the floor edge and the rim, measured inward from the outline. */
+export const PIT_WALL_RUN_M = 1.5;
+
+/**
+ * Irregular pit outline: radius as a function of the world angle `theta = atan2(dz, dx)` around `RESCUE_SITE`.
+ * A few seeded sine harmonics give a natural sinkhole shape; the radius is pulled back to `RESCUE_PIT.radiusM`
+ * around the access ramp so the ramp geometry stays valid. The terrain hole shader mirrors this exact function.
+ */
+export const PIT_OUTLINE = {
+  baseM: 6.4,
+  /** Smallest radius away from the ramp: keeps the floor disc of radius `minM - PIT_WALL_RUN_M` (>= 4.1 m) intact. */
+  minM: 5.6,
+  harmonics: [
+    { k: 2, amp: 0.55, phase: 0.7 },
+    { k: 3, amp: 0.5, phase: 2.1 },
+    { k: 5, amp: 0.3, phase: 4.0 },
+    { k: 7, amp: 0.16, phase: 1.3 },
+    { k: 11, amp: 0.08, phase: 5.2 },
+  ],
+  /** Angular distance (rad) from the ramp axis where the outline is fully irregular again: smoothstep(near, far). */
+  rampBlendNearRad: 0.15,
+  rampBlendFarRad: 0.9,
+} as const;
+
+/** World angle (rad) of the ramp axis, `atan2(z, x)`. */
+export const PIT_AXIS_ANGLE = Math.atan2(RESCUE_PIT_AXIS.z, RESCUE_PIT_AXIS.x);
+
+/** Outline radius (m) of the pit rim at world angle `theta` (rad, `atan2(dz, dx)`). Always >= `RESCUE_PIT.radiusM`. */
+export function pitOutlineRadiusAt(theta: number): number {
+  let r: number = PIT_OUTLINE.baseM;
+  for (const h of PIT_OUTLINE.harmonics) r += h.amp * Math.sin(h.k * theta + h.phase);
+  r = Math.max(PIT_OUTLINE.minM, r);
+  const d = Math.abs(Math.atan2(Math.sin(theta - PIT_AXIS_ANGLE), Math.cos(theta - PIT_AXIS_ANGLE)));
+  const t = Math.min(1, Math.max(0, (d - PIT_OUTLINE.rampBlendNearRad) / (PIT_OUTLINE.rampBlendFarRad - PIT_OUTLINE.rampBlendNearRad)));
+  const k = t * t * (3 - 2 * t);
+  return RESCUE_PIT.radiusM + (r - RESCUE_PIT.radiusM) * k;
+}
+
+/**
+ * Height (m, relative to the terrain surface) of the pit floor, crumbling wall or access ramp at a world point:
+ * 0 outside the irregular outline, a smooth wall down to -depth over `PIT_WALL_RUN_M`, -depth on the floor, and a
+ * linear slope inside the ramp lane.
+ */
+export function pitSurfaceOffsetAt(x: number, z: number): number {
+  const { depthM, radiusM, rampSlopeDeg, rampHalfWidthM } = RESCUE_PIT;
+  const dx = x - RESCUE_SITE.x;
+  const dz = z - RESCUE_SITE.z;
+  const dist = Math.hypot(dx, dz);
+  const rim = pitOutlineRadiusAt(Math.atan2(dz, dx));
+  if (dist >= rim) return 0;
+  const s = dx * RESCUE_PIT_AXIS.x + dz * RESCUE_PIT_AXIS.z;
+  const w = -dx * RESCUE_PIT_AXIS.z + dz * RESCUE_PIT_AXIS.x;
+  if (Math.abs(w) > rampHalfWidthM) return pitWallOffset(dist, rim);
+  const tan = Math.tan((rampSlopeDeg * Math.PI) / 180);
+  const sTop = Math.sqrt(radiusM * radiusM - rampHalfWidthM * rampHalfWidthM);
+  if (s >= sTop) return 0;
+  return Math.max(-depthM, -(sTop - s) * tan);
+}
+
+/** Wall and floor profile: -depth up to `rim - PIT_WALL_RUN_M`, then a smooth rise to 0 at the rim. */
+export function pitWallOffset(dist: number, rim: number): number {
+  const edge = rim - PIT_WALL_RUN_M;
+  if (dist <= edge) return -RESCUE_PIT.depthM;
+  const t = Math.min(1, (dist - edge) / PIT_WALL_RUN_M);
+  return -RESCUE_PIT.depthM * (1 - t * t * (3 - 2 * t));
+}
+
+/**
+ * Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` of every base module and annex.
+ * Layout (docs/impl/24): `hab-1` is the `conae-base-mars` complex at `BASE_ORIGIN`; annexes, the solar field, the
+ * antenna farm, connectors and the garage display piece were placed by a scan of the real HiRISE DEM (greedy search
+ * around the desired spots for footprints whose slope is below 4.8 deg on both the DEM and `slope_1024.png`,
+ * non-overlapping with 3 to 6 m of spacing and clear of the fleet start, spawn and launcher zones).
+ */
 export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
-  { id: "hab-1", offsetX: 0, offsetZ: 0, widthM: 12, depthM: 9 },
-  { id: "airlock", offsetX: -9, offsetZ: 0, widthM: 4.5, depthM: 4 },
-  { id: "compute", offsetX: 10, offsetZ: 0, widthM: 4, depthM: 4 },
-  { id: "lab", offsetX: 0, offsetZ: 12, widthM: 8, depthM: 6 },
-  { id: "med", offsetX: 10, offsetZ: 12, widthM: 5, depthM: 4.5 },
-  { id: "greenhouse", offsetX: -14, offsetZ: -12, widthM: 13, depthM: 6 },
-  { id: "eclss", offsetX: 10, offsetZ: -10, widthM: 5.5, depthM: 4.5 },
-  { id: "isru", offsetX: 26, offsetZ: 0, widthM: 7, depthM: 5 },
-  { id: "solar", offsetX: 0, offsetZ: -40, widthM: 48, depthM: 22 },
-  { id: "battery", offsetX: 20, offsetZ: -24, widthM: 6, depthM: 4 },
+  { id: "hab-1", offsetX: 0, offsetZ: 0, widthM: 26, depthM: 24.6 },
+  { id: "airlock", offsetX: -17, offsetZ: 0, widthM: 4.5, depthM: 4 },
+  { id: "compute", offsetX: 17, offsetZ: 0, widthM: 4, depthM: 4 },
+  { id: "lab", offsetX: 3, offsetZ: -24, widthM: 14, depthM: 8.5 },
+  { id: "med", offsetX: 32, offsetZ: -6, widthM: 12, depthM: 11.3 },
+  { id: "greenhouse", offsetX: -28, offsetZ: -24, widthM: 18, depthM: 11.4 },
+  { id: "eclss", offsetX: 22, offsetZ: -18, widthM: 5.5, depthM: 4.5 },
+  { id: "isru", offsetX: 36, offsetZ: -26, widthM: 10, depthM: 8.6 },
+  { id: "solar", offsetX: 0, offsetZ: -52, widthM: 36, depthM: 13 },
+  { id: "battery", offsetX: 22, offsetZ: -34, widthM: 6, depthM: 4 },
   { id: "fission", offsetX: 220, offsetZ: -40, widthM: 5, depthM: 5 },
-  { id: "garage", offsetX: -26, offsetZ: 12, widthM: 11, depthM: 9 },
-  { id: "comms", offsetX: 24, offsetZ: 18, widthM: 3, depthM: 3 },
+  { id: "garage", offsetX: -52, offsetZ: 18, widthM: 20, depthM: 12.6 },
+  { id: "comms", offsetX: 28, offsetZ: 12, widthM: 3, depthM: 3 },
   { id: "launcher-1", offsetX: 55, offsetZ: 24, widthM: 4, depthM: 4 },
   { id: "launcher-2", offsetX: 65, offsetZ: 24, widthM: 4, depthM: 4 },
-  { id: "shelter", offsetX: -7, offsetZ: 7, widthM: 5, depthM: 4 },
+  { id: "shelter", offsetX: -31, offsetZ: 7, widthM: 14, depthM: 5 },
+  // Unselectable parts: antenna farm, garage display piece and the tube connectors to the lab and the medical bay.
+  { id: "antenna-1", offsetX: 46, offsetZ: -6, widthM: 7.4, depthM: 7.1 },
+  { id: "antenna-2", offsetX: 52, offsetZ: 7, widthM: 7.4, depthM: 7.1 },
+  { id: "antenna-3", offsetX: 52, offsetZ: -17, widthM: 7.4, depthM: 7.1 },
+  { id: "garage-display", offsetX: -52, offsetZ: 31, widthM: 3.4, depthM: 6 },
+  { id: "connector-lab", offsetX: 3, offsetZ: -16.05, widthM: 1.8, depthM: 7.4 },
+  { id: "connector-med", offsetX: 19.5, offsetZ: -6, widthM: 13, depthM: 1.8 },
 ];
 
 /** Fleet spawn offsets relative to `BASE_ORIGIN`. */
@@ -126,6 +233,7 @@ export const FLEET_START_OFFSETS: Readonly<Record<string, Readonly<Coord2D>>> = 
   "rover-2": { x: 62, z: 48 },
   "rover-3": { x: 34, z: 42 },
   "rescue-1": { x: -16, z: 24 },
+  "rescue-bot-1": { x: -16, z: 24 },
   "drone-1": { x: 40, z: -30 },
   "drone-2": { x: -60, z: 55 },
   // Legacy alias kept for backward compatibility with existing tests/snapshots

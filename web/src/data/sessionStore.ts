@@ -12,7 +12,7 @@ export const MAX_VOICE_HISTORY_TURNS = 6;
 export const MAX_VOICE_TURN_CHARS = 400;
 export const MAX_TITLE_CHARS = 48;
 
-export type SessionScenario = "none" | "storm" | "sep2017" | "leak";
+export type SessionScenario = "none" | "storm" | "sep2017" | "leak" | "rescue";
 
 export interface SavedTranscriptEntry {
   id: string;

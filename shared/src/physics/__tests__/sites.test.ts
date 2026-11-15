@@ -4,13 +4,22 @@ import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  AIRLOCK_COORD,
   ASTRONAUT_START,
   BASE_MODULE_FOOTPRINTS,
   BASE_ORIGIN,
   CURIOSITY_TRAVERSE,
+  FISSION_COORD,
   FLEET_START_OFFSETS,
   LAUNCH_SITE_COORD,
   MANIP_TARGETS,
+  RESCUE_PIT,
+  RESCUE_PIT_AXIS,
+  RESCUE_SITE,
+  pitSurfaceOffsetAt,
+  pitOutlineRadiusAt,
+  PIT_AXIS_ANGLE,
+  PIT_WALL_RUN_M,
   MISSION_SITES,
   MISSION_SITES_BY_ID,
   fleetStartPos,
@@ -311,3 +320,189 @@ describe("LAUNCH_SITE_COORD", () => {
   });
 });
 
+describe("RESCUE_SITE", () => {
+  const n = 2048;
+  const meta = JSON.parse(fs.readFileSync(path.join(TERRAIN_DIR, "meta.json"), "utf8")) as {
+    size_m: number;
+    z_min_m: number;
+    z_max_m: number;
+  };
+  const buf = fs.readFileSync(path.join(TERRAIN_DIR, "height_2048.u16"));
+  const raw = new Uint16Array(buf.buffer, buf.byteOffset, n * n);
+  const span = meta.z_max_m - meta.z_min_m;
+  const mpp = meta.size_m / (n - 1);
+  const hAt = (x: number, z: number) => {
+    const i = Math.min(n - 1, Math.max(0, Math.round((x / meta.size_m + 0.5) * (n - 1))));
+    const j = Math.min(n - 1, Math.max(0, Math.round((z / meta.size_m + 0.5) * (n - 1))));
+    return meta.z_min_m + (raw[j * n + i] / 65535) * span;
+  };
+  const slopeDeg = (x: number, z: number) => {
+    const dx = (hAt(x + mpp, z) - hAt(x - mpp, z)) / (2 * mpp);
+    const dz = (hAt(x, z + mpp) - hAt(x, z - mpp)) / (2 * mpp);
+    return (Math.atan(Math.hypot(dx, dz)) * 180) / Math.PI;
+  };
+
+  it("sits 1.5-2.5 km from the base inside the scene", () => {
+    const d = Math.hypot(RESCUE_SITE.x - BASE_ORIGIN.x, RESCUE_SITE.z - BASE_ORIGIN.z);
+    expect(d).toBeGreaterThan(1500);
+    expect(d).toBeLessThan(2500);
+    expect(Math.abs(RESCUE_SITE.x)).toBeLessThan(1900);
+    expect(Math.abs(RESCUE_SITE.z)).toBeLessThan(1900);
+  });
+
+  it("is flat within 35 m on the real HiRISE DEM", () => {
+    let lo = Infinity;
+    let hi = -Infinity;
+    let maxSlope = 0;
+    for (let dx = -35; dx <= 35; dx += 3) {
+      for (let dz = -35; dz <= 35; dz += 3) {
+        if (dx * dx + dz * dz > 35 * 35) continue;
+        const h = hAt(RESCUE_SITE.x + dx, RESCUE_SITE.z + dz);
+        lo = Math.min(lo, h);
+        hi = Math.max(hi, h);
+        maxSlope = Math.max(maxSlope, slopeDeg(RESCUE_SITE.x + dx, RESCUE_SITE.z + dz));
+      }
+    }
+    expect(hi - lo).toBeLessThan(2);
+    expect(maxSlope).toBeLessThan(6);
+  });
+
+  it("is reachable from the base over terrain at or below 18 deg", () => {
+    const cell = 8;
+    const m = Math.floor(meta.size_m / cell);
+    const half = meta.size_m / 2;
+    const center = (i: number) => -half + (i + 0.5) * cell;
+    const idx = (x: number, z: number) => Math.floor((z + half) / cell) * m + Math.floor((x + half) / cell);
+    const passable = new Uint8Array(m * m);
+    for (let j = 0; j < m; j++) for (let i = 0; i < m; i++) passable[j * m + i] = slopeDeg(center(i), center(j)) <= 18 ? 1 : 0;
+    const seen = new Uint8Array(m * m);
+    const queue = [idx(BASE_ORIGIN.x, BASE_ORIGIN.z)];
+    seen[queue[0]] = 1;
+    for (let h = 0; h < queue.length; h++) {
+      const ci = queue[h] % m;
+      const cj = Math.floor(queue[h] / m);
+      for (let dj = -1; dj <= 1; dj++) {
+        for (let di = -1; di <= 1; di++) {
+          const ni = ci + di;
+          const nj = cj + dj;
+          if (ni < 0 || nj < 0 || ni >= m || nj >= m) continue;
+          const k = nj * m + ni;
+          if (seen[k] || !passable[k]) continue;
+          seen[k] = 1;
+          queue.push(k);
+        }
+      }
+    }
+    expect(seen[idx(RESCUE_SITE.x, RESCUE_SITE.z)]).toBe(1);
+    for (let a = 0; a < 8; a++) {
+      const rx = RESCUE_SITE.x + 30 * Math.cos((a * Math.PI) / 4);
+      const rz = RESCUE_SITE.z + 30 * Math.sin((a * Math.PI) / 4);
+      expect(seen[idx(rx, rz)], `approach ring ${a}`).toBe(1);
+    }
+  });
+});
+
+describe("RESCUE_PIT access ramp", () => {
+  const at = (sAlong: number, w = 0) => ({
+    x: RESCUE_SITE.x + RESCUE_PIT_AXIS.x * sAlong - RESCUE_PIT_AXIS.z * w,
+    z: RESCUE_SITE.z + RESCUE_PIT_AXIS.z * sAlong + RESCUE_PIT_AXIS.x * w,
+  });
+  const off = (sAlong: number, w = 0) => pitSurfaceOffsetAt(at(sAlong, w).x, at(sAlong, w).z);
+
+  it("points the axis at the base", () => {
+    expect(Math.hypot(RESCUE_PIT_AXIS.x, RESCUE_PIT_AXIS.z)).toBeCloseTo(1, 9);
+    const toBase = { x: BASE_ORIGIN.x - RESCUE_SITE.x, z: BASE_ORIGIN.z - RESCUE_SITE.z };
+    expect(toBase.x * RESCUE_PIT_AXIS.x + toBase.z * RESCUE_PIT_AXIS.z).toBeGreaterThan(1000);
+  });
+
+  it("is 0 outside, the floor at -depth, and a 27 deg slope in the ramp lane", () => {
+    expect(off(RESCUE_PIT.radiusM + 1)).toBe(0);
+    expect(off(-4)).toBe(-RESCUE_PIT.depthM);
+    expect(off(0, 4)).toBe(-RESCUE_PIT.depthM);
+    expect(off(4.5)).toBeGreaterThan(-0.3);
+    const slope = Math.atan((off(2) - off(0)) / 2) * (180 / Math.PI);
+    expect(slope).toBeCloseTo(RESCUE_PIT.rampSlopeDeg, 3);
+    expect(off(-2)).toBeLessThan(off(0));
+    expect(off(-2)).toBeGreaterThan(-RESCUE_PIT.depthM);
+  });
+});
+
+describe("RESCUE_PIT natural outline", () => {
+  const angles = Array.from({ length: 360 }, (_, i) => (i / 360) * Math.PI * 2 - Math.PI);
+
+  it("is irregular, bounded and never smaller than the contract radius", () => {
+    const rs = angles.map(pitOutlineRadiusAt);
+    expect(Math.min(...rs)).toBeGreaterThanOrEqual(RESCUE_PIT.radiusM - 1e-9);
+    expect(Math.max(...rs)).toBeLessThan(8.5);
+    expect(Math.max(...rs) - Math.min(...rs)).toBeGreaterThan(1.2);
+  });
+
+  it("matches the contract radius on the ramp axis and is continuous in angle", () => {
+    expect(pitOutlineRadiusAt(PIT_AXIS_ANGLE)).toBeCloseTo(RESCUE_PIT.radiusM, 9);
+    for (let i = 1; i < angles.length; i++) {
+      expect(Math.abs(pitOutlineRadiusAt(angles[i]) - pitOutlineRadiusAt(angles[i - 1]))).toBeLessThan(0.15);
+    }
+  });
+
+  it("keeps a floor disc of at least 4 m and a wall that rises monotonically to the rim", () => {
+    for (const a of angles) {
+      const rim = pitOutlineRadiusAt(a);
+      const off = (d: number) => pitSurfaceOffsetAt(RESCUE_SITE.x + Math.cos(a) * d, RESCUE_SITE.z + Math.sin(a) * d);
+      if (Math.abs(rim * Math.sin(a - PIT_AXIS_ANGLE)) > RESCUE_PIT.rampHalfWidthM + 1.0) {
+        expect(off(rim - PIT_WALL_RUN_M - 0.01)).toBe(-RESCUE_PIT.depthM);
+        expect(off(rim - PIT_WALL_RUN_M / 2)).toBeGreaterThan(-RESCUE_PIT.depthM);
+        expect(off(rim - PIT_WALL_RUN_M / 2)).toBeLessThan(0);
+        expect(off(rim + 0.01)).toBe(0);
+      }
+    }
+  });
+});
+
+describe("Base layout with models (docs/impl/24)", () => {
+  const assets = loadTerrainAssets();
+  const rect = (m: (typeof BASE_MODULE_FOOTPRINTS)[number]) => ({
+    x0: m.offsetX - m.widthM / 2,
+    x1: m.offsetX + m.widthM / 2,
+    z0: m.offsetZ - m.depthM / 2,
+    z1: m.offsetZ + m.depthM / 2,
+  });
+
+  it("keeps module footprints from overlapping each other (touching edges allowed)", () => {
+    const mods = BASE_MODULE_FOOTPRINTS.filter((m) => m.id !== "fission");
+    for (let i = 0; i < mods.length; i++) {
+      for (let j = i + 1; j < mods.length; j++) {
+        const a = rect(mods[i]);
+        const b = rect(mods[j]);
+        const overlapX = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
+        const overlapZ = Math.min(a.z1, b.z1) - Math.max(a.z0, b.z0);
+        expect(overlapX > 0.05 && overlapZ > 0.05, `${mods[i].id} overlaps ${mods[j].id}`).toBe(false);
+      }
+    }
+  });
+
+  it("keeps everything except the fission unit outside its 100 m keep-out and the airlock beside the main complex", () => {
+    for (const m of BASE_MODULE_FOOTPRINTS) {
+      if (m.id === "fission") continue;
+      const d = Math.hypot(BASE_ORIGIN.x + m.offsetX - FISSION_COORD.x, BASE_ORIGIN.z + m.offsetZ - FISSION_COORD.z);
+      expect(d, m.id).toBeGreaterThan(100);
+    }
+    const hab = BASE_MODULE_FOOTPRINTS.find((m) => m.id === "hab-1")!;
+    expect(hab.offsetX).toBe(0);
+    expect(hab.offsetZ).toBe(0);
+    expect(AIRLOCK_COORD.x).toBeLessThan(BASE_ORIGIN.x - hab.widthM / 2);
+  });
+
+  it("gives the astronaut spawn a sight line to the launch pad skyline over the real DEM", () => {
+    const { heightAt } = assets;
+    const padY = heightAt(LAUNCH_SITE_COORD.x, LAUNCH_SITE_COORD.z);
+    const y0 = heightAt(ASTRONAUT_START.x, ASTRONAUT_START.z) + 1.7;
+    const y1 = padY + 40;
+    let minClear = Infinity;
+    for (let t = 0.02; t < 0.99; t += 0.01) {
+      const x = ASTRONAUT_START.x + (LAUNCH_SITE_COORD.x - ASTRONAUT_START.x) * t;
+      const z = ASTRONAUT_START.z + (LAUNCH_SITE_COORD.z - ASTRONAUT_START.z) * t;
+      minClear = Math.min(minClear, y0 + (y1 - y0) * t - heightAt(x, z));
+    }
+    expect(minClear).toBeGreaterThan(0.5);
+  });
+});

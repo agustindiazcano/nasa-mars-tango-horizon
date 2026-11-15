@@ -1,6 +1,6 @@
-import { BASE_ORIGIN, LAUNCH_SITE_COORD, MISSION_SITES } from "@th/shared";
+import { BASE_ORIGIN } from "@th/shared";
+import { CartographyRenderer, MAP_HEIGHT, MAP_WIDTH } from "./cartography";
 import { formatCoordinates } from "../world/terrainValidation";
-import { hydrationRgb } from "../world/terrainRasters";
 import { estimateCassonTwin } from "../world/cassonTwin";
 import { ASR_LOCALE, fmt, getLang, LANGS, onLangChange, setLang, t } from "@th/shared";
 import { C, leakTimeline } from "@th/shared";
@@ -23,6 +23,7 @@ import type { VoiceController } from "../voice/voiceController";
 import { BASE_MODULES } from "../world/baseProc";
 import type { TerrainProc } from "../world/terrainProc";
 import type { DeckButton } from "./demoDeck";
+import { crewDistanceM } from "../world/crewTracker";
 import {
   buildChartModel,
   drawStormChart,
@@ -44,7 +45,7 @@ export interface HudActions {
   recenterRemote(): void;
   setRemoteInvert(invX: boolean, invY: boolean): void;
   onToggleDeck(): void;
-  startScenario?(id: "storm" | "sep2017" | "leak"): void;
+  startScenario?(id: "storm" | "sep2017" | "leak" | "rescue"): void;
   sessions?: ChatSessionManager;
 }
 
@@ -70,7 +71,7 @@ function downloadTextFile(filename: string, content: string, mimeType: string): 
 }
 
 function scenarioLabel(value: string): string {
-  const keys: Record<string, string> = { none: "scenario.none", storm: "deck.5.label", sep2017: "deck.6.label", leak: "scenario.leak" };
+  const keys: Record<string, string> = { none: "scenario.none", storm: "deck.5.label", sep2017: "deck.6.label", leak: "scenario.leak", rescue: "scenario.rescue" };
   return keys[value] ? t(keys[value]) : value;
 }
 
@@ -93,8 +94,11 @@ export class TacticalHud {
   private qrUrlEl: HTMLElement;
   private qrContainer: HTMLElement;
   private modalEl: HTMLElement;
+  private mapCanvas: HTMLCanvasElement | null = null;
+  private cartography: CartographyRenderer | null = null;
   private leftEl: HTMLElement;
   private rightEl: HTMLElement;
+  private crewEl: HTMLElement;
   private topEl: HTMLElement;
   private bottomEl: HTMLElement;
   private confirmEl: HTMLElement;
@@ -109,6 +113,7 @@ export class TacticalHud {
   private provenanceData: ProvenanceManifest | null = null;
   private provenanceError = "";
   private stormData: StormForecastData | null = null;
+  private crewKey = "";
   private stormState: "loading" | "ready" | "error" = "loading";
 
   constructor(
@@ -126,6 +131,7 @@ export class TacticalHud {
       <div id="hud-confirm" class="hud-panel hud-confirm" data-level="warn" style="display:none"></div>
       <div id="hud-left" class="hud-panel hud-left"></div>
       <div id="hud-right" class="hud-panel hud-right"></div>
+      <div id="hud-crew" class="hud-panel hud-crew"></div>
       <div id="hud-modal" class="hud-panel hud-modal" style="display:none"></div>
       <div id="hud-qr" class="hud-panel hud-modal" style="display:none; width:300px; text-align:center;"></div>
       <div id="hud-bottom" class="hud-panel hud-bottom"></div>
@@ -135,6 +141,7 @@ export class TacticalHud {
     this.confirmEl = document.getElementById("hud-confirm")!;
     this.leftEl = document.getElementById("hud-left")!;
     this.rightEl = document.getElementById("hud-right")!;
+    this.crewEl = document.getElementById("hud-crew")!;
     this.modalEl = document.getElementById("hud-modal")!;
     this.qrContainer = document.getElementById("hud-qr")!;
     this.bottomEl = document.getElementById("hud-bottom")!;
@@ -565,6 +572,7 @@ export class TacticalHud {
     `;
 
     this.drawStormCanvas();
+    this.renderCrew();
 
     // Bottom live controls
     this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-layer]").forEach((b) => {
@@ -592,6 +600,7 @@ export class TacticalHud {
     this.topEl.style.display = hudVis ? "flex" : "none";
     this.leftEl.style.display = hudVis ? "block" : "none";
     this.rightEl.style.display = hudVis ? "block" : "none";
+    this.crewEl.style.display = hudVis ? "block" : "none";
     this.bottomEl.style.display = hudVis ? "flex" : "none";
     const restorePill = document.getElementById("hud-restore-pill");
     if (restorePill) {
@@ -666,6 +675,26 @@ export class TacticalHud {
     }
 
     this.renderModal();
+  }
+
+  /** Bottom-left roster: the four astronauts by callsign with assignment, location, status and distance to base. */
+  private renderCrew(): void {
+    const rows = this.store.crew
+      .map((c) => {
+        const d = crewDistanceM(c, BASE_ORIGIN);
+        const level = c.status === "nominal" ? "good" : c.status === "recovering" ? "warn" : "crit";
+        const badge = t(`crew.assignment.${c.assignment}`);
+        return `<div class="crew-row ${level}">
+          <div class="crew-name"><span class="crew-dot"></span>${escapeHtml(c.name)}<span class="crew-badge">${escapeHtml(badge)}</span></div>
+          <div class="crew-line">${escapeHtml(t(`crew.location.${c.location}`))} · ${escapeHtml(t(`crew.status.${c.status}`))}</div>
+          <div class="crew-line">${escapeHtml(t("crew.dist", { m: fmt(d, 0) }))}</div>
+        </div>`;
+      })
+      .join("");
+    const key = rows;
+    if (key === this.crewKey) return;
+    this.crewKey = key;
+    this.crewEl.innerHTML = `<div class="panel-hdr"><span>${t("crew.title")}</span><span>${this.store.crew.length}</span></div>${rows}`;
   }
 
   private stormBlockHtml(tau: number): string {
@@ -831,6 +860,7 @@ export class TacticalHud {
     }
 
     this.modalEl.style.display = "block";
+    this.modalEl.classList.toggle("hud-modal-map", s.panel === "map");
     const closeHdr = (title: string) => `
       <div class="panel-hdr">
         <span>${title}</span>
@@ -898,7 +928,7 @@ export class TacticalHud {
           (u) => `
           <tr>
             <td><b>${u.id}</b></td>
-            <td>${escapeHtml(["rover_crew", "rover_science", "rover_cargo", "scout", "rescue", "drone", "glider", "manipulator"].includes(u.kind) ? t(`fleet.${u.kind}`) : u.kind)}</td>
+            <td>${escapeHtml(["rover_crew", "rover_science", "rover_cargo", "scout", "rescue", "drone", "glider", "manipulator", "robot", "rescue_robot"].includes(u.kind) ? t(`fleet.${u.kind}`) : u.kind)}</td>
             <td>(${fmt(u.x, 0)}, ${fmt(u.z, 0)})</td>
             <td>${fmt(u.battery * 100, 0)}%</td>
             <td>${escapeHtml(taskLabel(u.task))}</td>
@@ -938,25 +968,34 @@ export class TacticalHud {
       const uncHere = this.terrain.hydrationUncAt(s.astronaut.x, s.astronaut.z);
       this.modalEl.innerHTML = `
         ${closeHdr(t("map.title"))}
-        <div class="hud-map-layout" style="display:flex; gap:12px; align-items:flex-start;">
-          <canvas id="minimap-canvas" width="260" height="260" style="border:1px solid var(--border); border-radius:6px;"></canvas>
-          <div style="font-size:11px;">
-            <div>${t("map.layer")}: <b>${t(`hud.layer.${s.layer}`)}${s.layer === "hydration" && this.terrain.hydrationUncMode ? ` (${t("hud.hydration_unc")})` : ""}</b></div>
-            <div>${t("map.grid")}: 4000×4000 m (${this.terrain.realRastersLoaded ? t("map.real", { n: 1024 }) : t("map.fallback", { n: 256 })})</div>
-            <div>${t("map.astronaut")}</div>
-            <div>${t("map.fleet")}</div>
-            <div>${t("map.circles", { n: this.terrain.danPoints.length })}: ${escapeHtml(t("hud.dan_stations"))}</div>
-            <div>${t("map.keepout")}</div>
-            ${s.layer === "hydration" ? `<div style="margin-top:6px;"><b>${escapeHtml(t("hud.hydration_index"))}:</b> ${fmt(hydHere, 2)} ± ${fmt(uncHere, 2)}<br/><span style="opacity:0.8;">${escapeHtml(t("hud.hydration_note"))}</span><br/><span style="opacity:0.8;">${t("common.range")} ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}</span><div style="margin-top:4px;"><button class="hud-btn ${this.terrain.hydrationUncMode ? "active" : ""}" data-pointable id="map-hyd-unc">${escapeHtml(t("hud.layer.hydration_unc"))}</button></div></div>` : ""}
-            ${s.activeRoute ? `<div style="margin-top:8px;"><b>${t("map.route")} (${s.activeRoute.algorithm})</b><br/>${t("map.distance")}: ${fmt(s.activeRoute.distanceM, 0)} m<br/>${t("map.time")}: ${fmt(s.activeRoute.timeS / 60, 1)} min<br/>O2: ${fmt(s.activeRoute.o2Kg * 1000, 0)} g</div>` : ""}
-          </div>
+        <div id="map-host"></div>
+        <div class="hud-map-foot">
+          <span>${t("map.circles", { n: this.terrain.danPoints.length })}: ${escapeHtml(t("hud.dan_stations"))}</span>
+          ${s.activeRoute ? `<span><b>${t("map.route")} (${s.activeRoute.algorithm})</b>: ${fmt(s.activeRoute.distanceM, 0)} m, ${fmt(s.activeRoute.timeS / 60, 1)} min, O2 ${fmt(s.activeRoute.o2Kg * 1000, 0)} g</span>` : ""}
+          ${s.layer === "hydration" ? `<span><b>${escapeHtml(t("hud.hydration_index"))}:</b> ${fmt(hydHere, 2)} ± ${fmt(uncHere, 2)} (${t("common.range")} ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}) <button class="hud-btn ${this.terrain.hydrationUncMode ? "active" : ""}" data-pointable id="map-hyd-unc">${escapeHtml(t("hud.layer.hydration_unc"))}</button></span>` : ""}
         </div>
       `;
       this.modalEl.querySelector("#map-hyd-unc")?.addEventListener("click", () => {
         this.terrain.setHydrationUncMode(!this.terrain.hydrationUncMode);
         this.store.notify();
       });
-      this.drawMinimap(document.getElementById("minimap-canvas") as HTMLCanvasElement);
+      // The base map is rendered once and cached; every update only repaints the moving symbols.
+      if (!this.mapCanvas) {
+        this.mapCanvas = document.createElement("canvas");
+        this.mapCanvas.width = MAP_WIDTH;
+        this.mapCanvas.height = MAP_HEIGHT;
+        this.mapCanvas.className = "hud-map-canvas";
+        this.cartography = new CartographyRenderer(this.terrain);
+      }
+      this.modalEl.querySelector("#map-host")!.appendChild(this.mapCanvas);
+      const mapCtx = this.mapCanvas.getContext("2d");
+      if (mapCtx && this.cartography) {
+        this.cartography.draw(
+          mapCtx,
+          { fleet: s.fleet, crew: s.crew, astronaut: s.astronaut },
+          s.activeRoute ? { algorithm: s.activeRoute.algorithm, points: s.activeRoute.points } : null,
+        );
+      }
     } else if (s.panel === "base") {
       const mod = BASE_MODULES.find((m) => m.id === s.selectedBaseModuleId) ?? BASE_MODULES[0];
       const solarKw = 18 * s.solarTransmission;
@@ -1235,6 +1274,7 @@ export class TacticalHud {
               <button class="quick-card-btn" data-pointable data-qm-scen="storm">${t("deck.5.label")}</button>
               <button class="quick-card-btn" data-pointable data-qm-scen="sep2017">${t("deck.6.label")}</button>
               <button class="quick-card-btn" data-pointable data-qm-scen="leak">${t("scenario.leak")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-scen="rescue">${t("scenario.rescue")}</button>
             </div>
           </div>
         </div>
@@ -1257,7 +1297,7 @@ export class TacticalHud {
       );
       this.modalEl.querySelectorAll<HTMLButtonElement>("[data-qm-scen]").forEach((b) =>
         b.addEventListener("click", () => {
-          this.actions.startScenario?.(b.dataset.qmScen as "storm" | "sep2017" | "leak");
+          this.actions.startScenario?.(b.dataset.qmScen as "storm" | "sep2017" | "leak" | "rescue");
           s.setPanel("none");
         }),
       );
@@ -1296,107 +1336,6 @@ export class TacticalHud {
     }
 
     this.modalEl.querySelector("#modal-close")?.addEventListener("click", () => s.setPanel("none"));
-  }
-
-  private drawMinimap(canvas: HTMLCanvasElement): void {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const w = canvas.width;
-    const h = canvas.height;
-    const opticalImg = this.store.layer === "optical" ? this.terrain.getOpticalImage() : null;
-    if (opticalImg) {
-      ctx.drawImage(opticalImg, 0, 0, w, h);
-    } else {
-      const tex = this.terrain.getLayerTexture(this.store.layer);
-      const data = tex.image.data as Uint8Array;
-      const tw = tex.image.width || this.terrain.gridN;
-      const th = tex.image.height || this.terrain.gridN;
-      const img = ctx.createImageData(tw, th);
-      img.data.set(data);
-      const tmp = document.createElement("canvas");
-      tmp.width = tw;
-      tmp.height = th;
-      tmp.getContext("2d")!.putImageData(img, 0, 0);
-      ctx.drawImage(tmp, 0, 0, w, h);
-    }
-
-    const toPx = (wx: number, wz: number) => ({
-      x: ((wx / this.terrain.sizeM) + 0.5) * w,
-      y: ((wz / this.terrain.sizeM) + 0.5) * h,
-    });
-
-    // Real MSL DAN passive neutron measurement stations (377 in-scene circles)
-    if (this.terrain.danPoints.length > 0) {
-      const minIdx = this.terrain.hydrationMeta.weh_min;
-      const maxIdx = this.terrain.hydrationMeta.weh_max;
-      ctx.lineWidth = 0.8;
-      for (const d of this.terrain.danPoints) {
-        const pt = toPx(d.x, d.z);
-        const [r, g, b] = hydrationRgb(d.hydration_index, minIdx, maxIdx);
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
-        ctx.strokeStyle = "rgba(230,250,255,0.85)";
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 2.1, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-    }
-
-    // Base origin and canonical S1-S4 science stations
-    const bp = toPx(BASE_ORIGIN.x, BASE_ORIGIN.z);
-    ctx.fillStyle = "#e6edf2";
-    ctx.fillRect(bp.x - 3, bp.y - 3, 6, 6);
-    ctx.fillStyle = "#9aa6b2";
-    ctx.font = "9px monospace";
-    ctx.fillText("BASE", bp.x + 5, bp.y + 3);
-
-    const lp = toPx(LAUNCH_SITE_COORD.x, LAUNCH_SITE_COORD.z);
-    ctx.fillStyle = "#ff7a3a";
-    ctx.beginPath();
-    ctx.moveTo(lp.x, lp.y - 6);
-    ctx.lineTo(lp.x + 4, lp.y + 4);
-    ctx.lineTo(lp.x - 4, lp.y + 4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillText("LAUNCH", lp.x - 36, lp.y + 3);
-
-    for (const site of MISSION_SITES) {
-      const sp = toPx(site.x, site.z);
-      ctx.strokeStyle = "#35e0ff";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(sp.x, sp.y, 3, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = "#35e0ff";
-      ctx.fillText(site.id, sp.x + 5, sp.y + 3);
-    }
-
-    // Active route
-    if (this.store.activeRoute && this.store.activeRoute.points.length > 1) {
-      ctx.strokeStyle = "#35e0ff";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      this.store.activeRoute.points.forEach((p, idx) => {
-        const pt = toPx(p.x, p.z);
-        if (idx === 0) ctx.moveTo(pt.x, pt.y);
-        else ctx.lineTo(pt.x, pt.y);
-      });
-      ctx.stroke();
-    }
-
-    // Fleet
-    for (const u of this.store.fleet) {
-      const pt = toPx(u.x, u.z);
-      ctx.fillStyle = "#ffb800";
-      ctx.fillRect(pt.x - 2, pt.y - 2, 5, 5);
-    }
-
-    // Astronaut
-    const ap = toPx(this.store.astronaut.x, this.store.astronaut.z);
-    ctx.fillStyle = "#35e0ff";
-    ctx.beginPath();
-    ctx.arc(ap.x, ap.y, 4, 0, Math.PI * 2);
-    ctx.fill();
   }
 
   private ensureProvenanceLoaded(force = false): void {
@@ -1462,6 +1401,9 @@ export class TacticalHud {
         const notesHtml = entry.notes
           ? `<div class="prov-detail">${escapeHtml(entry.notes)}</div>`
           : "";
+        const licenseHtml = entry.license
+          ? `<div class="prov-detail">${escapeHtml(entry.license)}</div>`
+          : "";
         const offset = entry.vertical_datum_offset;
         const offsetHtml = offset?.summary
           ? `<div class="prov-offset-note">${escapeHtml(offset.summary)}</div>`
@@ -1477,6 +1419,7 @@ export class TacticalHud {
               <div><b>${escapeHtml(entry.product_id)}</b></div>
               <div class="prov-detail">${escapeHtml(entry.transform)}</div>
               ${notesHtml}
+              ${licenseHtml}
               ${offsetHtml}
             </td>
             <td>

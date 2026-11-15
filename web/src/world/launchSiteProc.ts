@@ -1,5 +1,6 @@
 import { LAUNCH_SITE_COORD } from "@th/shared";
 import * as THREE from "three";
+import { models } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
 /** Super Heavy booster (70 m) + Starship upper stage (52 m); both 9 m in diameter. */
@@ -85,6 +86,7 @@ export class LaunchSiteProc {
   readonly worldZ = LAUNCH_SITE_COORD.z;
   private beacons: THREE.Mesh[] = [];
   private target: THREE.Object3D = this.group;
+  private procStack: THREE.Object3D | null = null;
 
   constructor(scene: THREE.Scene, private terrain: TerrainProc) {
     this.group.name = "launch-site";
@@ -115,6 +117,11 @@ export class LaunchSiteProc {
     this.target = complex;
     this.buildMount();
     this.buildVehicle(MOUNT_HEIGHT_M + MOUNT_DECK_M);
+    // The `rocket` GLB replaces the procedural stack once loaded; the stack stays as fallback.
+    void models.attach("rocket", complex, this.procStack, (m) => {
+      m.object.position.set(0, MOUNT_HEIGHT_M + MOUNT_DECK_M, 0);
+      this.keepVisibleInHaze(m.object);
+    });
     this.buildTower();
     this.target = this.group;
     this.buildTankFarm();
@@ -126,7 +133,16 @@ export class LaunchSiteProc {
     label.scale.set(120, 22.5, 1);
     this.group.add(label);
 
+    this.keepVisibleInHaze(this.group);
     scene.add(this.group);
+  }
+
+  /** The complex is a landmark over 1 km away: thin the dust haze on it so the skyline stays readable. */
+  private keepVisibleInHaze(root: THREE.Object3D): void {
+    root.traverse((o) => {
+      const mat = (o as THREE.Mesh).material as THREE.Material | THREE.Material[] | undefined;
+      for (const m of Array.isArray(mat) ? mat : mat ? [mat] : []) (m as THREE.Material & { fog?: boolean }).fog = false;
+    });
   }
 
   update(timeS: number): void {
@@ -190,6 +206,7 @@ export class LaunchSiteProc {
     const stack = new THREE.Group();
     stack.position.y = baseY;
     this.target.add(stack);
+    this.procStack = stack;
 
     // Booster, engine skirt, interstage band
     const booster = new THREE.Mesh(new THREE.CylinderGeometry(R, R, boosterHeightM, 40), steel);

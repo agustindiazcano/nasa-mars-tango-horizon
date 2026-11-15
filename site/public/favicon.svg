@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <clipPath id="mars-disc">
+      <circle cx="32" cy="32" r="28" />
+    </clipPath>
+    <radialGradient id="mars-sphere" cx="35%" cy="30%" r="72%">
+      <stop offset="0%" stop-color="#ec7a4b" />
+      <stop offset="56%" stop-color="#c94923" />
+      <stop offset="100%" stop-color="#7e220c" />
+    </radialGradient>
+    <linearGradient id="mars-dust" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f3a96b" stop-opacity="0.58" />
+      <stop offset="55%" stop-color="#ec8f4e" stop-opacity="0.42" />
+      <stop offset="100%" stop-color="#a83b18" stop-opacity="0.22" />
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#mars-disc)">
+    <circle cx="32" cy="32" r="28" fill="url(#mars-sphere)" />
+    <path
+      d="M 2 41 Q 20 36, 36 40 T 62 38 L 62 47 Q 42 51, 24 47 T 2 49 Z"
+      fill="url(#mars-dust)"
+    />
+    <ellipse
+      cx="32"
+      cy="6.5"
+      rx="13.5"
+      ry="4.8"
+      fill="#fae2d4"
+      opacity="0.92"
+    />
+  </g>
+</svg>

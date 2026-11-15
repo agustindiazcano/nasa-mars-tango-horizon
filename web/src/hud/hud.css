@@ -840,3 +840,151 @@ body > button:not([id]) { left: var(--hud-edge); right: auto !important; }
   .hud-panel[data-level="crit"] { animation: none; border-color: var(--crit); }
   button.hud-btn, .bar-fill { transition: none; }
 }
+
+/* Crew roster, bottom left */
+.hud-crew {
+  left: 22px;
+  bottom: 20px;
+  width: 172px;
+}
+
+.crew-row {
+  margin: 5px 0 7px;
+  padding-left: 8px;
+  border-left: 2px solid var(--good);
+}
+
+.crew-row.warn {
+  border-left-color: var(--warn);
+}
+
+.crew-row.crit {
+  border-left-color: var(--crit);
+}
+
+.crew-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.crew-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--good);
+  flex: none;
+}
+
+.crew-row.warn .crew-dot {
+  background: var(--warn);
+}
+
+.crew-row.crit .crew-dot {
+  background: var(--crit);
+}
+
+.crew-badge {
+  margin-left: auto;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--ok);
+  border: 1px solid var(--border);
+  padding: 0 3px;
+}
+
+.crew-line {
+  font-size: 10px;
+  color: var(--ink-dim);
+  line-height: 1.3;
+}
+
+.hud-modal.hud-modal-map {
+  width: min(1300px, calc(100vw - 24px));
+  max-height: 94vh;
+  padding: 8px 10px;
+}
+
+.hud-modal-map .hud-map-canvas {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(94vh - 96px);
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  background: #f4efe4;
+}
+
+.hud-modal-map .hud-map-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 11px;
+  margin-top: 6px;
+}
+
+/* Integrate the team's crew roster without covering the mission console. */
+#scene-panel:not(.open) .scene-open { background: var(--panel-top); color: var(--ink); }
+.hud-crew {
+  left: var(--hud-edge);
+  bottom: var(--console-bottom);
+  width: 260px;
+  max-height: var(--console-height);
+  overflow: auto;
+  overflow-wrap: anywhere;
+  scrollbar-width: thin;
+}
+.hud-crew[style*="display: block"] { display: flex !important; flex-direction: column; }
+.hud-crew > * { flex-shrink: 0; }
+.hud-crew > .panel-hdr { order: -2; }
+.hud-crew > .crew-row.crit, .hud-crew > .crew-row.warn { order: -1; }
+.crew-name { min-width: 0; flex-wrap: wrap; }
+.crew-badge { max-width: 100%; overflow-wrap: anywhere; }
+.hud-bottom { left: calc(var(--hud-edge) + 276px); }
+#agent-chat.hud-on {
+  left: calc(var(--hud-edge) + 276px);
+  bottom: calc(var(--console-bottom) + var(--console-height) + 12px);
+  max-width: calc(100vw - 600px);
+}
+@media (max-width: 900px) {
+  .hud-crew { width: 240px; }
+  .hud-bottom { left: calc(var(--hud-edge) + 252px); }
+  #agent-chat.hud-on { left: calc(var(--hud-edge) + 252px); max-width: calc(100vw - 280px); }
+}
+@media (max-width: 600px) {
+  .hud-left, .hud-right { max-height: min(240px, calc(100dvh - var(--console-height) - 290px)); }
+  .hud-bottom { left: var(--hud-edge); }
+  .hud-crew {
+    right: var(--hud-edge);
+    width: auto;
+    bottom: calc(var(--console-bottom) + var(--console-height) + 10px);
+    max-height: 114px;
+    padding: 6px 8px;
+    gap: 0 6px;
+  }
+  .hud-crew[style*="display: block"] { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hud-crew > .panel-hdr { grid-column: 1 / -1; margin-bottom: 3px; }
+  .crew-row { min-width: 0; margin: 2px 0; padding-left: 4px; }
+  .crew-name { font-size: 10px; letter-spacing: 0.02em; gap: 3px; }
+  .crew-line { font-size: 9px; }
+  .crew-badge { font-size: 7px; letter-spacing: 0.02em; margin-left: 0; }
+  #agent-chat.hud-on {
+    left: var(--hud-edge);
+    bottom: calc(var(--console-bottom) + var(--console-height) + 130px);
+    max-width: calc(100vw - 160px);
+    max-height: 60px;
+    overflow-y: auto;
+    pointer-events: auto;
+  }
+  #scene-panel { max-width: calc(100vw - 16px); }
+  #scene-panel:not(.open) .scene-closed { flex-direction: column; align-items: stretch; }
+  #scene-panel:not(.open) .scene-btn { min-width: 0; max-width: 100%; font-size: 10px; }
+  #scene-panel:not(.open) { top: auto; left: auto; right: var(--hud-edge); width: 130px; transform: none; bottom: calc(var(--console-bottom) + var(--console-height) + 130px); }
+  #scene-panel.open { top: 90px; max-height: calc(100dvh - 110px); overflow-y: auto; }
+}

@@ -4,20 +4,24 @@
 
 ## Summary of work done
 
-- Merged PR #29 (`web-test-3d` renamed to `web`) and PR #30 (reconciliation); deployed Cloud Run `tangohorizon-api` revision `00027` and Vercel from `main`.
-- Branch `feat/storm-forecast-fft-cinematic-cams`:
-  - `F8`: 3-sol storm forecast fan chart and EVA verdict in the right HUD panel (`web/src/hud/stormForecast.ts`, data from `public/data/env/storm_forecast.json`). The chart caption shows the held-out coverage of the q10–q90 band (44–52 %), lower than the nominal 80 %.
-  - `F6`: 32-band FFT canvas in the voice HUD (`RadioSpeaker` analyser in `speak.ts`, canvas in `hud.ts`), delivered by a subagent and cherry-picked. Playback falls back to the destination when `AnalyserNode` is missing.
-  - Plan `docs/impl/22_RESCUE_SCENARIO_AND_BASE_REVISION.md` (rescue scenario, three astronauts, unit renames, base revision) and task `B24` in `PENDING.md`.
-- `F14` (merged after `F6`/`F8`): five cinematic cameras (Shift+1..5 and HUD buttons), Casson bio-twin panel, Sky-Crane tether pendulum and LiDAR cone; built by a subagent, checked in a browser (CAM-3, no console errors). Sky-Crane toggle position and the Casson panel were not inspected visually.
+- Rescue scenario (180 s, deterministic, seekable) with crew SOTELO and YACONIS at base, SALERNO and DIAZ-CANO (injured) on expedition, ramp rescue into `rescue-1`, scene panel (`S0`–`S7`), scripted chat, 19 optimized GLBs (`tools/assets`), NASA-style map, shoulder patches, rocks/boulders, storm forecast chart, FFT visualizer, Casson panel, and Sky-Crane (`tangohorizon-api` Cloud Run rev `00045` + Vercel).
+- Added the standalone Next.js App Router showcase & editorial site under `site/` (`@th/site`), deployed to Vercel at `https://tangohorizon-site.vercel.app`:
+  - Replicated the dark cosmos WebGL (`GalaxyBackdrop`, `GlassSurface`, `ElectricBorder`, `FlexCarousel`, `ProfileCard`, rotating planet banners, Apollo 11 `LunarTubeAmpPlayer`) aesthetic cleanly in TypeScript + Next.js App Router.
+  - Added full bilingual internationalization (`LanguageContext`: **English default** + **Spanish secondary**, synced with `EN / ES` navbar switcher pill across every route and data module).
+  - Built Home (`/`) featuring the top engineering stack strip (`GitHub Actions CI/CD`, `Python 3`, `Cloud Run`, `Terraform IaC`, `Vertex AI`, `Meta Muse`, `Three.js`, `Next.js`, `Fastify + MCP`, `Vercel`), large official mission patch (`tango-horizon-mars-exploration-logo.jpeg`), title `Tango Horizon: AI Systems for EVA and Mars Exploration`, direct CTA to `https://tangohorizon.vercel.app`, `Tango Horizon Project` (`/proyecto`), `Slides` (`/slides`), & `Team` (`/equipo`) CTAs, `AI Usage` (`Software 3.0 · AFAW`) section from `README.md`, and bottom partner emblems (`NASA Space Apps`, `NASA`, `CONAE`, `Universidad de Palermo`, `IBM`).
+  - Added `/proyecto`, `/slides` (interactive 10-slide presentation deck), `/sources` (NASA, USGS, ML & telemetry data sources landing), `/cronologia`, `/tesis-lunar`, `/tesis-marte`, `/marte`, `/compendio`, `/equipo`, footer with all 4 members, sponsors, CC BY 4.0 3D models notice, GitHub & Database links, simplified Mars planet circle `/favicon.svg`, `sitemap.ts`, `robots.ts`, `vercel.json` (`framework: "nextjs"`), and `@vercel/analytics` visitor counter (`<Analytics />`).
+- Added `LICENSE-3D-ASSETS-CC-BY-4.0.md` covering all original Team Tango Horizon 3D models under Creative Commons Attribution 4.0 International (personal, educational, commercial, illustration use), plus root `.vercelignore` for clean `web/` deployments.
+- Redesigned the `web/` 3D simulator boot intro & loading modal (`web/src/hud/loadingOverlay.ts`, `web/src/hud/loadingOverlay.css`, `web/src/main.ts`) with a textured rotating Mars sphere (`web/public/images/mars-texture.jpg.jpeg`), blur backdrop, falling-character/telemetry glitch animation, modern glassmorphism card, and spinning `tango-horizon-mars-exploration-logo.jpeg` emblem while preserving download cancel/retry flows.
+- Generated rectangular black-background README banner `docs/tango-horizon-banner.png` (`1600x860`) pairing left hero text (`Tango Horizon: Mars Exploration`), right mission patch, and institutional partner marks below, and updated `AGENTS.md`, `README.md`, and `README_ES.md`.
 
 ## Decisions made
 
-- Frontend ships through Vercel only; Cloud Run stays API-only.
-- The `rover-2` sign/injection demo stays removed.
+- Frontend ships through Vercel only (`tangohorizon.vercel.app` for `web/`, `tangohorizon-site.vercel.app` for `site/`); Cloud Run stays API-only.
+- Kept `site/` outside root `npm` workspaces (`["shared", "server", "web"]`) and defaulted `site/` rendering and metadata to English (`en`) with client switching to Spanish (`es`) via `SiteNavbar`.
+- All original 3D models created by Team Tango Horizon are released free-to-use under **Creative Commons Attribution 4.0 International (`CC BY 4.0`)** (`LICENSE-3D-ASSETS-CC-BY-4.0.md`).
+- CI was not awaited for PR merges per project owner request; builds were verified before deployment.
 
 ## Where the work was left
 
-- Waiting for the user's GLB models: 3 astronauts, solar panels, antennas, Starship and launch base, rescue robot (see plan 22, section 2).
-- Open: voice `open_panel` in `server/src/agents/tools/registry.ts` and `offline.ts` cannot target the `casson` panel; the Sky-Crane toggle button (`right:12px; bottom:84px`) may overlap other HUD elements.
-- Visual verification of the remaining HUD pieces is pending (`B37`).
+- Both Vercel deployments live and verified (`https://tangohorizon.vercel.app` and `https://tangohorizon-site.vercel.app`); PR merged into `main`.
+- Next tasks in `PENDING.md` (`B15`, `B24`) and `PENDING_FRONT.md` (`F7`, `F11`, `F13`) await user confirmation before starting.
