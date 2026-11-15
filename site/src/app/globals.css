@@ -30,6 +30,40 @@
   box-sizing: border-box;
 }
 
+.th-skip-link {
+  position: fixed;
+  top: -120px;
+  left: 16px;
+  z-index: 10000;
+  padding: 0.7rem 1.2rem;
+  border-radius: 10px;
+  background: #140a0e;
+  color: #fff8f1;
+  border: 2px solid #fbbf24;
+  font-family: var(--th-font-sans);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
+  transition: top 0.18s ease;
+}
+
+.th-skip-link:focus,
+.th-skip-link:focus-visible {
+  top: 14px;
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role="tab"]:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #fbbf24 !important;
+  outline-offset: 2px !important;
+}
+
 html {
   background-color: var(--th-bg-cosmos);
   color: var(--th-ink-primary);
