@@ -5,6 +5,11 @@ export type AlertLevel = "ok" | "warn" | "crit";
 export type UnitKind = "rover_crew" | "rover_science" | "rescue" | "drone" | "manipulator";
 export type ArmSkillId = "handover" | "sample" | "drill" | "photograph";
 
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface SuitTelemetry {
   o2_primary_kg: number;
   o2_primary_cap_kg: number;

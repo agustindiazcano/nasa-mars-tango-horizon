@@ -133,6 +133,7 @@ export class MissionStore {
 
   private hooks: WorldHooks = {};
   private subs = new Set<() => void>();
+  private resetSubs = new Set<() => void>();
 
   setHooks(hooks: WorldHooks): void {
     this.hooks = hooks;
@@ -141,6 +142,22 @@ export class MissionStore {
   subscribe(fn: () => void): () => void {
     this.subs.add(fn);
     return () => this.subs.delete(fn);
+  }
+
+  onReset(fn: () => void): () => void {
+    this.resetSubs.add(fn);
+    return () => this.resetSubs.delete(fn);
+  }
+
+  reset(): void {
+    this.activeScenario = "none";
+    this.scenarioElapsedS = 0;
+    this.leakDiameterM = 0;
+    this.emergencyResponseActive = false;
+    this.pendingActions = [];
+    this.transcripts = [];
+    for (const fn of this.resetSubs) fn();
+    this.notify();
   }
 
   notify(): void {

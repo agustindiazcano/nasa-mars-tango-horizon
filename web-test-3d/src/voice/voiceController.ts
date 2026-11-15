@@ -1,8 +1,8 @@
-import { terrainMatches, type TerrainIdentity } from "@th/shared";
-import { apiUrl } from "../api";
+import { terrainMatches } from "@th/shared";
+import { postAgentVoice, type VoiceAgentResponse } from "../api";
 import { ASR_LOCALE, getLang, onLangChange, t } from "../core/i18n";
 import { C } from "../core/physics";
-import type { Action, TraceEvent } from "../core/types";
+import type { Action, ConversationTurn, TraceEvent } from "../core/types";
 import type { MissionStore } from "../state";
 import { Listener, type ListenErrorCode } from "./listen";
 import { matchLocalIntent, type LocalIntentId } from "./localIntents";
@@ -14,9 +14,11 @@ export interface VoiceControllerHooks {
 }
 
 export class VoiceController {
+  private static readonly MAX_HISTORY = 6;
   readonly radio = new RadioSpeaker();
   readonly listener: Listener;
   private lastReply = "";
+  private history: ConversationTurn[] = [];
 
   constructor(
     private store: MissionStore,
@@ -45,7 +47,50 @@ export class VoiceController {
     onLangChange((lang) => {
       this.listener.lang = ASR_LOCALE[lang];
       this.radio.lang = lang;
+      this.clearHistory();
     });
+
+    this.store.onReset?.(() => this.clearHistory());
+  }
+
+  /** Replaces the rolling voice history buffer, sanitized and bounded to 6 entries. */
+  setHistory(turns: ConversationTurn[]): void {
+    const next: ConversationTurn[] = [];
+    for (const turn of turns) {
+      if (turn.role !== "user" && turn.role !== "assistant") continue;
+      const content = String(turn.content ?? "").trim().slice(0, 400);
+      if (!content) continue;
+      if (turn.role === "assistant" && /^ESCALATE$/i.test(content)) continue;
+      next.push({ role: turn.role, content });
+    }
+    this.history = next.slice(-VoiceController.MAX_HISTORY);
+  }
+
+  /** Clears the rolling conversational history buffer. */
+  clearHistory(): void {
+    this.history = [];
+  }
+
+  /** Returns a shallow copy of the bounded conversational history buffer. */
+  getHistory(): ConversationTurn[] {
+    return this.history.map((turn) => ({ ...turn }));
+  }
+
+  private appendHistoryTurn(userText: string, assistantText: string): void {
+    const userContent = userText.trim().slice(0, 400);
+    const assistantContent = assistantText
+      .replace(/\bESCALATE\b/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .trim()
+      .slice(0, 400);
+    if (!userContent || !assistantContent) return;
+    this.history.push(
+      { role: "user", content: userContent },
+      { role: "assistant", content: assistantContent },
+    );
+    if (this.history.length > VoiceController.MAX_HISTORY) {
+      this.history = this.history.slice(-VoiceController.MAX_HISTORY);
+    }
   }
 
   pushStart(): void {
@@ -116,16 +161,16 @@ export class VoiceController {
     try {
       const lang = getLang();
       const apiLang = ASR_LOCALE[lang];
-      const res = await fetch(apiUrl("/api/agent/voice"), {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+      const history = this.getHistory();
+      const res = await postAgentVoice(
+        {
           text: clean,
           lang: apiLang,
           context: this.store.toContext(),
-        }),
-        signal: AbortSignal.timeout(70000),
-      });
+          ...(history.length ? { history } : {}),
+        },
+        AbortSignal.timeout(70000),
+      );
       if (res.status === 409) {
         this.lastReply = "Terrain unavailable or incompatible. Reload and verify server assets.";
         this.store.pushAlert("crit", this.lastReply);
@@ -133,13 +178,7 @@ export class VoiceController {
         return;
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const out = (await res.json()) as {
-        terrain?: TerrainIdentity;
-        speech: string;
-        actions?: Action[];
-        trace?: TraceEvent[];
-        route?: string[];
-      };
+      const out = (await res.json()) as VoiceAgentResponse;
       if (!terrainMatches(out.terrain) || !terrainMatches(this.store.terrain)) {
         this.lastReply = "Terrain identity missing or incompatible; agent result discarded.";
         this.store.pushAlert("crit", this.lastReply);
@@ -149,7 +188,11 @@ export class VoiceController {
       this.store.lastAgentLatencyMs = Math.round(performance.now() - reqStart);
       if (out.trace) this.store.setTrace(out.trace, out.route ?? []);
       if (out.actions?.length) this.store.applyActions(out.actions);
-      this.lastReply = out.speech || "Acknowledged.";
+      const speech = (out.speech ?? "").trim();
+      this.lastReply = speech || "Acknowledged.";
+      if (res.status === 200 && speech) {
+        this.appendHistoryTurn(clean, speech);
+      }
     } catch {
       // Deterministic local simulation fallback when backend :8080 is offline
       this.store.lastAgentLatencyMs = Math.round(performance.now() - reqStart);

@@ -393,7 +393,10 @@ const deck = createDemoDeck({
     store.fanDegraded = true;
     store.notify();
   },
-  reset: () => window.location.reload(),
+  reset: () => {
+    voice.clearHistory();
+    window.location.reload();
+  },
 });
 
 const hud: TacticalHud = new TacticalHud(store, terrain, voice, deck, {
