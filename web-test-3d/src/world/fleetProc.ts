@@ -1,3 +1,4 @@
+import { fleetStartPos, MANIP_TARGETS } from "@th/shared";
 import { groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "../core/physics";
@@ -23,12 +24,12 @@ export interface UnitSpec {
 }
 
 export const FLEET_SPECS: UnitSpec[] = [
-  { id: "rover-1", kind: "rover_crew", speed: 3.2, flies: false, startX: -22, startZ: 18 },
-  { id: "rover-2", kind: "rover_science", speed: 1.4, flies: false, startX: 62, startZ: 48 },
-  { id: "rescue-1", kind: "rescue", speed: 5.5, flies: false, startX: -18, startZ: 12 },
-  { id: "drone-1", kind: "drone", speed: 11.0, flies: true, altitude: 14, startX: 40, startZ: -30 },
-  { id: "drone-2", kind: "drone", speed: 11.0, flies: true, altitude: 16, startX: -60, startZ: 55 },
-  { id: "manip-1", kind: "manipulator", speed: 1.6, flies: false, startX: 34, startZ: 42 },
+  { id: "rover-1", kind: "rover_crew", speed: 3.2, flies: false, startX: fleetStartPos("rover-1").x, startZ: fleetStartPos("rover-1").z },
+  { id: "rover-2", kind: "rover_science", speed: 1.4, flies: false, startX: fleetStartPos("rover-2").x, startZ: fleetStartPos("rover-2").z },
+  { id: "rescue-1", kind: "rescue", speed: 5.5, flies: false, startX: fleetStartPos("rescue-1").x, startZ: fleetStartPos("rescue-1").z },
+  { id: "drone-1", kind: "drone", speed: 11.0, flies: true, altitude: 14, startX: fleetStartPos("drone-1").x, startZ: fleetStartPos("drone-1").z },
+  { id: "drone-2", kind: "drone", speed: 11.0, flies: true, altitude: 16, startX: fleetStartPos("drone-2").x, startZ: fleetStartPos("drone-2").z },
+  { id: "manip-1", kind: "manipulator", speed: 1.6, flies: false, startX: fleetStartPos("manip-1").x, startZ: fleetStartPos("manip-1").z },
 ];
 
 export class FleetUnit {
@@ -145,11 +146,12 @@ export class FleetProc {
   readonly units = new Map<string, FleetUnit>();
   readonly manipArm = new ManipulatorArm();
   readonly manipRunner: SkillRunner;
-  readonly targets: FleetTarget[] = [
-    { id: "T1", kind: "sulfate_vein", x: 37.5, z: 45.0 },
-    { id: "T2", kind: "basalt_rock", x: 32.0, z: 46.5 },
-    { id: "T3", kind: "regolith_patch", x: 36.2, z: 39.2 },
-  ];
+  readonly targets: FleetTarget[] = MANIP_TARGETS.map((t) => ({
+    id: t.id,
+    kind: t.kind,
+    x: t.x,
+    z: t.z,
+  }));
 
   private group = new THREE.Group();
   private renderTarget = new THREE.WebGLRenderTarget(512, 384);

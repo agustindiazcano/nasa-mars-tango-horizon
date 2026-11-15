@@ -1,3 +1,10 @@
+import {
+  BASE_ORIGIN,
+  CURIOSITY_TRAVERSE as SHARED_CURIOSITY_TRAVERSE,
+  FISSION_COORD,
+  MISSION_SITES,
+  MISSION_SITES_BY_ID,
+} from "@th/shared";
 import * as THREE from "three";
 import { TerrainLoader } from "./terrainLoader";
 import { mulberry32, terrainFromThermalClass, type RouteGrid } from "../core/physics";
@@ -21,21 +28,19 @@ export interface ScienceStation {
   hydrationPct: number;
 }
 
-export const SCIENCE_STATIONS: ScienceStation[] = [
-  { id: "S1", name: "Bradbury Regolith", x: 110, z: -70, hydrationPct: 2.1 },
-  { id: "S2", name: "Boxwork Ridge Alpha", x: 180, z: 120, hydrationPct: 6.8 },
-  { id: "S3", name: "Sulfate Vein Trough", x: -165, z: 145, hydrationPct: 8.4 },
-  { id: "S4", name: "Aeolis Mons Foothill", x: 290, z: -210, hydrationPct: 4.5 },
-];
+export const SCIENCE_STATIONS: ScienceStation[] = MISSION_SITES.map((s) => ({
+  id: s.id,
+  name: s.name,
+  x: s.x,
+  z: s.z,
+  hydrationPct: s.weh,
+}));
 
-export const CURIOSITY_TRAVERSE: { x: number; z: number; sol: number }[] = [
-  { x: -320, z: -260, sol: 120 },
-  { x: -210, z: -150, sol: 680 },
-  { x: -110, z: -40, sol: 1450 },
-  { x: 45, z: 65, sol: 2450 },
-  { x: 180, z: 120, sol: 3580 },
-  { x: 310, z: 220, sol: 4120 },
-];
+export const CURIOSITY_TRAVERSE: { x: number; z: number; sol: number }[] = SHARED_CURIOSITY_TRAVERSE.map((p) => ({
+  x: p.x,
+  z: p.z,
+  sol: p.sol,
+}));
 
 export class TerrainProc {
   readonly sizeM = 4000;
@@ -302,7 +307,7 @@ export class TerrainProc {
       const z = (j / (n - 1) - 0.5) * this.sizeM;
       for (let i = 0; i < n; i++) {
         const x = (i / (n - 1) - 0.5) * this.sizeM;
-        const rCenter = Math.hypot(x, z);
+        const rCenter = Math.hypot(x - BASE_ORIGIN.x, z - BASE_ORIGIN.z);
 
         // Gently rolling Gale floor + Mount Sharp foothill rise toward SE + crater rim far out
         const broadSlope = (x * 0.009 + z * 0.011) + Math.max(0, (rCenter - 950) * 0.045);
@@ -319,12 +324,12 @@ export class TerrainProc {
 
         let elev = broadSlope + boxwork + crater1 + crater2 + ridgeHill + micro;
 
-        // Flatten a safe <3 deg engineering pad around the base origin (0,0) radius 110 m
+        // Flatten a safe <3 deg engineering pad around BASE_ORIGIN radius 110 m
         const padBlend = THREE.MathUtils.smoothstep(rCenter, 80, 170);
         elev = elev * padBlend + 1.2 * (1 - padBlend);
 
-        // Keep fission reactor pad at (220, -40) walkable as well
-        const rFission = Math.hypot(x - 220, z + 40);
+        // Keep fission reactor pad at FISSION_COORD walkable as well
+        const rFission = Math.hypot(x - FISSION_COORD.x, z - FISSION_COORD.z);
         const fisBlend = THREE.MathUtils.smoothstep(rFission, 18, 45);
         elev = elev * fisBlend + 3.0 * (1 - fisBlend);
 
@@ -360,8 +365,10 @@ export class TerrainProc {
         else this.thermal[idx] = 0;
 
         // Hydration wt% peaks in boxwork troughs and near S2/S3
-        const s2Boost = 5.5 * Math.exp(-((x - 180) ** 2 + (z - 120) ** 2) / (90 ** 2));
-        const s3Boost = 7.2 * Math.exp(-((x + 165) ** 2 + (z - 145) ** 2) / (105 ** 2));
+        const s2 = MISSION_SITES_BY_ID.S2;
+        const s3 = MISSION_SITES_BY_ID.S3;
+        const s2Boost = 5.5 * Math.exp(-((x - s2.x) ** 2 + (z - s2.z) ** 2) / (90 ** 2));
+        const s3Boost = 7.2 * Math.exp(-((x - s3.x) ** 2 + (z - s3.z) ** 2) / (105 ** 2));
         const trough = Math.max(0, -convexity) * 4.0;
         this.hydration[idx] = THREE.MathUtils.clamp(1.2 + trough + s2Boost + s3Boost, 0.5, 11.0);
       }

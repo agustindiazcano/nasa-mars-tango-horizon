@@ -1,4 +1,4 @@
-import type { TerrainIdentity } from "@th/shared";
+import { ASTRONAUT_START, MISSION_SITES_BY_ID, type TerrainIdentity } from "@th/shared";
 import { ASR_LOCALE, getLang, type Lang } from "./core/i18n";
 import { C, directTransmission } from "./core/physics";
 import type {
@@ -48,8 +48,8 @@ const MAX_RAM_TRANSCRIPTS = 200;
 
 function createInitialAstronaut() {
   return {
-    x: 28,
-    z: 36,
+    x: ASTRONAUT_START.x,
+    z: ASTRONAUT_START.z,
     yaw: 0,
     speed: 0,
     gradePct: 0,
@@ -421,8 +421,9 @@ export class MissionStore {
         break;
       }
       case "show_route": {
-        const toX = Number(args.to_x ?? 180);
-        const toZ = Number(args.to_z ?? 120);
+        const s2 = MISSION_SITES_BY_ID.S2;
+        const toX = Number(args.to_x ?? s2.x);
+        const toZ = Number(args.to_z ?? s2.z);
         const route = this.hooks.onShowRoute?.(toX, toZ) ?? null;
         if (route) {
           this.activeRoute = route;

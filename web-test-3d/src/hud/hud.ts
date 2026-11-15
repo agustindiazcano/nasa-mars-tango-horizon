@@ -1,3 +1,4 @@
+import { BASE_ORIGIN, MISSION_SITES } from "@th/shared";
 import { formatCoordinates } from "../world/terrainValidation";
 import { ASR_LOCALE, fmt, getLang, LANG_NAME, LANGS, onLangChange, setLang, t } from "../core/i18n";
 import { C, leakTimeline } from "../core/physics";
@@ -351,7 +352,7 @@ export class TacticalHud {
     const s = this.store;
     const suit = s.suit;
     const ll = this.terrain.toLonLat(s.astronaut.x, s.astronaut.z);
-    const baseDist = Math.hypot(s.astronaut.x, s.astronaut.z);
+    const baseDist = Math.hypot(s.astronaut.x - BASE_ORIGIN.x, s.astronaut.z - BASE_ORIGIN.z);
     const metH = String(Math.floor(s.metS / 3600)).padStart(2, "0");
     const metM = String(Math.floor((s.metS % 3600) / 60)).padStart(2, "0");
     const metSec = String(Math.floor(s.metS % 60)).padStart(2, "0");
@@ -901,6 +902,25 @@ export class TacticalHud {
       x: ((wx / this.terrain.sizeM) + 0.5) * w,
       y: ((wz / this.terrain.sizeM) + 0.5) * h,
     });
+
+    // Base origin and canonical S1-S4 science stations
+    const bp = toPx(BASE_ORIGIN.x, BASE_ORIGIN.z);
+    ctx.fillStyle = "#e6edf2";
+    ctx.fillRect(bp.x - 3, bp.y - 3, 6, 6);
+    ctx.fillStyle = "#9aa6b2";
+    ctx.font = "9px monospace";
+    ctx.fillText("BASE", bp.x + 5, bp.y + 3);
+
+    for (const site of MISSION_SITES) {
+      const sp = toPx(site.x, site.z);
+      ctx.strokeStyle = "#35e0ff";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, 3, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = "#35e0ff";
+      ctx.fillText(site.id, sp.x + 5, sp.y + 3);
+    }
 
     // Active route
     if (this.store.activeRoute && this.store.activeRoute.points.length > 1) {

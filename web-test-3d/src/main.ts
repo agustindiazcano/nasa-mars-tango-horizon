@@ -1,4 +1,4 @@
-import { READY_TERRAIN } from "@th/shared";
+import { BASE_ORIGIN, LAUNCHER_PRIMARY_COORD, READY_TERRAIN } from "@th/shared";
 import "./hud/hud.css";
 import { installHistoricalArchive } from "./hud/historicalArchive";
 import { inject } from "@vercel/analytics";
@@ -87,7 +87,7 @@ const astronaut = new AstronautProc(terrain, camera, canvas);
 scene.add(astronaut.group);
 
 const baseProc = new BaseProc(scene, terrain);
-const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [55, 24, 6];
+const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [LAUNCHER_PRIMARY_COORD.x, LAUNCHER_PRIMARY_COORD.z, 6];
 const podBallistics = new PodBallistics(scene, terrain, podLauncherOrigin);
 
 const fleet = new FleetProc(scene, terrain, (ev, skill) => {
@@ -276,10 +276,10 @@ store.setHooks({
       beacons.length > 0
         ? beacons
         : [
-            { id: "BCN-1", x: Math.round(astronaut.pos.x * 0.75), z: Math.round(astronaut.pos.z * 0.75) },
-            { id: "BCN-2", x: Math.round(astronaut.pos.x * 0.5), z: Math.round(astronaut.pos.z * 0.5) },
-            { id: "BCN-3", x: Math.round(astronaut.pos.x * 0.25), z: Math.round(astronaut.pos.z * 0.25) },
-            { id: "BCN-4", x: 0, z: 0 },
+            { id: "BCN-1", x: Math.round(BASE_ORIGIN.x + (astronaut.pos.x - BASE_ORIGIN.x) * 0.75), z: Math.round(BASE_ORIGIN.z + (astronaut.pos.z - BASE_ORIGIN.z) * 0.75) },
+            { id: "BCN-2", x: Math.round(BASE_ORIGIN.x + (astronaut.pos.x - BASE_ORIGIN.x) * 0.5), z: Math.round(BASE_ORIGIN.z + (astronaut.pos.z - BASE_ORIGIN.z) * 0.5) },
+            { id: "BCN-3", x: Math.round(BASE_ORIGIN.x + (astronaut.pos.x - BASE_ORIGIN.x) * 0.25), z: Math.round(BASE_ORIGIN.z + (astronaut.pos.z - BASE_ORIGIN.z) * 0.25) },
+            { id: "BCN-4", x: BASE_ORIGIN.x, z: BASE_ORIGIN.z },
           ];
     terrain.setBeacons(pts);
     terrain.setRoute([{ x: astronaut.pos.x, z: astronaut.pos.z }, ...pts.map((b) => ({ x: b.x, z: b.z }))]);
@@ -329,7 +329,7 @@ store.setHooks({
         go(standOff(), "deliver", "supplies delivered at 5 m");
         break;
       case "return_to_base":
-        go({ x: 0, z: 0 }, "return", "back at base");
+        go({ x: BASE_ORIGIN.x, z: BASE_ORIGIN.z }, "return", "back at base");
         break;
       case "survey_area":
         go(target ?? me, "survey", "survey complete");

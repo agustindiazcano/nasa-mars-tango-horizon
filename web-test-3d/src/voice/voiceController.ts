@@ -1,4 +1,4 @@
-import { terrainMatches } from "@th/shared";
+import { AIRLOCK_COORD, MISSION_SITES_BY_ID, terrainMatches } from "@th/shared";
 import { postAgentVoice, type VoiceAgentResponse } from "../api";
 import { ASR_LOCALE, getLang, onLangChange, t } from "../core/i18n";
 import { C } from "../core/physics";
@@ -266,7 +266,7 @@ export class VoiceController {
         this.store.pushAlert("warn", "EVA ABORTED (<5 ms local intent)");
         this.store.executeApprovedAction({
           type: "show_route",
-          args: { to_x: -9, to_z: 0 },
+          args: { to_x: AIRLOCK_COORD.x, to_z: AIRLOCK_COORD.z },
           proposedBy: "LOCAL",
         });
         return getLang() === "es" ? "EVA abortada. Ruta directa al airlock." : "EVA aborted. Direct route to airlock.";
@@ -314,9 +314,10 @@ export class VoiceController {
     }
 
     if (/route|ruta|site two|sitio.*dos|s2/.test(low)) {
+      const s2 = MISSION_SITES_BY_ID.S2;
       const a: Action = {
         type: "show_route",
-        args: { to_x: 180, to_z: 120 },
+        args: { to_x: s2.x, to_z: s2.z },
         proposedBy: "EVA-PLANNER",
         verdict: { decision: "allow", reason: "Safe EVA route", by: "rules" },
       };
