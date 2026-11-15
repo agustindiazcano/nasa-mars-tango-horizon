@@ -46,3 +46,5 @@
 - 🔴 F16: Execute frontend remediation in `docs/NASA_DATA_REMEDIATION_PLAN.md`, starting with P1–P3: event attribution/replay, explicit DEM loading, and post-DEM placements. Then complete layers, shared sites, hydration units, hemispheres, and provenance. Coordinate with B32–B36 and B27; use the active runtime without waiting for B22. Reconcile overlapping frontend tasks after validation.
 
 F16 remains open. PR #14 implements explicit DEM startup/retries, post-DEM actor construction, design labels, exact-sample historical inspection and HiRISE imagery. Remaining acceptance is listed in `docs/NASA_DATA_REMEDIATION_EVIDENCE.md`; browser validation is blocked by unavailable CUA/browser surfaces.
+
+F16 follow-up: historical archive now has validated adapters, play/pause/seek/reset, sample-rate controls and per-variable attribution. TypeScript and 17 targeted tests passed. Visual playback/reset validation remains blocked by unavailable browser surfaces.

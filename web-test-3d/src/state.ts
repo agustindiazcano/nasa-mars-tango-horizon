@@ -100,7 +100,7 @@ export class MissionStore {
     wind_dir_rad: 0.65,
     dose_rate_ugy_h: 9.8,
     sun_elev_deg: 54,
-    earth_light_time_s: 492, // ~8.2 min one-way from JPL Horizons sample
+    earth_light_time_s: 492, // Design assumption; recorded Horizons epochs are shown separately in the archive.
     storm_source: "Design clear atmosphere",
     rad_source: "Design quiet absorbed dose",
   };
