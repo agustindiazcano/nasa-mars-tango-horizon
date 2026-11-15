@@ -729,8 +729,8 @@ export function getStormForecastData(): {
   if (state.stormForecast?.length) {
     return {
       forecast: state.stormForecast,
-      source: "rems_storm_nowcaster",
-      disclaimer: "Short-range statistical nowcast at Gale Crater only; does not model global storm physics.",
+      source: "historical_rems_storm_nowcaster_sol_2079",
+      disclaimer: "Historical prediction initialized at sol 2079; not a current mission forecast. Does not model global storm physics.",
     };
   }
   return {
@@ -739,8 +739,8 @@ export function getStormForecastData(): {
       { horizonSol: 2, q10: 0.72, q50: 1.25, q90: 2.15 },
       { horizonSol: 3, q10: 0.88, q50: 1.65, q90: 2.75 },
     ],
-    source: "rems_climatology_fallback",
-    disclaimer: "Short-range statistical nowcast at Gale Crater only; does not model global storm physics.",
+    source: "design_forecast_fallback",
+    disclaimer: "Synthetic design forecast; not an observed or current NASA forecast.",
   };
 }
 

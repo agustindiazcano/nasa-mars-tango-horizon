@@ -265,8 +265,8 @@ export const TOOLS: ToolDef[] = [
       if (ctx.storm_forecast?.length) {
         return {
           forecast: ctx.storm_forecast,
-          source: "context_storm_nowcaster",
-          disclaimer: "Short-range statistical nowcast at Gale Crater only.",
+          source: "mission_context_forecast",
+          disclaimer: "Mission context prediction; source epoch is not verified. Do not attribute it to current NASA observations.",
         };
       }
       return getStormForecastData();
