@@ -1,34 +1,26 @@
-# Last context
-
-> Summary of the previous session. Overwritten at the end of every session.
+﻿# Last context
 
 **Date:** 2026-11-14
-**Agent:** Claude Code
+**Agent:** Codex
 
 ## What was done
 
-- Audit of the repo, then fixes merged in PR #11: vision intercept regex, single leak emergency protocol (`emergency_response_active`), aircraft grounding at tau >= 1.8 in `GUARDIAN` and frontend, `deploy.sh` carriage return, one trusted proxy hop for rate limits, sanitized `MissionContext`, vision route error handling, server tests in `npm test`.
-- AI/RAG test run against a local server (no adversarial inputs): RAG integrity and latency (p95 0.53 ms), 62 `GUARDIAN` rule cases, offline fallback, providers, 15 agent cases through `/api/agent/run`.
-- Branch `fix/ai-rag-findings` (former B28-B31 plus the coordinate anchor):
-  - `chat()` returns an empty completion instead of throwing when every provider answers empty; agent routes return `offline: true/false`.
-  - `decide()` takes the measured tau; `evaluate_eva_weather` returns `no_go` at tau 3.0.
-  - Spoken replies pass through `plainSpeech` (no Markdown/LaTeX); `search_docs` capped at 2 per run and queried in English.
-  - 120-token cap removed from the `GUARDIAN` judge and `check-llm.ts`: Meta models answer tool calls and JSON with the default budget.
-  - `worldToPlanetocentric` anchors at the DTM window center from `terrain/meta.json` (-4.745, 137.400) instead of Bradbury Landing; every server lat/lon was 9.54 km off.
-- Read-only audit of NASA data usage and of the scene coordinates; open gaps recorded as B32-B36.
+- Updated local `main` to `32f63e1`, then merged it into the PR #13 branch `docs/nasa-data-remediation-plan` to resolve documentation conflicts.
+- Preserved the main-branch B27 and B32–B36 audit tasks and mapped the remediation plan to those IDs. Kept the removal of completed B28–B31 tasks.
+- Retained the full remediation plan and execution prompt, and aligned frontend tracking with the existing task IDs.
 
 ## Files touched
 
-- `server/src/llm/provider.ts`, `server/src/agents/{routes,runAgent,guardian,speech}.ts`, `server/src/agents/tools/{registry,terrainData}.ts`, `server/src/scripts/check-llm.ts`, `server/src/agents/__tests__/{speech,coordinates,knowledge}.test.ts`
-- `shared/src/physics/stormDecision.ts` and its test
+- `PENDING.md`, `PENDING_FRONT.md`, `LASTCONTEXT.md`
 
-## Decisions
+## Integration context
 
-- An empty LLM completion is handled by the forced-final path in `runAgent.ts`, not by the offline rule engine: the offline engine answered a delegation order with a fixed site (S2) unrelated to the tool results.
-- The scene anchor comes from the cartography metadata, so server and HUD report the same coordinates.
-- Subagents run in isolated worktrees: sharing one working tree with another session moved the checkout mid-edit.
+- Updated main includes the AI/RAG fixes: empty-completion handling, explicit offline markers, measured-tau weather decisions, plain spoken replies, bounded document searches, provider token-budget fixes, and terrain-metadata coordinate anchoring with regression tests.
+- The prior session reported 46 shared tests and 35 server tests. Those results were not rerun during this documentation conflict resolution; the prior voice run still has no recorded result here.
+- Source-raster verification and deployment are not established by this merge. The plan requires independent verification of both.
 
-## State the work was left in
+## Decisions and handoff
 
-- `fix/ai-rag-findings` pushed with a PR to `main`; not deployed. Local checks: 46 tests in `shared`, 35 in `server`.
-- A voice test run (local server, benign orders) was still in progress when the PR was opened; its results are not in this file.
+- Preserve main's task identifiers rather than replacing B32 with a duplicate umbrella task.
+- Resolve documentation conflicts on the PR branch without changing runtime code or merging the PR into main.
+- Keep untracked `.claude/` content untouched. Validate the resulting documentation diff and push the PR branch for GitHub checks.

@@ -40,3 +40,7 @@
 | F13 | 🟡 | Step 16 | Build 20 Mars `BASE` 3D primitive modules on `<5°` slope with selectable technical cards, fission keep-out ring, Base Resource Balance panel, full 9-unit `FLEET` (Curiosity/Ingenuity/MRO GLBs + procedural units + floating labels), `sep2017` radiation scenario, Earth-link light-time counter, Curiosity traverse + photo waypoints, and route polylines with algorithm badges | `09_SCENARIOS_WORLD.md`, `3D_AND_VISUAL_PLAN.md` §5.2, §5.5, §5.6 | F7 |
 | F14 | 🟢 | Step 17 | Add extras if time permits before code freeze: science stations `S1`–`S4`, LIBS purple laser pulse + emission spectrum, Sky-Crane Kevlar tether pendulum + green 532 nm LiDAR cone, 5 cinematic cameras (`CAM-1`..`CAM-5`), hypercapnic vignette + bloom post-processing, Casson bio-twin panel | `09_SCENARIOS_WORLD.md`, `12_MANIPULATOR_ROBOT.md`, `3D_AND_VISUAL_PLAN.md` §2.3, §4.2, §5.4 | F10, F13 |
 | F15 | 🟢 | Step 18 | Wire French, German, and Italian dictionaries into the HUD Language menu and voice selector | `14_I18N.md`, `07_VOICE.md` | F4, F6 |
+
+## NASA data audit priority
+
+- 🔴 F16: Execute frontend remediation in `docs/NASA_DATA_REMEDIATION_PLAN.md`, starting with P1–P3: event attribution/replay, explicit DEM loading, and post-DEM placements. Then complete layers, shared sites, hydration units, hemispheres, and provenance. Coordinate with B32–B36 and B27; use the active runtime without waiting for B22. Reconcile overlapping frontend tasks after validation.
