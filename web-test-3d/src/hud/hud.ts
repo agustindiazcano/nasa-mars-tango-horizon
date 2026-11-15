@@ -59,6 +59,21 @@ function downloadTextFile(filename: string, content: string, mimeType: string): 
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function scenarioLabel(value: string): string {
+  const keys: Record<string, string> = { none: "scenario.none", storm: "deck.5.label", sep2017: "deck.6.label", leak: "scenario.leak" };
+  return keys[value] ? t(keys[value]) : value;
+}
+
+function speakerLabel(value: string): string {
+  const keys: Record<string, string> = { you: "voice.you", base: "voice.base", system: "common.system" };
+  return keys[value] ? t(keys[value]) : value;
+}
+
+function taskLabel(value: string | null | undefined): string {
+  const keys: Record<string, string> = { goto: "task.goto", rescue: "task.rescue", takeoff: "task.takeoff", land: "task.land", photograph: "task.photograph", overwatch: "task.overwatch", follow: "task.follow", return: "task.return", deliver: "task.deliver", survey: "task.survey", hold: "task.hold", relay: "task.relay" };
+  return value ? (keys[value] ? t(keys[value]) : value) : t("common.idle");
+}
+
 export class TacticalHud {
   private root: HTMLElement;
   private qrModalOpen = false;
@@ -94,7 +109,7 @@ export class TacticalHud {
     this.root = document.getElementById("hud-root")!;
     this.root.innerHTML = `
       <div id="visor-vignette"></div>
-      <button id="hud-restore-pill" data-pointable style="display:none">SHOW VR HUD</button>
+      <button id="hud-restore-pill" data-pointable style="display:none">${t("hud.restore")}</button>
       <div id="hud-top" class="hud-panel hud-top"></div>
       <div id="hud-confirm" class="hud-panel hud-confirm" data-level="warn" style="display:none"></div>
       <div id="hud-left" class="hud-panel hud-left"></div>
@@ -129,6 +144,8 @@ export class TacticalHud {
     onLangChange(() => {
       this.sessionsRenderKey = "";
       this.provenanceRenderKey = "";
+      this.lastConfirmKey = "";
+      this.buildQrContainer();
       this.buildBottomStatic();
       this.renderDynamic();
     });
@@ -231,13 +248,13 @@ export class TacticalHud {
     this.bottomEl.innerHTML = `
       <div class="btn-row" style="justify-content:space-between;">
         <div class="btn-row">
-          <button class="hud-btn" data-pointable data-panel="menu">MENU</button>
+          <button class="hud-btn" data-pointable data-panel="menu">${t("menu.open")}</button>
           ${menuHtml}
           <button class="hud-btn" data-pointable id="btn-rover-cam">${t("menu.rover_cam")}</button>
           <button class="hud-btn" data-pointable id="btn-qr">${t("menu.remote")}</button>
           <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : this.store.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso")}</button>
           <button class="hud-btn ${this.store.povMode === "iso" ? "active" : ""}" data-pointable id="btn-iso" title="${t("hud.iso_hint")}">${t("hud.btn_iso")}</button>
-          <button class="hud-btn" data-pointable id="btn-hud-toggle" title="Hide/Show VR Visor HUD">HUD</button>
+          <button class="hud-btn" data-pointable id="btn-hud-toggle" title="${t("hud.visibility_hint")}">HUD</button>
         </div>
         <div class="btn-row">
           <span style="opacity:0.75; font-size:10px;">${t("hud.layers")}:</span>
@@ -364,7 +381,7 @@ export class TacticalHud {
     const now = Date.now();
     return {
       id: `sess-${now}`,
-      title: "EVA session",
+      title: t("comms.default_title"),
       lang: getLang(),
       scenario: this.store.activeScenario,
       createdAt: now,
@@ -399,7 +416,7 @@ export class TacticalHud {
       <span>Sol ${s.env.sol} · ${fmt(s.env.ltst_hours, 2)}h</span>
       <span>${formatCoordinates(ll.lat, ll.lon)}</span>
       <span>${t("hud.dist_base")}: <b>${fmt(baseDist, 0)} m</b></span>
-      <span class="pill ${s.remoteConnected ? "" : "warn"}">${s.remoteConnected ? t("remote.connected") : `ROOM ${s.remoteRoom || "---"}`}</span>
+      <span class="pill ${s.remoteConnected ? "" : "warn"}">${s.remoteConnected ? t("remote.connected") : t("hud.room", { room: s.remoteRoom || "---" })}</span>
       ${s.lastAgentLatencyMs > 0 ? `<span class="pill">${s.lastAgentLatencyMs} ms</span>` : ""}
     `;
 
@@ -427,15 +444,15 @@ export class TacticalHud {
       const pt = s.podTelemetry;
       leakHtml += `
         <div class="alert-banner" style="border-color:var(--warn); background:rgba(255,184,0,0.16);">
-          <b>POD IN FLIGHT</b> (${fmt(pt.elapsedS, 1)} / ${fmt(pt.flightTimeS, 1)} s)<br/>
-          Chute: ${pt.chuteDeployed ? "OPEN" : "BALLISTIC"} · Drift: ${fmt(pt.windDriftM, 1)} m<br/>
-          1σ Ellipse: ${fmt(pt.ellipseAlongM, 1)}×${fmt(pt.ellipseCrossM, 1)} m
+          <b>${t("pod.flight")}</b> (${fmt(pt.elapsedS, 1)} / ${fmt(pt.flightTimeS, 1)} s)<br/>
+          ${t("pod.chute")}: ${pt.chuteDeployed ? t("pod.open") : t("pod.ballistic")} · ${t("pod.drift")}: ${fmt(pt.windDriftM, 1)} m<br/>
+          ${t("pod.ellipse")}: ${fmt(pt.ellipseAlongM, 1)}×${fmt(pt.ellipseCrossM, 1)} m
         </div>
       `;
     }
 
     this.leftEl.innerHTML = `
-      <div class="panel-hdr"><span>${t("hud.life_support")}</span><span>${suitLevel.toUpperCase()}</span></div>
+      <div class="panel-hdr"><span>${t("hud.life_support")}</span><span>${t(`hud.status.${suitLevel}`)}</span></div>
       <div class="kv-row"><span>${t("hud.o2_primary")}</span><span class="val">${fmt(o2Pct, 0)}% (${fmt(suit.o2_primary_kg, 2)} kg)</span></div>
       <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, o2Pct)}%"></div></div>
       <div class="kv-row"><span>${t("hud.o2_reserve")}</span><span class="val">${fmt((suit.o2_reserve_kg / suit.o2_reserve_cap_kg) * 100, 0)}%</span></div>
@@ -475,18 +492,18 @@ export class TacticalHud {
             <span class="val">${fmt(hydVal, 2)} ± ${fmt(hydUnc, 2)}</span>
           </div>
           <div style="font-size:10px; opacity:0.8;">
-            ${this.terrain.hydrationUncMode ? `${t("hud.hydration_unc")}: 0.00–${fmt(hydMeta.interval_width_max, 2)}` : `Range: ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}`} · ${t("hud.dan_stations")}: ${this.terrain.danPoints.length}
+            ${this.terrain.hydrationUncMode ? `${t("hud.hydration_unc")}: 0.00–${fmt(hydMeta.interval_width_max, 2)}` : `${t("common.range")}: ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}`} · ${t("hud.dan_stations")}: ${this.terrain.danPoints.length}
             ${hydMeta.validation?.r2_blocked_cv !== undefined && hydMeta.validation?.spearman_blocked_cv !== undefined ? `<br>CV: R²=${fmt(hydMeta.validation.r2_blocked_cv, 2)}, ρ=${fmt(hydMeta.validation.spearman_blocked_cv, 2)} (n=${hydMeta.validation.n_points ?? 0})` : ""}
             <br>${escapeHtml(t("hud.hydration_note"))}
           </div>
         `
         : "";
     const terrainProvenanceLine = this.terrain.realRastersLoaded
-      ? `Terrain: ${escapeHtml(this.terrain.meta.product_id)} · Layers: HiRISE/THEMIS/DAN (${this.terrain.danPoints.length} DAN pts)`
-      : `Terrain: ${escapeHtml(this.terrain.meta.product_id)}; derived display layers are design approximations.`;
+      ? `${t("prov.terrain")}: ${escapeHtml(this.terrain.meta.product_id)} · ${t("prov.layers")}: HiRISE/THEMIS/DAN (${t("prov.points", { n: this.terrain.danPoints.length })})`
+      : `${t("prov.terrain")}: ${escapeHtml(this.terrain.meta.product_id)}; ${t("prov.derived")}`;
 
     this.rightEl.innerHTML = `
-      <div class="panel-hdr"><span>${t("hud.environment")}</span><span>${s.activeScenario.toUpperCase()}</span></div>
+      <div class="panel-hdr"><span>${t("hud.environment")}</span><span>${scenarioLabel(s.activeScenario)}</span></div>
       <div class="kv-row"><span>${t("hud.atm_pressure")}</span><span class="val">${fmt(s.env.pressure_pa, 0)} Pa</span></div>
       <div class="kv-row"><span>${t("hud.air_temp")}</span><span class="val">${fmt(s.env.air_temp_k - 273.15, 0)} / ${fmt(s.env.ground_temp_k - 273.15, 0)} C</span></div>
       <div class="kv-row"><span>${t("hud.opacity")}</span><span class="val">${fmt(s.env.tau, 2)}</span></div>
@@ -528,7 +545,7 @@ export class TacticalHud {
     const restorePill = document.getElementById("hud-restore-pill");
     if (restorePill) {
       restorePill.style.display = hudVis ? "none" : "block";
-      restorePill.textContent = getLang() === "es" ? "MOSTRAR VISOR HUD [U]" : "SHOW VR HUD [U]";
+      restorePill.textContent = t("hud.restore");
     }
     const visorEl = document.getElementById("visor-vignette");
     if (visorEl) visorEl.style.display = s.povMode === "1st" && hudVis ? "block" : "none";
@@ -554,7 +571,7 @@ export class TacticalHud {
         .slice(-4)
         .map(
           (tr) =>
-            `<div><b style="color:${tr.who === "you" ? "#f3ece3" : "#ffb36b"}">${tr.who.toUpperCase()}:</b> ${escapeHtml(tr.text)}</div>`,
+            `<div><b style="color:${tr.who === "you" ? "#f3ece3" : "#ffb36b"}">${escapeHtml(speakerLabel(tr.who))}:</b> ${escapeHtml(tr.text)}</div>`,
         )
         .join("");
       txBox.scrollTop = txBox.scrollHeight;
@@ -620,7 +637,7 @@ export class TacticalHud {
               : voter.vote === "deny"
                 ? t("agents.vote_deny")
                 : t("agents.vote_ask_human")
-            : voter.status.toUpperCase();
+            : voter.status === "ok" ? t("hud.status.ok") : t(`agents.${voter.status}`);
         const conf = voter.confidence !== null && voter.confidence !== undefined ? `${Math.round(voter.confidence * 100)}%` : "--";
         const detailText = voter.rationale || voter.error || "";
         return `
@@ -654,10 +671,10 @@ export class TacticalHud {
           <span class="esc-vote-pill ${finalDec}">${escapeHtml(decLabel)}</span>
         </div>
         <div class="esc-vote-meta">
-          <span>${escapeHtml(v.consensus ?? "")} (${tally.allow}A/${tally.deny}D/${tally.ask_human}H)</span>
+          <span>${escapeHtml(v.consensus ? t(`agents.consensus.${v.consensus}`) : "")} (${tally.allow}A/${tally.deny}D/${tally.ask_human}H)</span>
           <span>${v.latency_ms ?? 0} ms</span>
         </div>
-        ${v.triggers?.length ? `<div class="esc-vote-triggers">Triggers: ${escapeHtml(v.triggers.join(", "))}</div>` : ""}
+        ${v.triggers?.length ? `<div class="esc-vote-triggers">${t("agents.triggers")}: ${escapeHtml(v.triggers.join(", "))}</div>` : ""}
         ${votersHtml}
         ${controlsHtml}
       </div>
@@ -670,7 +687,7 @@ export class TacticalHud {
       this.lastModalPanel = "none";
       this.modalEl.style.display = "block";
       const camSources: Array<{ id: string; label: string; defaultQ: string }> = [
-        { id: "astronaut", label: "HELMET VISOR", defaultQ: "Describe what I am seeing right in front of me" },
+        { id: "astronaut", label: t("hud.view_helmet"), defaultQ: "Describe what I am seeing right in front of me" },
         { id: "rover-1", label: "RVR-1", defaultQ: "Describe terrain and crew rover surroundings" },
         { id: "rover-2", label: "RVR-2", defaultQ: t("deck.say.8") },
         { id: "rover-3", label: "RVR-3 (HANDS)", defaultQ: "Identify numbered rock targets T1, T2, T3" },
@@ -688,19 +705,19 @@ export class TacticalHud {
 
       this.modalEl.innerHTML = `
         <div class="panel-hdr">
-          <span>ONBOARD VISION FEED · ${escapeHtml(activeCam.toUpperCase())} (POST /api/agent/vision)</span>
+          <span>${t("vision.title")} · ${escapeHtml(activeCam.toUpperCase())} (POST /api/agent/vision)</span>
           <button class="hud-btn" data-pointable id="modal-close">X</button>
         </div>
         <div class="btn-row" style="margin-bottom:6px; flex-wrap:wrap;">${camButtons}</div>
         ${s.injectionBlockedBanner ? `<div class="alert-banner"><b>${t("agents.injection_blocked")}</b></div>` : ""}
         <div style="margin:8px 0; text-align:center;">
-          ${s.roverPreviewUrl ? `<img src="${s.roverPreviewUrl}" style="width:100%; max-width:480px; border-radius:8px; border:1px solid var(--border);" />` : "Capturing frame..."}
+          ${s.roverPreviewUrl ? `<img src="${s.roverPreviewUrl}" style="width:100%; max-width:480px; border-radius:8px; border:1px solid var(--border);" />` : t("vision.capturing")}
         </div>
         <div style="font-size:12px; color:#fff; margin-bottom:8px;">${s.roverPreviewCaption}</div>
         <div class="btn-row">
-          <button class="hud-btn" data-pointable id="rvr-snap-helmet">Helmet Visor POV</button>
-          <button class="hud-btn" data-pointable id="rvr-snap-2">Capture RVR-2 Sign</button>
-          <button class="hud-btn" data-pointable id="rvr-snap-m">Capture RVR-3 Targets</button>
+          <button class="hud-btn" data-pointable id="rvr-snap-helmet">${t("hud.view_helmet")}</button>
+          <button class="hud-btn" data-pointable id="rvr-snap-2">${t("vision.sign")}</button>
+          <button class="hud-btn" data-pointable id="rvr-snap-m">${t("vision.targets")}</button>
         </div>
       `;
       this.modalEl.querySelector("#modal-close")!.addEventListener("click", () => {
@@ -745,7 +762,7 @@ export class TacticalHud {
         .map(
           (a, idx) => `
           <div class="alert-banner" style="border-color:var(--warn);">
-            <b>GUARDIAN ask_human:</b> ${a.type} ${JSON.stringify(a.args)}<br/>
+            <b>GUARDIAN · ${t("hud.ask_human_title")}:</b> ${a.type} ${JSON.stringify(a.args)}<br/>
             <i>${a.verdict?.reason ?? ""}</i>
             <div class="btn-row" style="margin-top:6px;">
               <button class="hud-btn" data-pointable data-confirm="${idx}">${t("agents.confirm")}</button>
@@ -767,7 +784,7 @@ export class TacticalHud {
             const act = tr.detail as { type?: string; verdict?: { decision?: string; reason?: string } };
             const dec = act?.verdict?.decision ?? "allow";
             cls += ` verdict-${dec}`;
-            summary = `${escapeHtml(String(act.type ?? ""))} -> <b>${escapeHtml(dec.toUpperCase())}</b> (${escapeHtml(act.verdict?.reason ?? "")})`;
+            summary = `${escapeHtml(String(act.type ?? ""))} -> <b>${escapeHtml(t(`guard.${dec}`))}</b> (${escapeHtml(act.verdict?.reason ?? "")})`;
           }
           return `<div class="${cls}"><b>${escapeHtml(tr.agent)}</b> [${escapeHtml(tr.kind)}]: ${summary}</div>`;
         })
@@ -776,13 +793,13 @@ export class TacticalHud {
       this.modalEl.innerHTML = `
         ${closeHdr(t("agents.title"))}
         <div class="btn-row" style="margin-bottom:8px;">
-          <span>Route: <b>${s.routePath.join(" -> ") || "idle"}</b></span>
+          <span>${t("agents.route")}: <b>${s.routePath.join(" -> ") || t("common.idle")}</b></span>
           <button class="hud-btn ${s.earthLinkDelay ? "active" : ""}" data-pointable id="btn-earth-delay">
-            ${t("agents.earth_link")}: ${s.earthLinkDelay ? `${s.env.earth_light_time_s * 2}s RTT [design]` : "LOCAL"}
+            ${t("agents.earth_link")}: ${s.earthLinkDelay ? `${t("hud.earth_delay", { s: s.env.earth_light_time_s * 2 })} [${t("prov.design_assumption")}]` : t("agents.local")}
           </button>
         </div>
         ${pendingHtml}
-        <div>${traceHtml || "<i>No agent trace yet. Speak or press keys 1-8.</i>"}</div>
+        <div>${traceHtml || `<i>${t("agents.empty")}</i>`}</div>
       `;
       this.modalEl.querySelector("#btn-earth-delay")!.addEventListener("click", () => {
         s.earthLinkDelay = !s.earthLinkDelay;
@@ -800,27 +817,27 @@ export class TacticalHud {
           (u) => `
           <tr>
             <td><b>${u.id}</b></td>
-            <td>${u.kind}</td>
+            <td>${escapeHtml(["rover_crew", "rover_science", "rover_cargo", "scout", "rescue", "drone", "glider", "manipulator"].includes(u.kind) ? t(`fleet.${u.kind}`) : u.kind)}</td>
             <td>(${fmt(u.x, 0)}, ${fmt(u.z, 0)})</td>
             <td>${fmt(u.battery * 100, 0)}%</td>
-            <td>${u.task ?? "idle"}</td>
-            <td><button class="hud-btn" data-pointable data-fleet-cam="${u.id}">CAM</button></td>
+            <td>${escapeHtml(taskLabel(u.task))}</td>
+            <td><button class="hud-btn" data-pointable data-fleet-cam="${u.id}">${t("vision.camera_label")}</button></td>
           </tr>
         `,
         )
         .join("");
       this.modalEl.innerHTML = `
-        ${closeHdr("FLEET & ROVER-3 4-DOF IK")}
-        <table class="prov-tbl">
-          <thead><tr><th>ID</th><th>Kind</th><th>XZ (m)</th><th>Bat</th><th>Task</th><th>Cam</th></tr></thead>
+        ${closeHdr(t("fleet.title"))}
+        <table class="prov-tbl hud-fleet-table">
+          <thead><tr><th>ID</th><th>${t("fleet.kind")}</th><th>XZ (m)</th><th>${t("hud.battery")}</th><th>${t("fleet.task")}</th><th>${t("vision.camera_label")}</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
         <div class="panel-hdr" style="margin-top:10px;"><span>${t("manip.title")}</span></div>
         <div class="btn-row">
-          <button class="hud-btn" data-pointable data-skill="drill" data-tgt="T1">Drill Vein (T1)</button>
-          <button class="hud-btn" data-pointable data-skill="sample" data-tgt="T3">Scoop Soil (T3)</button>
-          <button class="hud-btn" data-pointable data-skill="photograph" data-tgt="T2">Photo Rock (T2)</button>
-          <button class="hud-btn" data-pointable data-skill="handover" data-tgt="astronaut">Handover Tool</button>
+          <button class="hud-btn" data-pointable data-skill="drill" data-tgt="T1">${t("manip.drill")}</button>
+          <button class="hud-btn" data-pointable data-skill="sample" data-tgt="T3">${t("manip.sample")}</button>
+          <button class="hud-btn" data-pointable data-skill="photograph" data-tgt="T2">${t("manip.photo")}</button>
+          <button class="hud-btn" data-pointable data-skill="handover" data-tgt="astronaut">${t("manip.handover")}</button>
         </div>
       `;
       this.modalEl.querySelectorAll<HTMLButtonElement>("[data-fleet-cam]").forEach((b) =>
@@ -839,18 +856,18 @@ export class TacticalHud {
       const hydHere = this.terrain.hydrationAt(s.astronaut.x, s.astronaut.z);
       const uncHere = this.terrain.hydrationUncAt(s.astronaut.x, s.astronaut.z);
       this.modalEl.innerHTML = `
-        ${closeHdr("GALE CRATER TACTICAL MAP")}
-        <div style="display:flex; gap:12px; align-items:flex-start;">
+        ${closeHdr(t("map.title"))}
+        <div class="hud-map-layout" style="display:flex; gap:12px; align-items:flex-start;">
           <canvas id="minimap-canvas" width="260" height="260" style="border:1px solid var(--border); border-radius:6px;"></canvas>
           <div style="font-size:11px;">
-            <div>Layer: <b>${s.layer}${s.layer === "hydration" && this.terrain.hydrationUncMode ? " (uncertainty)" : ""}</b></div>
-            <div>Grid: 4000×4000 m (${this.terrain.realRastersLoaded ? "1024 px real" : "256 px fallback"})</div>
-            <div>Cyan dot: Astronaut</div>
-            <div>Amber dots: Fleet units</div>
-            <div>Circles (${this.terrain.danPoints.length}): ${escapeHtml(t("hud.dan_stations"))}</div>
-            <div>Red ring: 15 m Pod Keep-out</div>
-            ${s.layer === "hydration" ? `<div style="margin-top:6px;"><b>${escapeHtml(t("hud.hydration_index"))}:</b> ${fmt(hydHere, 2)} ± ${fmt(uncHere, 2)}<br/><span style="opacity:0.8;">${escapeHtml(t("hud.hydration_note"))}</span><br/><span style="opacity:0.8;">Range ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}</span><div style="margin-top:4px;"><button class="hud-btn ${this.terrain.hydrationUncMode ? "active" : ""}" data-pointable id="map-hyd-unc">${escapeHtml(t("hud.layer.hydration_unc"))}</button></div></div>` : ""}
-            ${s.activeRoute ? `<div style="margin-top:8px;"><b>Active Route (${s.activeRoute.algorithm})</b><br/>Dist: ${fmt(s.activeRoute.distanceM, 0)} m<br/>Time: ${fmt(s.activeRoute.timeS / 60, 1)} min<br/>O2: ${fmt(s.activeRoute.o2Kg * 1000, 0)} g</div>` : ""}
+            <div>${t("map.layer")}: <b>${t(`hud.layer.${s.layer}`)}${s.layer === "hydration" && this.terrain.hydrationUncMode ? ` (${t("hud.hydration_unc")})` : ""}</b></div>
+            <div>${t("map.grid")}: 4000×4000 m (${this.terrain.realRastersLoaded ? t("map.real", { n: 1024 }) : t("map.fallback", { n: 256 })})</div>
+            <div>${t("map.astronaut")}</div>
+            <div>${t("map.fleet")}</div>
+            <div>${t("map.circles", { n: this.terrain.danPoints.length })}: ${escapeHtml(t("hud.dan_stations"))}</div>
+            <div>${t("map.keepout")}</div>
+            ${s.layer === "hydration" ? `<div style="margin-top:6px;"><b>${escapeHtml(t("hud.hydration_index"))}:</b> ${fmt(hydHere, 2)} ± ${fmt(uncHere, 2)}<br/><span style="opacity:0.8;">${escapeHtml(t("hud.hydration_note"))}</span><br/><span style="opacity:0.8;">${t("common.range")} ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}</span><div style="margin-top:4px;"><button class="hud-btn ${this.terrain.hydrationUncMode ? "active" : ""}" data-pointable id="map-hyd-unc">${escapeHtml(t("hud.layer.hydration_unc"))}</button></div></div>` : ""}
+            ${s.activeRoute ? `<div style="margin-top:8px;"><b>${t("map.route")} (${s.activeRoute.algorithm})</b><br/>${t("map.distance")}: ${fmt(s.activeRoute.distanceM, 0)} m<br/>${t("map.time")}: ${fmt(s.activeRoute.timeS / 60, 1)} min<br/>O2: ${fmt(s.activeRoute.o2Kg * 1000, 0)} g</div>` : ""}
           </div>
         </div>
       `;
@@ -876,12 +893,12 @@ export class TacticalHud {
         .join("");
 
       this.modalEl.innerHTML = `
-        ${closeHdr(`BASE MODULE: ${mod.name.toUpperCase()}`)}
+        ${closeHdr(escapeHtml(t("base.module", { name: mod.name })))}
         <div class="btn-row" style="margin-bottom:8px;">${modButtons}</div>
         <table class="prov-tbl"><tbody>${specsHtml}</tbody></table>
-        <div class="panel-hdr" style="margin-top:10px;"><span>RESOURCE BALANCE</span></div>
-        <div class="kv-row"><span>Solar + Fission Gen</span><span class="val">${fmt(totalGen, 1)} kWe (Load ${loadKw} kWe)</span></div>
-        <div class="kv-row"><span>O2 Reserve / ISRU</span><span class="val">45 days + 2.4 kg/h MOXIE-scaled</span></div>
+        <div class="panel-hdr" style="margin-top:10px;"><span>${t("base.resource_balance")}</span></div>
+        <div class="kv-row"><span>${t("base.generation")}</span><span class="val">${fmt(totalGen, 1)} kWe (${t("base.power_out")} ${loadKw} kWe)</span></div>
+        <div class="kv-row"><span>${t("base.isru")}</span><span class="val">${t("base.oxygen_summary")}</span></div>
       `;
       this.modalEl.querySelectorAll<HTMLButtonElement>("[data-bmod]").forEach((b) =>
         b.addEventListener("click", () => {
@@ -891,13 +908,13 @@ export class TacticalHud {
       );
     } else if (s.panel === "health") {
       this.modalEl.innerHTML = `
-        ${closeHdr("SUIT HEALTH & NASA-STD-3001 LIMITS")}
+        ${closeHdr(t("health.title"))}
         <table class="prov-tbl">
-          <tr><td>Nominal Suit Pressure</td><td>29.6 kPa (4.3 psi)</td><td>NASA Exploration EVA</td></tr>
-          <tr><td>PAO2 Impaired / Critical</td><td>8.0 kPa / 4.0 kPa</td><td>Design physiological thresholds</td></tr>
-          <tr><td>Armstrong Limit</td><td>6.27 kPa</td><td>Water vapor at 37 C</td></tr>
-          <tr><td>CO2 Partial Pressure</td><td>&lt; 667 Pa nominal</td><td>NASA-STD-3001 Vol. 2</td></tr>
-          <tr><td>Career Radiation Limit</td><td>600 mSv</td><td>NASA-STD-3001 Vol. 1</td></tr>
+          <tr><td>${t("health.nominal_pressure")}</td><td>29.6 kPa (4.3 psi)</td><td>NASA Exploration EVA</td></tr>
+          <tr><td>${t("health.pao2")}</td><td>8.0 kPa / 4.0 kPa</td><td>${t("health.thresholds")}</td></tr>
+          <tr><td>${t("health.armstrong")}</td><td>6.27 kPa</td><td>${t("health.vapor")}</td></tr>
+          <tr><td>${t("hud.co2")}</td><td>&lt; 667 Pa ${t("health.nominal")}</td><td>NASA-STD-3001 Vol. 2</td></tr>
+          <tr><td>${t("health.radiation")}</td><td>600 mSv</td><td>NASA-STD-3001 Vol. 1</td></tr>
         </table>
       `;
     } else if (s.panel === "provenance") {
@@ -925,16 +942,16 @@ export class TacticalHud {
 
       this.modalEl.innerHTML = `
         ${closeHdr(t("prov.title"))}
-        <div style="margin-bottom:6px;">Terrain DEM: <b>${escapeHtml(this.terrain.meta.product_id)}</b> (${this.terrain.heightGridN}×${this.terrain.heightGridN} height samples)</div>
+        <div style="margin-bottom:6px;">${t("prov.terrain")} DEM: <b>${escapeHtml(this.terrain.meta.product_id)}</b> (${t("prov.samples", { n: this.terrain.heightGridN })})</div>
         <div style="margin-bottom:6px; font-size:11px; opacity:0.85;">
-          Mission env [${escapeHtml(s.env.data_category ?? "design")}]: ${escapeHtml(s.env.storm_source)}; ${escapeHtml(s.env.rad_source)}; Earth link ${escapeHtml(String(s.env.earth_light_time_s))} s one-way [design].
-          Recorded NASA/JPL series (REMS 2018, RAD Sep 2017, Horizons 2026-Nov-14 TDB = 660.9 s) live in the independent Historical Data Archive.
+          ${t("prov.mission_env")} [${escapeHtml(s.env.data_category ?? "design")}]: ${escapeHtml(s.env.storm_source)}; ${escapeHtml(s.env.rad_source)}; ${t("prov.one_way", { s: s.env.earth_light_time_s })} [${t("prov.design_assumption")}].
+          ${t("prov.archive_note")}
         </div>
         ${this.buildProvenanceManifestHtml(datasetCount)}
         <div class="prov-section">
           <div class="panel-hdr"><span>${escapeHtml(t("prov.constants"))}</span></div>
           <table class="prov-tbl">
-            <thead><tr><th>Constant</th><th>Value</th><th>${escapeHtml(t("prov.source"))}</th></tr></thead>
+            <thead><tr><th>${t("prov.constant")}</th><th>${t("common.value")}</th><th>${escapeHtml(t("prov.source"))}</th></tr></thead>
             <tbody>${constRows}</tbody>
           </table>
         </div>
@@ -979,7 +996,7 @@ export class TacticalHud {
                 return `
                   <div class="session-entry-row">
                     <div>
-                      <b style="color:${e.who === "you" ? "#f3ece3" : "#ffb36b"}">${e.who.toUpperCase()}</b>
+                      <b style="color:${e.who === "you" ? "#f3ece3" : "#ffb36b"}">${escapeHtml(speakerLabel(e.who))}</b>
                       <span style="opacity:0.7; font-size:10px; margin-left:6px;">${badges.join(" · ")}</span>
                     </div>
                     <div>${escapeHtml(e.text)}</div>
@@ -1001,7 +1018,7 @@ export class TacticalHud {
                       <div style="font-weight:700; color:#fff;">${escapeHtml(sess.title)}</div>
                       <div class="session-card-meta">
                         ${isActive ? `<span class="pill">${escapeHtml(t("comms.active"))}</span>` : ""}
-                        <span class="pill">${escapeHtml(sess.scenario.toUpperCase())}</span>
+                        <span class="pill">${escapeHtml(scenarioLabel(sess.scenario))}</span>
                         <span class="pill">${escapeHtml(sess.lang.toUpperCase())}</span>
                         <span>${escapeHtml(t("comms.entries", { n: sess.entries.length }))}</span>
                         <span>· ${escapeHtml(dateStr)}</span>
@@ -1021,7 +1038,7 @@ export class TacticalHud {
         <div class="btn-row" style="justify-content:space-between; margin-bottom:8px;">
           <div>
             <b>${escapeHtml(active.title)}</b>
-            <span class="pill" style="margin-left:6px;">${escapeHtml(active.scenario.toUpperCase())}</span>
+            <span class="pill" style="margin-left:6px;">${escapeHtml(scenarioLabel(active.scenario))}</span>
             <span class="pill">${escapeHtml(active.lang.toUpperCase())}</span>
           </div>
           <div class="btn-row">
@@ -1058,7 +1075,6 @@ export class TacticalHud {
         });
       });
     } else if (s.panel === "menu") {
-      const es = getLang() === "es";
       const activeLang = getLang();
       const langNames: Record<string, string> = {
         es: "ES · Español",
@@ -1068,10 +1084,10 @@ export class TacticalHud {
         it: "IT · Italiano",
       };
       this.modalEl.innerHTML = `
-        ${closeHdr(es ? "MENÚ RÁPIDO DE MISIÓN (PUNTERO / VOZ)" : "MISSION QUICK MENU (POINTER / VOICE)")}
+        ${closeHdr(t("menu.quick"))}
         <div class="quick-menu-grid">
           <div class="quick-menu-section">
-            <div class="quick-menu-title">${es ? "Paneles del Visor" : "Visor Panels"}</div>
+            <div class="quick-menu-title">${t("menu.panels")}</div>
             <div class="quick-menu-cards">
               <button class="quick-card-btn" data-pointable data-qm-panel="map">${t("menu.map")}</button>
               <button class="quick-card-btn" data-pointable data-qm-panel="fleet">${t("menu.fleet")}</button>
@@ -1085,7 +1101,7 @@ export class TacticalHud {
           </div>
 
           <div class="quick-menu-section">
-            <div class="quick-menu-title">${es ? "Capas de Terreno 3D" : "3D Terrain Layers"}</div>
+            <div class="quick-menu-title">${t("menu.terrain")}</div>
             <div class="quick-menu-cards">
               <button class="quick-card-btn ${s.layer === "optical" ? "active" : ""}" data-pointable data-qm-layer="optical">${t("hud.layer.optical")}</button>
               <button class="quick-card-btn ${s.layer === "slope" ? "active" : ""}" data-pointable data-qm-layer="slope">${t("hud.layer.slope")}</button>
@@ -1096,27 +1112,27 @@ export class TacticalHud {
           </div>
 
           <div class="quick-menu-section">
-            <div class="quick-menu-title">${es ? "Cámaras y Visor VR" : "Cameras & VR Visor"}</div>
+            <div class="quick-menu-title">${t("menu.cameras")}</div>
             <div class="quick-menu-cards">
-              <button class="quick-card-btn" data-pointable id="qm-cam-helmet">${es ? "Visor Casco IA" : "Helmet Visor AI"}</button>
-              <button class="quick-card-btn" data-pointable id="qm-cam-rvr2">${es ? "Cámara RVR-2" : "RVR-2 Cam"}</button>
-              <button class="quick-card-btn" data-pointable id="qm-cam-rvr3">${es ? "Cámara RVR-3" : "RVR-3 Cam"}</button>
-              <button class="quick-card-btn" data-pointable id="qm-cam-drone1">${es ? "Cámara DRONE-1" : "DRONE-1 Cam"}</button>
-              <button class="quick-card-btn" data-pointable id="qm-pov-cycle">${es ? "Cambiar POV (1ª/3ª)" : "Cycle POV (1st/3rd)"}</button>
-              <button class="quick-card-btn ${s.povMode === "iso" ? "active" : ""}" data-pointable id="qm-pov-iso">${es ? "Vista Isométrica" : "Isometric View"}</button>
+              <button class="quick-card-btn" data-pointable id="qm-cam-helmet">${t("hud.view_helmet")}</button>
+              <button class="quick-card-btn" data-pointable id="qm-cam-rvr2">${t("menu.rover_cam")}</button>
+              <button class="quick-card-btn" data-pointable id="qm-cam-rvr3">${t("vision.camera", { unit: "RVR-3" })}</button>
+              <button class="quick-card-btn" data-pointable id="qm-cam-drone1">${t("vision.camera", { unit: "DRONE-1" })}</button>
+              <button class="quick-card-btn" data-pointable id="qm-pov-cycle">${t("hud.cycle_pov")}</button>
+              <button class="quick-card-btn ${s.povMode === "iso" ? "active" : ""}" data-pointable id="qm-pov-iso">${t("hud.isometric")}</button>
               <button class="quick-card-btn ${!s.hudVisible ? "active" : ""}" data-pointable id="qm-toggle-hud" style="grid-column: span 2;">
-                ${s.hudVisible ? (es ? "Ocultar HUD VR (Vista 3D Limpia)" : "Hide VR HUD (Clean 3D View)") : (es ? "Mostrar HUD VR" : "Show VR HUD")}
+                ${s.hudVisible ? t("hud.hide") : t("hud.show")}
               </button>
             </div>
           </div>
 
           <div class="quick-menu-section">
-            <div class="quick-menu-title">${es ? "Idioma & Escenarios" : "Language & Scenarios"}</div>
+            <div class="quick-menu-title">${t("menu.scenarios")}</div>
             <div class="quick-menu-cards">
               ${LANGS.map((l) => `<button class="quick-card-btn ${activeLang === l ? "active" : ""}" data-pointable data-qm-lang="${l}">${langNames[l] ?? l.toUpperCase()}</button>`).join("")}
-              <button class="quick-card-btn" data-pointable data-qm-scen="storm">${es ? "Tormenta Polvo" : "Dust Storm"}</button>
-              <button class="quick-card-btn" data-pointable data-qm-scen="sep2017">${es ? "Evento Solar SEP" : "SEP 2017 Rad"}</button>
-              <button class="quick-card-btn" data-pointable data-qm-scen="leak">${es ? "Fuga en Traje" : "Suit Leak"}</button>
+              <button class="quick-card-btn" data-pointable data-qm-scen="storm">${t("deck.5.label")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-scen="sep2017">${t("deck.6.label")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-scen="leak">${t("scenario.leak")}</button>
             </div>
           </div>
         </div>
@@ -1314,7 +1330,7 @@ export class TacticalHud {
         <div class="prov-section">
           ${hdr}
           <div class="alert-banner" style="border-color:var(--warn); background:rgba(255,184,0,0.14); margin:6px 0;">
-            ${escapeHtml(t("prov.unavailable", { msg: this.provenanceError || "unknown error" }))}
+            ${escapeHtml(t("prov.unavailable", { msg: this.provenanceError || t("common.unknown_error") }))}
           </div>
           <button class="hud-btn" data-pointable id="prov-retry">${escapeHtml(t("prov.retry"))}</button>
         </div>
@@ -1351,7 +1367,7 @@ export class TacticalHud {
         return `
           <tr>
             <td>
-              <span class="prov-cat">${escapeHtml(cat)}</span>
+              <span class="prov-cat">${escapeHtml(t(`prov.cat.${cat}`))}</span>
               <div><b>${escapeHtml(key)}</b></div>
               <div class="prov-detail">${escapeHtml(entry.retrieved)}</div>
             </td>

@@ -2,6 +2,7 @@ import { ASTRONAUT_START, BASE_ORIGIN } from "@th/shared";
 import * as THREE from "three";
 import { metabolicRateW, terrainFromThermalClass } from "@th/shared";
 import type { TerrainProc } from "./terrainProc";
+import { createNasaInsignia } from "./nasaInsignia";
 
 export type PovMode = "1st" | "3rd" | "iso";
 
@@ -66,6 +67,11 @@ export class AstronautProc {
     const chestPack = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.22, 0.1), suitTrim);
     chestPack.position.set(0, 0.05, -0.18);
     this.torsoGroup.add(chestPack);
+
+    const insignia = createNasaInsignia(0.14);
+    insignia.position.set(0, 0.05, -0.234);
+    insignia.rotation.y = Math.PI;
+    this.torsoGroup.add(insignia);
 
     // PLSS Backpack
     const plss = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.54, 0.22), suitWhite);
@@ -292,7 +298,7 @@ export class AstronautProc {
       this.velZ = 0;
       this.speed = 0;
       this.gradePct = 0;
-      this.relaxLimbs();
+      this.relaxLimbs(safeDt);
       this.syncCamera();
       return;
     }
@@ -344,7 +350,7 @@ export class AstronautProc {
       this.leftArm.rotation.x = -swing * 0.65;
       this.rightArm.rotation.x = swing * 0.65;
     } else {
-      this.relaxLimbs();
+      this.relaxLimbs(safeDt);
     }
 
     this.torsoGroup.position.y = 0.96 + this.breathBob;
@@ -353,11 +359,12 @@ export class AstronautProc {
     this.syncCamera();
   }
 
-  private relaxLimbs(): void {
-    this.leftLeg.rotation.x *= 0.82;
-    this.rightLeg.rotation.x *= 0.82;
-    this.leftArm.rotation.x *= 0.82;
-    this.rightArm.rotation.x *= 0.82;
+  private relaxLimbs(dt: number): void {
+    const factor = Math.pow(0.82, dt * 60);
+    this.leftLeg.rotation.x *= factor;
+    this.rightLeg.rotation.x *= factor;
+    this.leftArm.rotation.x *= factor;
+    this.rightArm.rotation.x *= factor;
   }
 
   syncCamera(): void {

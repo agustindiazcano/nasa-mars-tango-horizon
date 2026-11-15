@@ -678,3 +678,21 @@ button.quick-card-btn.active {
   color: #fff;
   box-shadow: 0 0 12px rgba(255, 179, 107, 0.35);
 }
+
+/* Keep translated fleet and map content within narrow mission panels. */
+@media (max-width: 600px) {
+  .hud-fleet-table {
+    table-layout: fixed;
+    overflow-wrap: anywhere;
+  }
+
+  .hud-fleet-table .hud-btn {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .hud-map-layout {
+    flex-direction: column;
+    overflow-wrap: anywhere;
+  }
+}

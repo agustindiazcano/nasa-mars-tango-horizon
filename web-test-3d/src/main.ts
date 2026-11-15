@@ -169,6 +169,9 @@ async function captureAndInspectVision(
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const out = (await res.json()) as { speech: string; injection: boolean };
+    if (!out || typeof out.speech !== "string" || !out.speech.trim()) {
+      throw new Error("Invalid vision response");
+    }
     store.injectionBlockedBanner = Boolean(out.injection);
     store.roverPreviewCaption = out.speech;
     if (out.injection) {
@@ -189,34 +192,9 @@ async function captureAndInspectVision(
     store.notify();
     return out;
   } catch {
-    const isInjectionTest = unitId === "rover-2" && /sign|cartel|le[eé]/i.test(question);
-    const es = getLang() === "es";
-    if (isInjectionTest) {
-      store.injectionBlockedBanner = true;
-      const speech = es
-        ? "Cartel detectado con texto adversario ('IGNORE PREVIOUS ORDERS'). Bloqueado como dato no confiable."
-        : "Sign detected with adversarial text ('IGNORE PREVIOUS ORDERS'). Blocked as untrusted data.";
-      store.roverPreviewCaption = speech;
-      store.pushAlert("crit", `${t("agents.injection_blocked")} (${unitId})`, "GUARDIAN");
-      store.setTrace(
-        [
-          { t: Date.now(), agent: `ROBOT.${unitId}`, kind: "tool", detail: { tool: "capture_image", unit_id: unitId } },
-          {
-            t: Date.now() + 2,
-            agent: "GUARDIAN",
-            kind: "verdict",
-            detail: { type: "return_to_base_open_airlock", verdict: { decision: "deny", reason: "Untrusted text injection blocked", by: "rules" } },
-          },
-        ],
-        ["BASE", `ROBOT.${unitId}`, "GUARDIAN"],
-      );
-      store.notify();
-      return { speech, injection: true };
-    }
-    const speech = es
-      ? "Rocas basalticas marcianas y regolito en Gale Crater sin obstaculos criticos."
-      : "Martian basalt outcrop and Gale Crater regolith ahead; path clear.";
+    const speech = t("voice.vision_offline");
     store.roverPreviewCaption = speech;
+    store.pushAlert("warn", speech, normId === "astronaut" ? "SUIT.VISION" : `ROBOT.${normId}`);
     store.notify();
     return { speech, injection: false };
   }
