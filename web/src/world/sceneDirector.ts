@@ -84,7 +84,7 @@ export const SCENES: readonly SceneDef[] = [
     durationS: 25,
     segments: [
       { fromS: 0, kind: "orbit", target: "crew-2", radius: 9, height: 2.4, speed: 0.3, lookAboveM: 1.2 },
-      { fromS: 8, kind: "follow", target: "rover-1", offset: { x: 6, y: 3, z: 7 }, lookAboveM: 1 },
+      { fromS: 8, kind: "follow", target: "rover-1", offset: { x: 11, y: 4.5, z: 12 }, lookAboveM: 1.5 },
       { fromS: 16, kind: "aerial", target: "pit", offset: { x: 7, y: 6, z: 7 }, lookAboveM: -1 },
     ],
   },
