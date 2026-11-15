@@ -123,6 +123,59 @@ describe("BM25 knowledge search (searchDocs)", () => {
     expect(moxie.some((r) => /MOXIE/i.test(r.doc))).toBe(true);
   });
 
+  it("retrieves expanded NASA-STD-3001 Vol 1 biomedical and thermal/DCS/radiation chunks", () => {
+    const co2Vol1 = searchDocs("chronic 0.40 kPa acute 2.0 kPa CO2 hypercapnia respiratory acidosis", 3);
+    assertValidCitations(co2Vol1);
+    expect(co2Vol1.some((r) => r.doc === "NASA-STD-3001 Vol 1 Rev B")).toBe(true);
+
+    const dcs = searchDocs("decompression sickness DCS R-value prebreathe denitrogenation VGE PFO", 3);
+    assertValidCitations(dcs);
+    expect(dcs.some((r) => r.doc === "NASA-STD-3001 Vol 1 Rev B")).toBe(true);
+    expect(dcs.map((r) => r.text).join(" ")).toMatch(/R\s*=\s*ppN2_tissue|prebreathe|15%/i);
+
+    const heat = searchDocs("thermal heat strain PSI core temperature 38.0 39.0 metabolic rate", 3);
+    assertValidCitations(heat);
+    expect(heat.some((r) => r.doc === "NASA-STD-3001 Vol 1 Rev B")).toBe(true);
+    expect(heat.map((r) => r.text).join(" ")).toMatch(/PSI|38\.0|39\.0|200-500 W/i);
+
+    const sep = searchDocs("SEP solar particle event storm shelter BFO ALARA regolith neutron albedo", 3);
+    assertValidCitations(sep);
+    expect(sep.some((r) => /NASA-STD-3001 Vol 1 Rev B|NASA-STD-3001_Vol2_RevE/i.test(r.doc))).toBe(true);
+    expect(sep.map((r) => r.text).join(" ")).toMatch(/BFO|ALARA|SPE/i);
+  });
+
+  it("retrieves expanded NASA-STD-3001 Vol 2, OCHMO-HB-004, and NASA-TP hardware safety chunks", () => {
+    const scrubber = searchDocs("CO2 scrubber breakthrough RCA LiOH contingency purge 170 L/min", 3);
+    assertValidCitations(scrubber);
+    expect(scrubber.some((r) => r.doc === "NASA-STD-3001 Vol 2 Rev C")).toBe(true);
+
+    const pyro = searchDocs("pyrotechnic exclusion ignition 100% O2 spacesuit V2 6002 non-pyrotechnic", 3);
+    assertValidCitations(pyro);
+    expect(pyro.some((r) => r.doc === "NASA-STD-3001 Vol 2 Rev C")).toBe(true);
+    expect(pyro.map((r) => r.text).join(" ")).toMatch(/pyrotechnic|non-pyrotechnic|100% O2/i);
+
+    const dust = searchDocs("planetary dust mitigation 0.3 mg/m3 perchlorates electrostatic ESD", 3);
+    assertValidCitations(dust);
+    expect(dust.some((r) => r.doc === "NASA-STD-3001 Vol 2 Rev C")).toBe(true);
+    expect(dust.map((r) => r.text).join(" ")).toMatch(/0\.3 mg\/m3|ESD|perchlorate/i);
+
+    const suitEnv = searchDocs("exploration suit 29.6 kPa secondary oxygen pack SOP potable water 2.5 L", 5);
+    assertValidCitations(suitEnv);
+    expect(suitEnv.some((r) => r.doc === "NASA-STD-3001 Vol 2 Rev C")).toBe(true);
+
+    const acoustic = searchDocs("acoustic noise NC-50 speech intelligibility STI 0.70", 3);
+    assertValidCitations(acoustic);
+    expect(acoustic.some((r) => r.doc === "NASA-STD-3001 Vol 2 Rev C")).toBe(true);
+
+    const biomech = searchDocs("suited anthropometry reach envelope MVC slope locomotion OCHMO-HB-004", 3);
+    assertValidCitations(biomech);
+    expect(biomech.some((r) => r.doc === "OCHMO-HB-004")).toBe(true);
+
+    const suas = searchDocs("BVLOS unmanned aircraft sUAS contingency navigation NASA-TP-20205008905", 3);
+    assertValidCitations(suas);
+    expect(suas.some((r) => r.doc === "NASA-TP-20205008905")).toBe(true);
+  });
+
   it("executes queries in under 2 ms", () => {
     const queries = [
       "O2 partial pressure hypoxia",
