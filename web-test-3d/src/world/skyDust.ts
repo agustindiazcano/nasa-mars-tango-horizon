@@ -35,22 +35,26 @@ export class SkyDust {
           float h = clamp(d.y, 0.0, 1.0);
           float storm = clamp((uTau - 0.5) / 6.0, 0.0, 1.0);
 
-          vec3 horizonClear = vec3(0.82, 0.56, 0.36);
-          vec3 zenithClear  = vec3(0.46, 0.30, 0.22);
-          vec3 horizonStorm = vec3(0.52, 0.32, 0.19);
-          vec3 zenithStorm  = vec3(0.32, 0.19, 0.12);
+          vec3 horizonClear = vec3(0.86, 0.52, 0.31);
+          vec3 zenithClear  = vec3(0.42, 0.25, 0.17);
+          vec3 horizonStorm = vec3(0.56, 0.31, 0.17);
+          vec3 zenithStorm  = vec3(0.30, 0.16, 0.10);
 
-          vec3 skyCol = mix(mix(horizonClear, zenithClear, pow(h, 0.55)),
-                            mix(horizonStorm, zenithStorm, pow(h, 0.55)), storm);
+          vec3 skyCol = mix(mix(horizonClear, zenithClear, pow(h, 0.52)),
+                            mix(horizonStorm, zenithStorm, pow(h, 0.52)), storm);
+
+          // Atmospheric limb / horizon dust-scattering rim band
+          float horizonBand = exp(-abs(d.y) * 14.0) * (1.0 - storm * 0.45);
+          vec3 rimGlow = vec3(0.95, 0.54, 0.28) * horizonBand * 0.28;
 
           // Small Martian solar disk (~2/3 Earth size) + characteristic dusty bluish aureole
           float cosA = dot(d, normalize(uSunDir));
           float halo = pow(max(cosA, 0.0), 22.0) * (1.0 - storm * 0.75);
           float disk = smoothstep(0.99978, 0.99993, cosA) * (1.0 - storm * 0.92);
-          vec3 aureole = vec3(0.55, 0.68, 0.85) * halo * 0.45;
-          vec3 sunCol  = vec3(1.0, 0.96, 0.90) * disk * 2.2;
+          vec3 aureole = vec3(0.58, 0.70, 0.88) * halo * 0.48;
+          vec3 sunCol  = vec3(1.0, 0.96, 0.90) * disk * 2.5;
 
-          gl_FragColor = vec4(skyCol + aureole + sunCol, 1.0);
+          gl_FragColor = vec4(skyCol + rimGlow + aureole + sunCol, 1.0);
         }
       `,
     });

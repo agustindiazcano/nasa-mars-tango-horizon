@@ -130,6 +130,8 @@ export class TerrainProc {
   private realOptical: THREE.Texture | null = null;
   private activeLayer: LayerId = "optical";
   private detailNormalMap: THREE.DataTexture | null = null;
+  private rippleDetailMap: THREE.DataTexture;
+  private uIsOptical = { value: 1.0 };
   private material: THREE.MeshStandardMaterial;
   private routeLine: THREE.Line | null = null;
   private beaconsGroup = new THREE.Group();
@@ -161,13 +163,15 @@ export class TerrainProc {
       hydration: this.buildLayerTexture("hydration"),
     };
     this.hydrationUncTexture = this.buildLayerTexture("hydration_unc");
+    this.rippleDetailMap = this.buildRippleDetailMap();
 
     this.material = new THREE.MeshStandardMaterial({
       map: this.textures.optical,
-      roughness: 0.94,
-      metalness: 0.04,
-      normalScale: new THREE.Vector2(0.28, 0.28),
+      roughness: 0.9,
+      metalness: 0.05,
+      normalScale: new THREE.Vector2(0.38, 0.38),
     });
+    this.attachMartianPomShader();
 
     this.initChunks();
     this.updateLod(0, 0, true);
@@ -338,9 +342,195 @@ export class TerrainProc {
 
   setLayer(layer: LayerId): void {
     this.activeLayer = layer;
+    this.uIsOptical.value = layer === "optical" ? 1.0 : 0.0;
     this.material.map =
       layer === "optical" && this.realOptical ? this.realOptical : this.getLayerTexture(layer);
     this.material.needsUpdate = true;
+  }
+
+  /** Builds a tileable 256x256 eolian sand-ripple normal (RGB) + height (A) texture for POM. */
+  private buildRippleDetailMap(): THREE.DataTexture {
+    const n = 256;
+    const hField = new Float32Array(n * n);
+    const twoPi = Math.PI * 2;
+    for (let y = 0; y < n; y++) {
+      const v = (y / n) * twoPi;
+      for (let x = 0; x < n; x++) {
+        const u = (x / n) * twoPi;
+        const warp = 0.42 * Math.sin(u * 2 + Math.cos(v * 2)) + 0.22 * Math.cos(v * 3 - u);
+        // Asymmetric wind-driven eolian sand ripples + fine regolith grain
+        const phase = u * 7 + v * 2 + warp * 2.2;
+        const primary = 0.5 + 0.5 * Math.sin(phase + 0.32 * Math.sin(phase));
+        const secondary = 0.5 + 0.5 * Math.sin(u * 13 - v * 5 + warp * 1.6);
+        const micro = 0.5 + 0.5 * Math.cos(u * 23 + v * 19);
+        hField[y * n + x] = primary * 0.62 + secondary * 0.26 + micro * 0.12;
+      }
+    }
+
+    const rgba = new Uint8Array(n * n * 4);
+    const amp = 2.8;
+    for (let y = 0; y < n; y++) {
+      const ym = (y - 1 + n) % n;
+      const yp = (y + 1) % n;
+      for (let x = 0; x < n; x++) {
+        const xm = (x - 1 + n) % n;
+        const xp = (x + 1) % n;
+        const dhdx = (hField[y * n + xp] - hField[y * n + xm]) * amp;
+        const dhdy = (hField[yp * n + x] - hField[ym * n + x]) * amp;
+        const inv = 1 / Math.hypot(dhdx, dhdy, 1);
+        const nx = -dhdx * inv;
+        const ny = -dhdy * inv;
+        const nz = inv;
+        const p = (y * n + x) * 4;
+        rgba[p] = Math.round((nx * 0.5 + 0.5) * 255);
+        rgba[p + 1] = Math.round((ny * 0.5 + 0.5) * 255);
+        rgba[p + 2] = Math.round((nz * 0.5 + 0.5) * 255);
+        rgba[p + 3] = Math.round(THREE.MathUtils.clamp(hField[y * n + x], 0, 1) * 255);
+      }
+    }
+
+    const tex = new THREE.DataTexture(rgba, n, n, THREE.RGBAFormat);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.magFilter = THREE.LinearFilter;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.generateMipmaps = true;
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  /** Injects Steep Parallax / Parallax Occlusion Mapping (POM), ferric-oxide Martian regolith tinting, and horizon rim glow. */
+  private attachMartianPomShader(): void {
+    this.material.onBeforeCompile = (shader) => {
+      shader.uniforms.uRippleMap = { value: this.rippleDetailMap };
+      shader.uniforms.uIsOptical = this.uIsOptical;
+
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          "#include <common>",
+          /* glsl */ `
+          #include <common>
+          varying vec3 vMarsWorldPos;
+          varying vec3 vMarsWorldNorm;
+          `,
+        )
+        .replace(
+          "#include <worldpos_vertex>",
+          /* glsl */ `
+          #include <worldpos_vertex>
+          vMarsWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+          vMarsWorldNorm = normalize(mat3(modelMatrix) * objectNormal);
+          `,
+        );
+
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          /* glsl */ `
+          #include <common>
+          uniform sampler2D uRippleMap;
+          uniform float uIsOptical;
+          varying vec3 vMarsWorldPos;
+          varying vec3 vMarsWorldNorm;
+
+          vec2 marsPomUv(vec2 baseUv, vec3 viewDirWorld, float fade) {
+            if (fade <= 0.001) return baseUv;
+            const float numSteps = 8.0;
+            const float heightScale = 0.038;
+            vec2 rayDir = (vec2(viewDirWorld.x, viewDirWorld.z) / max(abs(viewDirWorld.y), 0.22)) * heightScale * fade;
+            vec2 stepUv = rayDir / numSteps;
+            vec2 currUv = baseUv;
+            float currLayer = 0.0;
+            float stepDepth = 1.0 / numSteps;
+            float currMap = 1.0 - texture2D(uRippleMap, currUv).a;
+            for (int i = 0; i < 8; i++) {
+              if (currLayer < currMap) {
+                currUv -= stepUv;
+                currMap = 1.0 - texture2D(uRippleMap, currUv).a;
+                currLayer += stepDepth;
+              }
+            }
+            vec2 prevUv = currUv + stepUv;
+            float afterDepth = currMap - currLayer;
+            float beforeDepth = (1.0 - texture2D(uRippleMap, prevUv).a) - currLayer + stepDepth;
+            float w = clamp(afterDepth / max(afterDepth - beforeDepth, 1e-4), 0.0, 1.0);
+            return mix(currUv, prevUv, w);
+          }
+          `,
+        )
+        .replace(
+          "#include <map_fragment>",
+          /* glsl */ `
+          #ifdef USE_MAP
+            vec3 marsCamToFrag = vMarsWorldPos - cameraPosition;
+            float marsCamDist = length(marsCamToFrag);
+            vec3 marsViewDirW = normalize(-marsCamToFrag);
+            float marsPomFade = smoothstep(190.0, 16.0, marsCamDist) * uIsOptical;
+            vec2 marsRippleUv = marsPomUv(vMarsWorldPos.xz * 0.34, marsViewDirW, marsPomFade);
+            vec4 marsRippleSample = texture2D(uRippleMap, marsRippleUv);
+            vec4 marsMacroSample = texture2D(uRippleMap, vMarsWorldPos.xz * 0.045);
+
+            vec2 orthoUv = vMapUv + (marsRippleUv - vMarsWorldPos.xz * 0.34) * 0.0012 * marsPomFade;
+            vec4 sampledDiffuseColor = texture2D(map, orthoUv);
+
+            if (uIsOptical > 0.5) {
+              float hiRiseLum = dot(sampledDiffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+              float sat = max(sampledDiffuseColor.r, max(sampledDiffuseColor.g, sampledDiffuseColor.b)) -
+                          min(sampledDiffuseColor.r, min(sampledDiffuseColor.g, sampledDiffuseColor.b));
+              float slopeFactor = clamp((1.0 - clamp(vMarsWorldNorm.y, 0.0, 1.0)) * 3.8, 0.0, 1.0);
+              float rippleCrest = mix(0.5, marsRippleSample.a, marsPomFade * 0.85 + 0.15);
+              float duneBand = marsMacroSample.a;
+
+              // Realistic Gale Crater palette: ferric-oxide ochre sand, bright hematite dust crests, dark basaltic bedrock
+              vec3 darkBasalt   = vec3(0.26, 0.14, 0.10);
+              vec3 ferricSand   = vec3(0.74, 0.34, 0.18);
+              vec3 ochreCrest   = vec3(0.89, 0.49, 0.27);
+              vec3 sulfateLight = vec3(0.94, 0.64, 0.40);
+
+              float contrastLum = smoothstep(0.08, 0.92, hiRiseLum);
+              vec3 marsRegolith = mix(darkBasalt, ferricSand, smoothstep(0.0, 0.58, contrastLum));
+              marsRegolith = mix(marsRegolith, ochreCrest, smoothstep(0.45, 0.88, contrastLum));
+              marsRegolith = mix(marsRegolith, sulfateLight, smoothstep(0.84, 0.99, contrastLum) * 0.65);
+
+              // Blend steeper rocky slopes toward darker basaltic outcrop and ripple troughs/crests
+              marsRegolith = mix(marsRegolith, darkBasalt * (0.75 + 0.5 * hiRiseLum), slopeFactor * 0.58);
+              marsRegolith *= (0.86 + 0.24 * rippleCrest) * (0.93 + 0.14 * duneBand);
+
+              // If real grayscale HiRISE ortho is active (low saturation), apply full Martian colorization;
+              // if procedural fallback is active, enrich with ripple/slope relief.
+              vec3 baseOpt = mix(marsRegolith, sampledDiffuseColor.rgb * (0.88 + 0.24 * rippleCrest), clamp(sat * 1.4, 0.0, 0.45));
+              diffuseColor.rgb *= baseOpt;
+            } else {
+              diffuseColor *= sampledDiffuseColor;
+            }
+          #endif
+          `,
+        )
+        .replace(
+          "#include <normal_fragment_maps>",
+          /* glsl */ `
+          #include <normal_fragment_maps>
+          #ifdef USE_MAP
+            if (uIsOptical > 0.5) {
+              vec3 rippleN = normalize(marsRippleSample.rgb * 2.0 - 1.0);
+              vec3 macroN  = normalize(marsMacroSample.rgb * 2.0 - 1.0);
+              float detailWeight = mix(0.22, 0.58, marsPomFade);
+              normal = normalize(normal + vec3(rippleN.x + macroN.x * 0.45, 0.0, rippleN.y + macroN.y * 0.45) * detailWeight);
+            }
+          #endif
+          `,
+        )
+        .replace(
+          "#include <dithering_fragment>",
+          /* glsl */ `
+          if (uIsOptical > 0.5) {
+            float rim = pow(1.0 - max(dot(normalize(vViewPosition), normal), 0.0), 3.4);
+            gl_FragColor.rgb += vec3(0.86, 0.42, 0.22) * rim * 0.18;
+          }
+          #include <dithering_fragment>
+          `,
+        );
+    };
   }
 
   getLayerTexture(layer: LayerId): THREE.DataTexture {
@@ -450,6 +640,8 @@ export class TerrainProc {
       chunk.mesh.geometry.dispose();
     }
     for (const tex of Object.values(this.textures)) tex.dispose();
+    this.hydrationUncTexture.dispose();
+    this.rippleDetailMap.dispose();
     this.realOptical?.dispose();
     this.detailNormalMap?.dispose();
     this.material.dispose();
