@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { GlassSurface } from '@/components/ui/GlassSurface';
 import { ElectricBorder } from '@/components/ui/ElectricBorder';
@@ -12,11 +12,17 @@ import { useLanguage } from '@/context/LanguageContext';
 export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
   const { lang } = useLanguage();
   const isEs = lang === 'es';
-  const isMoon = variant === 'moon';
+  const [activeVariant, setActiveVariant] = useState<'moon' | 'mars'>(variant);
+
+  useEffect(() => {
+    setActiveVariant(variant);
+  }, [variant]);
+
+  const isMoon = activeVariant === 'moon';
   const thesis = isMoon ? getMoonThesisData(lang) : getMarsThesisData(lang);
   const accent = isMoon ? '#fbbf24' : '#fb923c';
   const accentBorder = isMoon ? 'rgba(251, 191, 36, 0.38)' : 'rgba(251, 146, 60, 0.38)';
-  const accentBg = isMoon ? 'rgba(251, 191, 36, 0.12)' : 'rgba(251, 146, 60, 0.12)';
+  const accentBg = isMoon ? 'rgba(251, 191, 36, 0.14)' : 'rgba(251, 146, 60, 0.14)';
   const pillLabel = isMoon
     ? isEs
       ? 'Tesis Universitaria · Selenología'
@@ -28,6 +34,10 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
   const [activeChapterId, setActiveChapterId] = useState<string>(
     thesis.chapters[0]?.id ?? ''
   );
+
+  useEffect(() => {
+    setActiveChapterId(thesis.chapters[0]?.id ?? '');
+  }, [activeVariant, lang, thesis.chapters]);
 
   const handleJumpToChapter = (chapterId: string) => {
     setActiveChapterId(chapterId);
@@ -45,12 +55,12 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
           <Link
             href="/cronologia"
             className="ac-readmore-wrap"
-            style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
+            style={{ textDecoration: 'none', borderRadius: '10px', minHeight: '40px' }}
           >
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={10}
               borderWidth={0.12}
               brightness={58}
               opacity={0.95}
@@ -68,15 +78,78 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
             </GlassSurface>
           </Link>
 
+          {/* Unified Thesis Switcher (Moon <-> Mars) */}
+          <div
+            role="tablist"
+            aria-label={isEs ? 'Selector de Tesis Teórica' : 'Theoretical Thesis Switcher'}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.3rem',
+              borderRadius: '12px',
+              background: 'rgba(20, 9, 14, 0.85)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 10px 28px rgba(0, 0, 0, 0.4)',
+            }}
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isMoon}
+              onClick={() => setActiveVariant('moon')}
+              style={{
+                padding: '0.5rem 1.05rem',
+                borderRadius: '9px',
+                border: isMoon
+                  ? '1px solid rgba(251, 191, 36, 0.65)'
+                  : '1px solid transparent',
+                background: isMoon
+                  ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.24), rgba(249, 115, 22, 0.16))'
+                  : 'transparent',
+                color: isMoon ? '#fff8f1' : '#c4a99a',
+                fontWeight: 700,
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {isEs ? 'Tesis Lunar · Selenología' : 'Lunar Thesis · Selenology'}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isMoon}
+              onClick={() => setActiveVariant('mars')}
+              style={{
+                padding: '0.5rem 1.05rem',
+                borderRadius: '9px',
+                border: !isMoon
+                  ? '1px solid rgba(249, 115, 22, 0.65)'
+                  : '1px solid transparent',
+                background: !isMoon
+                  ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.28), rgba(251, 113, 133, 0.18))'
+                  : 'transparent',
+                color: !isMoon ? '#fff8f1' : '#c4a99a',
+                fontWeight: 700,
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {isEs ? 'Tesis Marte · Areología' : 'Mars Thesis · Areology'}
+            </button>
+          </div>
+
           <ElectricBorder
             color={accent}
             speed={1.15}
             chaos={0.5}
-            borderRadius={2}
+            borderRadius={10}
           >
             <div
               className="era-detail-period-pill"
-              style={{ color: accent, borderRadius: '2px', minHeight: '40px' }}
+              style={{ color: accent, borderRadius: '10px', minHeight: '40px' }}
             >
               {pillLabel}
             </div>
@@ -96,7 +169,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
               color: accent,
               borderColor: accentBorder,
               background: accentBg,
-              borderRadius: '2px',
+              borderRadius: '8px',
             }}
           >
             {thesis.kicker}
@@ -133,7 +206,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                   borderColor: isActive ? accent : 'rgba(253, 186, 116, 0.28)',
                   background: isActive ? accentBg : 'rgba(20, 10, 14, 0.78)',
                   color: isActive ? accent : '#f3dfd1',
-                  borderRadius: '2px',
+                  borderRadius: '10px',
                   minHeight: '40px',
                 }}
               >
@@ -148,7 +221,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={24}
+          borderRadius={20}
           borderWidth={0.07}
           brightness={50}
           opacity={0.94}
@@ -163,7 +236,10 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
         >
           <article className="era-detail-article">
             {/* Resumen Ejecutivo */}
-            <div className="thesis-abstract-box" style={{ borderColor: accentBorder }}>
+            <div
+              className="thesis-abstract-box"
+              style={{ borderColor: accentBorder, borderRadius: '14px' }}
+            >
               <span className="thesis-abstract-label" style={{ color: accent }}>
                 {isEs ? 'Resumen Ejecutivo (Abstract)' : 'Executive Summary (Abstract)'}
               </span>
@@ -176,7 +252,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                 <div
                   key={idx}
                   className="era-metric-box"
-                  style={{ borderColor: accentBorder }}
+                  style={{ borderColor: accentBorder, borderRadius: '12px' }}
                 >
                   <span
                     className="era-metric-value"
@@ -203,12 +279,12 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                     color={idx % 2 === 0 ? accent : '#fb7185'}
                     speed={1.0}
                     chaos={0.38}
-                    borderRadius={20}
+                    borderRadius={18}
                   >
                     <GlassSurface
                       width="100%"
                       height="auto"
-                      borderRadius={20}
+                      borderRadius={18}
                       borderWidth={0.08}
                       brightness={54}
                       opacity={0.92}
@@ -229,7 +305,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                               color: accent,
                               borderColor: accentBorder,
                               background: accentBg,
-                              borderRadius: '2px',
+                              borderRadius: '8px',
                             }}
                           >
                             {chap.num}
@@ -258,7 +334,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
                               style={{
                                 borderLeftColor: accent,
                                 color: isMoon ? '#fbbf24' : '#fdba74',
-                                borderRadius: '2px',
+                                borderRadius: '10px',
                               }}
                             >
                               <code
@@ -285,7 +361,10 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
             </div>
 
             {/* Conclusión General */}
-            <div className="thesis-conclusion-box" style={{ borderColor: accentBorder }}>
+            <div
+              className="thesis-conclusion-box"
+              style={{ borderColor: accentBorder, borderRadius: '14px' }}
+            >
               <h3 className="thesis-conclusion-title" style={{ color: accent }}>
                 {isEs ? 'Conclusión General' : 'General Conclusion'}
               </h3>
@@ -296,78 +375,143 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
 
         {/* Navegación inferior */}
         <nav className="era-detail-pagination" style={{ marginTop: '2.6rem' }}>
-          <Link
-            href={isMoon ? '/cronologia' : '/tesis-lunar'}
-            className="ac-readmore-wrap"
-            style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
-          >
-            <GlassSurface
-              width="auto"
-              height={48}
-              borderRadius={2}
-              borderWidth={0.12}
-              brightness={56}
-              opacity={0.94}
-              blur={10}
-              displace={0.6}
-              backgroundOpacity={0.12}
-              saturation={1.35}
-              distortionScale={-140}
-              className="ac-glass-btn-surface"
-            >
-              <span className="ac-readmore-label" style={{ padding: '0 1.65rem' }}>
-                <span className="ac-readmore-arrow-left">←</span>
-                {isMoon
-                  ? isEs
-                    ? 'Volver a Cronología'
-                    : 'Back to Timeline'
-                  : isEs
-                    ? 'Anterior · Tesis Lunar'
-                    : 'Previous · Lunar Thesis'}
-              </span>
-            </GlassSurface>
-          </Link>
-
-          <Link
-            href={isMoon ? '/tesis-marte' : '/marte'}
-            className="ac-readmore-wrap"
-            style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
-          >
-            <ElectricBorder
-              color="#f97316"
-              speed={1.25}
-              chaos={0.45}
-              borderRadius={2}
+          {isMoon ? (
+            <Link
+              href="/cronologia"
+              className="ac-readmore-wrap"
+              style={{ textDecoration: 'none', borderRadius: '10px', minHeight: '44px' }}
             >
               <GlassSurface
                 width="auto"
                 height={48}
-                borderRadius={2}
+                borderRadius={10}
                 borderWidth={0.12}
-                brightness={58}
-                opacity={0.95}
+                brightness={56}
+                opacity={0.94}
                 blur={10}
                 displace={0.6}
-                backgroundOpacity={0.16}
-                saturation={1.4}
+                backgroundOpacity={0.12}
+                saturation={1.35}
                 distortionScale={-140}
                 className="ac-glass-btn-surface"
               >
-                <span className="ac-readmore-label" style={{ padding: '0 1.75rem' }}>
-                  {isMoon
-                    ? isEs
-                      ? 'Siguiente · Tesis sobre Marte'
-                      : 'Continue to Mars Thesis'
-                    : isEs
-                      ? 'Siguiente · Exploración Marte I–III'
-                      : 'Next · Mars Exploration I–III'}
-                  <span className="ac-readmore-arrow" style={{ color: '#fb923c' }}>
-                    →
-                  </span>
+                <span className="ac-readmore-label" style={{ padding: '0 1.65rem' }}>
+                  <span className="ac-readmore-arrow-left">←</span>
+                  {isEs ? 'Volver a Cronología' : 'Back to Timeline'}
                 </span>
               </GlassSurface>
-            </ElectricBorder>
-          </Link>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveVariant('moon');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="ac-readmore-wrap"
+              style={{
+                borderRadius: '10px',
+                minHeight: '48px',
+                border: 'none',
+                background: 'transparent',
+                padding: 0,
+                cursor: 'pointer',
+              }}
+            >
+              <GlassSurface
+                width="auto"
+                height={48}
+                borderRadius={10}
+                borderWidth={0.12}
+                brightness={56}
+                opacity={0.94}
+                blur={10}
+                displace={0.6}
+                backgroundOpacity={0.12}
+                saturation={1.35}
+                distortionScale={-140}
+                className="ac-glass-btn-surface"
+              >
+                <span className="ac-readmore-label" style={{ padding: '0 1.65rem' }}>
+                  <span className="ac-readmore-arrow-left">←</span>
+                  {isEs ? 'Ver Tesis Lunar' : 'Switch to Lunar Thesis'}
+                </span>
+              </GlassSurface>
+            </button>
+          )}
+
+          {isMoon ? (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveVariant('mars');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="ac-readmore-wrap"
+              style={{
+                borderRadius: '10px',
+                minHeight: '48px',
+                border: 'none',
+                background: 'transparent',
+                padding: 0,
+                cursor: 'pointer',
+              }}
+            >
+              <ElectricBorder color="#f97316" speed={1.25} chaos={0.45} borderRadius={10}>
+                <GlassSurface
+                  width="auto"
+                  height={48}
+                  borderRadius={10}
+                  borderWidth={0.12}
+                  brightness={58}
+                  opacity={0.95}
+                  blur={10}
+                  displace={0.6}
+                  backgroundOpacity={0.16}
+                  saturation={1.4}
+                  distortionScale={-140}
+                  className="ac-glass-btn-surface"
+                >
+                  <span className="ac-readmore-label" style={{ padding: '0 1.75rem' }}>
+                    {isEs ? 'Siguiente · Tesis sobre Marte' : 'Continue to Mars Thesis'}
+                    <span className="ac-readmore-arrow" style={{ color: '#fb923c' }}>
+                      →
+                    </span>
+                  </span>
+                </GlassSurface>
+              </ElectricBorder>
+            </button>
+          ) : (
+            <Link
+              href="/marte"
+              className="ac-readmore-wrap"
+              style={{ textDecoration: 'none', borderRadius: '10px', minHeight: '44px' }}
+            >
+              <ElectricBorder color="#f97316" speed={1.25} chaos={0.45} borderRadius={10}>
+                <GlassSurface
+                  width="auto"
+                  height={48}
+                  borderRadius={10}
+                  borderWidth={0.12}
+                  brightness={58}
+                  opacity={0.95}
+                  blur={10}
+                  displace={0.6}
+                  backgroundOpacity={0.16}
+                  saturation={1.4}
+                  distortionScale={-140}
+                  className="ac-glass-btn-surface"
+                >
+                  <span className="ac-readmore-label" style={{ padding: '0 1.75rem' }}>
+                    {isEs ? 'Siguiente · Exploración Marte I–III' : 'Next · Mars Exploration I–III'}
+                    <span className="ac-readmore-arrow" style={{ color: '#fb923c' }}>
+                      →
+                    </span>
+                  </span>
+                </GlassSurface>
+              </ElectricBorder>
+            </Link>
+          )}
         </nav>
       </div>
 
@@ -389,7 +533,7 @@ export function ThesisReader({ variant }: { variant: 'moon' | 'mars' }) {
           gap: 0.5rem;
           min-height: 40px;
           padding: 0.5rem 1.15rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(253, 186, 116, 0.28);
           font-family: var(--font-raleway), 'Raleway', sans-serif;
           font-size: 0.88rem;

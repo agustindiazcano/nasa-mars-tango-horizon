@@ -269,7 +269,7 @@ function ProfileCardInner({
         }
         :where(.pc-card) {
           position: relative;
-          border-radius: 2px;
+          border-radius: 10px;
           padding: 10px;
           background: linear-gradient(155deg, rgba(44, 20, 26, 0.78) 0%, rgba(17, 8, 12, 0.92) 100%);
           border: 1px solid rgba(255, 255, 255, 0.24);
@@ -284,7 +284,7 @@ function ProfileCardInner({
         }
         :where(.pc-inside) {
           position: relative;
-          border-radius: 2px;
+          border-radius: 10px;
           overflow: hidden;
           background: radial-gradient(circle at 30% 20%, #2a1219 0%, #11080c 70%, #090406 100%);
           display: flex;
@@ -366,7 +366,7 @@ function ProfileCardInner({
           left: 14px;
           z-index: 6;
           padding: 0.28rem 0.72rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(17, 8, 12, 0.84);
           border: 1px solid rgba(251, 146, 60, 0.48);
           backdrop-filter: blur(8px);
@@ -429,7 +429,7 @@ function ProfileCardInner({
           gap: 0.65rem;
           margin: 0 0.75rem 0.75rem 0.75rem;
           padding: 0.65rem 0.8rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(26, 12, 18, 0.82);
           border: 1px solid rgba(255, 255, 255, 0.24);
           backdrop-filter: blur(12px);
@@ -498,7 +498,7 @@ function ProfileCardInner({
         :where(.pc-action-link) {
           width: 32px;
           height: 32px;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(28, 12, 18, 0.9);
           border: 1px solid rgba(255, 255, 255, 0.24);
           color: #f3dfd1;

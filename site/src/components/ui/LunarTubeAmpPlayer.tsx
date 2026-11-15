@@ -230,7 +230,7 @@ export function LunarTubeAmpPlayer({
           position: relative;
           display: flex;
           flex-direction: column;
-          border-radius: 2px;
+          border-radius: 10px;
           box-shadow: 0 36px 80px rgba(0, 0, 0, 0.85), 0 8px 20px rgba(0, 0, 0, 0.7);
           overflow: hidden;
           border: 1px solid rgba(255, 255, 255, 0.24);
@@ -371,13 +371,13 @@ export function LunarTubeAmpPlayer({
           gap: 4px;
           height: 28px;
           padding: 4px 10px;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #11080c;
           border: 1px solid rgba(255, 255, 255, 0.24);
         }
         :where(.tube-amp-wave-bar) {
           flex: 1;
-          border-radius: 2px;
+          border-radius: 10px;
           background: linear-gradient(to top, #f97316, #fbbf24);
           transition: height 0.08s linear;
           min-height: 3px;
@@ -429,14 +429,14 @@ export function LunarTubeAmpPlayer({
           height: 15px;
           background: #111827;
           transform: translateX(-50%);
-          border-radius: 2px;
+          border-radius: 10px;
         }
         :where(.tube-amp-switch-btn) {
           display: inline-flex;
           align-items: center;
           gap: 0.45rem;
           padding: 0.55rem 1.05rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.24);
           background: linear-gradient(180deg, #2a1219 0%, #11080c 100%);
           color: #fff8f1;

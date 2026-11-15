@@ -290,7 +290,7 @@
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  border-radius: 2px;
+  border-radius: 8px;
   background: rgba(249, 115, 22, 0.12);
   border: 1px solid rgba(251, 191, 36, 0.3);
   color: #fdba74;
@@ -327,8 +327,7 @@
   font-family: "Raleway", system-ui, sans-serif;
   font-size: clamp(20px, 3vw, 25px);
   font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   line-height: 1.15;
   background: linear-gradient(90deg, #f3dfd1 0%, #fbbf24 48%, #fb7185 100%);
   -webkit-background-clip: text;
@@ -349,7 +348,7 @@
   width: 100%;
   min-height: 48px;
   padding: 12px 14px;
-  border-radius: 2px;
+  border-radius: 12px;
   background: rgba(20, 10, 14, 0.72);
   border: 1px solid rgba(253, 186, 116, 0.16);
   display: flex;
@@ -452,7 +451,7 @@
   cursor: pointer;
   min-height: 40px;
   padding: 9px 18px;
-  border-radius: 2px;
+  border-radius: 10px;
   border: 1px solid rgba(251, 191, 36, 0.42);
   background: linear-gradient(180deg, rgba(249, 115, 22, 0.18), rgba(249, 115, 22, 0.06));
   color: #fdba74;

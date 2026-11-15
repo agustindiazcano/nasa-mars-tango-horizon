@@ -16,14 +16,13 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/', label: { en: 'Home', es: 'Inicio' }, accent: '#fbbf24' },
   {
     href: '/proyecto',
-    label: { en: 'Tango Horizon Project', es: 'Tango Horizon Project' },
+    label: { en: 'Tango Horizon Project', es: 'Proyecto Tango Horizon' },
     accent: '#f97316',
   },
   { href: '/slides', label: { en: 'Slides', es: 'Slides' }, accent: '#fb923c' },
-  { href: '/equipo', label: { en: 'Team', es: 'Team' }, accent: '#fb7185' },
+  { href: '/equipo', label: { en: 'Team', es: 'Equipo' }, accent: '#fb7185' },
   { href: '/cronologia', label: { en: 'Timeline', es: 'Cronología' }, accent: '#fda4af' },
-  { href: '/tesis-lunar', label: { en: 'Lunar Thesis', es: 'Tesis Lunar' }, accent: '#f59e0b' },
-  { href: '/tesis-marte', label: { en: 'Mars Thesis', es: 'Tesis Marte' }, accent: '#ea580c' },
+  { href: '/tesis', label: { en: 'Thesis', es: 'Tesis' }, accent: '#f59e0b' },
   { href: '/marte', label: { en: 'Mars I–III', es: 'Marte I–III' }, accent: '#fdba74' },
   { href: '/compendio', label: { en: 'Compendium', es: 'Compendio' }, accent: '#f43f5e' },
 ];
@@ -43,6 +42,16 @@ export function SiteNavbar() {
     if (href === '/') {
       return pathname === '/';
     }
+    if (href === '/tesis') {
+      return (
+        pathname === '/tesis' ||
+        pathname.startsWith('/tesis/') ||
+        pathname === '/tesis-lunar' ||
+        pathname.startsWith('/tesis-lunar/') ||
+        pathname === '/tesis-marte' ||
+        pathname.startsWith('/tesis-marte/')
+      );
+    }
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
@@ -57,6 +66,7 @@ export function SiteNavbar() {
         <Link
           href="/"
           className="site-nav__brand"
+          style={{ borderRadius: '10px', height: '38px' }}
           aria-label={pickLang(lang, {
             en: 'Tango Horizon - Home',
             es: 'Tango Horizon - Inicio',
@@ -65,12 +75,12 @@ export function SiteNavbar() {
           <img
             src="/images/tango-horizon-mars-exploration-logo.jpeg"
             alt="Tango Horizon"
-            width={34}
-            height={34}
+            width={32}
+            height={32}
             style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '2px',
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
               objectFit: 'cover',
               flexShrink: 0,
               border: '1px solid rgba(255, 255, 255, 0.24)',
@@ -80,11 +90,26 @@ export function SiteNavbar() {
           <span className="site-nav__brand-text">
             <span
               className="site-nav__title"
-              style={{ fontFamily: "var(--font-raleway), 'Raleway', sans-serif" }}
+              style={{
+                fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                textTransform: 'none',
+                letterSpacing: '-0.01em',
+                fontSize: '0.92rem',
+                fontWeight: 800,
+              }}
             >
               Tango Horizon
             </span>
-            <span className="site-nav__kicker">EVA &amp; MARS EXPLORATION</span>
+            <span
+              className="site-nav__kicker"
+              style={{
+                textTransform: 'none',
+                letterSpacing: '0.03em',
+                fontSize: '0.64rem',
+              }}
+            >
+              EVA &amp; Mars Exploration
+            </span>
           </span>
         </Link>
 
@@ -105,7 +130,7 @@ export function SiteNavbar() {
                 style={
                   {
                     '--nav-accent': item.accent,
-                    borderRadius: '2px',
+                    borderRadius: '10px',
                     height: '38px',
                   } as React.CSSProperties
                 }
@@ -122,7 +147,7 @@ export function SiteNavbar() {
           <button
             type="button"
             className="site-lang-toggle site-lang-toggle--desktop"
-            style={{ borderRadius: '2px', height: '38px' }}
+            style={{ borderRadius: '10px', height: '38px' }}
             onClick={toggleLang}
             aria-label={langToggleAriaLabel}
             aria-pressed={lang === 'es'}
@@ -132,7 +157,7 @@ export function SiteNavbar() {
             <span className="site-lang-toggle__pills">
               <span
                 className={`site-lang-toggle__pill${lang === 'en' ? ' site-lang-toggle__pill--active' : ''}`}
-                style={{ borderRadius: '2px' }}
+                style={{ borderRadius: '6px' }}
               >
                 EN
               </span>
@@ -141,7 +166,7 @@ export function SiteNavbar() {
               </span>
               <span
                 className={`site-lang-toggle__pill${lang === 'es' ? ' site-lang-toggle__pill--active' : ''}`}
-                style={{ borderRadius: '2px' }}
+                style={{ borderRadius: '6px' }}
               >
                 ES
               </span>
@@ -153,7 +178,7 @@ export function SiteNavbar() {
             target="_blank"
             rel="noopener noreferrer"
             className="site-nav__cta"
-            style={{ borderRadius: '2px', height: '38px' }}
+            style={{ borderRadius: '10px', height: '38px' }}
           >
             <span>{pickLang(lang, { en: '3D Simulator ↗', es: 'Simulador 3D ↗' })}</span>
             <ExternalLink size={14} aria-hidden="true" />
@@ -162,7 +187,7 @@ export function SiteNavbar() {
           <button
             type="button"
             className="site-nav__menu-btn"
-            style={{ borderRadius: '2px', width: '38px', height: '38px' }}
+            style={{ borderRadius: '10px', width: '38px', height: '38px' }}
             onClick={() => setMobileOpen((prev) => !prev)}
             aria-expanded={mobileOpen}
             aria-controls="site-nav-mobile-drawer"
@@ -186,7 +211,7 @@ export function SiteNavbar() {
       <nav
         id="site-nav-mobile-drawer"
         className={`site-nav__drawer${mobileOpen ? ' site-nav__drawer--open' : ''}`}
-        style={{ borderRadius: '2px' }}
+        style={{ borderRadius: '14px' }}
         aria-label={pickLang(lang, {
           en: 'Mobile navigation',
           es: 'Navegación móvil',
@@ -200,7 +225,7 @@ export function SiteNavbar() {
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={`site-nav__drawer-link${active ? ' site-nav__drawer-link--active' : ''}`}
-              style={{ '--nav-accent': item.accent, borderRadius: '2px' } as React.CSSProperties}
+              style={{ '--nav-accent': item.accent, borderRadius: '10px' } as React.CSSProperties}
               aria-current={active ? 'page' : undefined}
             >
               <span>{pickLang(lang, item.label)}</span>
@@ -216,7 +241,7 @@ export function SiteNavbar() {
         <button
           type="button"
           className="site-lang-toggle site-lang-toggle--drawer"
-          style={{ borderRadius: '2px' }}
+          style={{ borderRadius: '10px' }}
           onClick={toggleLang}
           aria-label={langToggleAriaLabel}
           aria-pressed={lang === 'es'}
@@ -228,7 +253,7 @@ export function SiteNavbar() {
           <span className="site-lang-toggle__pills">
             <span
               className={`site-lang-toggle__pill${lang === 'en' ? ' site-lang-toggle__pill--active' : ''}`}
-              style={{ borderRadius: '2px' }}
+              style={{ borderRadius: '6px' }}
             >
               EN
             </span>
@@ -237,7 +262,7 @@ export function SiteNavbar() {
             </span>
             <span
               className={`site-lang-toggle__pill${lang === 'es' ? ' site-lang-toggle__pill--active' : ''}`}
-              style={{ borderRadius: '2px' }}
+              style={{ borderRadius: '6px' }}
             >
               ES
             </span>
@@ -252,7 +277,7 @@ export function SiteNavbar() {
           style={{
             justifyContent: 'center',
             marginTop: '0.35rem',
-            borderRadius: '2px',
+            borderRadius: '10px',
           }}
           onClick={() => setMobileOpen(false)}
         >

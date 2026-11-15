@@ -112,12 +112,12 @@ export function SourcesLandingView() {
           <Link
             href="/"
             className="ac-readmore-wrap"
-            style={{ textDecoration: 'none', borderRadius: '2px' }}
+            style={{ textDecoration: 'none', borderRadius: '10px' }}
           >
             <GlassSurface
               width="auto"
               height={40}
-              borderRadius={2}
+              borderRadius={12}
               borderWidth={0.12}
               brightness={58}
               opacity={0.95}
@@ -135,12 +135,12 @@ export function SourcesLandingView() {
             </GlassSurface>
           </Link>
 
-          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.45} borderRadius={2}>
+          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.45} borderRadius={12}>
             <div
               className="era-detail-period-pill"
               style={{
                 color: '#fbbf24',
-                borderRadius: '2px',
+                borderRadius: '10px',
                 fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
                 fontVariantNumeric: 'tabular-nums',
               }}
@@ -195,18 +195,18 @@ export function SourcesLandingView() {
               </div>
 
               <div className="th-sources-hero-actions">
-                <ElectricBorder color="#f97316" speed={1.2} chaos={0.45} borderRadius={2}>
+                <ElectricBorder color="#f97316" speed={1.2} chaos={0.45} borderRadius={12}>
                   <a
                     href={SIMULATOR_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ac-readmore-wrap"
-                    style={{ textDecoration: 'none', borderRadius: '2px' }}
+                    style={{ textDecoration: 'none', borderRadius: '10px' }}
                   >
                     <GlassSurface
                       width="auto"
                       height={42}
-                      borderRadius={2}
+                      borderRadius={12}
                       borderWidth={0.12}
                       brightness={60}
                       opacity={0.96}
@@ -229,12 +229,12 @@ export function SourcesLandingView() {
                 <Link
                   href="/proyecto"
                   className="ac-readmore-wrap"
-                  style={{ textDecoration: 'none', borderRadius: '2px' }}
+                  style={{ textDecoration: 'none', borderRadius: '10px' }}
                 >
                   <GlassSurface
                     width="auto"
                     height={42}
-                    borderRadius={2}
+                    borderRadius={12}
                     borderWidth={0.1}
                     brightness={55}
                     opacity={0.94}
@@ -327,7 +327,7 @@ export function SourcesLandingView() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="th-sources-link-btn th-sources-link-btn--gold"
-                      style={{ borderRadius: '2px' }}
+                      style={{ borderRadius: '10px' }}
                     >
                       <span>{t(copy.licenseCta, lang)}</span>
                       <ExternalLink size={14} aria-hidden="true" />
@@ -337,7 +337,7 @@ export function SourcesLandingView() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="th-sources-link-btn"
-                      style={{ borderRadius: '2px' }}
+                      style={{ borderRadius: '10px' }}
                     >
                       <span>{t(copy.nasa3dCta, lang)}</span>
                       <ExternalLink size={14} aria-hidden="true" />
@@ -409,7 +409,7 @@ export function SourcesLandingView() {
                     onClick={() => setActiveCategory(cat.id)}
                     className={`th-sources-pill ${isActive ? 'th-sources-pill--active' : ''}`}
                     style={{
-                      borderRadius: '2px',
+                      borderRadius: '10px',
                       ...(isActive
                         ? {
                             borderColor: cat.accent,
@@ -592,13 +592,13 @@ export function SourcesLandingView() {
           font-family: var(--font-raleway), 'Raleway', sans-serif;
         }
         .th-sources-container .th-eyebrow {
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(249, 115, 22, 0.14);
           border: 1px solid rgba(251, 191, 36, 0.36);
           color: #fbbf24;
         }
         .th-sources-container .era-detail-period-pill {
-          border-radius: 2px;
+          border-radius: 10px;
           min-height: 40px;
           display: inline-flex;
           align-items: center;
@@ -607,19 +607,19 @@ export function SourcesLandingView() {
           font-variant-numeric: tabular-nums;
         }
         .th-sources-container .ac-timeline-badge {
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(249, 115, 22, 0.14);
           border: 1px solid rgba(251, 191, 36, 0.36);
           color: #fbbf24;
         }
         .th-sources-container .ac-readmore-wrap {
-          border-radius: 2px;
+          border-radius: 10px;
         }
         .th-sources-container .ac-readmore-wrap:hover {
           filter: drop-shadow(0 0 18px rgba(249, 115, 22, 0.45));
         }
         .th-sources-container .ac-glass-btn-surface {
-          border-radius: 2px !important;
+          border-radius: 10px !important;
           border: 1px solid rgba(251, 146, 60, 0.4);
           box-shadow:
             0 0 18px rgba(249, 115, 22, 0.18),
@@ -811,7 +811,7 @@ export function SourcesLandingView() {
           align-items: center;
           gap: 0.3rem;
           padding: 0.28rem 0.6rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(253, 186, 116, 0.12);
           border: 1px solid rgba(253, 186, 116, 0.36);
           color: #fdba74;
@@ -853,7 +853,7 @@ export function SourcesLandingView() {
           gap: 0.45rem;
           min-height: 40px;
           padding: 0.45rem 0.95rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(28, 14, 19, 0.86);
           border: 1px solid rgba(255, 255, 255, 0.24);
           color: #f3dfd1;
@@ -872,7 +872,7 @@ export function SourcesLandingView() {
           font-size: 0.72rem;
           font-variant-numeric: tabular-nums;
           padding: 0.1rem 0.42rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(255, 248, 241, 0.1);
         }
         .th-sources-search-row {
@@ -898,7 +898,7 @@ export function SourcesLandingView() {
           width: 100%;
           min-height: 42px;
           padding: 0.6rem 2.6rem 0.6rem 2.55rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.88);
           border: 1px solid rgba(255, 255, 255, 0.24);
           color: #fff8f1;
@@ -918,7 +918,7 @@ export function SourcesLandingView() {
           right: 0.25rem;
           min-width: 38px;
           min-height: 38px;
-          border-radius: 2px;
+          border-radius: 10px;
           background: transparent;
           border: none;
           color: #b89b8c;
@@ -966,7 +966,7 @@ export function SourcesLandingView() {
           font-size: 0.7rem;
           font-weight: 700;
           padding: 0.22rem 0.6rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid;
           white-space: nowrap;
         }
@@ -981,7 +981,7 @@ export function SourcesLandingView() {
           font-size: 0.74rem;
           color: #fdba74;
           padding: 0.3rem 0.6rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.84);
           border: 1px solid rgba(255, 255, 255, 0.24);
           word-break: break-word;
@@ -994,7 +994,7 @@ export function SourcesLandingView() {
         }
         .th-sources-role-box {
           padding: 0.68rem 0.85rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(28, 14, 19, 0.82);
           border: 1px solid rgba(255, 255, 255, 0.24);
           font-size: 0.82rem;
@@ -1012,7 +1012,7 @@ export function SourcesLandingView() {
         .th-sources-tag {
           font-size: 0.69rem;
           padding: 0.18rem 0.52rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(251, 146, 60, 0.12);
           border: 1px solid rgba(251, 146, 60, 0.24);
           color: #f3dfd1;
@@ -1031,7 +1031,7 @@ export function SourcesLandingView() {
           gap: 0.4rem;
           min-height: 38px;
           padding: 0.42rem 0.9rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(28, 14, 19, 0.88);
           border: 1px solid rgba(251, 146, 60, 0.48);
           color: #fff8f1;
@@ -1058,7 +1058,7 @@ export function SourcesLandingView() {
           gap: 0.3rem;
           min-height: 38px;
           padding: 0.38rem 0.7rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.82);
           border: 1px solid rgba(255, 255, 255, 0.24);
           color: #fdba74;
@@ -1095,7 +1095,7 @@ export function SourcesLandingView() {
         .th-sources-formula {
           display: block;
           padding: 0.5rem 0.7rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.86);
           border: 1px solid rgba(251, 146, 60, 0.28);
           color: #fdba74;

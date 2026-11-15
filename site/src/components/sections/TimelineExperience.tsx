@@ -80,7 +80,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={12}
               className="te-glass-pill-btn"
             >
               <span className="te-btn-label">
@@ -93,7 +93,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           <ElectricBorder
             color={eraAccent}
             speed={1.1}
-            borderRadius={2}
+            borderRadius={12}
             className="te-period-electric"
           >
             <div className="te-period-pill" style={{ color: eraAccent }}>
@@ -219,7 +219,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
               onClick={() => onSelectEra(prevEra)}
               className="te-btn-reset"
             >
-              <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
+              <GlassSurface width="auto" height={48} borderRadius={12} className="te-glass-pill-btn">
                 <span className="te-btn-label">
                   <ArrowLeft size={16} aria-hidden="true" />
                   <span>
@@ -232,7 +232,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
             </button>
           ) : (
             <button type="button" onClick={onBack} className="te-btn-reset">
-              <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
+              <GlassSurface width="auto" height={48} borderRadius={12} className="te-glass-pill-btn">
                 <span className="te-btn-label">
                   <ArrowLeft size={16} aria-hidden="true" />
                   <span>{isEs ? 'Volver a la Cronología' : 'Back to Timeline'}</span>
@@ -248,8 +248,8 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
                 onClick={() => onSelectEra(nextEra)}
                 className="te-btn-reset"
               >
-                <ElectricBorder color={nextAccent} speed={1.15} borderRadius={2}>
-                  <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
+                <ElectricBorder color={nextAccent} speed={1.15} borderRadius={12}>
+                  <GlassSurface width="auto" height={48} borderRadius={12} className="te-glass-pill-btn">
                     <span className="te-btn-label">
                       <span>
                         {isEs
@@ -264,8 +264,8 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
             )}
 
             <Link href="/tesis-lunar" className="te-link-reset">
-              <ElectricBorder color="#fbbf24" speed={1.15} borderRadius={2}>
-                <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
+              <ElectricBorder color="#fbbf24" speed={1.15} borderRadius={12}>
+                <GlassSurface width="auto" height={48} borderRadius={12} className="te-glass-pill-btn">
                   <span className="te-btn-label">
                     <BookOpen size={16} style={{ color: '#fbbf24' }} aria-hidden="true" />
                     <span>{isEs ? 'Ir a Tesis Lunar' : 'Go to Lunar Thesis'}</span>
@@ -277,8 +277,8 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
 
             {!nextEra && (
               <Link href="/marte" className="te-link-reset">
-                <ElectricBorder color="#fb7185" speed={1.2} borderRadius={2}>
-                  <GlassSurface width="auto" height={48} borderRadius={2} className="te-glass-pill-btn">
+                <ElectricBorder color="#fb7185" speed={1.2} borderRadius={12}>
+                  <GlassSurface width="auto" height={48} borderRadius={12} className="te-glass-pill-btn">
                     <span className="te-btn-label">
                       <span>{isEs ? 'Explorar Horizonte Marciano' : 'Explore Mars Exploration'}</span>
                       <ArrowRight size={16} style={{ color: '#fb7185' }} aria-hidden="true" />
@@ -325,7 +325,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           gap: 0.6rem;
           min-height: 40px;
           padding: 0.45rem 1.2rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.88);
           font-weight: 700;
           font-size: 0.95rem;
@@ -370,7 +370,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
         }
         .te-figure-pill {
           padding: 0.38rem 0.9rem;
-          border-radius: 2px;
+          border-radius: 10px;
           font-size: 0.86rem;
           font-weight: 600;
           color: #f3dfd1;
@@ -496,7 +496,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
         .te-badge {
           display: inline-block;
           padding: 0.35rem 1rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(249, 115, 22, 0.14);
           border: 1px solid rgba(251, 191, 36, 0.35);
           color: #fbbf24;
@@ -508,7 +508,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
         .te-btn-reset {
           background: none;
           border: none;
-          border-radius: 2px;
+          border-radius: 10px;
           min-height: 40px;
           padding: 0;
           cursor: pointer;
@@ -519,7 +519,7 @@ function EraDetailView({ era, allEras, lang, onBack, onSelectEra }: EraDetailVie
           text-decoration: none;
           color: inherit;
           display: inline-flex;
-          border-radius: 2px;
+          border-radius: 10px;
           min-height: 40px;
         }
         .te-btn-label {
@@ -736,7 +736,7 @@ export function TimelineExperience() {
                   <ElectricBorder
                     color={eraAccent}
                     speed={isActive ? 1.35 : 0.85}
-                    borderRadius={2}
+                    borderRadius={12}
                     className="te-year-electric"
                   >
                     <div className="te-year-box">
@@ -838,8 +838,8 @@ export function TimelineExperience() {
             </p>
             <div className="te-cta-actions">
               <Link href="/tesis-lunar" className="te-link-reset">
-                <ElectricBorder color="#fbbf24" speed={1.2} borderRadius={2}>
-                  <GlassSurface width="auto" height={50} borderRadius={2} className="te-glass-pill-btn">
+                <ElectricBorder color="#fbbf24" speed={1.2} borderRadius={12}>
+                  <GlassSurface width="auto" height={50} borderRadius={12} className="te-glass-pill-btn">
                     <span className="te-cta-label">
                       <span>
                         {isEs
@@ -853,8 +853,8 @@ export function TimelineExperience() {
               </Link>
 
               <Link href="/marte" className="te-link-reset">
-                <ElectricBorder color="#f97316" speed={1.2} borderRadius={2}>
-                  <GlassSurface width="auto" height={50} borderRadius={2} className="te-glass-pill-btn">
+                <ElectricBorder color="#f97316" speed={1.2} borderRadius={12}>
+                  <GlassSurface width="auto" height={50} borderRadius={12} className="te-glass-pill-btn">
                     <span className="te-cta-label">
                       <span>
                         {isEs ? 'Tesis II · Horizonte Marciano' : 'Thesis II · Martian Horizon'}
@@ -889,7 +889,7 @@ export function TimelineExperience() {
         .te-badge {
           display: inline-block;
           padding: 0.36rem 1.05rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(249, 115, 22, 0.14);
           border: 1px solid rgba(251, 191, 36, 0.35);
           color: #fbbf24;
@@ -1013,7 +1013,7 @@ export function TimelineExperience() {
           width: 100%;
           background: linear-gradient(to bottom, #fbbf24 0%, #f97316 58%, #fb7185 100%);
           box-shadow: 0 0 16px rgba(249, 115, 22, 0.78);
-          border-radius: 2px;
+          border-radius: 10px;
           transition: height 0.16s ease-out;
         }
         .te-eras-list {
@@ -1063,7 +1063,7 @@ export function TimelineExperience() {
           gap: 0.15rem;
           min-height: 40px;
           padding: 0.72rem 1.3rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.88);
           min-width: 195px;
         }
@@ -1098,7 +1098,7 @@ export function TimelineExperience() {
           display: none;
           align-self: flex-start;
           padding: 0.3rem 0.85rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid;
           font-size: 0.8rem;
           font-weight: 700;
@@ -1139,7 +1139,7 @@ export function TimelineExperience() {
         }
         .te-tag {
           padding: 0.34rem 0.82rem;
-          border-radius: 2px;
+          border-radius: 10px;
           font-size: 0.82rem;
           font-weight: 600;
           color: #fdba74;
@@ -1152,7 +1152,7 @@ export function TimelineExperience() {
           gap: 0.55rem;
           min-height: 40px;
           padding: 0.55rem 1.35rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.88);
           border: 1px solid;
           font-weight: 700;
@@ -1194,7 +1194,7 @@ export function TimelineExperience() {
           text-decoration: none;
           color: inherit;
           display: inline-flex;
-          border-radius: 2px;
+          border-radius: 10px;
           min-height: 40px;
         }
         .te-cta-label {

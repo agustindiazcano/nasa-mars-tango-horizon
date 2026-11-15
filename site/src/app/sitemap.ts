@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/slides', priority: 0.9, changeFrequency: 'monthly' as const },
     { path: '/sources', priority: 0.9, changeFrequency: 'monthly' as const },
     { path: '/cronologia', priority: 0.9, changeFrequency: 'monthly' as const },
+    { path: '/tesis', priority: 0.9, changeFrequency: 'monthly' as const },
     { path: '/tesis-lunar', priority: 0.9, changeFrequency: 'monthly' as const },
     { path: '/tesis-marte', priority: 0.9, changeFrequency: 'monthly' as const },
     { path: '/marte', priority: 0.85, changeFrequency: 'monthly' as const },
