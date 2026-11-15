@@ -44,7 +44,7 @@ export interface HudActions {
   recenterRemote(): void;
   setRemoteInvert(invX: boolean, invY: boolean): void;
   onToggleDeck(): void;
-  startScenario?(id: "storm" | "sep2017" | "leak"): void;
+  startScenario?(id: "storm" | "sep2017" | "leak" | "rescue"): void;
   sessions?: ChatSessionManager;
 }
 
@@ -70,7 +70,7 @@ function downloadTextFile(filename: string, content: string, mimeType: string): 
 }
 
 function scenarioLabel(value: string): string {
-  const keys: Record<string, string> = { none: "scenario.none", storm: "deck.5.label", sep2017: "deck.6.label", leak: "scenario.leak" };
+  const keys: Record<string, string> = { none: "scenario.none", storm: "deck.5.label", sep2017: "deck.6.label", leak: "scenario.leak", rescue: "scenario.rescue" };
   return keys[value] ? t(keys[value]) : value;
 }
 
@@ -1235,6 +1235,7 @@ export class TacticalHud {
               <button class="quick-card-btn" data-pointable data-qm-scen="storm">${t("deck.5.label")}</button>
               <button class="quick-card-btn" data-pointable data-qm-scen="sep2017">${t("deck.6.label")}</button>
               <button class="quick-card-btn" data-pointable data-qm-scen="leak">${t("scenario.leak")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-scen="rescue">${t("scenario.rescue")}</button>
             </div>
           </div>
         </div>
@@ -1257,7 +1258,7 @@ export class TacticalHud {
       );
       this.modalEl.querySelectorAll<HTMLButtonElement>("[data-qm-scen]").forEach((b) =>
         b.addEventListener("click", () => {
-          this.actions.startScenario?.(b.dataset.qmScen as "storm" | "sep2017" | "leak");
+          this.actions.startScenario?.(b.dataset.qmScen as "storm" | "sep2017" | "leak" | "rescue");
           s.setPanel("none");
         }),
       );

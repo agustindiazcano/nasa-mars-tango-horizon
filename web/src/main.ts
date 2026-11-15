@@ -24,6 +24,7 @@ import { CINEMATIC_CAM_IDS, CinematicCams, type CinematicCamId } from "./world/c
 import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
 import { PitProc } from "./world/pitProc";
+import { RescueScenario, type RescueView } from "./world/rescueScenario";
 import { PodBallistics } from "./world/podBallistics";
 import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
@@ -423,7 +424,38 @@ store.setHooks({
   onStopAll: () => fleet.stopAll(),
 });
 
-function startScenario(id: "storm" | "sep2017" | "leak"): void {
+const rescue = new RescueScenario({
+  heightAt: (x, z) => terrain.heightAt(x, z),
+  getCrew1: () => ({ x: astronaut.pos.x, z: astronaut.pos.z }),
+  onEvent: (ev) => store.pushAlert(ev.level, ev.text, ev.source),
+});
+store.rescue = rescue;
+
+/** Applies the scripted rescue state to the fleet, crew, rescue robot and environment. */
+function applyRescueView(v: RescueView): void {
+  store.env.tau = v.tau;
+  store.env.wind_ms = v.windMs;
+  store.env.sun_elev_deg = v.sunElevDeg;
+  for (const id of ["rover-1", "rescue-1", "rescue-bot-1", "drone-1", "drone-2"] as const) {
+    fleet.placeUnit(id, v.units[id].x, v.units[id].z, v.units[id].yaw);
+  }
+  for (const id of ["drone-1", "drone-2"] as const) {
+    const drone = fleet.get(id);
+    if (!drone) continue;
+    drone.targetAltitude = v.droneAltM[id];
+    drone.manualGrounded = v.dronesGrounded;
+  }
+  fleet.setRescueBotStowed(v.robot.stowed);
+  fleet.setRescueRamp(v.rampOpen01);
+  fleet.applyRescueBotPose(v.robot.pose);
+  for (const id of ["crew-2", "crew-3"] as const) {
+    const c = v.crew[id];
+    crew.place(id, c.x, c.z, c.yaw, c.pose, c.status, { yOffset: c.yOffset, inPit: c.inPit, visible: c.visible });
+  }
+}
+
+function startScenario(id: "storm" | "sep2017" | "leak" | "rescue"): void {
+  if (id !== "rescue") rescue.reset();
   store.activeScenario = id;
   store.scenarioElapsedS = 0;
   store.env.data_category = "design";
@@ -454,6 +486,9 @@ function startScenario(id: "storm" | "sep2017" | "leak"): void {
     const route = planAndDrawRoute(bestX, bestZ, 2.5);
     if (route) store.activeRoute = route;
     store.pushAlert("crit", `Solar Particle Event! Sheltered SVF=${bestSvf.toFixed(2)} route plotted`, "WEATHER-RAD");
+  } else if (id === "rescue") {
+    store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
+    rescue.start();
   } else if (id === "leak") {
     leakEscalated = false;
     store.emergencyResponseActive = false;
@@ -617,6 +652,14 @@ function stepSimulation(dt: number): void {
       if (u >= 1) {
         store.activeScenario = "none";
         store.env.rad_source = "Design quiet absorbed dose";
+      }
+    } else if (store.activeScenario === "rescue") {
+      rescue.step(dt);
+      store.scenarioElapsedS = rescue.elapsedS;
+      applyRescueView(rescue.view);
+      if (!rescue.running && rescue.elapsedS >= rescue.durationS) {
+        store.activeScenario = "none";
+        store.env.storm_source = "Design clear atmosphere";
       }
     } else if (store.activeScenario === "leak") {
       if (!leakEscalated && store.scenarioElapsedS >= 2.0) {

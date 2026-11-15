@@ -17,6 +17,7 @@ import type {
   TraceEvent,
   UnitSnapshot,
 } from "@th/shared";
+import type { RescueScenario } from "./world/rescueScenario";
 
 export interface WorldHooks {
   onLayerChange?(layer: LayerId): void;
@@ -140,7 +141,9 @@ export class MissionStore {
   remoteRoom = "";
   micListening = false;
   injectionBlockedBanner = false;
-  activeScenario: "none" | "storm" | "sep2017" | "leak" = "none";
+  activeScenario: "none" | "storm" | "sep2017" | "leak" | "rescue" = "none";
+  /** Crew rescue scenario instance (set by the world setup); the scene panel drives it. */
+  rescue: RescueScenario | null = null;
   scenarioElapsedS = 0;
   selectedBaseModuleId: string | null = null;
   selectedUnitId: string | null = null;
