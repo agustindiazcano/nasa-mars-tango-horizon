@@ -76,6 +76,15 @@ loading.textContent = "Loading HiRISE orthoimage";
 try { await terrain.loadOptical(); }
 catch { store.pushAlert("warn", "Orthoimage unavailable; optical colors are a design approximation"); }
 if (leaving) return;
+loading.textContent = "Loading scientific rasters & MSL DAN stations";
+const rasterStatus = await terrain.loadRealRasters("/data/terrain");
+if (leaving) return;
+if (!rasterStatus.rastersOk) {
+  store.pushAlert("warn", "Scientific rasters unavailable; using DEM-derived fallback layers");
+}
+if (rasterStatus.danCount > 0) {
+  store.pushAlert("info", `Loaded ${rasterStatus.danCount} in-scene MSL DAN hydration stations`);
+}
 store.pushAlert("info", `Terrain ready: ${READY_TERRAIN.version}. HiRISE source verified; mesh uses 256 samples.`);
 terrain.mesh.visible = true;
 terrain.markersGroup.visible = true;
@@ -99,7 +108,7 @@ const fleet = new FleetProc(scene, terrain, (ev, skill) => {
       z: astronaut.pos.z,
       met_s: store.metS,
       mass_kg: 0.45,
-      hydration_pct: terrain.hydrationAt(astronaut.pos.x, astronaut.pos.z),
+      hydration_index: terrain.hydrationAt(astronaut.pos.x, astronaut.pos.z),
     });
     store.astronaut.load_kg += 0.45;
     store.lastDrillDepthCm = skill === "drill" ? 5.2 : store.lastDrillDepthCm;

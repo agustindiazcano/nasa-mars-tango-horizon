@@ -9,6 +9,24 @@ import * as THREE from "three";
 import { TerrainLoader } from "./terrainLoader";
 import { mulberry32, terrainFromThermalClass, type RouteGrid } from "../core/physics";
 import type { LayerId } from "../core/types";
+import {
+  DEFAULT_HYDRATION_META,
+  decodeHydrationByte,
+  decodeHydrationUncByte,
+  decodeSlopeByte,
+  decodeSvfByte,
+  decodeThermalClassByte,
+  fetchGrayscalePng,
+  fillLayerRgba,
+  hydrationRgb,
+  parseHydrationMeta,
+  parseHydrationSites,
+  type DanMeasurement,
+  type HydrationMeta,
+  type HydrationSitesData,
+  type LayerRenderInput,
+  type RenderLayerId,
+} from "./terrainRasters";
 
 export interface TerrainMeta {
   product_id: string;
@@ -18,6 +36,7 @@ export interface TerrainMeta {
   z_max_m: number;
   center_lon_e: number;
   center_lat: number;
+  slope_max_deg?: number;
 }
 
 export interface ScienceStation {
@@ -25,7 +44,7 @@ export interface ScienceStation {
   name: string;
   x: number;
   z: number;
-  hydrationPct: number;
+  hydrationIndex: number;
 }
 
 export const SCIENCE_STATIONS: ScienceStation[] = MISSION_SITES.map((s) => ({
@@ -33,7 +52,7 @@ export const SCIENCE_STATIONS: ScienceStation[] = MISSION_SITES.map((s) => ({
   name: s.name,
   x: s.x,
   z: s.z,
-  hydrationPct: s.weh,
+  hydrationIndex: s.weh,
 }));
 
 export const CURIOSITY_TRAVERSE: { x: number; z: number; sol: number }[] = SHARED_CURIOSITY_TRAVERSE.map((p) => ({
@@ -53,16 +72,29 @@ export class TerrainProc {
     height_px: 256,
     z_min_m: -42,
     z_max_m: 118,
-    center_lon_e: 137.4417,
-    center_lat: -4.5895,
+    center_lon_e: 137.4,
+    center_lat: -4.745,
+    slope_max_deg: 45,
   };
 
+  realRastersLoaded = false;
+  realOpticalLoaded = false;
+  hydrationUncMode = false;
+  hydrationMeta: HydrationMeta = { ...DEFAULT_HYDRATION_META };
+  hydrationSites: HydrationSitesData | null = null;
+  danPoints: DanMeasurement[] = [];
+
   private h = new Float32Array(256 * 256);
-  private svf = new Float32Array(256 * 256);
-  private thermal = new Uint8Array(256 * 256);
-  private hydration = new Float32Array(256 * 256);
+  private layerN = 256;
+  private slopeField = new Float32Array(256 * 256);
+  private svfField = new Float32Array(256 * 256);
+  private thermalField = new Uint8Array(256 * 256);
+  private hydrationField = new Float32Array(256 * 256);
+  private hydrationUncField = new Float32Array(256 * 256);
   private textures: Record<LayerId, THREE.DataTexture>;
+  private hydrationUncTexture: THREE.DataTexture;
   private realOptical: THREE.Texture | null = null;
+  private activeLayer: LayerId = "optical";
   private material: THREE.MeshStandardMaterial;
   private routeLine: THREE.Line | null = null;
   private beaconsGroup = new THREE.Group();
@@ -83,6 +115,7 @@ export class TerrainProc {
       radiation: this.buildLayerTexture("radiation"),
       hydration: this.buildLayerTexture("hydration"),
     };
+    this.hydrationUncTexture = this.buildLayerTexture("hydration_unc");
 
     this.material = new THREE.MeshStandardMaterial({
       map: this.textures.optical,
@@ -100,97 +133,212 @@ export class TerrainProc {
 
   readonly loader = new TerrainLoader();
   private committed = false;
-  get loadError(): string { return this.loader.error; }
-
-  async tryLoadRealDem(base = "/data/terrain", report?: (message: string) => void): Promise<boolean> {
-      const asset = await this.loader.load(base, report);
-      if (!asset) return false;
-      if (this.committed) return true;
-      const { meta, raw } = asset;
-      const srcN = meta.height_px;
-      const mid = (meta.z_min_m + meta.z_max_m) / 2;
-      const span = meta.z_max_m - meta.z_min_m;
-      const n = this.gridN;
-      for (let j = 0; j < n; j++) {
-        const sj = Math.min(srcN - 1, Math.round((j / (n - 1)) * (srcN - 1)));
-        for (let i = 0; i < n; i++) {
-          const si = Math.min(srcN - 1, Math.round((i / (n - 1)) * (srcN - 1)));
-          const val = meta.z_min_m + (raw[sj * srcN + si] / 65535) * span - mid;
-          this.h[j * n + i] = val;
-        }
-      }
-      this.meta = { ...meta, height_px: n, product_id: `${meta.product_id} (256-sampled)` };
-      this.recomputeDerivedFields();
-      this.applyHeightsToGeometry(this.mesh.geometry);
-      this.refreshTextures();
-      this.markersGroup.clear();
-      this.buildMarkers();
-      this.committed = true;
-      return true;
+  get loadError(): string {
+    return this.loader.error;
   }
 
-  async loadOptical(): Promise<void> {
-    const signal = AbortSignal.any([this.loader.signal ?? new AbortController().signal, AbortSignal.timeout(60000)]);
-    const response = await fetch("/data/terrain/ortho_4096.webp", { signal });
+  async tryLoadRealDem(base = "/data/terrain", report?: (message: string) => void): Promise<boolean> {
+    const asset = await this.loader.load(base, report);
+    if (!asset) return false;
+    if (this.committed) return true;
+    const { meta, raw } = asset;
+    const srcN = meta.height_px;
+    const mid = (meta.z_min_m + meta.z_max_m) / 2;
+    const span = meta.z_max_m - meta.z_min_m;
+    const n = this.gridN;
+    for (let j = 0; j < n; j++) {
+      const sj = Math.min(srcN - 1, Math.round((j / (n - 1)) * (srcN - 1)));
+      for (let i = 0; i < n; i++) {
+        const si = Math.min(srcN - 1, Math.round((i / (n - 1)) * (srcN - 1)));
+        const val = meta.z_min_m + (raw[sj * srcN + si] / 65535) * span - mid;
+        this.h[j * n + i] = val;
+      }
+    }
+    this.meta = { ...meta, height_px: n, product_id: `${meta.product_id} (256-sampled)` };
+    if (!this.realRastersLoaded) {
+      this.recomputeDerivedFields();
+      this.refreshTextures();
+    }
+    this.applyHeightsToGeometry(this.mesh.geometry);
+    this.clearMarkersGroup();
+    this.buildMarkers();
+    this.committed = true;
+    return true;
+  }
+
+  async loadOptical(base = "/data/terrain"): Promise<void> {
+    const signal = AbortSignal.any([
+      this.loader.signal ?? new AbortController().signal,
+      AbortSignal.timeout(60000),
+    ]);
+    const response = await fetch(`${base}/ortho_4096.webp`, { signal });
     if (!response.ok) throw new Error(`Orthoimage HTTP ${response.status}`);
     const url = URL.createObjectURL(await response.blob());
-    try { this.realOptical = await new THREE.TextureLoader().loadAsync(url); }
-    finally { URL.revokeObjectURL(url); }
+    try {
+      this.realOptical = await new THREE.TextureLoader().loadAsync(url);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
     signal.throwIfAborted();
     this.realOptical.colorSpace = THREE.SRGBColorSpace;
+    this.realOpticalLoaded = true;
     // PlaneGeometry rotated -90 degrees maps north (negative z) to v=1.
-    this.setLayer("optical");
+    this.setLayer(this.activeLayer);
+  }
+
+  /** Loads static 1024x1024 scientific rasters, hydration metadata, and in-scene DAN stations. */
+  async loadRealRasters(base = "/data/terrain"): Promise<{ rastersOk: boolean; danCount: number }> {
+    const signal = AbortSignal.any([
+      this.loader.signal ?? new AbortController().signal,
+      AbortSignal.timeout(60000),
+    ]);
+
+    const fetchJson = async (name: string): Promise<unknown> => {
+      const res = await fetch(`${base}/${name}`, { signal });
+      if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
+      return res.json();
+    };
+
+    const [slopeRes, svfRes, thermalRes, hydRes, hydUncRes, hydMetaRes, sitesRes] =
+      await Promise.allSettled([
+        fetchGrayscalePng(`${base}/slope_1024.png`, signal),
+        fetchGrayscalePng(`${base}/svf_1024.png`, signal),
+        fetchGrayscalePng(`${base}/thermal_class.png`, signal),
+        fetchGrayscalePng(`${base}/hydration_1024.png`, signal),
+        fetchGrayscalePng(`${base}/hydration_unc_1024.png`, signal),
+        fetchJson("hydration_meta.json"),
+        fetchJson("hydration_sites.json"),
+      ]);
+
+    let rastersOk = false;
+    if (
+      slopeRes.status === "fulfilled" &&
+      svfRes.status === "fulfilled" &&
+      thermalRes.status === "fulfilled" &&
+      hydRes.status === "fulfilled" &&
+      hydUncRes.status === "fulfilled" &&
+      hydMetaRes.status === "fulfilled"
+    ) {
+      const slopePng = slopeRes.value;
+      const svfPng = svfRes.value;
+      const thermalPng = thermalRes.value;
+      const hydPng = hydRes.value;
+      const hydUncPng = hydUncRes.value;
+      const n = slopePng.width;
+      const sameDim = [slopePng, svfPng, thermalPng, hydPng, hydUncPng].every(
+        (r) => r.width === n && r.height === n,
+      );
+      if (sameDim && n >= 2) {
+        const hydMeta = parseHydrationMeta(hydMetaRes.value);
+        const slopeMax = this.meta.slope_max_deg ?? 45;
+        const count = n * n;
+        const nextSlope = new Float32Array(count);
+        const nextSvf = new Float32Array(count);
+        const nextThermal = new Uint8Array(count);
+        const nextHyd = new Float32Array(count);
+        const nextHydUnc = new Float32Array(count);
+
+        for (let i = 0; i < count; i++) {
+          nextSlope[i] = decodeSlopeByte(slopePng.data[i], slopeMax);
+          nextSvf[i] = decodeSvfByte(svfPng.data[i]);
+          nextThermal[i] = decodeThermalClassByte(thermalPng.data[i]);
+          nextHyd[i] = decodeHydrationByte(hydPng.data[i], hydMeta);
+          nextHydUnc[i] = decodeHydrationUncByte(hydUncPng.data[i], hydMeta);
+        }
+
+        this.layerN = n;
+        this.slopeField = nextSlope;
+        this.svfField = nextSvf;
+        this.thermalField = nextThermal;
+        this.hydrationField = nextHyd;
+        this.hydrationUncField = nextHydUnc;
+        this.hydrationMeta = hydMeta;
+        this.realRastersLoaded = true;
+        this.rebuildLayerTextures();
+        this.setLayer(this.activeLayer);
+        rastersOk = true;
+      }
+    }
+
+    let danCount = 0;
+    if (sitesRes.status === "fulfilled") {
+      try {
+        const parsed = parseHydrationSites(sitesRes.value);
+        this.hydrationSites = parsed;
+        this.danPoints = parsed.dan_in_scene;
+        danCount = this.danPoints.length;
+        this.clearMarkersGroup();
+        this.buildMarkers();
+      } catch {
+        // Keep existing markers if hydration_sites.json fails validation
+      }
+    }
+
+    return { rastersOk, danCount };
+  }
+
+  getOpticalImage(): CanvasImageSource | null {
+    return (this.realOptical?.image as CanvasImageSource | undefined) ?? null;
+  }
+
+  setHydrationUncMode(enabled: boolean): void {
+    this.hydrationUncMode = enabled;
+    if (this.activeLayer === "hydration") {
+      this.setLayer("hydration");
+    }
   }
 
   setLayer(layer: LayerId): void {
-    this.material.map = layer === "optical" && this.realOptical ? this.realOptical : this.textures[layer];
+    this.activeLayer = layer;
+    this.material.map =
+      layer === "optical" && this.realOptical ? this.realOptical : this.getLayerTexture(layer);
     this.material.needsUpdate = true;
   }
 
   getLayerTexture(layer: LayerId): THREE.DataTexture {
+    if (layer === "hydration" && this.hydrationUncMode) {
+      return this.hydrationUncTexture;
+    }
     return this.textures[layer];
   }
 
   heightAt(x: number, z: number): number {
-    const n = this.gridN;
-    const u = THREE.MathUtils.clamp((x / this.sizeM + 0.5) * (n - 1), 0, n - 1.001);
-    const v = THREE.MathUtils.clamp((z / this.sizeM + 0.5) * (n - 1), 0, n - 1.001);
-    const i = u | 0;
-    const j = v | 0;
-    const fu = u - i;
-    const fv = v - j;
-    const k = j * n + i;
-    return (
-      (this.h[k] * (1 - fu) + this.h[k + 1] * fu) * (1 - fv) +
-      (this.h[k + n] * (1 - fu) + this.h[k + n + 1] * fu) * fv
-    );
+    return this.sampleField(this.h, this.gridN, x, z);
   }
 
   slopeAt(x: number, z: number, d = 4): number {
+    if (this.realRastersLoaded) {
+      return this.sampleField(this.slopeField, this.layerN, x, z);
+    }
     const gx = (this.heightAt(x + d, z) - this.heightAt(x - d, z)) / (2 * d);
     const gz = (this.heightAt(x, z + d) - this.heightAt(x, z - d)) / (2 * d);
     return THREE.MathUtils.radToDeg(Math.atan(Math.hypot(gx, gz)));
   }
 
   svfAt(x: number, z: number): number {
-    return this.sampleField(this.svf, x, z);
+    return this.sampleField(this.svfField, this.layerN, x, z);
   }
 
   thermalClassAt(x: number, z: number): 0 | 1 | 2 {
-    const n = this.gridN;
+    const n = this.layerN;
     const i = THREE.MathUtils.clamp(Math.round((x / this.sizeM + 0.5) * (n - 1)), 0, n - 1);
     const j = THREE.MathUtils.clamp(Math.round((z / this.sizeM + 0.5) * (n - 1)), 0, n - 1);
-    return (this.thermal[j * n + i] as 0 | 1 | 2) ?? 1;
+    return (this.thermalField[j * n + i] as 0 | 1 | 2) ?? 1;
   }
 
   hydrationAt(x: number, z: number): number {
-    return this.sampleField(this.hydration, x, z);
+    return this.sampleField(this.hydrationField, this.layerN, x, z);
+  }
+
+  hydrationUncAt(x: number, z: number): number {
+    return this.sampleField(this.hydrationUncField, this.layerN, x, z);
   }
 
   toLonLat(x: number, z: number): { lon: number; lat: number } {
     const mPerDeg = (Math.PI / 180) * 3396190;
     const lat = this.meta.center_lat - z / mPerDeg;
-    const lon = this.meta.center_lon_e + x / (mPerDeg * Math.cos(THREE.MathUtils.degToRad(this.meta.center_lat)));
+    const lon =
+      this.meta.center_lon_e + x / (mPerDeg * Math.cos(THREE.MathUtils.degToRad(this.meta.center_lat)));
     return { lon, lat };
   }
 
@@ -213,16 +361,25 @@ export class TerrainProc {
 
   buildRouteGrid(): RouteGrid {
     const n = this.gridN;
+    const ln = this.layerN;
     const terrain = new Float32Array(n * n);
-    for (let k = 0; k < n * n; k++) {
-      terrain[k] = terrainFromThermalClass((this.thermal[k] as 0 | 1 | 2) ?? 1);
+    const doseRel = new Float32Array(n * n);
+    for (let j = 0; j < n; j++) {
+      const lj = Math.min(ln - 1, Math.round((j / (n - 1)) * (ln - 1)));
+      for (let i = 0; i < n; i++) {
+        const li = Math.min(ln - 1, Math.round((i / (n - 1)) * (ln - 1)));
+        const k = j * n + i;
+        const lk = lj * ln + li;
+        terrain[k] = terrainFromThermalClass((this.thermalField[lk] as 0 | 1 | 2) ?? 1);
+        doseRel[k] = this.svfField[lk];
+      }
     }
     return {
       n,
       cellM: this.sizeM / (n - 1),
       z: this.h,
       terrain,
-      doseRel: this.svf,
+      doseRel,
     };
   }
 
@@ -279,8 +436,7 @@ export class TerrainProc {
     this.sceneRef.add(this.beaconsGroup);
   }
 
-  private sampleField(arr: Float32Array, x: number, z: number): number {
-    const n = this.gridN;
+  private sampleField(arr: Float32Array, n: number, x: number, z: number): number {
     const u = THREE.MathUtils.clamp((x / this.sizeM + 0.5) * (n - 1), 0, n - 1.001);
     const v = THREE.MathUtils.clamp((z / this.sizeM + 0.5) * (n - 1), 0, n - 1.001);
     const i = u | 0;
@@ -297,9 +453,6 @@ export class TerrainProc {
   private generateProceduralFields(): void {
     const n = this.gridN;
     const rnd = mulberry32(4207);
-    const cellM = this.sizeM / (n - 1);
-
-    // Precompute deterministic ridge angles for boxwork geology.
     const phaseA = rnd() * 6.28;
     const phaseB = rnd() * 6.28;
 
@@ -309,17 +462,15 @@ export class TerrainProc {
         const x = (i / (n - 1) - 0.5) * this.sizeM;
         const rCenter = Math.hypot(x - BASE_ORIGIN.x, z - BASE_ORIGIN.z);
 
-        // Gently rolling Gale floor + Mount Sharp foothill rise toward SE + crater rim far out
-        const broadSlope = (x * 0.009 + z * 0.011) + Math.max(0, (rCenter - 950) * 0.045);
-        // Boxwork intersecting ridges (sharp mineralized fractures)
+        const broadSlope = x * 0.009 + z * 0.011 + Math.max(0, (rCenter - 950) * 0.045);
         const bx1 = Math.abs(Math.sin(x * 0.012 + z * 0.008 + phaseA));
         const bx2 = Math.abs(Math.sin(x * -0.007 + z * 0.013 + phaseB));
-        const boxwork = (1 - Math.min(bx1, 0.55) / 0.55) * 6.5 + (1 - Math.min(bx2, 0.5) / 0.5) * 4.8;
+        const boxwork =
+          (1 - Math.min(bx1, 0.55) / 0.55) * 6.5 + (1 - Math.min(bx2, 0.5) / 0.5) * 4.8;
 
-        // Crater depressions
-        const crater1 = -16 * Math.exp(-((x + 280) ** 2 + (z - 230) ** 2) / (135 ** 2));
-        const crater2 = -11 * Math.exp(-((x - 360) ** 2 + (z + 290) ** 2) / (95 ** 2));
-        const ridgeHill = 28 * Math.exp(-((x - 210) ** 2 + (z - 150) ** 2) / (150 ** 2));
+        const crater1 = -16 * Math.exp(-((x + 280) ** 2 + (z - 230) ** 2) / 135 ** 2);
+        const crater2 = -11 * Math.exp(-((x - 360) ** 2 + (z + 290) ** 2) / 95 ** 2);
+        const ridgeHill = 28 * Math.exp(-((x - 210) ** 2 + (z - 150) ** 2) / 150 ** 2);
         const micro = Math.sin(x * 0.075) * Math.cos(z * 0.075) * 0.8 + (rnd() - 0.5) * 0.35;
 
         let elev = broadSlope + boxwork + crater1 + crater2 + ridgeHill + micro;
@@ -336,12 +487,18 @@ export class TerrainProc {
         this.h[j * n + i] = elev;
       }
     }
-    void cellM;
     this.recomputeDerivedFields();
   }
 
   private recomputeDerivedFields(): void {
     const n = this.gridN;
+    this.layerN = n;
+    this.slopeField = new Float32Array(n * n);
+    this.svfField = new Float32Array(n * n);
+    this.thermalField = new Uint8Array(n * n);
+    this.hydrationField = new Float32Array(n * n);
+    this.hydrationUncField = new Float32Array(n * n);
+
     const cellM = this.sizeM / (n - 1);
     for (let j = 0; j < n; j++) {
       const z = (j / (n - 1) - 0.5) * this.sizeM;
@@ -352,25 +509,31 @@ export class TerrainProc {
         const r = this.h[j * n + Math.min(n - 1, i + 1)];
         const u = this.h[Math.max(0, j - 1) * n + i];
         const d = this.h[Math.min(n - 1, j + 1) * n + i];
-        const slopeDeg = THREE.MathUtils.radToDeg(Math.atan(Math.hypot((r - l) / (2 * cellM), (d - u) / (2 * cellM))));
+        const slopeDeg = THREE.MathUtils.radToDeg(
+          Math.atan(Math.hypot((r - l) / (2 * cellM), (d - u) / (2 * cellM))),
+        );
+        this.slopeField[idx] = slopeDeg;
 
-        // Local concavity / ridge height relative to neighbors approximates Sky View Factor (0.45 .. 0.99)
         const meanNb = (l + r + u + d) * 0.25;
         const convexity = this.h[idx] - meanNb;
-        this.svf[idx] = THREE.MathUtils.clamp(0.88 - Math.max(0, -convexity) * 0.14 - slopeDeg * 0.008, 0.42, 0.99);
+        this.svfField[idx] = THREE.MathUtils.clamp(
+          0.88 - Math.max(0, -convexity) * 0.14 - slopeDeg * 0.008,
+          0.42,
+          0.99,
+        );
 
-        // Thermal inertia class: 0 = loose dust (flat low-lying), 1 = mixed regolith, 2 = exposed bedrock/ridges
-        if (slopeDeg > 11 || convexity > 0.12) this.thermal[idx] = 2;
-        else if (slopeDeg > 4) this.thermal[idx] = 1;
-        else this.thermal[idx] = 0;
+        if (slopeDeg > 11 || convexity > 0.12) this.thermalField[idx] = 2;
+        else if (slopeDeg > 4) this.thermalField[idx] = 1;
+        else this.thermalField[idx] = 0;
 
-        // Hydration wt% peaks in boxwork troughs and near S2/S3
+        // Procedural fallback hydration index (dimensionless) peaks in boxwork troughs and near S2/S3
         const s2 = MISSION_SITES_BY_ID.S2;
         const s3 = MISSION_SITES_BY_ID.S3;
         const s2Boost = 5.5 * Math.exp(-((x - s2.x) ** 2 + (z - s2.z) ** 2) / (90 ** 2));
         const s3Boost = 7.2 * Math.exp(-((x - s3.x) ** 2 + (z - s3.z) ** 2) / (105 ** 2));
         const trough = Math.max(0, -convexity) * 4.0;
-        this.hydration[idx] = THREE.MathUtils.clamp(1.2 + trough + s2Boost + s3Boost, 0.5, 11.0);
+        this.hydrationField[idx] = THREE.MathUtils.clamp(1.2 + trough + s2Boost + s3Boost, 0.5, 11.0);
+        this.hydrationUncField[idx] = THREE.MathUtils.clamp(0.45 + 0.025 * slopeDeg, 0.35, 1.8);
       }
     }
   }
@@ -387,12 +550,31 @@ export class TerrainProc {
     geo.computeVertexNormals();
   }
 
-  private buildLayerTexture(layer: LayerId): THREE.DataTexture {
-    const n = this.gridN;
+  private getRenderInput(): LayerRenderInput {
+    return {
+      n: this.layerN,
+      slopeDeg: this.slopeField,
+      svf: this.svfField,
+      thermal: this.thermalField,
+      hydration: this.hydrationField,
+      hydrationUnc: this.hydrationUncField,
+      hydrationMin: this.hydrationMeta.weh_min,
+      hydrationMax: this.hydrationMeta.weh_max,
+      hydrationUncMax: this.hydrationMeta.interval_width_max,
+      heightM: this.h,
+      heightGridN: this.gridN,
+      realRasters: this.realRastersLoaded,
+    };
+  }
+
+  private buildLayerTexture(layer: RenderLayerId): THREE.DataTexture {
+    const n = this.layerN;
     const data = new Uint8Array(n * n * 4);
-    this.fillLayerBytes(layer, data);
+    fillLayerRgba(layer, this.getRenderInput(), data);
     const tex = new THREE.DataTexture(data, n, n, THREE.RGBAFormat);
     tex.colorSpace = THREE.SRGBColorSpace;
+    // PlaneGeometry rotated -90 deg maps north (row 0, z=-sizeM/2) to uv.y=1.
+    tex.flipY = true;
     tex.magFilter = THREE.LinearFilter;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
     tex.generateMipmaps = true;
@@ -400,81 +582,38 @@ export class TerrainProc {
     return tex;
   }
 
-  private refreshTextures(): void {
+  private rebuildLayerTextures(): void {
     for (const layer of ["optical", "slope", "thermal", "radiation", "hydration"] as LayerId[]) {
-      const tex = this.textures[layer];
-      this.fillLayerBytes(layer, tex.image.data as Uint8Array);
-      tex.needsUpdate = true;
+      this.textures[layer].dispose();
+      this.textures[layer] = this.buildLayerTexture(layer);
     }
+    this.hydrationUncTexture.dispose();
+    this.hydrationUncTexture = this.buildLayerTexture("hydration_unc");
   }
 
-  private fillLayerBytes(layer: LayerId, data: Uint8Array): void {
-    const n = this.gridN;
-    const cellM = this.sizeM / (n - 1);
-    const rnd = mulberry32(9911);
-
-    for (let j = 0; j < n; j++) {
-      for (let i = 0; i < n; i++) {
-        const idx = j * n + i;
-        const l = this.h[j * n + Math.max(0, i - 1)];
-        const r = this.h[j * n + Math.min(n - 1, i + 1)];
-        const u = this.h[Math.max(0, j - 1) * n + i];
-        const d = this.h[Math.min(n - 1, j + 1) * n + i];
-        const slopeDeg = THREE.MathUtils.radToDeg(Math.atan(Math.hypot((r - l) / (2 * cellM), (d - u) / (2 * cellM))));
-        const tc = this.thermal[idx];
-        const svf = this.svf[idx];
-        const hyd = this.hydration[idx];
-        const grain = (rnd() - 0.5) * 18;
-
-        let R = 180;
-        let G = 108;
-        let B = 68;
-
-        if (layer === "optical") {
-          const rock = tc === 2 ? -22 : tc === 0 ? 14 : 0;
-          const hShade = THREE.MathUtils.clamp((this.h[idx] + 20) * 0.45, -18, 32);
-          R = 178 + rock + hShade + grain;
-          G = 105 + rock * 0.7 + hShade * 0.65 + grain * 0.7;
-          B = 64 + rock * 0.5 + hShade * 0.4 + grain * 0.5;
-        } else if (layer === "slope") {
-          if (slopeDeg < 8) {
-            R = 38; G = 185; B = 110;
-          } else if (slopeDeg < 18) {
-            R = 230; G = 195; B = 45;
-          } else if (slopeDeg < 26) {
-            R = 245; G = 120; B = 35;
-          } else {
-            R = 235; G = 42; B = 75;
-          }
-          R += grain * 0.4;
-          G += grain * 0.4;
-        } else if (layer === "thermal") {
-          if (tc === 0) { R = 48; G = 105; B = 200; }
-          else if (tc === 1) { R = 215; G = 155; B = 60; }
-          else { R = 245; G = 78; B = 45; }
-        } else if (layer === "radiation") {
-          const t = THREE.MathUtils.clamp((svf - 0.45) / 0.54, 0, 1);
-          R = 35 + t * 215;
-          G = 215 - t * 145;
-          B = 225 - t * 35;
-        } else if (layer === "hydration") {
-          const t = THREE.MathUtils.clamp((hyd - 1.0) / 8.5, 0, 1);
-          R = 155 * (1 - t) + 25 * t;
-          G = 100 * (1 - t) + 215 * t;
-          B = 68 * (1 - t) + 255 * t;
-        }
-
-        const p = idx * 4;
-        data[p] = THREE.MathUtils.clamp(R, 0, 255);
-        data[p + 1] = THREE.MathUtils.clamp(G, 0, 255);
-        data[p + 2] = THREE.MathUtils.clamp(B, 0, 255);
-        data[p + 3] = 255;
-      }
+  private refreshTextures(): void {
+    const input = this.getRenderInput();
+    for (const layer of ["optical", "slope", "thermal", "radiation", "hydration"] as LayerId[]) {
+      const tex = this.textures[layer];
+      fillLayerRgba(layer, input, tex.image.data as Uint8Array);
+      tex.needsUpdate = true;
     }
+    fillLayerRgba("hydration_unc", input, this.hydrationUncTexture.image.data as Uint8Array);
+    this.hydrationUncTexture.needsUpdate = true;
+  }
+
+  private clearMarkersGroup(): void {
+    this.markersGroup.traverse((obj) => {
+      if (obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Sprite) {
+        obj.geometry?.dispose();
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        for (const m of mats) m?.dispose();
+      }
+    });
+    this.markersGroup.clear();
   }
 
   private buildMarkers(): void {
-    // Science stations S1..S4
     for (const st of SCIENCE_STATIONS) {
       const y = this.heightAt(st.x, st.z);
       const g = new THREE.Group();
@@ -501,16 +640,62 @@ export class TerrainProc {
       this.markersGroup.add(g);
     }
 
-    // Curiosity traverse polyline
-    const pts = CURIOSITY_TRAVERSE.map((w) => new THREE.Vector3(w.x, this.heightAt(w.x, w.z) + 0.45, w.z));
+    const pts = CURIOSITY_TRAVERSE.map(
+      (w) => new THREE.Vector3(w.x, this.heightAt(w.x, w.z) + 0.45, w.z),
+    );
     const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
     const lineMat = new THREE.LineDashedMaterial({ color: 0xffb800, dashSize: 6, gapSize: 4 });
     const line = new THREE.Line(lineGeo, lineMat);
     line.computeLineDistances();
     this.markersGroup.add(line);
+
+    // Real MSL DAN passive neutron measurement stations inside the 4x4 km scene (377 points)
+    if (this.danPoints.length > 0) {
+      const count = this.danPoints.length;
+      const discGeo = new THREE.CylinderGeometry(3.2, 3.2, 0.45, 14);
+      const discMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+      const discMesh = new THREE.InstancedMesh(discGeo, discMat, count);
+      discMesh.name = "dan-stations-fill";
+
+      const ringGeo = new THREE.RingGeometry(3.4, 4.9, 16);
+      ringGeo.rotateX(-Math.PI / 2);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xe6faff,
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide,
+      });
+      const ringMesh = new THREE.InstancedMesh(ringGeo, ringMat, count);
+      ringMesh.name = "dan-stations-ring";
+
+      const dummy = new THREE.Object3D();
+      const color = new THREE.Color();
+      const minIdx = this.hydrationMeta.weh_min;
+      const maxIdx = this.hydrationMeta.weh_max;
+
+      for (let i = 0; i < count; i++) {
+        const d = this.danPoints[i];
+        const y = this.heightAt(d.x, d.z);
+        dummy.position.set(d.x, y + 0.35, d.z);
+        dummy.updateMatrix();
+        discMesh.setMatrixAt(i, dummy.matrix);
+
+        const [r, g, b] = hydrationRgb(d.hydration_index, minIdx, maxIdx);
+        color.setRGB(r / 255, g / 255, b / 255);
+        discMesh.setColorAt(i, color);
+
+        dummy.position.set(d.x, y + 0.6, d.z);
+        dummy.updateMatrix();
+        ringMesh.setMatrixAt(i, dummy.matrix);
+      }
+
+      discMesh.instanceMatrix.needsUpdate = true;
+      if (discMesh.instanceColor) discMesh.instanceColor.needsUpdate = true;
+      ringMesh.instanceMatrix.needsUpdate = true;
+      this.markersGroup.add(discMesh);
+      this.markersGroup.add(ringMesh);
+    }
   }
-
-
 }
 
 export function makeSpriteLabel(text: string, color = "#35e0ff"): THREE.Sprite {
