@@ -24,6 +24,7 @@ import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
 import { PodBallistics } from "./world/podBallistics";
 import { trackCrew } from "./world/crewTracker";
+import { RocksProc } from "./world/rocksProc";
 import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
 import { TerrainProc } from "./world/terrainProc";
@@ -118,6 +119,8 @@ scene.add(astronaut.group);
 
 const baseProc = new BaseProc(scene, terrain);
 const launchSite = new LaunchSiteProc(scene, terrain);
+const rocks = new RocksProc(scene, terrain);
+void rocks;
 const skyCrane = new SkyCraneProc(scene, terrain);
 createSkyCraneToggle(() => {
   skyCrane.setVisible(!skyCrane.visible);
