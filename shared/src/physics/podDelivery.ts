@@ -33,6 +33,24 @@ export interface Delivery {
   maxHeightM: number;
 }
 
+/** Seeded 32-bit PRNG for deterministic procedural terrain & Monte Carlo scatter. */
+export function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Default life-support delivery pod envelope matching constants C.pod_*. */
+export const DEFAULT_POD: Pod = { massKg: 8.0, cdA: 0.025 };
+
+/** Default parachute parameters matching constants C.pod_chute_cda_m2. */
+export const DEFAULT_CHUTE: Chute = { cdA: 18.0, deployBelowM: 140, inflateS: 1.0 };
+
 /** Default launcher envelope (design assumption). */
 export const DEFAULT_LAUNCHER: Launcher = {
   maxMuzzleSpeed: 90,

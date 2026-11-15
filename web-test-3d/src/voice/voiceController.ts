@@ -1,8 +1,8 @@
 import { AIRLOCK_COORD, BASE_ORIGIN, MISSION_SITES_BY_ID, terrainMatches } from "@th/shared";
 import { postAgentVoice, type VoiceAgentRequest, type VoiceAgentResponse } from "../api";
-import { ASR_LOCALE, getLang, onLangChange, t, type Lang } from "../core/i18n";
-import { AIRCRAFT_GROUNDING_TAU, C, surfaceDensity } from "../core/physics";
-import type { Action, ConversationTurn, TraceEvent } from "../core/types";
+import { ASR_LOCALE, getLang, onLangChange, t, type Lang } from "@th/shared";
+import { AIRCRAFT_GROUNDING_TAU, C, surfaceDensity } from "@th/shared";
+import type { Action, ConversationTurn, TraceEvent } from "@th/shared";
 import type { MissionStore } from "../state";
 import { Listener, type ListenErrorCode } from "./listen";
 import { matchLocalIntent, type LocalIntentId } from "./localIntents";

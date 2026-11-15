@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { mulberry32 } from "../core/physics";
+import { mulberry32 } from "@th/shared";
 
 export class SkyDust {
   readonly sky: THREE.Mesh;

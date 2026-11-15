@@ -66,6 +66,9 @@ export const ENV_LIMITS: EnvLimits = {
 /** Backward-compatible alias of ENV_LIMITS for chance-constrained storm planning callers. */
 export const DEFAULT_STORM_LIMITS: EnvLimits = ENV_LIMITS;
 
+/** Dust opacity at or above which drones and gliders are grounded (matches server GUARDIAN). */
+export const AIRCRAFT_GROUNDING_TAU = ENV_LIMITS.tauDroneGrounding;
+
 /**
  * Chance-constrained EVA weather check: the plan must remain valid at the pessimistic
  * (90th percentile) dust opacity forecast across horizons.

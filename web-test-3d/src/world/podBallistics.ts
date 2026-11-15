@@ -11,8 +11,8 @@ import {
   surfaceDensity,
   type Delivery,
   type PodEnv,
-} from "../core/physics";
-import type { PodTelemetry } from "../core/types";
+} from "@th/shared";
+import type { PodTelemetry } from "@th/shared";
 import type { TerrainProc } from "./terrainProc";
 
 export class PodBallistics {
@@ -85,7 +85,7 @@ export class PodBallistics {
       groundZ: (x, y) => this.terrain.heightAt(x, y),
     };
     const targetElev = this.terrain.heightAt(targetX, targetZ);
-    const aimed = aimDelivery([lx, lz, ly], [targetX, targetZ, targetElev], DEFAULT_POD, DEFAULT_CHUTE, env, Math.PI / 4);
+    const aimed = aimDelivery([lx, lz, ly], [targetX, targetZ, targetElev], Math.PI / 4, DEFAULT_POD, DEFAULT_CHUTE, env);
     if (!aimed) return null;
 
     this.activeDelivery = aimed.delivery;

@@ -1,8 +1,8 @@
 import { MISSION_SITES_BY_ID } from "@th/shared";
 import { afterEach, describe, expect, it } from "vitest";
-import { setLang } from "../../core/i18n.js";
-import { AIRCRAFT_GROUNDING_TAU } from "../../core/physics.js";
-import type { UnitSnapshot } from "../../core/types.js";
+import { setLang } from "@th/shared";
+import { AIRCRAFT_GROUNDING_TAU } from "@th/shared";
+import type { UnitSnapshot } from "@th/shared";
 import { MissionStore } from "../../state.js";
 import { VoiceController } from "../voiceController.js";
 
