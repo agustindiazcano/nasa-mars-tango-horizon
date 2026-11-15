@@ -49,6 +49,14 @@ Several people and several agents work on this project at the same time.
 3. **Multi-worker / swarm integration:** When integrating work from multiple subagents or worktrees, cherry-pick or commit each worker's module as its own separate commit (or separate PR) rather than squashing unrelated modules together.
 4. **Avoid bloated JSON/data diffs:** Keep generated JSON artifacts compact (only the fields consumed at runtime) and commit generated data assets separately from source code.
 
+## Mandatory rule: parallel CI on GitHub branches
+
+**Run full test suites and workspace builds in parallel on GitHub Actions rather than sequentially on the local machine.**
+
+1. Keep local runs for quick targeted checks on the files you changed (`npx vitest run <file>`, `tsc --noEmit`).
+2. Push your task branch and let `.github/workflows/ci.yml` execute `test-shared`, `test-server`, and `build` in parallel on GitHub (`gh run watch` or `gh pr checks --watch`).
+3. Parallelize independent live integration/voice probes (concurrent requests) instead of running them sequentially.
+
 ## Mandatory rule: when a task is finished
 
 1. Commit each logical step atomically while working on the task.
