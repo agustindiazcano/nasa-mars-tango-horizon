@@ -5,14 +5,14 @@
 
 ## Work performed
 
-Implemented NASA remediation changes on `fix/nasa-data-remediation`, PR #14. Added validated terrain startup with retries and a manual retry control before actor construction; rebuilt terrain markers after loading; corrected synthetic event attribution and coordinate hemispheres. Added independent historical exact-sample inspection and HiRISE optical imagery loading. Renamed backend hydration prediction fields to dimensionless indices. Added environment provenance/category fields and historical/design forecast disclaimers.
+Switched to main and pulled origin/main; PR #14 was already merged at `8a18b17`. Created `fix/nasa-historical-replay` for the next P1 block.
 
-Verified coordinate patch 42c5e92 is integrated. Reproduced the authoritative USGS crop using the pipeline sampling policy; maximum uint16 decoding residual is 0.006070 m. Added a reproducible verification script and evidence JSON. No raw raster was committed.
+Added typed adapters for all five historical environment files, retaining source values, per-sample epochs, per-variable units/category/processing and missing wind. Added deterministic exact-sample playback with play/pause, seek, reset, explicit sample rates and end-of-series stop. Dataset changes and modal close cancel requests and stop playback. No historical values are copied into design mission telemetry. Marked mission Earth-link latency as a design assumption instead of an unspecified Horizons sample.
 
 ## Files and validation
 
-Changes cover shared mission types, server terrain/tool/offline responses, frontend startup/terrain/HUD/archive and metadata tests, the verification script and evidence documents. Frontend TypeScript passed; server TypeScript passed after hydration changes. Targeted Vitest passed 12 tests. Initial branch CI passed shared/server/build; subsequent source commits trigger new CI. See `docs/NASA_DATA_REMEDIATION_EVIDENCE.md` for results and scope.
+Added `web-test-3d/src/data/historicalSeries.ts` and `server/src/agents/__tests__/historicalSeries.test.ts`; updated the archive HUD, state/HUD Earth-link labels and remediation plan/evidence. Targeted Vitest passed 17 tests against the five committed files and replay lifecycle; frontend TypeScript passed.
 
 ## Handoff
 
-PR: https://github.com/agustindiazcano/nasa-mars-tango-horizon/pull/14 . The plan is partially implemented; no full completion or visual approval is claimed. Browser creation timed out and inventory showed no browser plus an unavailable native pipe. No merge or production deployment was performed. Untracked `.claude/` content remains untouched.
+Source changes are on `fix/nasa-historical-replay`, with atomic commits. Browser inventory was retried and returned no apps/browsers plus native pipe unavailable (os error 2), so visual acceptance remains unverified. No merge or production deployment was performed. Untracked `.claude/` content remains untouched. The package gates and remaining work are in the pending files and remediation evidence.
