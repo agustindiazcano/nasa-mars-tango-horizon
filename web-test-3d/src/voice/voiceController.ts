@@ -7,7 +7,7 @@ import type { MissionStore } from "../state";
 import { Listener, type ListenErrorCode } from "./listen";
 import { matchLocalIntent, type LocalIntentId } from "./localIntents";
 import { RadioSpeaker } from "./speak";
-import { isVisionQuestion } from "./visionIntent";
+import { isVisionQuestion, parseVisionIntent } from "./visionIntent";
 
 const OFFLINE_SITES: Record<number, { x: number; z: number; label: string }> = {
   1: { x: MISSION_SITES_BY_ID.S1.x, z: MISSION_SITES_BY_ID.S1.z, label: "S1" },
@@ -351,20 +351,23 @@ export class VoiceController {
       }
     }
 
-    // Intercept explicit vision questions so the 3D mast camera frame goes to /api/agent/vision.
+    // Intercept explicit vision questions so the 3D helmet visor or fleet camera frame goes to /api/agent/vision.
     // A bare unit mention ("rover dos, scout the north") must reach the agent instead.
-    if (isVisionQuestion(clean) && this.hooks.onVisionRequest) {
+    const visionMatch = parseVisionIntent(clean);
+    if (visionMatch.isVision && this.hooks.onVisionRequest) {
+      const targetUnitId = visionMatch.unitId ?? "astronaut";
       this.store.baseProcessing = true;
       this.store.notify();
       void this.radio.beep(740, 0.06);
       const start = performance.now();
       try {
-        const res = await this.hooks.onVisionRequest("rover-2", clean);
+        const res = await this.hooks.onVisionRequest(targetUnitId, clean);
         this.store.lastAgentLatencyMs = Math.round(performance.now() - start);
         this.lastReply = res.speech;
+        const routeFallback = targetUnitId === "astronaut" ? ["SUIT.VISION"] : [`ROBOT.${targetUnitId}`];
         this.store.pushTranscript("base", res.speech, true, {
           latencyMs: this.store.lastAgentLatencyMs,
-          route: this.store.routePath.length ? this.store.routePath : ["ROBOT.rover-2"],
+          route: this.store.routePath.length ? this.store.routePath : routeFallback,
           lang: activeLang,
         });
         void this.radio.say(res.speech);

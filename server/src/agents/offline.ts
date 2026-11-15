@@ -800,6 +800,49 @@ export async function offlineReply(
     };
   }
 
+  // 4b. Onboard camera / helmet visor vision capture (B39)
+  if (
+    /(?<![\p{L}\d])(lo\s+que\s+(?:estoy\s+viendo|veo)|qu[eé]\s+(?:estoy\s+viendo|veo|hay\s+frente\s+a\s+m[ií]|ves?\s+ah[ií]|ve\s+el\s+(?:rover|drone|dron|rescue|manipulador))|puedes?\s+ver\s+lo\s+que|pod[eé]s\s+ver\s+lo\s+que|what\s+(?:am\s+i\s+seeing|do\s+i\s+see|is\s+in\s+front\s+of\s+me|does\s+(?:the\s+)?(?:rover|drone|rescue)\s+see)|can\s+you\s+see\s+what\s+i|analiz[aáe]\s+(?:la\s+c[aá]mara|mi\s+vista|lo\s+que\s+veo)|inspect\s+(?:the\s+camera|my\s+view))(?![\p{L}\d])/iu.test(
+      q,
+    )
+  ) {
+    const caller = "SUIT.VOICE-EXEC";
+    const explicitUnit = matchExplicitUnitId(q);
+    const isFirstPerson =
+      /(?<![\p{L}\d])(estoy\s+viendo|veo|frente\s+a\s+m[ií]|mi\s+casco|mi\s+visor|am\s+i\s+seeing|do\s+i\s+see|in\s+front\s+of\s+me|what\s+i\s+see|what\s+i'm\s+seeing)(?![\p{L}\d])/iu.test(
+        q,
+      );
+    const unitId = isFirstPerson ? "astronaut" : (explicitUnit ?? "rover-2");
+    proposeAction("capture_vision", { unit_id: unitId, question: q }, ctx, caller, actions, trace);
+    return {
+      speech: pick(lang, {
+        es:
+          unitId === "astronaut"
+            ? "Capturando cámara del visor del casco para analizar tu vista."
+            : `Capturando cámara a bordo de ${unitId}.`,
+        en:
+          unitId === "astronaut"
+            ? "Capturing helmet visor camera frame to analyze your view."
+            : `Capturing onboard camera frame from ${unitId}.`,
+        fr:
+          unitId === "astronaut"
+            ? "Capture de la caméra de visière du casque en cours."
+            : `Capture de la caméra embarquée de ${unitId}.`,
+        de:
+          unitId === "astronaut"
+            ? "Helmkamera-Aufnahme wird analysiert."
+            : `Bordkamera von ${unitId} wird aufgenommen.`,
+        it:
+          unitId === "astronaut"
+            ? "Acquisizione fotocamera visiera casco in corso."
+            : `Acquisizione fotocamera di bordo di ${unitId}.`,
+      }),
+      actions,
+      trace,
+      route: [caller],
+    };
+  }
+
   // 5. Route planning (EVA-PLANNER) — skip when a fleet unit is being dispatched/navigated
   if (
     !matchExplicitUnitId(q) &&

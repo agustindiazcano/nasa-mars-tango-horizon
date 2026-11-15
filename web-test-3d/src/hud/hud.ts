@@ -649,17 +649,36 @@ export class TacticalHud {
     if (this.roverModalOpen) {
       this.lastModalPanel = "none";
       this.modalEl.style.display = "block";
+      const camSources: Array<{ id: string; label: string; defaultQ: string }> = [
+        { id: "astronaut", label: "HELMET VISOR", defaultQ: "Describe what I am seeing right in front of me" },
+        { id: "rover-1", label: "RVR-1", defaultQ: "Describe terrain and crew rover surroundings" },
+        { id: "rover-2", label: "RVR-2", defaultQ: t("deck.say.8") },
+        { id: "rover-3", label: "RVR-3 (HANDS)", defaultQ: "Identify numbered rock targets T1, T2, T3" },
+        { id: "rescue-1", label: "RESCUE-1", defaultQ: "Describe terrain and emergency path ahead" },
+        { id: "drone-1", label: "DRONE-1", defaultQ: "Describe overhead Gale Crater terrain and hazards" },
+        { id: "drone-2", label: "DRONE-2", defaultQ: "Describe aerial view of base and fleet units" },
+      ];
+      const activeCam = s.activeVisionUnitId || "astronaut";
+      const camButtons = camSources
+        .map(
+          (c) =>
+            `<button class="hud-btn ${c.id === activeCam ? "active" : ""}" data-pointable data-vis-cam="${c.id}">${c.label}</button>`,
+        )
+        .join("");
+
       this.modalEl.innerHTML = `
         <div class="panel-hdr">
-          <span>RVR-2 / RVR-3 VISION FEED (POST /api/agent/vision)</span>
+          <span>ONBOARD VISION FEED · ${escapeHtml(activeCam.toUpperCase())} (POST /api/agent/vision)</span>
           <button class="hud-btn" data-pointable id="modal-close">X</button>
         </div>
+        <div class="btn-row" style="margin-bottom:6px; flex-wrap:wrap;">${camButtons}</div>
         ${s.injectionBlockedBanner ? `<div class="alert-banner"><b>${t("agents.injection_blocked")}</b></div>` : ""}
         <div style="margin:8px 0; text-align:center;">
           ${s.roverPreviewUrl ? `<img src="${s.roverPreviewUrl}" style="width:100%; max-width:480px; border-radius:8px; border:1px solid var(--border);" />` : "Capturing frame..."}
         </div>
         <div style="font-size:12px; color:#fff; margin-bottom:8px;">${s.roverPreviewCaption}</div>
         <div class="btn-row">
+          <button class="hud-btn" data-pointable id="rvr-snap-helmet">Helmet Visor POV</button>
           <button class="hud-btn" data-pointable id="rvr-snap-2">Capture RVR-2 Sign</button>
           <button class="hud-btn" data-pointable id="rvr-snap-m">Capture RVR-3 Targets</button>
         </div>
@@ -668,6 +687,16 @@ export class TacticalHud {
         this.roverModalOpen = false;
         this.renderModal();
       });
+      this.modalEl.querySelectorAll<HTMLButtonElement>("[data-vis-cam]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.visCam!;
+          const found = camSources.find((c) => c.id === id);
+          this.actions.captureRoverVision(id, found?.defaultQ ?? "Describe the camera frame");
+        });
+      });
+      this.modalEl.querySelector("#rvr-snap-helmet")!.addEventListener("click", () =>
+        this.actions.captureRoverVision("astronaut", "Describe what I am seeing right in front of me"),
+      );
       this.modalEl.querySelector("#rvr-snap-2")!.addEventListener("click", () =>
         this.actions.captureRoverVision("rover-2", t("deck.say.8")),
       );
@@ -755,6 +784,7 @@ export class TacticalHud {
             <td>(${fmt(u.x, 0)}, ${fmt(u.z, 0)})</td>
             <td>${fmt(u.battery * 100, 0)}%</td>
             <td>${u.task ?? "idle"}</td>
+            <td><button class="hud-btn" data-pointable data-fleet-cam="${u.id}">CAM</button></td>
           </tr>
         `,
         )
@@ -762,7 +792,7 @@ export class TacticalHud {
       this.modalEl.innerHTML = `
         ${closeHdr("FLEET & ROVER-3 4-DOF IK")}
         <table class="prov-tbl">
-          <thead><tr><th>ID</th><th>Kind</th><th>XZ (m)</th><th>Bat</th><th>Task</th></tr></thead>
+          <thead><tr><th>ID</th><th>Kind</th><th>XZ (m)</th><th>Bat</th><th>Task</th><th>Cam</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
         <div class="panel-hdr" style="margin-top:10px;"><span>${t("manip.title")}</span></div>
@@ -773,6 +803,12 @@ export class TacticalHud {
           <button class="hud-btn" data-pointable data-skill="handover" data-tgt="astronaut">Handover Tool</button>
         </div>
       `;
+      this.modalEl.querySelectorAll<HTMLButtonElement>("[data-fleet-cam]").forEach((b) =>
+        b.addEventListener("click", () => {
+          const uid = b.dataset.fleetCam!;
+          this.actions.captureRoverVision(uid, `Describe what ${uid} camera sees`);
+        }),
+      );
       this.modalEl.querySelectorAll<HTMLButtonElement>("[data-skill]").forEach((b) =>
         b.addEventListener("click", () =>
           this.actions.runManipSkill(b.dataset.skill as ArmSkillId, b.dataset.tgt!),

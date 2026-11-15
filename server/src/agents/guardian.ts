@@ -14,7 +14,7 @@ const ARM_CREW_KEEPOUT_M = 2; // design assumption: minimum clearance around cre
 const JUDGE_SKIP_TYPES = new Set(["dispatch", "arm_skill", "unit_action"]); // low risk once hard limits pass; launch_pod/deploy_beacons stay judged
 const INJECTION_RE =
   /ignore (all |previous |prior )?(instructions|rules)|disregard|system prompt|override|disable (safety|guardian)|you are now|jailbreak|<\/?untrusted>|ignora (las |todas )?(instrucciones|reglas)|desactiva/i;
-const HUD_ONLY = new Set(["set_layer", "open_panel", "show_route", "show_alert"]);
+const HUD_ONLY = new Set(["set_layer", "open_panel", "show_route", "show_alert", "capture_vision"]);
 
 const CLINICAL_RX_RE =
   /\b(prescrib\w*|prescription|administer|tablet|pill|mg|dosage|dose of|medication|ibuprofen|acetaminophen|aspirin|epinephrine|acetazolamide|dexamethasone|modafinil|antibiotic|steroid|recet\w*|medicament\w*|f[aá]rmac\w*|pastilla\w*|dosis de)\b/i;

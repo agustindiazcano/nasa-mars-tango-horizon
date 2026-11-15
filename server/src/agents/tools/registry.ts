@@ -734,6 +734,21 @@ export const TOOLS: ToolDef[] = [
     description: "Displays an alert on the helmet HUD, with a document citation when applicable.",
     run: (a, _c, caller) => ({ type: "show_alert", args: a, proposedBy: caller }),
   }),
+  def({
+    name: "capture_vision",
+    server: "hud",
+    effect: true,
+    schema: z.object({
+      unit_id: z
+        .enum(["astronaut", "rover-1", "rover-2", "rover-3", "rescue-1", "drone-1", "drone-2"])
+        .default("astronaut")
+        .describe("Camera source ID ('astronaut' for helmet visor POV, or a fleet unit ID)"),
+      question: z.string().max(200).optional().describe("Crew question about the camera frame"),
+    }),
+    description:
+      "Triggers live 3D onboard camera frame capture and vision inspection from the astronaut helmet visor ('astronaut') or any fleet unit ('rover-1'..'rover-3', 'rescue-1', 'drone-1'..'drone-2').",
+    run: (a, _c, caller) => ({ type: "capture_vision", args: a, proposedBy: caller }),
+  }),
 
   // --- mcp-knowledge -----------------------------------------------------
   def({

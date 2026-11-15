@@ -446,12 +446,14 @@ export class FleetProc {
     this.pendingSkill = null;
   }
 
-  /** Renders 512x384 JPEG frame from rover-2 or manip-1 mast camera for /api/agent/vision. */
+  /** Renders 512x384 JPEG frame from any fleet unit onboard camera (rover-1..3, rescue-1, drone-1..2) for /api/agent/vision. */
   captureRoverCamera(renderer: THREE.WebGLRenderer, unitId = "rover-2"): string {
     const unit = this.units.get(unitId) ?? this.units.get("rover-2")!;
     const cam = unit.mastCamera;
     if (!cam) return "";
     unit.object.updateMatrixWorld(true);
+    const prevConeVis = unit.lidarCone ? unit.lidarCone.visible : false;
+    if (unit.lidarCone) unit.lidarCone.visible = false;
     const prevTarget = renderer.getRenderTarget();
     renderer.setRenderTarget(this.renderTarget);
     renderer.render(this.scene, cam);
@@ -461,6 +463,7 @@ export class FleetProc {
     const pixels = new Uint8Array(w * h * 4);
     renderer.readRenderTargetPixels(this.renderTarget, 0, 0, w, h, pixels);
     renderer.setRenderTarget(prevTarget);
+    if (unit.lidarCone) unit.lidarCone.visible = prevConeVis;
 
     const canvas = document.createElement("canvas");
     canvas.width = w;
@@ -477,12 +480,13 @@ export class FleetProc {
     }
     ctx.putImageData(imgData, 0, 0);
 
-    // Overlay HUD telemetry stamp + numbered target markers if manip-1
+    // Overlay HUD telemetry stamp + numbered target markers if manipulator
     ctx.fillStyle = "rgba(0,0,0,0.55)";
     ctx.fillRect(0, 0, w, 26);
     ctx.font = "bold 13px ui-monospace, monospace";
     ctx.fillStyle = "#35e0ff";
-    ctx.fillText(`MASTCAM // ${unit.spec.id.toUpperCase()} // 512x384`, 10, 17);
+    const camTag = unit.spec.flies ? "AERIAL CAM" : "MASTCAM";
+    ctx.fillText(`${camTag} // ${unit.spec.id.toUpperCase()} // 512x384`, 10, 17);
 
     if (unit.spec.kind === "manipulator" || unit.spec.id === "rover-3" || unit.spec.id === "manip-1") {
       for (const tgt of this.targets) {
@@ -661,6 +665,17 @@ export class FleetProc {
       cone.position.y = -7.2;
       g.add(cone);
       unit.lidarCone = cone;
+
+      // Onboard aerial camera mounted on root Group (g) so it survives ingenuity.glb swap
+      const droneCamMount = new THREE.Group();
+      droneCamMount.position.set(0, -0.22, 0.35);
+      const droneCam = new THREE.PerspectiveCamera(60, 512 / 384, 0.2, 1400);
+      droneCam.position.set(0, 0, 0.12);
+      droneCam.rotation.set(-0.52, Math.PI, 0);
+      droneCamMount.add(droneCam);
+      g.add(droneCamMount);
+      unit.mastPivot = droneCamMount;
+      unit.mastCamera = droneCam;
     } else {
       const is6x6 = spec.kind === "rover_crew" || spec.kind === "rescue";
       const wLen = is6x6 ? 2.6 : 1.7;
@@ -700,39 +715,31 @@ export class FleetProc {
         procGroup.add(o2Tank);
       }
 
-      if (spec.kind === "rover_science" || spec.kind === "manipulator") {
-        const mast = new THREE.Group();
-        mast.position.set(0, 0.78, 0.45);
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.95, 8), chassisMat);
-        pole.position.y = 0.47;
-        const head = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.24), accentMat);
-        head.position.y = 1.0;
-        const lens = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.06, 0.06, 0.1, 10),
-          new THREE.MeshBasicMaterial({ color: 0x35e0ff }),
-        );
-        lens.rotation.x = Math.PI / 2;
-        lens.position.set(0, 1.0, 0.14);
-        mast.add(pole, head, lens);
+      // Mount mast camera on root Group (g) for all ground rovers (rover-1..3, rescue-1) so cameras survive GLB swaps
+      const mast = new THREE.Group();
+      mast.position.set(0, 0.78, is6x6 ? 0.68 : 0.45);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.95, 8), chassisMat);
+      pole.position.y = 0.47;
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.24), accentMat);
+      head.position.y = 1.0;
+      const lens = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.06, 0.06, 0.1, 10),
+        new THREE.MeshBasicMaterial({ color: 0x35e0ff }),
+      );
+      lens.rotation.x = Math.PI / 2;
+      lens.position.set(0, 1.0, 0.14);
+      mast.add(pole, head, lens);
+      procGroup.add(mast);
 
-        const cam = new THREE.PerspectiveCamera(54, 512 / 384, 0.2, 1200);
-        cam.position.set(0, 1.0, 0.22);
-        cam.rotation.set(-0.14, Math.PI, 0); // Looking forward along +Z
-        if (spec.id === "rover-2") {
-          // Keep mast camera outside proceduralGroup so RVR-2 CAM stays active when rover.glb loads
-          const mastMount = new THREE.Group();
-          mastMount.position.copy(mast.position);
-          mastMount.add(cam);
-          g.add(mastMount);
-          procGroup.add(mast);
-          unit.mastPivot = mastMount;
-        } else {
-          mast.add(cam);
-          procGroup.add(mast);
-          unit.mastPivot = mast;
-        }
-        unit.mastCamera = cam;
-      }
+      const cam = new THREE.PerspectiveCamera(54, 512 / 384, 0.2, 1200);
+      cam.position.set(0, 1.0, 0.22);
+      cam.rotation.set(-0.14, Math.PI, 0); // Looking forward along +Z
+      const mastMount = new THREE.Group();
+      mastMount.position.copy(mast.position);
+      mastMount.add(cam);
+      g.add(mastMount);
+      unit.mastPivot = mastMount;
+      unit.mastCamera = cam;
 
       if (spec.kind === "manipulator") {
         this.manipArm.root.position.set(0, 0.76, 0.88);

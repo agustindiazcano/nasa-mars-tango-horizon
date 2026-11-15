@@ -124,7 +124,12 @@ async function captureAndInspectVision(
   unitId: string,
   question: string,
 ): Promise<{ speech: string; injection: boolean }> {
-  const dataUrl = fleet.captureRoverCamera(renderer, unitId);
+  const normId = unitId === "helmet" ? "astronaut" : unitId;
+  const dataUrl =
+    normId === "astronaut"
+      ? astronaut.captureHelmetCamera(renderer, scene)
+      : fleet.captureRoverCamera(renderer, normId);
+  store.activeVisionUnitId = normId;
   store.roverPreviewUrl = dataUrl;
   store.roverPreviewCaption = "Analyzing camera frame...";
   store.injectionBlockedBanner = false;
@@ -136,7 +141,7 @@ async function captureAndInspectVision(
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        unit_id: unitId,
+        unit_id: normId,
         image: dataUrl,
         question,
         lang: apiLang,
@@ -392,6 +397,20 @@ store.setHooks({
   },
   onArmSkill: (skill: ArmSkillId, targetId: string, item?: string) => {
     fleet.executeArmSkill(skill, targetId, astronaut.pos, astronaut.yaw, item);
+  },
+  onCaptureVision: (unitId: string, question?: string) => {
+    const q =
+      question ||
+      (unitId === "astronaut"
+        ? "Describe what the astronaut is seeing through the helmet visor camera"
+        : `Describe what ${unitId} onboard camera sees`);
+    void captureAndInspectVision(unitId, q).then((res) => {
+      store.pushTranscript("base", res.speech, true, {
+        route: unitId === "astronaut" ? ["SUIT.VISION"] : [`ROBOT.${unitId}`],
+        lang: getLang(),
+      });
+      void voice.radio.say(res.speech);
+    });
   },
   onStopAll: () => fleet.stopAll(),
 });

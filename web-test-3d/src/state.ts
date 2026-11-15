@@ -26,6 +26,7 @@ export interface WorldHooks {
   onArmSkill?(skill: ArmSkillId, targetId: string, item?: string): void;
   onStopAll?(): void;
   onUnitAction?(unitId: string, action: string, args: Record<string, unknown>): void;
+  onCaptureVision?(unitId: string, question?: string): void;
 }
 
 export interface TranscriptMeta {
@@ -158,6 +159,7 @@ export class MissionStore {
   transcripts: TranscriptLine[] = [];
   roverPreviewUrl: string | null = null;
   roverPreviewCaption = "";
+  activeVisionUnitId = "astronaut";
   lastDrillDepthCm = 0;
 
   private hooks: WorldHooks = {};
@@ -493,6 +495,12 @@ export class MissionStore {
       }
       case "unit_action": {
         this.hooks.onUnitAction?.(String(args.unit_id ?? ""), String(args.action ?? ""), args);
+        break;
+      }
+      case "capture_vision": {
+        const unitId = String(args.unit_id ?? "astronaut");
+        const question = args.question ? String(args.question) : undefined;
+        this.hooks.onCaptureVision?.(unitId, question);
         break;
       }
       case "stop_all": {

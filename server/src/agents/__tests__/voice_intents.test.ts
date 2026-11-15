@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { matchLocalIntent, type LocalIntentId } from "../../../../web-test-3d/src/voice/localIntents.js";
-import { isVisionQuestion } from "../../../../web-test-3d/src/voice/visionIntent.js";
+import { isVisionQuestion, parseVisionIntent } from "../../../../web-test-3d/src/voice/visionIntent.js";
 
 const LOCAL_INTENT_CASES: Array<[string, LocalIntentId | null]> = [
   ["emergencia", "emergency"],
@@ -131,5 +131,28 @@ describe("Frontend pure voice intent matchers (Issues 8 & 12)", () => {
     for (const [input, expected] of VISION_CASES) {
       expect(isVisionQuestion(input), `input: ${JSON.stringify(input)}`).toBe(expected);
     }
+  });
+
+  it("parses helmet visor ('astronaut') and fleet unit IDs in parseVisionIntent (F17)", () => {
+    expect(parseVisionIntent("¿podés ver lo que estoy viendo? qué es")).toEqual({
+      isVision: true,
+      unitId: "astronaut",
+    });
+    expect(parseVisionIntent("What am I seeing right in front of me?")).toEqual({
+      isVision: true,
+      unitId: "astronaut",
+    });
+    expect(parseVisionIntent("Qué ve el drone 1")).toEqual({
+      isVision: true,
+      unitId: "drone-1",
+    });
+    expect(parseVisionIntent("What does rover 3 see?")).toEqual({
+      isVision: true,
+      unitId: "rover-3",
+    });
+    expect(parseVisionIntent("the camera is dusty")).toEqual({
+      isVision: false,
+      unitId: null,
+    });
   });
 });
