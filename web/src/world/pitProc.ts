@@ -52,6 +52,9 @@ export class PitProc {
         roughness: 0.96,
         metalness: 0.02,
         side: THREE.DoubleSide,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
       }),
     );
     surface.name = "rescue-pit:surface";

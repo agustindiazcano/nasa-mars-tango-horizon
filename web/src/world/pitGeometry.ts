@@ -101,7 +101,7 @@ export function buildPitGeometry(opts: PitGeometryOptions): THREE.BufferGeometry
       const edgeFade = d < rim ? smoothstep(0, 0.35, rim - d) : 0;
       let y = opts.heightAt(x, z) + off + bump * edgeFade;
       // Past the outline the skirt sits slightly under the terrain surface so it never z-fights with it.
-      if (d >= rim) y -= 0.06 + (d - rim) * 0.4;
+      if (d >= rim) y -= 0.01 + (d - rim) * 0.2;
       const k = (i * (rings + 1) + j) * 3;
       pos[k] = x;
       pos[k + 1] = y;
