@@ -40,7 +40,6 @@ Este proyecto se construyó con desarrollo asistido por IA al estilo Software 3.
 - **Agentes de código:** Codex, Claude Code, Gemini Antigravity, IBM Bob, Meta Muse
 - **Orquestación en paralelo y aislamiento:** Múltiples agentes ejecutados en paralelo bajo un agente orquestador coordinando modelos medianos, cada uno en su propio worktree y rama para evitar conflictos, junto con un agente code reviewer
 - **IA para workflows:** ChatGPT, Gemini, Google AI Studio, Grok
-- **Generación de modelos 3D:** Tripo AI (China), Meshy AI (Estados Unidos)
 
 **Contratos para el contexto de los agentes.** Los agentes reciben su contexto mediante archivos de contrato: [`AGENTS.md`](AGENTS.md) (reglas), [`PENDING.md`](PENDING.md) (tareas abiertas priorizadas) y [`LASTCONTEXT.md`](LASTCONTEXT.md) (último estado y próximo paso). Cada tarea actualiza [`PENDING.md`](PENDING.md) y [`LASTCONTEXT.md`](LASTCONTEXT.md) para que el siguiente agente arranque desde el mismo estado.
 
@@ -72,7 +71,7 @@ Tango Horizon es un simulador 3D en tiempo real de operaciones EVA sobre cartogr
 | Prospector de hidratación (`tango-horizon-hydration-v1`) | Ensamble `GradientBoostingRegressor` (media + cuantiles) | scikit-learn (Python) | Indicador de hidrógeno mineral superficial (`R² = 0.364`, `Spearman = 0.582`, CV espacial 500 m, `n = 1,567`) |
 | Predictor de tormentas (`rems_hgbr_quantile_v1`) | `HistGradientBoostingRegressor` por cuantiles (`q = 0.1, 0.5, 0.9`) + CQR | scikit-learn (Python) | Pronóstico 1–3 soles de opacidad `tau` desde mareas REMS (`MY 34` retenido, `Spearman = 0.765–0.796`) |
 | Detector de vetas minerales (`tango-horizon-veins-v1`) | `facebook/dinov2-small` congelado (`dinov2_vits14`) + `LogisticRegression` (con respaldo Gabor/morfológico) | PyTorch, Hugging Face `transformers`, scikit-learn | Detección visual de vetas candidatas y mapas de calor en Mastcam/MAHLI (`ROC-AUC = 0.845`, `PR-AUC = 0.796`, `n = 117`) |
-| Activos 3D | Generación de mallas 3D (GLB) | Tripo AI, Meshy AI | Modelos 3D de rovers, astronauta y módulos de base |
+| Activos 3D | Generación de mallas 3D (GLB) | Meshy AI | Modelos 3D de rovers, astronauta y módulos de base |
 
 ## Tecnologías e infraestructura
 

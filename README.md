@@ -40,7 +40,6 @@ This project was built with AI-assisted development in the Software 3.0 style: A
 - **Coding agents:** Codex, Claude Code, Gemini Antigravity, IBM Bob, Meta Muse
 - **Parallel orchestration & isolation:** Multiple agents running in parallel via an orchestrator coordinating medium-tier models, each in its own git worktree and branch to avoid conflicts, plus a code reviewer agent
 - **Workflow AI:** ChatGPT, Gemini, Google AI Studio, Grok
-- **3D model generation:** Tripo AI (China), Meshy AI (United States)
 
 **Contracts for agent context.** Agents receive their context through contract files: [`AGENTS.md`](AGENTS.md) (rules), [`PENDING.md`](PENDING.md) (prioritized open tasks) and [`LASTCONTEXT.md`](LASTCONTEXT.md) (latest state and next step). Every task updates [`PENDING.md`](PENDING.md) and [`LASTCONTEXT.md`](LASTCONTEXT.md) so the next agent starts from the same state.
 
@@ -72,7 +71,7 @@ Tango Horizon is a real-time 3D Mars surface EVA operations simulator over NASA/
 | Hydration Prospector (`tango-horizon-hydration-v1`) | `GradientBoostingRegressor` ensemble (mean + quantiles) | scikit-learn (Python) | Near-surface mineral-bound hydrogen indicator (`R² = 0.364`, `Spearman = 0.582`, 500 m spatial-block CV, `n = 1,567`) |
 | Storm Nowcaster (`rems_hgbr_quantile_v1`) | Quantile `HistGradientBoostingRegressor` (`q = 0.1, 0.5, 0.9`) + CQR | scikit-learn (Python) | 1–3 sol atmospheric dust `tau` forecast from REMS tides (`MY 34` held out, `Spearman = 0.765–0.796`) |
 | Mineral Vein Detector (`tango-horizon-veins-v1`) | Frozen `facebook/dinov2-small` (`dinov2_vits14`) + `LogisticRegression` (with Gabor/morphological fallback) | PyTorch, Hugging Face `transformers`, scikit-learn | Visual vein-candidate detection & patch heatmaps on MSL Mastcam/MAHLI (`ROC-AUC = 0.845`, `PR-AUC = 0.796`, `n = 117`) |
-| 3D Assets | Generative 3D meshes (GLB) | Tripo AI, Meshy AI | Rover, astronaut, and surface base asset models |
+| 3D Assets | Generative 3D meshes (GLB) | Meshy AI | Rover, astronaut, and surface base asset models |
 
 ## Technologies & Infrastructure
 
