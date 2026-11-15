@@ -22,3 +22,7 @@
 | B29 | 🟡 | Agents | `evaluate_eva_weather` (`server/src/agents/tools/registry.ts`) ignores the current `ctx.env.tau`: tau 0.48 and tau 3.0 both return `go_with_changes` although 3.0 is above the 2.5 visibility limit | `13_STORM_NOWCASTER.md` | — |
 | B30 | 🟡 | LLM | Meta backup (`muse-spark`) returns empty completions for tool calling and JSON mode in `check-llm.ts`, so failover to `meta` cannot run agent tools or the `GUARDIAN` judge | `LLM_CHECK.md` | — |
 | B31 | 🟢 | Agents | Agent replies contain Markdown/LaTeX (`**GO**`, `$\tau$`) that TTS reads aloud; `search_docs` returns nothing for Spanish queries over the English corpus; `MAINTENANCE` used 5 `search_docs` calls (35 s) for one fan question | `07_VOICE.md`, `08_AGENTS_TOOLS_MCP_GUARDIAN.md` | — |
+
+## NASA data audit priority
+
+- 🔴 B32: Execute P0–P8 in `docs/NASA_DATA_REMEDIATION_PLAN.md`. Verify coordinate-fix integration, source provenance, CTX/HiRISE elevation differences, and shared spatial contracts. This gates B15 and incorporates existing B27 rather than duplicating it. Implementation remains pending.
