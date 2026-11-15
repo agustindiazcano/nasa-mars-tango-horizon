@@ -101,7 +101,7 @@ describe("SceneDirector", () => {
     d.resume();
     expect(sc.running).toBe(true);
     d.restart();
-    expect(sc.seeks).toEqual([130, 130]);
+    expect(sc.seeks).toEqual([142, 142]);
   });
 
   it("returns null when idle and rejects unknown scenes", () => {

@@ -86,29 +86,33 @@ export const SCENES: readonly SceneDef[] = [
   {
     id: "S5",
     nameKey: "scene.s5",
-    startS: 110,
-    durationS: 20,
+    startS: 124,
+    durationS: 22,
     segments: [
       { fromS: 0, kind: "follow", target: "rescue-1", offset: { x: 12, y: 2.5, z: 8 }, lookAboveM: 1.5 },
-      { fromS: 10, kind: "orbit", target: "rescue-bot-1", radius: 9, height: 2.5, speed: 0.25, lookAboveM: 0.8 },
+      // The robot reverses out of the bay (132-137) and starts down the pit ramp.
+      { fromS: 7, kind: "follow", target: "rescue-bot-1", offset: { x: 9, y: 3, z: 9 }, lookAboveM: 0.6 },
+      { fromS: 14, kind: "aerial", target: "pit", offset: { x: 10, y: 9, z: 10 }, lookAboveM: -2 },
     ],
   },
   {
     id: "S6",
     nameKey: "scene.s6",
-    startS: 130,
-    durationS: 35,
+    startS: 142,
+    durationS: 30,
     segments: [
-      { fromS: 0, kind: "aerial", target: "pit", offset: { x: 5, y: 4, z: 6 }, lookAboveM: -1 },
-      { fromS: 12, kind: "orbit", target: "crew-3", radius: 7, height: 3, speed: 0.35, lookAboveM: 0.8 },
-      { fromS: 22, kind: "follow", target: "rescue-bot-1", offset: { x: -8, y: 3, z: 8 }, lookAboveM: 0.8 },
+      // At the ramp bottom: arm reaches, hooks the harness (142-152).
+      { fromS: 0, kind: "orbit", target: "crew-3", radius: 6.5, height: 2.6, speed: 0.3, lookAboveM: 0.4 },
+      // Drag up the ramp (152-168): side-on to the travel direction, storm behind.
+      { fromS: 10, kind: "follow", target: "rescue-bot-1", offset: { x: 7, y: 3.5, z: -7 }, lookAboveM: 0.5 },
+      { fromS: 22, kind: "aerial", target: "rescue-1", offset: { x: 12, y: 5, z: -12 }, lookAboveM: 1 },
     ],
   },
   {
     id: "S7",
     nameKey: "scene.s7",
-    startS: 165,
-    durationS: 15,
+    startS: 166,
+    durationS: 14,
     segments: [{ fromS: 0, kind: "aerial", target: "rescue-1", offset: { x: 25, y: 6, z: 30 }, lookAboveM: 2 }],
   },
 ];
