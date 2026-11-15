@@ -195,6 +195,7 @@ locals {
     "roles/artifactregistry.writer",
     "roles/secretmanager.viewer",
     "roles/serviceusage.serviceUsageConsumer",
+    "roles/iam.serviceAccountUser",
   ])
 }
 
