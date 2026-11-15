@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { chat } from "../llm/provider.js";
-import type { Tier } from "../config.js";
+import type { ProviderName, Tier } from "../config.js";
 import { asOpenAI, toolsFor } from "./tools/registry.js";
 import { callTool, missionScope, startMcpServers } from "./tools/mcp.js";
 import { review } from "./guardian.js";
-import type { Action, MissionContext, ToolDef, TraceEvent } from "./types.js";
+import type { Action, Lang, MissionContext, ToolDef, TraceEvent } from "./types.js";
 
 export interface AgentSpec {
   name: string;
@@ -38,6 +38,50 @@ const MAX_DELEGATION_DEPTH = 2;
 
 /** Max calls per run for probing tools. */
 const TOOL_CAPS: Record<string, number> = { get_terrain_at: 3, search_docs: 2 };
+
+const CLAIM_ACTION_RE =
+  /\b(ejecut(?:o|ando)|en camino|despach(?:o|ando)|volviendo|regresando|siguiendo(?:te)?|despegando|aterrizando|fotografiando|relevando|agarrando|recolectando|orden de regreso|dispatching|executing|returning to base|on (?:the|its) way|following you|taking off|landing|photographing|surveying|grabbing|sampling)\b/i;
+
+const NEGATED_ACTION_RE =
+  /\b(no puedo|no puede|no se pudo|no se ejecut[oó]|incapaz|denegad[oa]|rechazad[oa]|bloquead[oa]|imposible|repita|cannot|can't|unable|denied|rejected|blocked|not executed|repeat)\b/i;
+
+const MISSING_TELEMETRY_RE =
+  /\b(sin datos|no hay datos|no disponible|no telemetry|no data|unavailable|no oxygen data)\b/i;
+
+/** True when text asserts a unit is executing or returning without a refusal/denial qualifier. */
+export function claimsUnitActionWithoutExecution(text: string): boolean {
+  const clean = text.trim();
+  if (!clean) return false;
+  return CLAIM_ACTION_RE.test(clean) && !NEGATED_ACTION_RE.test(clean);
+}
+
+/** True when text claims suit/oxygen telemetry is missing. */
+export function claimsMissingTelemetry(text: string): boolean {
+  return MISSING_TELEMETRY_RE.test(text);
+}
+
+function unexecutedReply(lang: Lang): string {
+  switch (lang) {
+    case "es":
+      return "No se ejecutó ninguna acción en la unidad. Repite la orden.";
+    case "fr":
+      return "Aucune action n'a été exécutée sur l'unité. Répétez l'ordre.";
+    case "de":
+      return "Keine Einheitsaktion ausgeführt. Bitte Befehl wiederholen.";
+    case "it":
+      return "Nessuna azione eseguita sull'unità. Ripeti l'ordine.";
+    default:
+      return "No unit action was executed. Please repeat the order.";
+  }
+}
+
+function compatibleProvidersFor(pinned?: ProviderName): ProviderName[] | undefined {
+  if (!pinned) return undefined;
+  // Meta accepts OpenAI-format tool_calls without thought_signature; Google endpoints reject cross-endpoint signatures.
+  if (pinned === "meta") return ["meta"];
+  if (pinned === "vertex") return ["vertex", "meta"];
+  return ["gemini", "meta"];
+}
 
 const DelegateSchema = z.object({
   agent: z
@@ -87,7 +131,12 @@ export async function runAgent(
   const untrusted: string[] = [];
   const delegatedUnits = new Set<string>();
   const callCounts = new Map<string, number>();
+  const toolsUsed = new Set<string>();
   let hardDenied: string | null = null;
+  let pinnedProvider: ProviderName | undefined;
+  let hasToolHistory = false;
+  let nudgedAction = false;
+  let nudgedTelemetry = false;
 
   const baseTools = toolsFor(spec.tools);
   const tools: ToolDef[] = [...baseTools];
@@ -136,6 +185,10 @@ export async function runAgent(
   for (let step = 0; step < maxSteps; step++) {
     const msg = await chat(spec.tier, messages, {
       tools: tools.length ? asOpenAI(tools) : undefined,
+      providers: hasToolHistory ? compatibleProvidersFor(pinnedProvider) : undefined,
+      onMeta: (m) => {
+        pinnedProvider ??= m.provider;
+      },
     });
     messages.push(msg);
 
@@ -144,7 +197,11 @@ export async function runAgent(
     if (!toolCalls?.length) {
       const fallbackCall = tryParseJsonToolCall(msg.content);
       if (fallbackCall?.final !== undefined) {
-        return { text: fallbackCall.final, actions, trace };
+        const text =
+          actions.length === 0 && !hardDenied && claimsUnitActionWithoutExecution(fallbackCall.final)
+            ? unexecutedReply(ctx.lang)
+            : fallbackCall.final;
+        return { text, actions, trace };
       }
       if (fallbackCall?.tool) {
         toolCalls = [
@@ -164,8 +221,41 @@ export async function runAgent(
           messages.pop();
           break;
         }
-        trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
-        return { text: finalText, actions, trace };
+        if (
+          actions.length === 0 &&
+          !hardDenied &&
+          !nudgedAction &&
+          claimsUnitActionWithoutExecution(finalText) &&
+          tools.some((t) => t.name === "unit_action" || t.name === "dispatch" || t.name === "arm_skill" || t.name === "delegate")
+        ) {
+          nudgedAction = true;
+          messages.push({
+            role: "user",
+            content:
+              "You did not call any tool. Execute the order via unit_action, dispatch, arm_skill, or delegate now, or state clearly that no action was executed.",
+          });
+          continue;
+        }
+        if (
+          toolsUsed.size === 0 &&
+          !nudgedTelemetry &&
+          claimsMissingTelemetry(finalText) &&
+          tools.some((t) => t.name === "get_suit_telemetry" || t.name === "get_consumables_margin")
+        ) {
+          nudgedTelemetry = true;
+          messages.push({
+            role: "user",
+            content:
+              "Live suit telemetry is available through get_suit_telemetry and get_consumables_margin. Call those tools now before answering.",
+          });
+          continue;
+        }
+        const safeText =
+          actions.length === 0 && !hardDenied && claimsUnitActionWithoutExecution(finalText)
+            ? unexecutedReply(ctx.lang)
+            : finalText;
+        trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: safeText });
+        return { text: safeText, actions, trace };
       }
     }
 
@@ -216,6 +306,7 @@ export async function runAgent(
         }
 
         if (tool.name === "delegate") {
+          toolsUsed.add("delegate");
           return { result: await tool.run(parsed.data, ctx, spec.name) };
         }
 
@@ -237,6 +328,7 @@ export async function runAgent(
         const result = await missionScope.run({ ctx, caller: spec.name }, () =>
           callTool(tool, parsed.data),
         );
+        toolsUsed.add(tool.name);
         trace.push({
           t: Date.now(),
           agent: spec.name,
@@ -272,22 +364,60 @@ export async function runAgent(
         content: JSON.stringify(result),
       });
     });
+    hasToolHistory = true;
+
+    // Avoid a redundant BASE re-summarization LLM round-trip when BASE only delegated once and got a valid spoken reply.
+    if (
+      spec.name === "BASE" &&
+      step === 0 &&
+      toolCalls.length === 1 &&
+      toolCalls[0].function.name === "delegate" &&
+      toolsUsed.size === 1
+    ) {
+      const subRes = outcomes[0]?.result as { speech?: string } | undefined;
+      const subSpeech = (subRes?.speech ?? "").trim();
+      if (
+        subSpeech &&
+        !/^No action taken\.?$/i.test(subSpeech) &&
+        !(actions.length === 0 && !hardDenied && claimsUnitActionWithoutExecution(subSpeech))
+      ) {
+        trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: subSpeech });
+        return { text: subSpeech, actions, trace };
+      }
+    }
   }
-  const finalMsg = await chat(spec.tier, [
-    ...messages,
+  const finalMsg = await chat(
+    spec.tier,
+    [
+      ...messages,
+      {
+        role: "user",
+        content: `Provide your concise spoken reply in ${ctx.lang} now based on the tool results already gathered. Never return empty text.`,
+      },
+    ],
     {
-      role: "user",
-      content: `Provide your concise spoken reply in ${ctx.lang} now based on the tool results already gathered. Never return empty text.`,
+      providers: hasToolHistory ? compatibleProvidersFor(pinnedProvider) : undefined,
+      onMeta: (m) => {
+        pinnedProvider ??= m.provider;
+      },
     },
-  ]);
+  );
   let finalText = (finalMsg.content ?? "").trim();
+  if (actions.length === 0 && !hardDenied && claimsUnitActionWithoutExecution(finalText)) {
+    finalText = unexecutedReply(ctx.lang);
+  }
   if (!finalText) {
     // Never return an empty reply: fall back to the deterministic outcome.
-    finalText = hardDenied
-      ? `Denied: ${hardDenied}`
-      : actions.length
-        ? `Done: ${actions.map((a) => a.type).join(", ")}`
-        : "No action taken.";
+    if (hardDenied) {
+      finalText = `Denied: ${hardDenied}`;
+    } else if (actions.length) {
+      finalText = `Done: ${actions.map((a) => a.type).join(", ")}`;
+    } else if (spec.name === "SUIT.VOICE-EXEC") {
+      // Let handleVoice escalate to BASE rather than stopping on "No action taken."
+      finalText = "";
+    } else {
+      finalText = "No action taken.";
+    }
   }
   trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
   return { text: finalText, actions, trace };
