@@ -125,11 +125,13 @@ export class TerrainProc {
   }
 
   async loadOptical(): Promise<void> {
-    const response = await fetch("/data/terrain/ortho_4096.webp", { signal: AbortSignal.timeout(60000) });
+    const signal = AbortSignal.any([this.loader.signal ?? new AbortController().signal, AbortSignal.timeout(60000)]);
+    const response = await fetch("/data/terrain/ortho_4096.webp", { signal });
     if (!response.ok) throw new Error(`Orthoimage HTTP ${response.status}`);
     const url = URL.createObjectURL(await response.blob());
     try { this.realOptical = await new THREE.TextureLoader().loadAsync(url); }
     finally { URL.revokeObjectURL(url); }
+    signal.throwIfAborted();
     this.realOptical.colorSpace = THREE.SRGBColorSpace;
     // PlaneGeometry rotated -90 degrees maps north (negative z) to v=1.
     this.setLayer("optical");

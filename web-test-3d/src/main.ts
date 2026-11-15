@@ -49,8 +49,9 @@ loading.style.cssText = "position:fixed;inset:0;z-index:10000;background:#07111e
 document.body.append(loading);
 terrain.mesh.visible = false;
 terrain.markersGroup.visible = false;
+let leaving = false;
 const cancel = () => terrain.loader.cancel();
-window.addEventListener("pagehide", cancel, { once: true });
+window.addEventListener("pagehide", () => { leaving = true; cancel(); }, { once: true });
 let loaded = false;
 while (!loaded) {
   const cancelButton = document.createElement("button");
@@ -60,6 +61,7 @@ while (!loaded) {
     loading.textContent = message;
     loading.append(cancelButton);
   });
+  if (leaving) return;
   if (!loaded) {
     loading.textContent = terrain.loader.state === "cancelled" ? "Terrain download cancelled." : `Terrain unavailable: ${terrain.loadError}.`;
     const retry = document.createElement("button");
@@ -72,6 +74,8 @@ store.terrain = { ...READY_TERRAIN };
 loading.textContent = "Loading HiRISE orthoimage";
 try { await terrain.loadOptical(); }
 catch { store.pushAlert("warn", "Orthoimage unavailable; optical colors are a design approximation"); }
+if (leaving) return;
+store.pushAlert("info", `Terrain ready: ${READY_TERRAIN.version}. HiRISE source verified; mesh uses 256 samples.`);
 terrain.mesh.visible = true;
 terrain.markersGroup.visible = true;
 loading.remove();

@@ -13,6 +13,7 @@ export class TerrainLoader {
   private generation = 0;
   private controller?: AbortController;
   private asset?: TerrainAsset;
+  get signal(): AbortSignal | undefined { return this.controller?.signal; }
   cancel(): void {
     this.generation++;
     this.controller?.abort();
@@ -54,6 +55,7 @@ export class TerrainLoader {
         this.error = error instanceof Error ? error.message : String(error);
         if (attempt < 3) {
           report(`Terrain attempt failed: ${this.error}. Retrying in ${attempt} s.`);
+          if (!current()) return null;
           await new Promise<void>(resolve => {
             const finish = () => { clearTimeout(timer); controller.signal.removeEventListener("abort", finish); resolve(); };
             const timer = setTimeout(finish, attempt * 1000);
