@@ -218,6 +218,8 @@ export interface MissionContext {
   fleet: FleetUnitSnapshot[];
   /** Crew positions; the drone standoff rule in GUARDIAN uses them. */
   crew?: CrewSnapshot[];
+  /** True while the crew rescue scenario runs; enables the drone standoff rule for implicit targets. */
+  rescue_active?: boolean;
   hud: HudSnapshot;
   leak_diameter_m: number;
   /** True once the O2 pod has been launched for the current leak. */
@@ -303,7 +305,9 @@ export type ActionType =
   | "open_panel"
   | "show_route"
   | "show_alert"
-  | "highlight";
+  | "highlight"
+  | "dispatch_overwatch"
+  | "deploy_rescue_robot";
 
 /** Proposed effect action. Applied by the browser only after GUARDIAN approval. */
 export interface Action {

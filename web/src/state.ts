@@ -28,6 +28,8 @@ export interface WorldHooks {
   onArmSkill?(skill: ArmSkillId, targetId: string, item?: string): void;
   onStopAll?(): void;
   onUnitAction?(unitId: string, action: string, args: Record<string, unknown>): void;
+  onDispatchOverwatch?(unitId: string, x: number, z: number, altitudeM: number): void;
+  onDeployRescueRobot?(unitId: string, x: number, z: number): void;
   onCaptureVision?(unitId: string, question?: string): void;
 }
 
@@ -252,6 +254,7 @@ export class MissionStore {
         { id: "crew-1", x: Number(this.astronaut.x.toFixed(1)), z: Number(this.astronaut.z.toFixed(1)), status: "active" },
         ...this.crew,
       ],
+      ...(this.activeScenario === "rescue" ? { rescue_active: true } : {}),
       hud: {
         layer: this.layer,
         panel: this.panel === "none" ? null : this.panel,
@@ -526,6 +529,22 @@ export class MissionStore {
       }
       case "unit_action": {
         this.hooks.onUnitAction?.(String(args.unit_id ?? ""), String(args.action ?? ""), args);
+        break;
+      }
+      case "dispatch_overwatch": {
+        const x = Number(args.x);
+        const z = Number(args.z);
+        if (Number.isFinite(x) && Number.isFinite(z)) {
+          this.hooks.onDispatchOverwatch?.(String(args.unit_id ?? "drone-1"), x, z, Number(args.altitude_m ?? 25));
+        }
+        break;
+      }
+      case "deploy_rescue_robot": {
+        const x = Number(args.x);
+        const z = Number(args.z);
+        if (Number.isFinite(x) && Number.isFinite(z)) {
+          this.hooks.onDeployRescueRobot?.(String(args.unit_id ?? "rescue-bot-1"), x, z);
+        }
         break;
       }
       case "capture_vision": {

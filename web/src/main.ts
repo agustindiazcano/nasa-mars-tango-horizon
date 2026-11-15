@@ -404,6 +404,18 @@ store.setHooks({
         break;
     }
   },
+  onDispatchOverwatch: (unitId, x, z, altitudeM) => {
+    const unit = fleet.get(unitId);
+    if (!unit) return;
+    unit.targetAltitude = altitudeM;
+    fleet.dispatchTo(unitId, x, z, "overwatch", () => store.pushAlert("info", `${unitId}: on overwatch station at (${Math.round(x)}, ${Math.round(z)})`));
+    store.pushAlert("info", `${unitId}: overwatch dispatched, ${Math.round(altitudeM)} m altitude, 25 m crew standoff`, "BASE");
+  },
+  onDeployRescueRobot: (unitId, x, z) => {
+    fleet.setRescueBotStowed(false);
+    fleet.dispatchTo(unitId, x, z, "rescue", () => store.pushAlert("info", `${unitId}: at the casualty position`));
+    store.pushAlert("info", `${unitId}: deployed from rescue-1 toward (${Math.round(x)}, ${Math.round(z)})`, "BASE");
+  },
   onArmSkill: (skill: ArmSkillId, targetId: string, item?: string) => {
     fleet.executeArmSkill(skill, targetId, astronaut.pos, astronaut.yaw, item);
   },
