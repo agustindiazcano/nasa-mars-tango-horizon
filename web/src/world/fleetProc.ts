@@ -30,6 +30,7 @@ export const FLEET_SPECS: UnitSpec[] = [
   { id: "rover-2", kind: "rover_science", speed: 1.4, flies: false, startX: fleetStartPos("rover-2").x, startZ: fleetStartPos("rover-2").z },
   { id: "rover-3", kind: "manipulator", speed: 1.6, flies: false, startX: fleetStartPos("rover-3").x, startZ: fleetStartPos("rover-3").z },
   { id: "rescue-1", kind: "rescue", speed: 5.5, flies: false, startX: fleetStartPos("rescue-1").x, startZ: fleetStartPos("rescue-1").z },
+  { id: "rescue-bot-1", kind: "rescue_robot", speed: 2.2, flies: false, startX: fleetStartPos("rescue-bot-1").x, startZ: fleetStartPos("rescue-bot-1").z },
   { id: "drone-1", kind: "drone", speed: 11.0, flies: true, altitude: 14, startX: fleetStartPos("drone-1").x, startZ: fleetStartPos("drone-1").z },
   { id: "drone-2", kind: "drone", speed: 11.0, flies: true, altitude: 16, startX: fleetStartPos("drone-2").x, startZ: fleetStartPos("drone-2").z },
 ];

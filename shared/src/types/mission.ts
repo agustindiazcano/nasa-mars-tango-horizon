@@ -10,7 +10,9 @@ export type UnitKind =
   | "rescue"
   | "drone"
   | "glider"
-  | "manipulator";
+  | "manipulator"
+  | "robot"
+  | "rescue_robot";
 
 /** Terrain visualization layers rendered in the 3D viewer and minimap. */
 export type HudLayer = "optical" | "slope" | "thermal" | "radiation" | "hydration";

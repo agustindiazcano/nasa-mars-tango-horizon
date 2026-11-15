@@ -126,6 +126,7 @@ export const FLEET_START_OFFSETS: Readonly<Record<string, Readonly<Coord2D>>> = 
   "rover-2": { x: 62, z: 48 },
   "rover-3": { x: 34, z: 42 },
   "rescue-1": { x: -16, z: 24 },
+  "rescue-bot-1": { x: -16, z: 24 },
   "drone-1": { x: 40, z: -30 },
   "drone-2": { x: -60, z: 55 },
   // Legacy alias kept for backward compatibility with existing tests/snapshots

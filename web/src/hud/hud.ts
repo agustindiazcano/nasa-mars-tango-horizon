@@ -898,7 +898,7 @@ export class TacticalHud {
           (u) => `
           <tr>
             <td><b>${u.id}</b></td>
-            <td>${escapeHtml(["rover_crew", "rover_science", "rover_cargo", "scout", "rescue", "drone", "glider", "manipulator"].includes(u.kind) ? t(`fleet.${u.kind}`) : u.kind)}</td>
+            <td>${escapeHtml(["rover_crew", "rover_science", "rover_cargo", "scout", "rescue", "drone", "glider", "manipulator", "robot", "rescue_robot"].includes(u.kind) ? t(`fleet.${u.kind}`) : u.kind)}</td>
             <td>(${fmt(u.x, 0)}, ${fmt(u.z, 0)})</td>
             <td>${fmt(u.battery * 100, 0)}%</td>
             <td>${escapeHtml(taskLabel(u.task))}</td>
