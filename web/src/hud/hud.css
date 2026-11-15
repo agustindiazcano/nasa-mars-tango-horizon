@@ -704,3 +704,10 @@ button.quick-card-btn.active {
 .storm-verdict.good { color: var(--good); }
 .storm-verdict.warn { color: var(--warn); }
 .storm-verdict.crit { color: var(--crit); }
+.voice-fft {
+  width: 200px;
+  height: 28px;
+  flex: none;
+  background: rgba(0, 0, 0, 0.38);
+  border-radius: 4px;
+}

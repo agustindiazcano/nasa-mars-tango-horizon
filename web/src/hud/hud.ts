@@ -29,6 +29,7 @@ import {
   stormVerdict,
   type StormForecastData,
 } from "./stormForecast";
+import { barHeight } from "../voice/spectrum";
 
 export interface HudActions {
   togglePov(): void;
@@ -150,6 +151,7 @@ export class TacticalHud {
       this.stormState = data ? "ready" : "error";
       this.renderDynamic();
     });
+    this.startFft();
     this.store.subscribe(() => this.renderDynamic());
     this.actions.sessions?.subscribe(() => {
       this.sessionsRenderKey = "";
@@ -225,6 +227,27 @@ export class TacticalHud {
     });
   }
 
+  private startFft(): void {
+    const bins = new Uint8Array(32);
+    const loop = () => {
+      requestAnimationFrame(loop);
+      const cv = document.getElementById("voice-fft") as HTMLCanvasElement | null;
+      if (!cv || !this.store.hudVisible) return;
+      const g = cv.getContext("2d");
+      if (!g) return;
+      const live = this.voice.radio.getSpectrum(bins);
+      const color = getComputedStyle(cv).getPropertyValue("--ok").trim() || "#e8a33d";
+      const w = cv.width / bins.length;
+      g.clearRect(0, 0, cv.width, cv.height);
+      g.fillStyle = color;
+      for (let i = 0; i < bins.length; i++) {
+        const h = barHeight(live ? bins[i] : 0, cv.height);
+        g.fillRect(i * w + 1, cv.height - h, w - 2, h);
+      }
+    };
+    requestAnimationFrame(loop);
+  }
+
   private buildBottomStatic(): void {
     const langBtns = LANGS.map(
       (l) =>
@@ -284,6 +307,7 @@ export class TacticalHud {
         <button class="hud-btn ${this.voice.radio.radioEffect ? "active" : ""}" data-pointable id="btn-radio">${t("voice.radio")}</button>
         <input id="voice-input" type="text" placeholder="${t("voice.placeholder")}" />
         <button class="hud-btn" data-pointable id="btn-send">${t("voice.send")}</button>
+        <canvas id="voice-fft" class="voice-fft" width="200" height="28"></canvas>
         <span id="base-proc-badge" class="pill warn" style="display:none;">${t("voice.processing")}</span>
       </div>
 
