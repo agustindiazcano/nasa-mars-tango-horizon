@@ -9,4 +9,5 @@ export * from "./solar.js";
 export * from "./suitState.js";
 export * from "./route.js";
 export * from "./stormDecision.js";
+export * from "./biomed.js";
 export * from "./planning/index.js";
