@@ -643,7 +643,11 @@ export async function offlineReply(
     /(?<![\p{L}\d])(panel|panneau|tafel|pannello|abr[aeií]r?|open|ouvr[\p{L}]*|[oö]ffn[\p{L}]*|oeffn[\p{L}]*|apr[ai][\p{L}]*|cierr[ae]?|cerrar|close|ferm[\p{L}]*|schlie[sß][\p{L}]*|chiud[\p{L}]*|procedencia|provenance|herkunft|provenienza|flota|fleet|flotte|flotta|agentes|agents|agenten|agenti|salud|health|sant[eé]|gesundheit|salute|mapa|map|carte|karte|mappa)(?![\p{L}\d])/iu.test(
       q,
     ) &&
-    !/(?<![\p{L}\d])(ruta|route|env[ií]a|dispatch|send|itin[eé]raire|percorso)(?![\p{L}\d])/iu.test(q)
+    !/(?<![\p{L}\d])(ruta|route|env[ií]a|dispatch|send|itin[eé]raire|percorso)(?![\p{L}\d])/iu.test(q) &&
+    (/\b(panel|panneau|tafel|pannello|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q) ||
+      !/\b(biomed\w*|hipercapn\w*|hypercapn\w*|hipox\w*|hypox\w*|spo2|heart|card[ií]ac\w*|vitals|signos|constantes|ews|psi|salud|health|sant[eé]|gesundheit|salute)\b/i.test(
+        q,
+      ))
   ) {
     const caller = "SUIT.VOICE-EXEC";
     const panel =
@@ -720,6 +724,67 @@ export async function offlineReply(
       trace,
       route,
     };
+  }
+
+  // 5b. Predictive Biomedical Decision Support (SUIT.HEALTH)
+  if (
+    (/\b(biomed\w*|hipercapn\w*|hypercapn\w*|hipox\w*|hypox\w*|spo2|saturaci[oó]n|heart\s*rate|frecuencia\s*card\w*|ritmo\s*card\w*|card[ií]ac\w*|puls[oe]|heat\s*strain|estr[eé]s\s*t[eé]rmic\w*|estres\s*termic\w*|core\s*temp\w*|temperatura\s*corporal|early\s*warning|ews|triaje|triage|vitals|signos\s*vitales|constantes\s*vitales|psi)\b/i.test(
+      q,
+    ) ||
+      (/\b(co2|salud|health|sant[eé]|gesundheit|salute)\b/i.test(q) &&
+        !/\b(ventilador|fan|ventilateur|lüfter|luefter|ventola|panel|panneau|tafel|pannello)\b/i.test(q)))
+  ) {
+    const caller = "SUIT.HEALTH";
+    const route = ["SUIT.VOICE-EXEC", "BASE", caller];
+    trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
+    trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
+
+    const bio = await execRead("evaluate_crew_biomed", {}, ctx, caller, trace);
+    const docs = await execRead(
+      "search_docs",
+      { query: "NASA-STD-3001 CO2 hypercapnia hypoxia cardiovascular EVA", k: 1 },
+      ctx,
+      caller,
+      trace,
+    );
+    const topDoc =
+      Array.isArray(docs) && docs[0]
+        ? `${docs[0].doc} p.${docs[0].page}`
+        : "NASA-STD-3001_Vol2_RevE p.112";
+
+    const breachNote =
+      bio.min_time_to_breach_s !== null ? `, breach ~${Math.round(bio.min_time_to_breach_s)} s` : "";
+    if (bio.ews_level !== "green") {
+      const alertText = pick(lang, {
+        es: `Aviso (no diagnóstico): EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+        en: `Advisory (not diagnosis): EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+        fr: `Avis (non diagnostic) : EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+        de: `Hinweis (keine Diagnose): EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+        it: `Avviso (non diagnosi): EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+      });
+      proposeAction(
+        "show_alert",
+        {
+          level: bio.ews_level === "red" ? "crit" : "warn",
+          text: alertText.slice(0, 140),
+          source: topDoc,
+        },
+        ctx,
+        caller,
+        actions,
+        trace,
+      );
+    }
+
+    const speech = pick(lang, {
+      es: `Solo aviso de apoyo a la decisión; no es un diagnóstico médico. EWS ${bio.ews_level} (${bio.ews_total}/12): CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, FC ${bio.cardiac.heart_rate_bpm} lpm${breachNote} (${topDoc}).`,
+      en: `Decision support advisory only; not a medical diagnosis. EWS ${bio.ews_level} (${bio.ews_total}/12): CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, HR ${bio.cardiac.heart_rate_bpm} bpm${breachNote} (${topDoc}).`,
+      fr: `Avis d'aide à la décision uniquement ; pas un diagnostic médical. EWS ${bio.ews_level} (${bio.ews_total}/12) : CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, FC ${bio.cardiac.heart_rate_bpm} bpm${breachNote} (${topDoc}).`,
+      de: `Nur Entscheidungshilfe; keine medizinische Diagnose. EWS ${bio.ews_level} (${bio.ews_total}/12): CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, HF ${bio.cardiac.heart_rate_bpm} bpm${breachNote} (${topDoc}).`,
+      it: `Solo supporto decisionale; non è una diagnosi medica. EWS ${bio.ews_level} (${bio.ews_total}/12): CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, FC ${bio.cardiac.heart_rate_bpm} bpm${breachNote} (${topDoc}).`,
+    });
+
+    return { speech, actions, trace, route };
   }
 
   // 6. Maintenance / Suit Fan Trend (MAINTENANCE)

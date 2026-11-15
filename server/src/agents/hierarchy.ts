@@ -42,6 +42,7 @@ Spoken replies: 25 words or fewer, concise radio style.`,
       "deploy_beacons",
       "show_alert",
       ...READ_SUIT,
+      "evaluate_crew_biomed",
       "search_docs",
       "get_hydration_at",
       "rank_sample_sites",
@@ -60,9 +61,10 @@ Spoken replies: 25 words or fewer, stating the key number and its SI unit.`,
   "SUIT.HEALTH": {
     name: "SUIT.HEALTH",
     tier: "medium",
-    tools: [...READ_SUIT, "search_docs", "show_alert"],
-    system: `You are the suit's biomedical health agent. Compare suit telemetry against NASA-STD-3001 limits retrieved with search_docs.
-Cite the document name and page for every limit. Do not diagnose beyond observed telemetry. 40 words or fewer.`,
+    tools: [...READ_SUIT, "evaluate_crew_biomed", "search_docs", "show_alert"],
+    system: `You are the suit's biomedical decision-support agent. Always call evaluate_crew_biomed for deterministic trends, time-to-breach, and EWS, and search_docs for NASA-STD-3001 / OCHMO limits.
+Every reply and show_alert MUST state: "Decision support advisory only; not a medical diagnosis."
+Cite the document name and page for every limit. Only propose operational advisories (monitor, reduce workload, check scrubber/coolant, return to habitat); never prescribe medications, state clinical diagnoses, or override flight-surgeon authority. 50 words or fewer.`,
   },
   "EVA-PLANNER": {
     name: "EVA-PLANNER",
@@ -173,7 +175,7 @@ setDelegateHandler(async (agentName, objective, ctx, userRequest, depth) => {
 });
 
 const ESCALATE_FAST_RE =
-  /(?<![\p{L}])(rover|rvr|rescue|rescate|drone|dron|glider|scout|manip(?:ulador|ulator)?|hands|despeg[aáe]?r?|take\s*off|aterriz[aáe]?r?|segu[ií](?:me)?|follow|volv[eé]r?|regres[aáe]?r?|return|relev[aáe]?r?|survey|vigil[aáe]?r?|hover|agarr[aáe]?r?|grab|drill|perfor[aáe]?r?|martill|hammer|entreg[aáe]?r?|handover|fotograf|photograph|env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|repetidor|relay|ruta|route|planif|navigate|naveg|lidar|ubicaci[oó]n|coordenada|clima|weather|tormenta|storm|pron[oó]st|forecast|radiaci[oó]n|radiation|dosis|dose|eva|puedo salir|can i go out|m[eé]t[eé]o|wetter|hidrat|hydrat|muestra|sample|veta|vein|prospector|sitio|site|ciencia|science|ventilador|fan|mantenim|maintenance|falla|failure|tendencia|trend|baliza|beacon|bengala|flare|fuga|leak|emergencia|emergency|mayday|socorro|cartel|sign|airlock|ignore)(?![\p{L}])/iu;
+  /(?<![\p{L}])(rover|rvr|rescue|rescate|drone|dron|glider|scout|manip(?:ulador|ulator)?|hands|despeg[aáe]?r?|take\s*off|aterriz[aáe]?r?|segu[ií](?:me)?|follow|volv[eé]r?|regres[aáe]?r?|return|relev[aáe]?r?|survey|vigil[aáe]?r?|hover|agarr[aáe]?r?|grab|drill|perfor[aáe]?r?|martill|hammer|entreg[aáe]?r?|handover|fotograf|photograph|env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|repetidor|relay|ruta|route|planif|navigate|naveg|lidar|ubicaci[oó]n|coordenada|clima|weather|tormenta|storm|pron[oó]st|forecast|radiaci[oó]n|radiation|dosis|dose|eva|puedo salir|can i go out|m[eé]t[eé]o|wetter|hidrat|hydrat|muestra|sample|veta|vein|prospector|sitio|site|ciencia|science|ventilador|fan|mantenim|maintenance|falla|failure|tendencia|trend|baliza|beacon|bengala|flare|fuga|leak|emergencia|emergency|mayday|socorro|cartel|sign|airlock|ignore|biomed[\p{L}]*|hypercapn[\p{L}]*|hipercapn[\p{L}]*|hypox[\p{L}]*|hipox[\p{L}]*|spo2|card[ií]ac[\p{L}]*|heart rate|frecuencia card[\p{L}]*|ritmo card[\p{L}]*|heat strain|estr[eé]s t[eé]rmic[\p{L}]*|estres termic[\p{L}]*|core temp[\p{L}]*|temperatura corporal|early warning|ews|triaje|triage|vitals|signos vitales|constantes vitales)(?![\p{L}])/iu;
 
 /** Deterministic pre-router so obvious BASE orders skip the SUIT.VOICE-EXEC LLM round-trip. */
 export function shouldEscalateFast(text: string, ctx: MissionContext): boolean {

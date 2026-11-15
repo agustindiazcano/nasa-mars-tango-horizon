@@ -22,6 +22,16 @@ const INJECTION_RE =
   /ignore (all |previous |prior )?(instructions|rules)|disregard|system prompt|override|disable (safety|guardian)|you are now|jailbreak|<\/?untrusted>|ignora (las |todas )?(instrucciones|reglas)|desactiva/i;
 const HUD_ONLY = new Set(["set_layer", "open_panel", "show_route", "show_alert"]);
 
+const CLINICAL_RX_RE =
+  /\b(prescrib\w*|prescription|administer|tablet|pill|mg|dosage|dose of|medication|ibuprofen|acetaminophen|aspirin|epinephrine|acetazolamide|dexamethasone|modafinil|antibiotic|steroid|recet\w*|medicament\w*|f[aá]rmac\w*|pastilla\w*|dosis de)\b/i;
+const CLINICAL_OVERRIDE_RE =
+  /\b(override|ignore|bypass|countermand|replace|supersede|skip|cancel|ignora|anula|omite|sustituye)\b.{0,35}\b(flight[- ]?surgeon|surgeon|physician|doctor|medical officer|medical review|m[eé]dico de vuelo|cirujano de vuelo)\b/i;
+const CLINICAL_DIAGNOSIS_RE =
+  /\b(?:diagnosis\b\s*:|diagnosed with\b|you have\b|suffering from\b|confirmed\s+(?:hypercapnia|hypoxia|heat\s*stroke|decompression sickness|dcs|arrhythmia|thrombosis|embolism)\b|diagnostico\b|diagn[oó]stico\b\s*:|padeces\b|tienes\s+(?:hipercapnia|hipoxia|golpe de calor|enfermedad por descompresi[oó]n)\b)/i;
+const CLINICAL_ADVISORY_FRAMING_RE =
+  /\b(?:advisory|decision support|not (?:a )?(?:medical )?diagnosis|aviso|apoyo a la decisi[oó]n|no (?:es )?(?:un )?diagn[oó]stico|avis|aide [àa] la d[ée]cision|non diagnostic|hinweis|entscheidungshilfe|keine diagnose|avviso|supporto decisionale|non diagnosi)\b/i;
+const CLINICAL_CITATION_RE = /(?<![a-z0-9])(NASA-STD-3001|OCHMO|AMCL|MEDPRAT)(?![a-z0-9])/i;
+
 function isAircraft(kind: string): boolean {
   return kind === "drone" || kind === "glider";
 }
@@ -49,6 +59,32 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     ...(reasonParams ? { reasonParams } : {}),
     by: "rules",
   });
+
+  if (a.type === "show_alert" && a.proposedBy === "SUIT.HEALTH") {
+    const { text, source } = a.args as { text?: unknown; source?: unknown };
+    const alertText = typeof text === "string" ? text : "";
+    const alertSource = typeof source === "string" ? source : "";
+    if (CLINICAL_RX_RE.test(alertText)) {
+      return deny("SUIT.HEALTH cannot prescribe or recommend medications; consult base flight surgeon");
+    }
+    if (CLINICAL_OVERRIDE_RE.test(alertText)) {
+      return deny("SUIT.HEALTH cannot override or bypass flight-surgeon authority");
+    }
+    if (CLINICAL_DIAGNOSIS_RE.test(alertText)) {
+      return deny("SUIT.HEALTH must issue operational decision-support advisories, not clinical diagnoses");
+    }
+    if (!CLINICAL_ADVISORY_FRAMING_RE.test(alertText)) {
+      return deny("SUIT.HEALTH alerts must include decision-support advisory framing (not a medical diagnosis)");
+    }
+    if (!CLINICAL_CITATION_RE.test(alertSource) && !CLINICAL_CITATION_RE.test(alertText)) {
+      return deny("SUIT.HEALTH clinical advisories require a NASA-STD-3001 or OCHMO document citation");
+    }
+    return {
+      decision: "allow",
+      reason: "Cited clinical decision-support advisory within operational boundaries",
+      by: "rules",
+    };
+  }
 
   if (HUD_ONLY.has(a.type)) {
     return { decision: "allow", reason: "UI action with no physical effect", by: "rules" };
