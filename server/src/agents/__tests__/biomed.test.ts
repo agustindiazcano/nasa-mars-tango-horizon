@@ -261,4 +261,11 @@ describe("GUARDIAN clinical advisory boundaries for SUIT.HEALTH", () => {
     );
     expect(weatherAlert?.decision).toBe("allow");
   });
+
+  it("opens the casson panel from multilingual voice orders", async () => {
+    for (const q of ["open bio twin panel", "abre el gemelo biológico", "ouvre le jumeau biologique", "öffne den Bio-Zwilling", "apri il gemello biologico", "open Casson panel", "abre el panel de viscosidad"]) {
+      const res = await offlineReply(q, ctx);
+      expect(res.actions.some((a) => a.type === "open_panel" && a.args.panel === "casson"), q).toBe(true);
+    }
+  });
 });

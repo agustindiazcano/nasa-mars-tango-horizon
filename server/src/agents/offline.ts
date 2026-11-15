@@ -76,6 +76,7 @@ const PANEL_LABELS: Record<string, Record<Lang, string>> = {
   map: { es: "mapa", en: "map", fr: "carte", de: "Karte", it: "mappa" },
   fleet: { es: "flota", en: "fleet", fr: "flotte", de: "Flotte", it: "flotta" },
   agents: { es: "agentes", en: "agents", fr: "agents", de: "Agenten", it: "agenti" },
+  casson: { es: "gemelo biológico", en: "bio-twin", fr: "jumeau biologique", de: "Bio-Zwilling", it: "gemello biologico" },
   health: { es: "salud", en: "health", fr: "santé", de: "Gesundheit", it: "salute" },
   provenance: { es: "procedencia", en: "provenance", fr: "provenance", de: "Herkunft", it: "provenienza" },
   base: { es: "base", en: "base", fr: "base", de: "Basis", it: "base" },
@@ -842,7 +843,7 @@ export async function offlineReply(
     ) && !/\b(panel|panneau|tafel|pannello|men[uú]|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q);
   if (
     !isFleetOrLocQuestion &&
-    /(?<![\p{L}\d])(panel|panneau|tafel|pannello|men[uú]|abr[aeií]r?|open|ouvr[\p{L}]*|[oö]ffn[\p{L}]*|oeffn[\p{L}]*|apr[ai][\p{L}]*|cierr[ae]?|cerrar|close|ferm[\p{L}]*|schlie[sß][\p{L}]*|chiud[\p{L}]*|procedencia|provenance|herkunft|provenienza|flota|fleet|flotte|flotta|agentes|agents|agenten|agenti|salud|health|sant[eé]|gesundheit|salute|mapa|map|carte|karte|mappa)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(panel|panneau|tafel|pannello|men[uú]|abr[aeií]r?|open|ouvr[\p{L}]*|[oö]ffn[\p{L}]*|oeffn[\p{L}]*|apr[ai][\p{L}]*|cierr[ae]?|cerrar|close|ferm[\p{L}]*|schlie[sß][\p{L}]*|chiud[\p{L}]*|procedencia|provenance|herkunft|provenienza|casson|bio[-\s]?twin|gemel[\p{L}]*|jumeau|zwilling|viscos[\p{L}]*|flota|fleet|flotte|flotta|agentes|agents|agenten|agenti|salud|health|sant[eé]|gesundheit|salute|mapa|map|carte|karte|mappa)(?![\p{L}\d])/iu.test(
       q,
     ) &&
     !/(?<![\p{L}\d])(ruta|route|env[ií]a|dispatch|send|itin[eé]raire|percorso)(?![\p{L}\d])/iu.test(q) &&
@@ -859,7 +860,9 @@ export async function offlineReply(
           ? "menu"
           : /provenance|procedencia|herkunft|provenienza/i.test(q)
             ? "provenance"
-            : /fleet|flota|flotte|flotta/i.test(q)
+            : /casson|bio[-\s]?twin|gemel[\p{L}]*|jumeau|zwilling|viscos[\p{L}]*/iu.test(q)
+              ? "casson"
+              : /fleet|flota|flotte|flotta/i.test(q)
               ? "fleet"
               : /agents|agentes|agenten|agenti/i.test(q)
                 ? "agents"
