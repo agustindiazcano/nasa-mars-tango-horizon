@@ -1,3 +1,4 @@
+import type { TerrainIdentity } from "@th/shared";
 export type LayerId = "optical" | "slope" | "thermal" | "radiation" | "hydration";
 export type PanelId = "map" | "fleet" | "agents" | "health" | "provenance" | "base" | "none";
 export type AlertLevel = "ok" | "warn" | "crit";
@@ -73,6 +74,7 @@ export interface TraceEvent {
 }
 
 export interface MissionContext {
+  terrain?: TerrainIdentity;
   lang: string;
   met_s: number;
   astronaut: {

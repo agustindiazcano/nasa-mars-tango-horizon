@@ -1,3 +1,4 @@
+import type { TerrainIdentity } from "@th/shared";
 import type { z } from "zod";
 
 export type Lang = "en" | "es" | "fr" | "de" | "it";
@@ -51,6 +52,7 @@ export interface StormForecastPoint {
 }
 
 export interface MissionContext {
+  terrain?: TerrainIdentity;
   lang: Lang;
   met_s: number;
   astronaut: {
