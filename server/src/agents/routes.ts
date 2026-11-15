@@ -1,6 +1,11 @@
 import {
+  MAX_FDIR_WINDOW_SAMPLES,
   terrainMatches,
   type CrewProfile,
+  type FleetUnitHealth,
+  type FleetWindowSample,
+  type PowerIsruWindowSample,
+  type SuitWindowSample,
   type VitalsSample,
 } from "@th/shared";
 import { terrainIdentity } from "./tools/terrainData.js";
@@ -53,6 +58,7 @@ const VisionBody = z.object({
 const MAX_FLEET = 32;
 const MAX_LIST = 64;
 const MAX_VITALS_WINDOW = 120;
+const MAX_FAULT_CODES = 16;
 
 const CREW_PROFILE_NUMERIC_KEYS = [
   "resting_hr_bpm",
@@ -75,6 +81,38 @@ const VITALS_NUMERIC_KEYS = [
   "heart_rate_bpm",
   "metabolic_w",
   "suit_pressure_pa",
+] as const;
+
+const SUIT_WINDOW_FIELDS = [
+  "fan_pri_rpm",
+  "fan_sec_rpm",
+  "fan_delta_p_pa",
+  "scrubber_a_co2_storage",
+  "scrubber_b_co2_storage",
+  "suit_co2_pa",
+  "helmet_co2_pa",
+  "coolant_ml",
+  "coolant_liquid_pressure",
+  "coolant_gas_pressure",
+  "suit_temp_k",
+  "battery_temp_c",
+] as const;
+
+const FLEET_WINDOW_FIELDS = [
+  "motor_current_a",
+  "actuator_temp_c",
+  "slip_ratio",
+  "drill_torque_nm",
+  "battery",
+] as const;
+
+const POWER_ISRU_FIELDS = [
+  "solar_dust_factor",
+  "hab_bus_v",
+  "hab_battery_temp_c",
+  "moxie_compressor_a",
+  "moxie_soxe_asr",
+  "moxie_o2_rate_g_h",
 ] as const;
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -125,6 +163,7 @@ function sanitizeStormForecast(raw: unknown): StormForecastPoint[] {
   return out;
 }
 
+<<<<<<< HEAD
 /** Strips all unexpected/PII/EMR fields from crew_profile; keeps only privacy_mode and finite numeric baselines. */
 function sanitizeCrewProfile(raw: unknown): CrewProfile | undefined {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
@@ -158,6 +197,63 @@ function sanitizeVitalsWindow(raw: unknown): VitalsSample[] | undefined {
     out.push(sample);
   }
   return out.length ? out.slice(-MAX_VITALS_WINDOW) : undefined;
+}
+
+function pickNumFields<K extends string>(obj: Record<string, unknown>, keys: readonly K[]): Partial<Record<K, number>> {
+  const out: Partial<Record<K, number>> = {};
+  for (const key of keys) {
+    const val = obj[key];
+    if (isNum(val)) out[key] = val;
+  }
+  return out;
+}
+
+function sanitizeTimedWindow<K extends string>(
+  raw: unknown,
+  keys: readonly K[],
+): Array<{ t_s: number } & Partial<Record<K, number>>> {
+  if (!Array.isArray(raw)) return [];
+  const out: Array<{ t_s: number } & Partial<Record<K, number>>> = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    const obj = entry as Record<string, unknown>;
+    if (!isNum(obj.t_s)) continue;
+    out.push({ t_s: obj.t_s, ...pickNumFields(obj, keys) });
+  }
+  return out.length > MAX_FDIR_WINDOW_SAMPLES ? out.slice(-MAX_FDIR_WINDOW_SAMPLES) : out;
+}
+
+function sanitizeFleetHealth(raw: unknown): Record<string, FleetUnitHealth> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, FleetUnitHealth> = {};
+  for (const [id, val] of Object.entries(raw as Record<string, unknown>)) {
+    if (Object.keys(out).length >= MAX_FLEET) break;
+    if (!id || id.length > 40 || !val || typeof val !== "object" || Array.isArray(val)) continue;
+    const obj = val as Record<string, unknown>;
+    const entry: FleetUnitHealth = {
+      ...pickNumFields(obj, ["motor_current_a", "actuator_temp_c", "slip_ratio", "drill_torque_nm"] as const),
+    };
+    if (typeof obj.isolated === "boolean") entry.isolated = obj.isolated;
+    if (Array.isArray(obj.fault_codes)) {
+      entry.fault_codes = obj.fault_codes
+        .filter((c): c is string => typeof c === "string" && c.trim().length > 0 && c.length <= 32)
+        .slice(0, MAX_FAULT_CODES);
+    }
+    out[id] = entry;
+  }
+  return out;
+}
+
+function sanitizeFleetWindows(raw: unknown): Record<string, FleetWindowSample[]> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, FleetWindowSample[]> = {};
+  for (const [id, series] of Object.entries(raw as Record<string, unknown>)) {
+    if (Object.keys(out).length >= MAX_FLEET) break;
+    if (!id || id.length > 40 || !Array.isArray(series)) continue;
+    const cleaned = sanitizeTimedWindow(series, FLEET_WINDOW_FIELDS) as FleetWindowSample[];
+    if (cleaned.length > 0) out[id] = cleaned;
+  }
+  return out;
 }
 
 /** Builds a MissionContext from an untrusted client snapshot: malformed values fall back to defaults or are dropped. */
@@ -206,6 +302,18 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     ...(Array.isArray(c.storm_forecast) ? { storm_forecast: sanitizeStormForecast(c.storm_forecast) } : {}),
     ...(crewProfile ? { crew_profile: crewProfile } : {}),
     ...(vitalsWindow ? { vitals_window: vitalsWindow } : {}),
+    ...(Array.isArray(c.suit_window)
+      ? { suit_window: sanitizeTimedWindow(c.suit_window, SUIT_WINDOW_FIELDS) as SuitWindowSample[] }
+      : {}),
+    ...(c.fleet_health && typeof c.fleet_health === "object" && !Array.isArray(c.fleet_health)
+      ? { fleet_health: sanitizeFleetHealth(c.fleet_health) }
+      : {}),
+    ...(c.fleet_windows && typeof c.fleet_windows === "object" && !Array.isArray(c.fleet_windows)
+      ? { fleet_windows: sanitizeFleetWindows(c.fleet_windows) }
+      : {}),
+    ...(Array.isArray(c.power_isru_window)
+      ? { power_isru_window: sanitizeTimedWindow(c.power_isru_window, POWER_ISRU_FIELDS) as PowerIsruWindowSample[] }
+      : {}),
   };
 }
 

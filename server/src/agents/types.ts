@@ -1,5 +1,9 @@
 import type {
   CrewProfile,
+  FleetUnitHealth,
+  FleetWindowSample,
+  PowerIsruWindowSample,
+  SuitWindowSample,
   TerrainIdentity,
   VitalsSample,
 } from "@th/shared";
@@ -96,6 +100,10 @@ export interface MissionContext {
   crew_profile?: CrewProfile;
   /** Sliding time-series window of recent physiological samples. */
   vitals_window?: VitalsSample[];
+  suit_window?: SuitWindowSample[];
+  fleet_health?: Record<string, FleetUnitHealth>;
+  fleet_windows?: Record<string, FleetWindowSample[]>;
+  power_isru_window?: PowerIsruWindowSample[];
 }
 
 export interface Verdict {

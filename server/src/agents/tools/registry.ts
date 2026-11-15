@@ -4,6 +4,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   decide,
   directTransmission,
+  evaluateComponentHealth,
   evaluateCrewBiomed,
   leakTimeline,
   metabolicRateW,
@@ -33,14 +34,15 @@ export interface DocChunk {
   doc: string;
   page: number;
   text: string;
+  fault_codes?: string[];
   score?: number;
 }
 
-type SearchDocsFn = (query: string, k?: number) => DocChunk[];
+type SearchDocsFn = (query: string, k?: number, faultCodes?: string[]) => DocChunk[];
 let cachedSearchDocs: SearchDocsFn | null | undefined;
 
 /** Dynamically imports ./knowledge.js when available so pre-merge builds never fail. */
-export async function safeSearchDocs(query: string, k = 3): Promise<DocChunk[]> {
+export async function safeSearchDocs(query: string, k = 3, faultCodes?: string[]): Promise<DocChunk[]> {
   if (cachedSearchDocs === undefined) {
     try {
       const modPath = "./knowledge.js";
@@ -59,7 +61,7 @@ export async function safeSearchDocs(query: string, k = 3): Promise<DocChunk[]> 
       },
     ];
   }
-  return cachedSearchDocs(query, k);
+  return cachedSearchDocs(query, k, faultCodes);
 }
 
 const STORM_LIMITS: Limits = {
@@ -251,6 +253,27 @@ export const TOOLS: ToolDef[] = [
     description:
       "Evaluates deterministic EVA biomedical trends (CO2 hypercapnia, core temp/PSI, SpO2 hypoxia, cardiac drift), time-to-breach, composite Early Warning Score (green/amber/red), and NASA-STD-3001 vs personal baseline thresholds. Decision support advisory only.",
     run: (_a, ctx) => evaluateCrewBiomed(ctx),
+  }),
+  def({
+    name: "evaluate_component_health",
+    server: "suit",
+    effect: false,
+    schema: z.object({
+      scope: z.enum(["suit", "fleet", "power_isru", "all"]).default("all").describe("FDIR subsystem scope to evaluate"),
+      unit_id: z.string().optional().describe("Optional fleet unit ID when inspecting a single fleet asset"),
+    }),
+    description:
+      "Deterministic FDIR/RUL prognostics: computes linear slopes, z-score residuals, clamped RUL (s), severity (nominal|degraded|critical), and canonical fault codes (PLSS-*, RVR-*, ARM-*, HAB-*, ISRU-*).",
+    run: (a, ctx, caller) => {
+      if (caller.startsWith("ROBOT.")) {
+        const ownId = caller.slice("ROBOT.".length);
+        if (a.unit_id && a.unit_id !== ownId) {
+          return { error: `ROBOT.${ownId} may only inspect unit_id "${ownId}"` };
+        }
+        return evaluateComponentHealth(ctx, "fleet", ownId);
+      }
+      return evaluateComponentHealth(ctx, a.scope, a.unit_id);
+    },
   }),
 
   // --- mcp-environment ---------------------------------------------------
@@ -473,6 +496,21 @@ export const TOOLS: ToolDef[] = [
       "Runs a unit capability: takeoff, land, photograph_area, hover_overwatch, follow_astronaut, return_to_base, survey_area, hold_position, relay_comms, deliver_supplies. Each unit kind supports a subset; GUARDIAN rejects unsupported ones.",
     run: (a, _c, caller) => ({ type: "unit_action", args: a, proposedBy: caller }),
   }),
+  def({
+    name: "isolate_component",
+    server: "fleet",
+    effect: true,
+    schema: z.object({
+      target_type: z.enum(["suit", "fleet", "hab_power", "isru"]).describe("Target system domain"),
+      target_id: z.string().min(1).max(40).describe("Target asset ID ('suit', fleet unit ID, 'hab_power', or 'isru')"),
+      subsystem: z.string().min(1).max(60).describe("Faulted subsystem (e.g. 'ventilation_fan', 'co2_scrubber', 'wheel_drive', 'arm_drill')"),
+      fault_code: z.string().min(1).max(32).describe("Canonical fault code verified by evaluate_component_health"),
+      action: z.enum(["switch_redundant", "derate", "safe_halt", "quarantine"]).describe("FDIR isolation or mitigation action"),
+    }),
+    description:
+      "Proposes hardware FDIR mitigation (switch_redundant, derate, safe_halt, quarantine) for a fault corroborated by evaluate_component_health; vetted by GUARDIAN.",
+    run: (a, _c, caller) => ({ type: "isolate_component", args: a, proposedBy: caller }),
+  }),
   // --- mcp-hud -----------------------------------------------------------
   def({
     name: "set_layer",
@@ -526,9 +564,14 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       query: z.string().describe("Search query in English (the corpus is English; translate the crew's words first)"),
       k: z.number().int().min(1).max(5).default(3),
+      fault_codes: z
+        .array(z.string().min(1).max(32))
+        .max(8)
+        .optional()
+        .describe("Optional canonical FDIR fault codes (e.g. ['PLSS-FAN-01']) to pre-filter SOP chunks"),
     }),
-    description: "Searches the NASA corpus (NASA-STD-3001, OCHMO, AMCL, MEDPRAT, SUITS) and returns chunks with document and page.",
-    run: (a) => safeSearchDocs(a.query, a.k),
+    description: "Searches the NASA/JPL corpus (NASA-STD-3001, OCHMO, AMCL, MEDPRAT, SUITS, FDIR SOPs) and returns chunks with document and page.",
+    run: (a) => safeSearchDocs(a.query, a.k, a.fault_codes),
   }),
 ];
 
