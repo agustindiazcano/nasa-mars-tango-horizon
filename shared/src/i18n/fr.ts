@@ -196,6 +196,7 @@ export const fr: Record<Key, string> = {
   "scene.resume": "Reprendre",
   "scene.restart": "Recommencer",
   "scene.stop": "Arrêter",
+  "scene.exit": "Quitter la présentation (Échap)",
   "scene.hide_hud": "Masquer le HUD",
   "scene.show_hud": "Afficher le HUD",
   "scene.hint": "Choisissez une scène et lancez la lecture, ou appuyez sur P pour afficher ou masquer ce menu. Masquez le HUD pour des prises propres.",

@@ -43,6 +43,11 @@ export class ScenePanel {
     this.root.addEventListener("click", (e) => this.onClick(e));
     // P toggles the presentation panel (ignored while typing in a field or with a modifier key).
     window.addEventListener("keydown", (e) => {
+      if (e.code === "Escape" && !e.repeat) {
+        if (this.taking) this.exit();
+        else if (this.open) this.toggle();
+        return;
+      }
       if (e.code !== "KeyP" || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
       const el = e.target as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
@@ -52,6 +57,19 @@ export class ScenePanel {
       this.lastKey = "";
       this.update();
     });
+    this.update();
+  }
+
+  private get taking(): boolean {
+    return this.director.state === "playing" || this.director.state === "paused";
+  }
+
+  /** Stops the running scene or presentation, shows the HUD again and saves any running recording. */
+  exit(): void {
+    this.director.stop();
+    this.opts.setHudVisible(true);
+    if (this.recorder.recording) void this.finishRecording();
+    this.lastKey = "";
     this.update();
   }
 
@@ -110,11 +128,8 @@ export class ScenePanel {
       else d.play(d.scenes[0].id);
     } else if (act === "pause") d.pause();
     else if (act === "restart") d.restart();
-    else if (act === "stop") {
-      d.stop();
-      this.opts.setHudVisible(true);
-      if (this.recorder.recording) void this.finishRecording();
-    } else if (act === "hidehud") this.hideHud = !this.hideHud;
+    else if (act === "stop" || act === "exit") this.exit();
+    else if (act === "hidehud") this.hideHud = !this.hideHud;
     else if (act === "present") void this.startPresentation(false);
     else if (act === "present-rec") void this.startPresentation(true);
     else if (act === "rec") {
@@ -163,7 +178,7 @@ export class ScenePanel {
     if (!this.open) {
       this.root.innerHTML = `
         <div class="scene-closed">
-          <button class="scene-btn scene-present" data-scene-act="present-rec">▶ ${t("scene.present")}</button>
+          ${taking ? `<button class="scene-btn scene-exit" data-scene-act="exit">✕ ${t("scene.exit")}</button>` : `<button class="scene-btn scene-present" data-scene-act="present-rec">▶ ${t("scene.present")}</button>`}
           <button class="scene-btn scene-open" data-scene-act="toggle">${t("scene.open")}</button>
           ${recBadge}
         </div>${toastHtml}`;
