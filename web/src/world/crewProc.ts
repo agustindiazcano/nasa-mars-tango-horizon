@@ -3,6 +3,23 @@ import { CREW4_START, CREW_ROSTER, type CrewId } from "@th/shared";
 import { models } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
+/** Local front axis of every crew group and of the `astronaut-animated` model. */
+export const CREW_FRONT_LOCAL = new THREE.Vector3(0, 0, 1);
+
+/** World forward vector (x, z) of a crew group with the given `rotation.y`. */
+export function crewForward(groupYaw: number): { x: number; z: number } {
+  const v = CREW_FRONT_LOCAL.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), groupYaw);
+  return { x: v.x, z: v.z };
+}
+
+/**
+ * `AstronautProc.yaw` is a camera yaw (forward = (-sin yaw, -cos yaw)); the crew group convention is forward = (sin, cos),
+ * so the player model needs a half turn.
+ */
+export function playerGroupYaw(cameraYaw: number): number {
+  return cameraYaw + Math.PI;
+}
+
 export type CrewClipName = "Idle_11" | "Walking" | "Running" | "Fall_Dead_from_Abdominal_Injury" | "Dead";
 
 /** Ground speed (m/s) above which the player astronaut plays the run clip (walk 2.4, sprint 4.4 in `AstronautProc`). */
@@ -151,7 +168,7 @@ export class CrewProc {
     m.x = x;
     m.z = z;
     m.group.position.set(x, this.terrain.heightAt(x, z), z);
-    m.group.rotation.y = yaw;
+    m.group.rotation.y = playerGroupYaw(yaw);
     m.group.visible = show && m.modelReady === true;
     m.anim?.request(poseForSpeed(speedMs));
   }
@@ -159,10 +176,9 @@ export class CrewProc {
   private async attachModel(m: CrewMember): Promise<void> {
     const spawned = await models.spawn("astronaut-animated");
     if (!spawned) return;
-    // The GLB faces +z; crew groups face -z (same as the procedural body), so turn the model half a revolution.
+    // The GLB front is +Z, the same as the crew group convention (see `CREW_FRONT_LOCAL`): no extra rotation.
     const root = new THREE.Group();
     root.name = `glb:${m.id}`;
-    root.rotation.y = Math.PI;
     root.add(spawned.object);
     m.group.add(root);
     m.body.visible = false;
@@ -180,8 +196,14 @@ export class CrewProc {
     const dark = new THREE.MeshStandardMaterial({ color: 0x38424d, roughness: 0.7, metalness: 0.25 });
     const gold = new THREE.MeshStandardMaterial({ color: 0xf0b24a, roughness: 0.12, metalness: 0.92, emissive: 0x2a1804 });
 
+    // Convention: a crew group with `rotation.y = atan2(dx, dz)` faces the direction (dx, dz), i.e. its front is local +Z.
+    // The procedural suit is modelled facing -Z (visor and chest pack), so it hangs under a half-turn holder.
+    const facing = new THREE.Group();
+    facing.name = "facing";
+    facing.rotation.y = Math.PI;
+    g.add(facing);
     const body = new THREE.Group();
-    g.add(body);
+    facing.add(body);
     const torso = new THREE.Group();
     torso.position.y = 0.96;
     body.add(torso);
