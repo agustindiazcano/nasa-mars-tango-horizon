@@ -9,7 +9,7 @@ import { registerRelay } from "./relay.js";
 import { registerTtsRoute } from "./tts.js";
 import { registerAgentRoutes } from "./agents/routes.js";
 
-const app = Fastify({ logger: true, bodyLimit: 4_000_000 });
+const app = Fastify({ logger: true, bodyLimit: 4_000_000, trustProxy: true });
 
 await app.register(fastifyRateLimit, { global: false });
 await app.register(fastifyWebsocket);
