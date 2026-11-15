@@ -672,8 +672,8 @@ export class CartographyRenderer {
     ctx.textBaseline = "top";
     ctx.font = `500 10px ${MONO}`;
     ctx.fillStyle = "#4a4a4a";
-    ctx.fillText("Data: NASA/USGS HiRISE DTM and ortho image, MSL DAN, project design sites.", x, NEATLINE.y + NEATLINE.size + 8);
-    ctx.fillText("Projection: local tangent plane (equirectangular), north up.", x, NEATLINE.y + NEATLINE.size + 22);
+    ctx.fillText("Data: NASA/USGS HiRISE DTM, MSL DAN, design sites.", x, NEATLINE.y + NEATLINE.size + 8);
+    ctx.fillText("Local tangent plane projection, north up.", x, NEATLINE.y + NEATLINE.size + 22);
     ctx.restore();
   }
 
