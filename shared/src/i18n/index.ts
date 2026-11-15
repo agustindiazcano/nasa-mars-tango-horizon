@@ -36,7 +36,25 @@ export const LANG_NAME: Record<Lang, string> = {
 export type Dict = Record<string, string>;
 
 const dicts: Partial<Record<Lang, Dict>> = {};
-let active: Lang = "en";
+function detectInitialLang(): Lang {
+  const g = globalThis as {
+    location?: { search?: string };
+    navigator?: { language?: string };
+  };
+  if (typeof g.location?.search === "string") {
+    const m = /[?&]lang=([a-zA-Z]{2})/.exec(g.location.search);
+    if (m) {
+      const code = m[1].toLowerCase() as Lang;
+      if ((LANGS as readonly string[]).includes(code)) return code;
+    }
+  }
+  if (typeof g.navigator?.language === "string") {
+    const code = g.navigator.language.slice(0, 2).toLowerCase() as Lang;
+    if ((LANGS as readonly string[]).includes(code)) return code;
+  }
+  return "en";
+}
+let active: Lang = detectInitialLang();
 const listeners = new Set<(l: Lang) => void>();
 
 export function registerDict(lang: Lang, dict: Dict): void {
@@ -82,3 +100,4 @@ registerDict("it", it);
 
 export { en, es, fr, de, it };
 export type { Key };
+export type I18nKey = Key;

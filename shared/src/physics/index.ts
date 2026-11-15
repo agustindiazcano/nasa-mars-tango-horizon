@@ -7,6 +7,7 @@ export * from "./podDelivery.js";
 export * from "./dose.js";
 export * from "./solar.js";
 export * from "./suitState.js";
+export * from "./suitTelemetry.js";
 export * from "./route.js";
 export * from "./stormDecision.js";
 export * from "./biomed.js";

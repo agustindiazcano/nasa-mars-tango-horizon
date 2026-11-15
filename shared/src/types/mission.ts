@@ -189,7 +189,7 @@ export interface PowerIsruWindowSample {
  */
 export interface MissionContext {
   terrain?: TerrainIdentity;
-  lang: Lang;
+  lang: Lang | (string & {});
   met_s: number;
   astronaut: AstronautSnapshot;
   suit: Record<string, number>;
@@ -220,7 +220,7 @@ export interface MissionContext {
 }
 
 export type VerdictDecision = "allow" | "deny" | "ask_human";
-export type VerdictBy = "rules" | "judge";
+export type VerdictBy = "rules" | "judge" | "voting";
 
 export interface Verdict {
   decision: VerdictDecision;
@@ -228,6 +228,52 @@ export interface Verdict {
   by: VerdictBy;
   reasonKey?: string;
   reasonParams?: Record<string, string | number>;
+}
+
+export type VoteDecision = VerdictDecision;
+
+export interface VoterResult {
+  voter: string;
+  model: string;
+  provider: "vertex" | "gemini" | "meta";
+  vote: VoteDecision | null;
+  confidence: number | null;
+  rationale: string;
+  latency_ms: number;
+  status: "ok" | "timeout" | "error";
+  error?: string;
+}
+
+export interface VotingTally {
+  allow: number;
+  deny: number;
+  ask_human: number;
+  valid: number;
+}
+
+export type VotingConsensus =
+  | "unanimous"
+  | "majority"
+  | "asymmetric_safety_override"
+  | "split"
+  | "degraded_unanimous"
+  | "degraded_split"
+  | "quorum_failed";
+
+export interface VotingTraceDetail {
+  actionType: string;
+  triggers: string[];
+  voters: VoterResult[];
+  tally: VotingTally;
+  consensus: VotingConsensus;
+  finalDecision: VoteDecision;
+  reason: string;
+  latency_ms: number;
+}
+
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
 }
 
 export type ActionType =
@@ -250,7 +296,7 @@ export interface Action {
   verdict?: Verdict;
 }
 
-export type TraceEventKind = "delegate" | "tool" | "verdict" | "say";
+export type TraceEventKind = "delegate" | "tool" | "verdict" | "voting" | "say";
 
 export interface TraceEvent {
   t: number;
