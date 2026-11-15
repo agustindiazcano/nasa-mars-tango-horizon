@@ -198,7 +198,7 @@ export const fr: Record<Key, string> = {
   "scene.stop": "Arrêter",
   "scene.hide_hud": "Masquer le HUD",
   "scene.show_hud": "Afficher le HUD",
-  "scene.hint": "Choisissez une scène et lancez la lecture. Masquez le HUD pour des prises propres.",
+  "scene.hint": "Choisissez une scène et lancez la lecture, ou appuyez sur P pour afficher ou masquer ce menu. Masquez le HUD pour des prises propres.",
   "scene.state.idle": "Prêt",
   "scene.state.playing": "REC",
   "scene.state.paused": "En pause",

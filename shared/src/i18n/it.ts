@@ -198,7 +198,7 @@ export const it: Record<Key, string> = {
   "scene.stop": "Ferma",
   "scene.hide_hud": "Nascondi HUD",
   "scene.show_hud": "Mostra HUD",
-  "scene.hint": "Scegli una scena e premi Riproduci. Nascondi l’HUD per riprese pulite.",
+  "scene.hint": "Scegli una scena e premi Riproduci, oppure premi P per mostrare o nascondere questo menu. Nascondi l’HUD per riprese pulite.",
   "scene.state.idle": "Pronto",
   "scene.state.playing": "REC",
   "scene.state.paused": "In pausa",
