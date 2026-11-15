@@ -8,6 +8,8 @@ import {
   LAUNCH_SITE_COORD,
   MANIP_TARGETS,
   MISSION_SITES,
+  RESCUE_PIT_AXIS,
+  RESCUE_SITE,
   fleetStartPos,
 } from "@th/shared";
 import { mulberry32 } from "./noise";
@@ -98,6 +100,28 @@ export function defaultClusters(): BoulderCluster[] {
     { id: "launch-backdrop", x: LAUNCH_SITE_COORD.x - 170, z: LAUNCH_SITE_COORD.z + 150, radius: 42, count: 7 },
     { id: "north-field", x: BASE_ORIGIN.x - 40, z: BASE_ORIGIN.z - 420, radius: 60, count: 9 },
   ];
+}
+
+/**
+ * Boulder field around the rescue pit rim (two lobes, uphill and downhill of the ramp side) and the keep-clear circles
+ * that protect the pit, the ramp approach and the rescue vehicle parking spot (18 m from the pit toward the base).
+ */
+export function rescuePitRockOptions(): { clusters: BoulderCluster[]; exclusions: Circle[] } {
+  const c = RESCUE_SITE;
+  const ax = RESCUE_PIT_AXIS;
+  const park = { x: c.x + ax.x * 18, z: c.z + ax.z * 18 };
+  return {
+    clusters: [
+      { id: "rescue-rim-a", x: c.x - ax.z * 16 - ax.x * 6, z: c.z + ax.x * 16 - ax.z * 6, radius: 14, count: 8 },
+      { id: "rescue-rim-b", x: c.x + ax.z * 15 - ax.x * 9, z: c.z - ax.x * 15 - ax.z * 9, radius: 13, count: 7 },
+      { id: "rescue-rim-far", x: c.x - ax.x * 22, z: c.z - ax.z * 22, radius: 12, count: 6 },
+    ],
+    exclusions: [
+      { x: c.x, z: c.z, r: 11 },
+      { x: c.x + ax.x * 9, z: c.z + ax.z * 9, r: 6 },
+      { x: park.x, z: park.z, r: 9 },
+    ],
+  };
 }
 
 export interface PlanOptions {
