@@ -14,11 +14,27 @@ export const MAX_SLOPE: Record<string, number> = {
 };
 
 const POD_KEEPOUT_M = 15; // design assumption: exclusion radius around crew for pod landing
+const AIRCRAFT_GROUNDING_TAU = 1.8; // dust opacity at or above which drones and gliders are grounded
+const AIRCRAFT_MIN_BATTERY = 0.15;
 const ARM_CREW_KEEPOUT_M = 2; // design assumption: minimum clearance around crew for non-handover arm skills
 const JUDGE_SKIP_TYPES = new Set(["dispatch", "arm_skill", "unit_action"]); // low risk once hard limits pass; launch_pod/deploy_beacons stay judged
 const INJECTION_RE =
   /ignore (all |previous |prior )?(instructions|rules)|disregard|system prompt|override|disable (safety|guardian)|you are now|jailbreak|<\/?untrusted>|ignora (las |todas )?(instrucciones|reglas)|desactiva/i;
 const HUD_ONLY = new Set(["set_layer", "open_panel", "show_route", "show_alert"]);
+
+function isAircraft(kind: string): boolean {
+  return kind === "drone" || kind === "glider";
+}
+
+/** Grounding and battery floor for any aircraft action other than landing or holding. */
+function aircraftDeny(unit: { id: string; kind: string; battery: number }, what: string, ctx: MissionContext): string | null {
+  if (!isAircraft(unit.kind)) return null;
+  if (unit.battery < AIRCRAFT_MIN_BATTERY) return `Battery of ${unit.id} is too low for ${what}`;
+  if (ctx.env.tau >= AIRCRAFT_GROUNDING_TAU) {
+    return `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${AIRCRAFT_GROUNDING_TAU} aircraft grounding limit`;
+  }
+  return null;
+}
 
 /** Step 1: deterministic hard safety limits. No model can bypass these. Returns null if LLM judge is required. */
 export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
@@ -49,6 +65,8 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       return deny("A robot may only command itself");
     }
     if (unit.battery < 0.1) return deny(`Battery of ${unit_id} is below 10%`);
+    const aircraftReason = aircraftDeny(unit, "dispatch", ctx);
+    if (aircraftReason) return deny(aircraftReason);
     const max = MAX_SLOPE[unit.kind];
     if (max !== undefined) {
       const slope = slopeAt(x, z);
@@ -74,18 +92,16 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     if (!spec.kinds.includes(unit.kind)) {
       return deny(`${unit_id} (${unit.kind}) cannot perform ${action}`);
     }
-    const flying = spec.kinds.every((k) => k === "drone" || k === "glider") && action !== "land";
-    if (unit.battery < (flying || spec.flight ? 0.15 : 0.1)) {
-      return deny(`Battery of ${unit_id} is too low for ${action}`);
-    }
-    if (spec.flight && ctx.env.tau >= 1.8) {
-      return deny(`Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds 1.8 aircraft grounding limit`);
+    if (unit.battery < 0.1) return deny(`Battery of ${unit_id} is too low for ${action}`);
+    if (action !== "land" && action !== "hold_position") {
+      const aircraftReason = aircraftDeny(unit, action, ctx);
+      if (aircraftReason) return deny(aircraftReason);
     }
     if (x !== undefined || z !== undefined) {
       if (!Number.isFinite(x) || !Number.isFinite(z)) return deny("Invalid target coordinates");
       const max = MAX_SLOPE[unit.kind];
       const slope = slopeAt(x as number, z as number);
-      if (max !== undefined && slope > max && !(unit.kind === "drone" || unit.kind === "glider")) {
+      if (max !== undefined && slope > max && !isAircraft(unit.kind)) {
         return deny(
           `${slope.toFixed(0)}° slope exceeds the ${max}° limit of ${unit_id}`,
           "guard.slope",
@@ -122,14 +138,14 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       );
     }
     if (mode === "drone_drop") {
-      if (ctx.env.tau >= 1.8) {
+      if (ctx.env.tau >= AIRCRAFT_GROUNDING_TAU) {
         return deny(
-          `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds 1.8 aircraft grounding limit; use ballistic_canister mode`,
+          `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${AIRCRAFT_GROUNDING_TAU} aircraft grounding limit; use ballistic_canister mode`,
         );
       }
       if (unit_id) {
         const drone = ctx.fleet.find((u) => u.id === unit_id);
-        if (drone && drone.battery < 0.15) {
+        if (drone && drone.battery < AIRCRAFT_MIN_BATTERY) {
           return deny(`Drone ${unit_id} battery is below 15% for beacon deployment`);
         }
       }
