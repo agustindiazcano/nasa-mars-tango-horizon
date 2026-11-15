@@ -53,7 +53,7 @@ export const fr: Record<Key, string> = {
   "layer.slope": "Pente (°)",
   "layer.thermal": "Classe thermique (THEMIS)",
   "layer.radiation": "Blindage radiatif (SVF)",
-  "layer.hydration": "Hydratation du sol (WEH %)",
+  "layer.hydration": "Indice d'hydratation du sol",
 
   // Phone remote UI
   "remote.tap_to_connect": "Toucher pour connecter",
@@ -149,7 +149,7 @@ export const fr: Record<Key, string> = {
   // Science & ML disclaimers
   "science.take_sample": "Prélever un échantillon",
   "science.vein_disclaimer": "Signature visuelle de veine uniquement ; la composition minérale exige une confirmation spectrométrique",
-  "science.hydration_disclaimer": "Prédit l'hydratation minérale proche de la surface (WEH), pas l'eau liquide ni la glace",
+  "science.hydration_disclaimer": "Prédit l'indice d'hydrogène minéral proche de la surface (rapport DAN sans dimension), pas l'eau liquide, la glace ni % H2O",
   "storm.nowcast_disclaimer": "Prévision statistique locale à court terme ; ne modélise pas la physique globale des tempêtes",
 
   // Demo deck

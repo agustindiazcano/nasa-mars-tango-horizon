@@ -53,7 +53,7 @@ export const de: Record<Key, string> = {
   "layer.slope": "Neigung (°)",
   "layer.thermal": "Thermalklasse (THEMIS)",
   "layer.radiation": "Strahlungsabschirmung (SVF)",
-  "layer.hydration": "Bodenhydratation (WEH %)",
+  "layer.hydration": "Bodenhydratationsindex",
 
   // Phone remote UI
   "remote.tap_to_connect": "Zum Verbinden tippen",
@@ -149,7 +149,7 @@ export const de: Record<Key, string> = {
   // Science & ML disclaimers
   "science.take_sample": "Probe entnehmen",
   "science.vein_disclaimer": "Nur visuelles Adersignal; Mineralzusammensetzung erfordert Spektrometer-Bestätigung",
-  "science.hydration_disclaimer": "Prognostiziert oberflächennahe mineralgebundene Hydratation (WEH), kein flüssiges Wasser oder Eis",
+  "science.hydration_disclaimer": "Prognostiziert den oberflächennahen mineralgebundenen Wasserstoffindex (dimensionsloses DAN-Verhältnis), kein flüssiges Wasser, Eis oder Gew.-% H2O",
   "storm.nowcast_disclaimer": "Statistische Kurzfrist-Vorhersage für einen Standort; modelliert keine globale Sturmphysik",
 
   // Demo deck
