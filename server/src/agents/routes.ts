@@ -20,10 +20,16 @@ import {
 
 const LangInput = z.string().optional().transform((v) => normalizeLang(v));
 
+const ConversationTurnSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().trim().min(1).max(400),
+});
+
 const VoiceBody = z.object({
-  text: z.string().min(1).max(400),
+  text: z.string().trim().min(1).max(400),
   lang: LangInput,
   context: z.any(),
+  history: z.array(ConversationTurnSchema).max(6).optional(),
 });
 
 const RunBody = z.object({
@@ -154,20 +160,20 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
 
 
     if (!llmAvailable()) {
-      const res = await offlineReply(b.data.text, ctx);
+      const res = await offlineReply(b.data.text, ctx, b.data.history);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, route: res.route, offline: true }, "/api/agent/voice");
       return { terrain: terrainIdentity, ...res, offline: true, latency_ms };
     }
 
     try {
-      const r = await handleVoice(b.data.text, ctx);
+      const r = await handleVoice(b.data.text, ctx, b.data.history);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, route: r.route, offline: false }, "/api/agent/voice");
       return { terrain: terrainIdentity, speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, route: r.route, offline: false, latency_ms };
     } catch (err) {
       req.log.error(err);
-      const res = await offlineReply(b.data.text, ctx);
+      const res = await offlineReply(b.data.text, ctx, b.data.history);
       const latency_ms = Date.now() - t0;
       req.log.warn({ latency_ms, route: res.route, offline: true }, "/api/agent/voice fell back to offline rules");
       return { terrain: terrainIdentity, ...res, offline: true, latency_ms };
