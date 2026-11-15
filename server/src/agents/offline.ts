@@ -3,7 +3,7 @@ import { callTool, missionScope, startMcpServers } from "./tools/mcp.js";
 import { TOOLS } from "./tools/registry.js";
 import { nearestSafePoint } from "./tools/terrainData.js";
 import type { UnitActionId } from "./unitCapabilities.js";
-import type { Action, Lang, MissionContext, ToolDef, TraceEvent } from "./types.js";
+import type { Action, ConversationTurn, Lang, MissionContext, ToolDef, TraceEvent } from "./types.js";
 
 export interface OfflineResult {
   speech: string;
@@ -203,28 +203,7 @@ function parseSpokenCoords(q: string): { x: number; z: number } | null {
   return null;
 }
 
-function parseSiteTarget(q: string, ctx?: MissionContext): { x: number; z: number; label: string } {
-  const lang = ctx?.lang ?? "en";
-  if (
-    ctx &&
-    /(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?=$|\s|[.,;!?])/i.test(
-      q,
-    )
-  ) {
-    const ax = Math.round(ctx.astronaut.x);
-    const az = Math.round(ctx.astronaut.z);
-    return {
-      x: ax,
-      z: az,
-      label: pick(lang, {
-        es: `tu posición (${ax}, ${az})`,
-        en: `your position (${ax}, ${az})`,
-        fr: `votre position (${ax}, ${az})`,
-        de: `deine Position (${ax}, ${az})`,
-        it: `tua posizione (${ax}, ${az})`,
-      }),
-    };
-  }
+function matchExplicitSiteTarget(q: string): { x: number; z: number; label: string } | null {
   const numMatch = q.match(
     /(?<![\p{L}\d])(?:sitio|site|estaci[oó]n|station|standort|sito|s)\s*[-#]?\s*(1|2|3|4|uno|un|one|eins|dos|two|deux|zwei|due|tres|three|trois|drei|tre|cuatro|four|quatre|vier|quattro)(?![\p{L}\d])/iu,
   );
@@ -246,10 +225,47 @@ function parseSiteTarget(q: string, ctx?: MissionContext): { x: number; z: numbe
   if (/\b(base|hab|habitat|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q)) {
     return { x: 0, z: 0, label: "Base" };
   }
+  return null;
+}
+
+function parseSiteTarget(
+  q: string,
+  ctx?: MissionContext,
+  history: ConversationTurn[] = [],
+): { x: number; z: number; label: string } {
+  const lang = ctx?.lang ?? "en";
+  if (
+    ctx &&
+    /(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?=$|\s|[.,;!?])/i.test(
+      q,
+    )
+  ) {
+    const ax = Math.round(ctx.astronaut.x);
+    const az = Math.round(ctx.astronaut.z);
+    return {
+      x: ax,
+      z: az,
+      label: pick(lang, {
+        es: `tu posición (${ax}, ${az})`,
+        en: `your position (${ax}, ${az})`,
+        fr: `votre position (${ax}, ${az})`,
+        de: `deine Position (${ax}, ${az})`,
+        it: `tua posizione (${ax}, ${az})`,
+      }),
+    };
+  }
+  const explicit = matchExplicitSiteTarget(q);
+  if (explicit) return explicit;
+  if (/\b(there|all[ií]|ah[ií]|all[aá]|l[aà]|dort|l[iì])\b/i.test(q)) {
+    for (let i = history.length - 1; i >= 0; i--) {
+      const fromHistory = matchExplicitSiteTarget(history[i].content);
+      if (fromHistory) return fromHistory;
+    }
+  }
   return { x: SITE_COORDS[2].x, z: SITE_COORDS[2].z, label: "S2" };
 }
 
-function parseUnitId(q: string, ctx: MissionContext): string | null {
+function matchExplicitUnitId(q: string): string | null {
   const direct = q.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i);
   if (direct) return direct[1].toLowerCase();
   if (/\b(hands|manip(?:ulador|ulator)?|brazo|arm)\b/i.test(q)) return "manip-1";
@@ -262,6 +278,16 @@ function parseUnitId(q: string, ctx: MissionContext): string | null {
   if (/\b(rover\s*(?:dos|two|deux|zwei|due|2)|rvr-2)\b/i.test(q)) return "rover-2";
   if (/\b(rover\s*(?:tres|three|trois|drei|tre|3)|rvr-3)\b/i.test(q)) return "rover-3";
   if (/\b(rover(?:\s*(?:uno|one|un|eins|1))?|rvr-1)\b/i.test(q)) return "rover-1";
+  return null;
+}
+
+function parseUnitId(q: string, ctx: MissionContext, history: ConversationTurn[] = []): string | null {
+  const explicit = matchExplicitUnitId(q);
+  if (explicit) return explicit;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const fromHistory = matchExplicitUnitId(history[i].content);
+    if (fromHistory) return fromHistory;
+  }
   return ctx.fleet[0]?.id ?? null;
 }
 
@@ -354,7 +380,11 @@ function localizedUnitActionDesc(action: UnitActionId, unitId: string, lang: Lan
  * Deterministic rule-based offline engine covering all demo deck orders, safety checks,
  * science queries, manipulator skills, unit actions, and weather evaluations when LLM link is unavailable.
  */
-export async function offlineReply(text: string, ctx: MissionContext): Promise<OfflineResult> {
+export async function offlineReply(
+  text: string,
+  ctx: MissionContext,
+  history: ConversationTurn[] = [],
+): Promise<OfflineResult> {
   await startMcpServers();
 
   const q = text.toLowerCase();
@@ -476,7 +506,7 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
-    const target = parseSiteTarget(q, ctx);
+    const target = parseSiteTarget(q, ctx, history);
     const toX = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? 0 : target.x;
     const toZ = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? 0 : target.z;
     const beaconTool = toolByName("deploy_beacons");
@@ -660,7 +690,7 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
-    const target = parseSiteTarget(q, ctx);
+    const target = parseSiteTarget(q, ctx, history);
     const res = await execRead("plan_route", { to_x: target.x, to_z: target.z, speed_ms: 1.0 }, ctx, caller, trace);
     if (!res?.reachable) {
       return {
@@ -862,11 +892,11 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
 
   if (
     isUnitActionPhrase ||
-    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|manda[\p{L}]*|mand[aá]|send|dispatch|despacha[\p{L}]*|mueve|move|rover|drone?|scout|glider|ven[ií]|come|localiza[\p{L}]*|lidar|ubicaci[oó]n|coordenada[\p{L}]*|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move|rover|drone?|scout|glider|ven[ií]|come|localiza[\p{L}]*|lidar|ubicaci[oó]n|coordenada[\p{L}]*|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
       q,
     )
   ) {
-    const unitId = parseUnitId(q, ctx);
+    const unitId = parseUnitId(q, ctx, history);
     const robotAgent = unitId ? `ROBOT.${unitId}` : "BASE";
     const route = unitId ? ["SUIT.VOICE-EXEC", "BASE", robotAgent] : ["SUIT.VOICE-EXEC", "BASE"];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
@@ -971,7 +1001,7 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
       }
     }
 
-    const target = parseSiteTarget(q, ctx);
+    const target = parseSiteTarget(q, ctx, history);
     const unitObj = ctx.fleet.find((u) => u.id === unitId);
     const maxSlope = unitObj ? (MAX_SLOPE[unitObj.kind] ?? 20) : 20;
     const safeTarget = nearestSafePoint(target.x, target.z, maxSlope);

@@ -4,7 +4,7 @@ import type { ProviderName, Tier } from "../config.js";
 import { asOpenAI, toolsFor } from "./tools/registry.js";
 import { callTool, missionScope, startMcpServers } from "./tools/mcp.js";
 import { review } from "./guardian.js";
-import type { Action, Lang, MissionContext, ToolDef, TraceEvent } from "./types.js";
+import type { Action, ConversationTurn, Lang, MissionContext, ToolDef, TraceEvent } from "./types.js";
 
 export interface AgentSpec {
   name: string;
@@ -123,6 +123,7 @@ export async function runAgent(
   userRequest = input,
   maxSteps = 6,
   depth = 0,
+  history: ConversationTurn[] = [],
 ): Promise<AgentResult> {
   await startMcpServers();
 
@@ -174,11 +175,22 @@ export async function runAgent(
     } as ToolDef);
   }
 
+  // Only SUIT.VOICE-EXEC and BASE receive bounded conversational history; delegated specialists receive only BASE's objective.
+  const priorTurns =
+    depth === 0 && (spec.name === "SUIT.VOICE-EXEC" || spec.name === "BASE")
+      ? history
+          .filter((t) => (t.role === "user" || t.role === "assistant") && t.content.trim().length > 0)
+          .filter((t) => !(t.role === "assistant" && /^ESCALATE$/i.test(t.content.trim())))
+          .slice(-6)
+          .map((t) => ({ role: t.role, content: t.content.trim() }))
+      : [];
+
   const messages: any[] = [
     {
       role: "system",
       content: `${spec.system}\nReply language: ${ctx.lang}. Numbers must come from tools; never estimate them. The reply is spoken aloud: plain text only, no Markdown and no LaTeX.`,
     },
+    ...priorTurns,
     { role: "user", content: input },
   ];
 
@@ -254,7 +266,9 @@ export async function runAgent(
           actions.length === 0 && !hardDenied && claimsUnitActionWithoutExecution(finalText)
             ? unexecutedReply(ctx.lang)
             : finalText;
-        trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: safeText });
+        if (!(spec.name === "SUIT.VOICE-EXEC" && /^ESCALATE$/i.test(safeText))) {
+          trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: safeText });
+        }
         return { text: safeText, actions, trace };
       }
     }

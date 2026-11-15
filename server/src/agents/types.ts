@@ -3,6 +3,11 @@ import type { z } from "zod";
 
 export type Lang = "en" | "es" | "fr" | "de" | "it";
 
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
 const LANG_MAP: Record<string, Lang> = {
   en: "en",
   "en-us": "en",
