@@ -1,3 +1,4 @@
+import { footprintContacts, groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
@@ -265,7 +266,7 @@ export class BaseProc {
         rail.position.y = 4.2;
         rail.rotation.z = -0.35;
         mGroup.add(rail);
-        this.launcherOrigins.push([ox, oz, gy + 5.5]);
+
       } else if (mod.kind === "fission") {
         mesh = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.5, mod.height, 12), mat);
         mesh.position.y = mod.height / 2;
@@ -287,6 +288,14 @@ export class BaseProc {
       mesh.receiveShadow = true;
       mesh.userData = { baseModuleId: mod.id };
       mGroup.add(mesh);
+      mesh.updateMatrix();
+      mesh.geometry.computeBoundingBox();
+      const localBounds = mesh.geometry.boundingBox!.clone().applyMatrix4(mesh.matrix);
+      const placement = groundPlacement((x, z) => terrain.heightAt(x, z), ox, oz,
+        footprintContacts(mod.footprint[0], mod.footprint[1], localBounds.min.y));
+      mGroup.position.y = placement.y;
+      mGroup.userData.contactClearanceM = placement.clearanceM;
+      if (mod.kind === "launcher") this.launcherOrigins.push([ox, oz, placement.y + 5.5]);
       this.selectableMeshes.push(mesh);
 
       const lbl = makeSpriteLabel(mod.id.toUpperCase(), mod.kind === "fission" ? "#ffb800" : "#35e0ff");
