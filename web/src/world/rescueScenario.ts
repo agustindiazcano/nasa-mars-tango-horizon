@@ -9,6 +9,7 @@ import {
   findCrew,
   initialCrewSnapshots,
   fleetStartPos,
+  LAUNCH_SITE_COORD,
   pitSurfaceOffsetAt,
   RESCUE_PIT,
   RESCUE_SITE,
@@ -551,6 +552,8 @@ export class RescueScenario {
         const m = BASE_MODULE_FOOTPRINTS.find((f) => f.id === "compute");
         return ground(BASE_ORIGIN.x + (m?.offsetX ?? 10), BASE_ORIGIN.z + (m?.offsetZ ?? 0));
       }
+      case "launch-site":
+        return ground(LAUNCH_SITE_COORD.x, LAUNCH_SITE_COORD.z);
       case "pit":
       case "rescue-site":
         return ground(RESCUE_SITE.x, RESCUE_SITE.z);
