@@ -247,11 +247,34 @@ store.setHooks({
   onLayerChange: (layer: LayerId) => terrain.setLayer(layer),
   onShowRoute: (toX, toZ) => planAndDrawRoute(toX, toZ),
   onDispatch: (unitId, x, z, task) => {
-    fleet.dispatchTo(unitId, x, z, task, () => {
-      if (task === "rescue" && store.leakDiameterM > 0) {
-        sealSuitLeak(`${unitId} arrived`);
-      }
-    });
+    let plannedMsg = "";
+    let arrivalCoords = { x: Math.round(x), z: Math.round(z) };
+    const ok = fleet.dispatchTo(
+      unitId,
+      x,
+      z,
+      task,
+      () => {
+        if (task === "rescue" && store.leakDiameterM > 0) {
+          sealSuitLeak(`${unitId} arrived`);
+        } else {
+          store.pushAlert("info", `${unitId}: arrived (${task}) at (${arrivalCoords.x}, ${arrivalCoords.z})`);
+        }
+      },
+      {
+        astronautPos: { x: astronaut.pos.x, z: astronaut.pos.z },
+        drawRoute: !store.activeRoute,
+        onPlanned: (info) => {
+          arrivalCoords = { x: Math.round(info.x), z: Math.round(info.z) };
+          const dist = Math.round(info.distanceM);
+          const eta = Math.max(1, Math.round(info.etaS));
+          plannedMsg = `${unitId}: dispatched (${task}) -> (${arrivalCoords.x}, ${arrivalCoords.z}), ${dist} m, ETA ${eta} s`;
+        },
+      },
+    );
+    if (ok && plannedMsg) {
+      store.pushAlert("info", plannedMsg);
+    }
   },
   onLaunchPod: (tx, tz, payload) => {
     if (store.leakDiameterM > 0) store.emergencyResponseActive = true;
@@ -312,10 +335,24 @@ store.setHooks({
       return { x: me.x + ((here.x - me.x) / d) * 5, z: me.z + ((here.z - me.z) / d) * 5 };
     };
     const note = (text: string) => store.pushAlert("info", `${unitId}: ${text}`);
-    const go = (p: { x: number; z: number }, task: string, done?: string) =>
-      fleet.dispatchTo(unitId, p.x, p.z, task, done ? () => note(done) : undefined);
+    const go = (p: { x: number; z: number }, task: string, done?: string) => {
+      let plannedMsg = "";
+      fleet.dispatchTo(unitId, p.x, p.z, task, done ? () => note(done) : undefined, {
+        astronautPos: me,
+        drawRoute: !store.activeRoute,
+        onPlanned: (info) => {
+          if (info.distanceM > 1) {
+            const dist = Math.round(info.distanceM);
+            const eta = Math.max(1, Math.round(info.etaS));
+            plannedMsg = `dispatched (${task}) -> (${Math.round(info.x)}, ${Math.round(info.z)}), ${dist} m, ETA ${eta} s`;
+          }
+        },
+      });
+      if (plannedMsg) note(plannedMsg);
+    };
     switch (action) {
       case "takeoff":
+        if (typeof args.altitude_m === "number") unit.targetAltitude = args.altitude_m;
         go(here, "takeoff");
         note(`airborne, climbing to ${args.altitude_m ?? 14} m`);
         break;
