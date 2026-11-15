@@ -51,3 +51,9 @@ variable "container_image" {
   type        = string
   default     = "us-central1-docker.pkg.dev/nasa-tango-horizon/tango-horizon/server:latest"
 }
+
+variable "github_repository" {
+  description = "GitHub repository (owner/repo) allowed to deploy to Cloud Run via Workload Identity Federation"
+  type        = string
+  default     = "agustindiazcano/nasa-mars-tango-horizon"
+}

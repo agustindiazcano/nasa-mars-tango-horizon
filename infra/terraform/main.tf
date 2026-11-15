@@ -8,6 +8,8 @@ locals {
     "artifactregistry.googleapis.com",
     "secretmanager.googleapis.com",
     "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "sts.googleapis.com",
   ])
 }
 
@@ -174,4 +176,71 @@ resource "google_cloud_run_v2_service_iam_member" "public_invoker" {
   name     = google_cloud_run_v2_service.backend[0].name
   role     = "roles/run.invoker"
   member   = "allUsers"
+}
+
+# 7. Keyless GitHub Actions Continuous Deployment via Workload Identity Federation (WIF)
+resource "google_service_account" "github_cd" {
+  project      = var.project_id
+  account_id   = "${var.service_name}-cd"
+  display_name = "Tango Horizon GitHub Actions CD Service Account"
+  description  = "Keyless OIDC identity for GitHub Actions to build and deploy Cloud Run on main push"
+  depends_on   = [google_project_service.apis["iam.googleapis.com"]]
+}
+
+locals {
+  github_cd_roles = toset([
+    "roles/run.admin",
+    "roles/cloudbuild.builds.editor",
+    "roles/storage.admin",
+    "roles/artifactregistry.writer",
+    "roles/secretmanager.viewer",
+    "roles/serviceusage.serviceUsageConsumer",
+  ])
+}
+
+resource "google_project_iam_member" "github_cd_roles" {
+  for_each = local.github_cd_roles
+  project  = var.project_id
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.github_cd.email}"
+}
+
+resource "google_service_account_iam_member" "github_cd_act_as_backend" {
+  service_account_id = google_service_account.backend.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.github_cd.email}"
+}
+
+resource "google_iam_workload_identity_pool" "github" {
+  project                   = var.project_id
+  workload_identity_pool_id = "github-actions-pool"
+  display_name              = "GitHub Actions Pool"
+  description               = "OIDC Workload Identity Pool for GitHub Actions CI/CD"
+  depends_on = [
+    google_project_service.apis["iam.googleapis.com"],
+    google_project_service.apis["sts.googleapis.com"],
+  ]
+}
+
+resource "google_iam_workload_identity_pool_provider" "github" {
+  project                            = var.project_id
+  workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
+  workload_identity_pool_provider_id = "github-provider"
+  display_name                       = "GitHub OIDC Provider"
+  attribute_mapping = {
+    "google.subject"       = "assertion.sub"
+    "attribute.actor"      = "assertion.actor"
+    "attribute.repository" = "assertion.repository"
+    "attribute.ref"        = "assertion.ref"
+  }
+  attribute_condition = "assertion.repository == \"${var.github_repository}\""
+  oidc {
+    issuer_uri = "https://token.actions.githubusercontent.com"
+  }
+}
+
+resource "google_service_account_iam_member" "github_wif_binding" {
+  service_account_id = google_service_account.github_cd.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"
 }

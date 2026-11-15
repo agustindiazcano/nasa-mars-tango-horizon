@@ -22,20 +22,23 @@ gcloud config set project "$GCP_PROJECT_ID" >/dev/null
 SECRETS_LIST=()
 ensure_secret() {
   local name="$1" env_var="$2" val="$3"
+  local existing_versions=""
   if ! gcloud secrets describe "$name" --project="$GCP_PROJECT_ID" >/dev/null 2>&1; then
     if [ -z "$val" ]; then return; fi
     printf '%s' "$val" | gcloud secrets create "$name" --project="$GCP_PROJECT_ID" --data-file=- >/dev/null
+    existing_versions="1"
   else
-    local existing_versions
     existing_versions=$(gcloud secrets versions list "$name" --project="$GCP_PROJECT_ID" --filter="state=ENABLED" --format="value(name)" | head -n 1 || true)
     if [ -n "$val" ] && { [ -z "$existing_versions" ] || [ "${UPDATE_SECRETS:-0}" = "1" ]; }; then
       printf '%s' "$val" | gcloud secrets versions add "$name" --project="$GCP_PROJECT_ID" --data-file=- >/dev/null
+      existing_versions="1"
     fi
   fi
+  if [ -z "$existing_versions" ]; then return; fi
   gcloud secrets add-iam-policy-binding "$name" \
     --project="$GCP_PROJECT_ID" \
     --member="serviceAccount:${SA_EMAIL}" \
-    --role="roles/secretmanager.secretAccessor" >/dev/null
+    --role="roles/secretmanager.secretAccessor" >/dev/null 2>&1 || true
   SECRETS_LIST+=("${env_var}=${name}:latest")
 }
 

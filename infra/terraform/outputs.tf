@@ -27,3 +27,13 @@ output "cloud_run_url" {
   description = "Deployed Cloud Run backend URL (when deploy_cloud_run = true)"
   value       = var.deploy_cloud_run ? google_cloud_run_v2_service.backend[0].uri : null
 }
+
+output "github_wif_provider" {
+  description = "Workload Identity Provider resource name for GitHub Actions"
+  value       = google_iam_workload_identity_pool_provider.github.name
+}
+
+output "github_cd_service_account_email" {
+  description = "Service Account email for GitHub Actions Continuous Deployment"
+  value       = google_service_account.github_cd.email
+}
