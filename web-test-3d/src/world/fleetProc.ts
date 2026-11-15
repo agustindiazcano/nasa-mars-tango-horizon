@@ -1,5 +1,5 @@
 import { fleetStartPos, MANIP_TARGETS } from "@th/shared";
-import { groundPlacement } from "./groundPlacement";
+import { footprintContacts, groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "../core/physics";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "../core/types";
@@ -105,18 +105,28 @@ export class FleetUnit {
         this.lidarCone.visible = !this.grounded;
       }
     } else {
-
-      // Pitch gently with terrain gradient
-      const fwdX = Math.sin(o.rotation.y);
-      const fwdZ = Math.cos(o.rotation.y);
-      const hAhead = this.terrain.heightAt(o.position.x + fwdX * 1.2, o.position.z + fwdZ * 1.2);
-      const hBehind = this.terrain.heightAt(o.position.x - fwdX * 1.2, o.position.z - fwdZ * 1.2);
-      o.rotation.x = Math.atan2(hBehind - hAhead, 2.4) * 0.65;
-
+      this.alignToTerrain();
       this.placeOnGround();
       const wheelSpin = distMoved / 0.32;
       for (const w of this.wheels) w.rotation.x += wheelSpin;
     }
+  }
+
+  alignToTerrain(): void {
+    const o = this.object;
+    o.rotation.order = "YXZ";
+    const yaw = o.rotation.y;
+    const fwdX = Math.sin(yaw);
+    const fwdZ = Math.cos(yaw);
+    const rightX = Math.cos(yaw);
+    const rightZ = -Math.sin(yaw);
+    const hAhead = this.terrain.heightAt(o.position.x + fwdX * 1.0, o.position.z + fwdZ * 1.0);
+    const hBehind = this.terrain.heightAt(o.position.x - fwdX * 1.0, o.position.z - fwdZ * 1.0);
+    const pitch = Math.atan2(hBehind - hAhead, 2.0);
+    o.rotation.x = pitch;
+    const hRight = this.terrain.heightAt(o.position.x + rightX * 0.9, o.position.z + rightZ * 0.9);
+    const hLeft = this.terrain.heightAt(o.position.x - rightX * 0.9, o.position.z - rightZ * 0.9);
+    o.rotation.z = Math.atan2(hRight - hLeft, 1.8 * Math.max(0.4, Math.cos(pitch)));
   }
 
   placeOnGround(): void {
@@ -503,7 +513,10 @@ export class FleetProc {
     label.scale.set(6.5, 1.25, 1);
     g.add(label);
 
-    if (!spec.flies) unit.placeOnGround();
+    if (!spec.flies) {
+      unit.alignToTerrain();
+      unit.placeOnGround();
+    }
     return unit;
   }
 
@@ -555,18 +568,24 @@ export class FleetProc {
 
   private buildManipTargets(): void {
     for (const t of this.targets) {
-      const y = this.terrain.heightAt(t.x, t.z);
       const color = t.kind === "sulfate_vein" ? 0xf2f4f8 : t.kind === "basalt_rock" ? 0x5c636e : 0xc67848;
-      const mesh = new THREE.Mesh(
-        new THREE.DodecahedronGeometry(0.32, 0),
-        new THREE.MeshStandardMaterial({ color, roughness: 0.85 }),
+      const geo = new THREE.DodecahedronGeometry(0.32, 0);
+      geo.computeBoundingBox();
+      const minY = geo.boundingBox!.min.y;
+      const placed = groundPlacement(
+        (x, z) => this.terrain.heightAt(x, z),
+        t.x,
+        t.z,
+        footprintContacts(0.45, 0.45, minY),
       );
-      mesh.position.set(t.x, y + 0.18, t.z);
+      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: 0.85 }));
+      mesh.position.set(t.x, placed.y, t.z);
       mesh.castShadow = true;
+      mesh.name = `target:${t.id}`;
       this.group.add(mesh);
 
       const lbl = makeSpriteLabel(`${t.id} ${t.kind}`, "#ffb800");
-      lbl.position.set(t.x, y + 0.95, t.z);
+      lbl.position.set(t.x, placed.y + 0.77, t.z);
       lbl.scale.set(3.8, 0.72, 1);
       this.group.add(lbl);
     }

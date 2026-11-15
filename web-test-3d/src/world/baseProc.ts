@@ -1,5 +1,5 @@
 import { BASE_ORIGIN } from "@th/shared";
-import { footprintContacts, groundPlacement } from "./groundPlacement";
+import { footprintGridContacts, groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
@@ -295,7 +295,7 @@ export class BaseProc {
       mesh.geometry.computeBoundingBox();
       const localBounds = mesh.geometry.boundingBox!.clone().applyMatrix4(mesh.matrix);
       const placement = groundPlacement((x, z) => terrain.heightAt(x, z), wx, wz,
-        footprintContacts(mod.footprint[0], mod.footprint[1], localBounds.min.y));
+        footprintGridContacts(mod.footprint[0], mod.footprint[1], localBounds.min.y, 2));
       mGroup.position.y = placement.y;
       mGroup.userData.contactClearanceM = placement.clearanceM;
       if (mod.kind === "launcher") this.launcherOrigins.push([wx, wz, placement.y + 5.5]);
