@@ -59,3 +59,15 @@ Baseline main `8a18b17` includes PR #14. Branch `fix/nasa-historical-replay` add
 Targeted command `npx vitest run src/agents/__tests__/historicalSeries.test.ts --root server`: 17 passed. Frontend `npm run typecheck --workspace web-test-3d`: passed. Tests cover exact arrays, radiation peak, epochs, missing data, invalid arrays/units and replay lifecycle/frame partition invariance.
 
 Browser inventory was retried: no apps/browsers; native pipe unavailable (os error 2). No visual result is claimed. Full CI is linked from PR #15: https://github.com/agustindiazcano/nasa-mars-tango-horizon/pull/15 . No new source acquisition or production deployment.
+
+## P2/P3 lifecycle and identity follow-up
+
+Baseline main `8e61b4c` includes PR #15, verified merged through GitHub. Active runtime remains `web-test-3d`; B22/B23 are unchanged. Untracked `.claude/` content is preserved.
+
+Implemented bounded retries, cancellation, stale-generation protection, pinned metadata/DEM identity, explicit startup states and client/server rejection. Terrain commit is idempotent; reset remains document reload. Shared footprint/contact placement covers base modules and actual rover wheels, including launcher origins.
+
+Local validation: lifecycle 14/14 tests passed; terrain validation 9/9 and coordinates 3/3 passed. Frontend and server TypeScript passed. Tests cover a real 6.5-second delay, missing/truncated/same-length corrupt assets, metadata mismatch, retry, cancellation/backoff, ignored abort/late completion, validated-cache reuse, fresh reset owner, repeated-load scene/marker counts, both HTTP mismatch endpoints and numerical contact clearances.
+
+Browser inventory retried through CUA: `apps: []`, `browsers: []`; native pipe connection failed with Windows `os error 2` (file not found). No screenshots, visual contact/reset acceptance or preview MIME checks are claimed.
+
+Source identity does not certify 256-sample client geometry against 2048-sample server queries and processed layers. Contact tests prove no penetration only at supplied supports. Browser residuals, broader crew/pod/camera checks, flat base selection, CTX vertical-reference disposition and P4-P7 gates remain open. No merge or deployment performed.

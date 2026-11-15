@@ -159,3 +159,12 @@ Update the three status files in a separate commit, push the task branch(es), an
 - Validate all consumed arrays before enabling controls. Reject invalid lengths, empty series, nonfinite values, unsupported radiation quantities and nonincreasing time. Never fill missing wind from mission defaults.
 
 Validation scope: numeric adapters and clock are tested against all five files. Browser controls, modal accessibility and visual layout still require browser verification; the browser surface is unavailable.
+
+## P2/P3 terrain lifecycle decisions (2026-11-14)
+
+- Pin metadata bytes and little-endian DEM bytes with SHA-256 in `shared/src/terrainContract.ts`. The version names a source crop, not a verified vertical datum. Regeneration, including metadata serialization, requires reviewing both hashes and the version.
+- One startup owner: each fetch has a 60-second deadline, three attempts and 1/2-second backoff. Cancel interrupts fetch/backoff; generation checks reject late completion even if fetch ignores abort. Manual retry starts a new generation. Cache only validated assets in memory.
+- Actors are built after DEM success. Successful reload calls reuse the asset without rebuilding markers. Reset remains a full page reload, destroying the old document and scene. Page exit cancels DEM/imagery and stops startup continuation.
+- Require ready source identity on voice/run requests. Missing/mismatched identity or synthetic server fallback returns HTTP 409 with no actions before agent execution. Successful responses carry identity; the browser discards incompatible results without local fallback. Older clients/servers require coordinated updates. Transport failure retains the existing local design fallback.
+- Source identity does not assert equal sampling: client mesh/queries retain 256 samples and approximate fields; server height queries use 2048 samples, absolute elevations and processed layers. P4/P6 must quantify differences before route costs or safety geometry are claimed equivalent.
+- Common placement uses the maximum required root height across physical contacts. Base modules use footprint corners and main-mesh lower bounds; launcher origins follow placement. Rovers use actual wheel centers, 0.32 m radius and attitude at spawn/movement. Downhill supports may remain above ground. Adaptive supports, articulation, flat base selection and visual contact approval remain open. Crew/markers/pod retain center-height placement.
