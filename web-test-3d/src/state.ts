@@ -41,6 +41,8 @@ export class MissionStore {
   layer: LayerId = "optical";
   panel: PanelId = "none";
   leakDiameterM = 0;
+  /** Set when a pod is launched for the current leak; sent to the server so it does not repeat the protocol. */
+  emergencyResponseActive = false;
   fanDegraded = false;
   earthLinkDelay = false;
   earthDelayRemainingS = 0;
@@ -192,6 +194,7 @@ export class MissionStore {
         panel: this.panel === "none" ? null : this.panel,
       },
       leak_diameter_m: this.leakDiameterM,
+      emergency_response_active: this.emergencyResponseActive,
     };
   }
 

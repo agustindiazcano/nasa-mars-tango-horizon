@@ -182,6 +182,7 @@ let leakEscalated = false;
 function sealSuitLeak(sourceLabel: string): void {
   if (store.leakDiameterM <= 0) return;
   store.leakDiameterM = 0;
+  store.emergencyResponseActive = false;
   store.suit.suit_pressure_pa = C.suit_p_nominal.value;
   store.suit.o2_primary_kg = store.suit.o2_primary_cap_kg;
   store.suit.o2_reserve_kg = store.suit.o2_reserve_cap_kg;
@@ -201,6 +202,7 @@ store.setHooks({
     });
   },
   onLaunchPod: (tx, tz, payload) => {
+    if (store.leakDiameterM > 0) store.emergencyResponseActive = true;
     const dist = Math.hypot(tx - astronaut.pos.x, tz - astronaut.pos.z);
     if (dist < C.pod_keepout_m.value) {
       store.pushAlert("warn", `Pod aim shifted outside ${C.pod_keepout_m.value} m keep-out ring`);
@@ -335,6 +337,7 @@ function startScenario(id: "storm" | "sep2017" | "leak"): void {
     store.pushAlert("crit", `Solar Particle Event! Sheltered SVF=${bestSvf.toFixed(2)} route plotted`, "WEATHER-RAD");
   } else if (id === "leak") {
     leakEscalated = false;
+    store.emergencyResponseActive = false;
     store.leakDiameterM = 0.0016;
     const tl = leakTimeline(store.suit.suit_pressure_pa, store.leakDiameterM);
     store.pushAlert("crit", t("alert.leak", { t: `${Math.round(tl.toCriticalS)} s` }), "SUIT.HEALTH");

@@ -59,6 +59,7 @@ function buildContext(raw: any, lang: Lang): MissionContext {
       panel: c.hud?.panel ?? null,
     },
     leak_diameter_m: Number(c.leak_diameter_m ?? 0),
+    emergency_response_active: c.emergency_response_active === true,
     ...(Array.isArray(c.targets) ? { targets: c.targets } : {}),
     ...(Array.isArray(c.storm_forecast) ? { storm_forecast: c.storm_forecast } : {}),
   };

@@ -164,6 +164,11 @@ setDelegateHandler(async (agentName, objective, ctx, userRequest, depth) => {
   return runAgent(target, objective, ctx, userRequest, 4, depth);
 });
 
+/** True when a leak is active, no pod is on the way yet and the agent reply has no launch_pod: run the deterministic protocol. */
+export function needsLeakSafetyNet(ctx: MissionContext, actions: { type: string }[]): boolean {
+  return ctx.leak_diameter_m > 0 && !ctx.emergency_response_active && !actions.some((a) => a.type === "launch_pod");
+}
+
 /** Voice entrypoint: fast suit executor first, escalating to BASE when needed. */
 export async function handleVoice(
   text: string,
@@ -172,7 +177,7 @@ export async function handleVoice(
   const fast = await runAgent(AGENTS["SUIT.VOICE-EXEC"], text, ctx);
   const needsEscalation =
     /ESCALATE/i.test(fast.text) || (!fast.text.trim() && fast.actions.length === 0);
-  if (!needsEscalation && ctx.leak_diameter_m > 0 && !fast.actions.some((a) => a.type === "launch_pod")) {
+  if (!needsEscalation && needsLeakSafetyNet(ctx, fast.actions)) {
     const det = await offlineReply(`${text} emergency`, ctx);
     return { text: det.speech, actions: [...fast.actions, ...det.actions], trace: [...fast.trace, ...det.trace], route: det.route };
   }
@@ -183,7 +188,7 @@ export async function handleVoice(
   const base = await runAgent(AGENTS.BASE, text, ctx);
 
   // Life-support safety net: a suit leak must never depend on the LLM choosing to act.
-  if (ctx.leak_diameter_m > 0 && !base.actions.some((a) => a.type === "launch_pod")) {
+  if (needsLeakSafetyNet(ctx, base.actions)) {
     const det = await offlineReply(`${text} emergency`, ctx);
     return {
       text: det.speech,

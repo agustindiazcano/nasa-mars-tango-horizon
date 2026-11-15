@@ -77,6 +77,8 @@ export interface MissionContext {
     panel: string | null;
   };
   leak_diameter_m: number;
+  /** True once the O2 pod has been launched for the current leak; stops the server from repeating the emergency protocol. */
+  emergency_response_active?: boolean;
   targets?: VisionTargetMarker[];
   storm_forecast?: StormForecastPoint[];
 }
