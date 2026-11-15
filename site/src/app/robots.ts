@@ -1,13 +1,16 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://proyecto-tango-horizon.vercel.app';
+const BASE_URL = 'https://tangohorizon-site.vercel.app';
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-    },
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+      },
+    ],
     sitemap: `${BASE_URL}/sitemap.xml`,
+    host: BASE_URL,
   };
 }

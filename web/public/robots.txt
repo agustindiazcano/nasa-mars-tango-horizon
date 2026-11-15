@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tangohorizon.vercel.app/sitemap.xml
+Host: https://tangohorizon.vercel.app

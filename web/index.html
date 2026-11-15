@@ -3,15 +3,46 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tango Horizon · 3D Test Harness</title>
+  <meta name="theme-color" content="#090406" />
+  <title>Tango Horizon · 3D Mars EVA Operations Simulator | NASA Space Apps 2026</title>
+  <meta name="description" content="Interactive WebGL2 3D Mars EVA operations simulator in Gale Crater featuring a 14-agent AI hierarchy, 3-layer GUARDIAN safety consensus, hands-free 5-language voice, offline BM25 RAG, and 3 ML models trained on NASA PDS data." />
+  <meta name="keywords" content="Tango Horizon, 3D Mars Simulator, Simulador 3D Marte, NASA Space Apps Challenge 2026, Gale Crater, EVA AI, CONAE, Universidad de Palermo, Agustin Diaz-Cano, Baltazar Salerno, Milagros Sotelo, Federico Yaconis" />
+  <meta name="author" content="Team Tango Horizon (Agustín Díaz-Cano, Baltazar Salerno, Milagros Sotelo, Federico Yaconis)" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <link rel="canonical" href="https://tangohorizon.vercel.app/" />
+  <meta property="og:title" content="Tango Horizon · 3D Mars EVA Operations Simulator" />
+  <meta property="og:description" content="Real-time 3D Gale Crater Martian EVA simulation with 14 AI agents, GUARDIAN safety consensus, and NASA PDS machine learning models." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://tangohorizon.vercel.app/" />
+  <meta property="og:site_name" content="Tango Horizon" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Tango Horizon · 3D Mars EVA Operations Simulator" />
+  <meta name="twitter:description" content="Real-time 3D Gale Crater Martian EVA simulation with 14 AI agents, GUARDIAN safety consensus, and NASA PDS machine learning models." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Tango Horizon · 3D Mars EVA Operations Simulator",
+    "url": "https://tangohorizon.vercel.app/",
+    "applicationCategory": "SimulationApplication, EducationalApplication",
+    "operatingSystem": "WebGL2 Browser",
+    "description": "Real-time 3D Martian EVA operations simulator in Gale Crater with 14 AI agents, 3-layer GUARDIAN safety consensus, and NASA PDS machine learning models.",
+    "author": {
+      "@type": "Organization",
+      "name": "Team Tango Horizon",
+      "url": "https://tangohorizon-site.vercel.app/"
+    }
+  }
+  </script>
 </head>
 <body>
-  <canvas id="scene-canvas"></canvas>
-  <div id="hud-root"></div>
-  <div id="hud-cursor"></div>
+  <canvas id="scene-canvas" role="application" aria-label="Tango Horizon 3D Mars EVA Operations Simulator in Gale Crater"></canvas>
+  <div id="hud-root" role="region" aria-label="EVA Mission Telemetry and AI Command HUD"></div>
+  <div id="hud-cursor" aria-hidden="true"></div>
+  <noscript>Tango Horizon 3D Mars EVA Simulator requires JavaScript and WebGL2 enabled in your browser. Visit https://tangohorizon-site.vercel.app for the full project documentation and compendium.</noscript>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
