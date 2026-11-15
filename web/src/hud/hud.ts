@@ -1,6 +1,7 @@
 import { BASE_ORIGIN, LAUNCH_SITE_COORD, MISSION_SITES } from "@th/shared";
 import { formatCoordinates } from "../world/terrainValidation";
 import { hydrationRgb } from "../world/terrainRasters";
+import { estimateCassonTwin } from "../world/cassonTwin";
 import { ASR_LOCALE, fmt, getLang, LANGS, onLangChange, setLang, t } from "@th/shared";
 import { C, leakTimeline } from "@th/shared";
 import type { AlertLevel, ArmSkillId, LayerId, PanelId, TraceEvent, VotingTraceDetail } from "@th/shared";
@@ -263,6 +264,7 @@ export class TacticalHud {
       { panel: "base", key: "menu.base" },
       { panel: "provenance", key: "menu.provenance" },
       { panel: "sessions", key: "menu.sessions" },
+      { panel: "casson", key: "menu.casson" },
     ];
     const menuHtml = menuItems
       .map(
@@ -995,6 +997,27 @@ export class TacticalHud {
           <tr><td>${t("hud.co2")}</td><td>&lt; 667 Pa ${t("health.nominal")}</td><td>NASA-STD-3001 Vol. 2</td></tr>
           <tr><td>${t("health.radiation")}</td><td>600 mSv</td><td>NASA-STD-3001 Vol. 1</td></tr>
         </table>
+      `;
+    } else if (s.panel === "casson") {
+      const tw = estimateCassonTwin({
+        helmetCo2Pa: s.suit.co2_pa,
+        metabolicW: s.suit.metabolic_w,
+        evaTimeS: s.metS,
+      });
+      const statusCls = tw.status === "crit" ? "crit" : tw.status === "warn" ? "warn" : "ok";
+      this.modalEl.innerHTML = `
+        ${closeHdr(t("casson.title"))}
+        <table class="prov-tbl">
+          <tr><td>${t("casson.status")}</td><td class="val ${statusCls}">${t(`casson.status.${tw.status}`)}</td><td>PaCO2 &ge; 45 / 55 mmHg</td></tr>
+          <tr><td>${t("casson.paco2")}</td><td>${fmt(tw.paco2Mmhg, 1)} mmHg</td><td>${t("casson.paco2_src")}</td></tr>
+          <tr><td>${t("casson.hct")}</td><td>${fmt(tw.hematocrit * 100, 1)} %</td><td>${t("casson.hct_src")}</td></tr>
+          <tr><td>${t("casson.yield")}</td><td>${fmt(tw.yieldStressPa * 1000, 2)} mPa</td><td>Casson &tau;<sub>y</sub></td></tr>
+          <tr><td>${t("casson.eta_c")}</td><td>${fmt(tw.cassonViscosityPaS * 1000, 2)} mPa&middot;s</td><td>Casson &eta;<sub>c</sub></td></tr>
+          <tr><td>${t("casson.visc_high")}</td><td>${fmt(tw.viscosityHighShearPaS * 1000, 2)} mPa&middot;s</td><td>&gamma;&#775; = 100 s<sup>-1</sup></td></tr>
+          <tr><td>${t("casson.visc_low")}</td><td>${fmt(tw.viscosityLowShearPaS * 1000, 2)} mPa&middot;s</td><td>&gamma;&#775; = 1 s<sup>-1</sup></td></tr>
+          <tr><td>${t("casson.relative")}</td><td>${fmt(tw.relativeViscosity, 3)}x</td><td>${t("casson.baseline")}</td></tr>
+        </table>
+        <div style="margin-top:6px; font-size:11px; opacity:0.8;">&radic;&tau; = &radic;&tau;<sub>y</sub> + &radic;(&eta;<sub>c</sub>&middot;&gamma;&#775;) &mdash; ${t("casson.note")}</div>
       `;
     } else if (s.panel === "provenance") {
       this.ensureProvenanceLoaded();
