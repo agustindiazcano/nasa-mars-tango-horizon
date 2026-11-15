@@ -144,6 +144,8 @@ describe("ground contact residuals < 0.05 m (B33)", () => {
     for (const spec of FLEET_SPECS) {
       if (spec.flies) continue;
       const unit = fleet.units.get(spec.id)!;
+      // The rescue robot rides stowed in the rescue-1 bay on tracks, so it has no wheel meshes to seat.
+      if (unit.wheels.length === 0) continue;
       const checkWheelResiduals = (maxSpawnClearance?: number) => {
         const clearances = unit.wheels.map((wheel) => {
           const offset = wheel.position.clone().applyEuler(unit.object.rotation);
