@@ -634,19 +634,8 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
     const unitId = b.data.unit_id;
     const isAstronaut = unitId === "astronaut" || unitId === "helmet";
     const isDrone = unitId.startsWith("drone") || unitId.startsWith("glider");
-    const unavailable = isAstronaut
-      ? b.data.lang === "es"
-        ? "Cámara del visor del casco: terreno de Gale Crater con regolito rojizo, rocas basálticas y módulos de la base visibles frente a ti."
-        : "Helmet visor camera: Gale Crater terrain with reddish ferric regolith, basaltic rocks, and base habitat modules visible ahead."
-      : isDrone
-        ? b.data.lang === "es"
-          ? `Cámara aérea de ${unitId}: vista cenital de Gale Crater con pendientes, unidades de flota y objetivos científicos.`
-          : `Aerial camera of ${unitId}: overhead view of Gale Crater terrain, slopes, fleet units, and science targets.`
-        : b.data.lang === "es"
-          ? `Cámara de mástil de ${unitId}: terreno marciano de Gale Crater con afloramientos rocosos y posibles vetas minerales.`
-          : `Mast camera of ${unitId}: Gale Crater Martian terrain with rocky outcrops and potential mineral veins.`;
     if (!llmAvailable()) {
-      return { speech: unavailable, injection: false, latency_ms: Date.now() - t0 };
+      return reply.code(503).send({ error: "vision_unavailable", latency_ms: Date.now() - t0 });
     }
 
     const systemPrompt = isAstronaut
@@ -682,12 +671,15 @@ Reply in ${b.data.lang}, 35 words or fewer.`;
       );
     } catch (err) {
       req.log.error(err);
-      return { speech: unavailable, injection: false, latency_ms: Date.now() - t0 };
+      return reply.code(503).send({ error: "vision_unavailable", latency_ms: Date.now() - t0 });
     }
 
     const raw = msg.content ?? "";
     const injection = raw.includes("[INJECTION]");
-    const speech = raw.replace(/\[INJECTION\]/g, "").trim() || unavailable;
+    const speech = raw.replace(/\[INJECTION\]/g, "").trim();
+    if (!speech) {
+      return reply.code(503).send({ error: "vision_unavailable", latency_ms: Date.now() - t0 });
+    }
     const latency_ms = Date.now() - t0;
     req.log.info({ latency_ms, unit_id: b.data.unit_id, injection }, "/api/agent/vision");
     return { speech, injection, latency_ms };

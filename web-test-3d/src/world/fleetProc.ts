@@ -6,6 +6,7 @@ import type { ArmSkillId, UnitKind, UnitSnapshot } from "@th/shared";
 import { ManipulatorArm, SkillRunner } from "./manipulatorArm";
 import { extractIngenuityRotorPivots, loadNormalizedNasaGlb, type RotorPivot } from "./nasaModels";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
+import { createNasaInsignia } from "./nasaInsignia";
 
 export interface FleetTarget {
   id: string;
@@ -567,6 +568,25 @@ export class FleetProc {
           anchor: "center",
         });
         group.name = `glb:${droneId}`;
+
+        // The atlas insignia is outside this GLB's mapped UVs; mark its fixed body.
+        group.updateMatrixWorld(true);
+        let body: THREE.Mesh | undefined;
+        group.traverse((obj) => {
+          if (obj instanceof THREE.Mesh && !Array.isArray(obj.material) && obj.material.name === "foil_silver") {
+            body = obj;
+          }
+        });
+        if (body) {
+          // The unattached wrapper is in drone-local coordinates at this point.
+          const bounds = new THREE.Box3().setFromObject(body);
+          const center = bounds.getCenter(new THREE.Vector3());
+          const size = bounds.getSize(new THREE.Vector3());
+          const insignia = createNasaInsignia(Math.min(size.x, size.y) * 0.55);
+          insignia.position.set(center.x, center.y, bounds.max.z + 0.002);
+          group.add(insignia);
+        }
+
         if (drone.proceduralGroup) drone.proceduralGroup.visible = false;
         drone.object.add(group);
         drone.rotorPivots = extractIngenuityRotorPivots(group);
@@ -624,6 +644,11 @@ export class FleetProc {
       const hull = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.35, 0.28, 10), accentMat);
       hull.castShadow = true;
       procGroup.add(hull);
+
+      const insignia = createNasaInsignia(0.16);
+      insignia.position.set(0, 0.055, 0.424);
+      insignia.rotation.x = Math.atan(0.1 / 0.28);
+      procGroup.add(insignia);
 
       const legMat = new THREE.MeshStandardMaterial({ color: 0x333b44 });
       for (let i = 0; i < 4; i++) {
@@ -684,6 +709,10 @@ export class FleetProc {
       deck.position.y = 0.56;
       deck.castShadow = true;
       procGroup.add(deck);
+
+      const insignia = createNasaInsignia(0.28);
+      insignia.position.set(0, 0.56, wLen / 2 + 0.004);
+      procGroup.add(insignia);
 
       const stripe = new THREE.Mesh(new THREE.BoxGeometry(wWid + 0.04, 0.12, wLen * 0.72), accentMat);
       stripe.position.y = 0.62;
