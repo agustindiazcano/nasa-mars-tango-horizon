@@ -696,3 +696,11 @@ button.quick-card-btn.active {
     overflow-wrap: anywhere;
   }
 }
+
+/* Storm forecast fan chart in the right panel */
+.storm-block { margin-top: 8px; }
+.storm-block canvas { width: 100%; height: auto; display: block; }
+.storm-note { font-size: 10px; opacity: 0.75; margin-top: 3px; overflow-wrap: anywhere; }
+.storm-verdict.good { color: var(--good); }
+.storm-verdict.warn { color: var(--warn); }
+.storm-verdict.crit { color: var(--crit); }
