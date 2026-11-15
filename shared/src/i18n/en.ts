@@ -194,6 +194,7 @@ export const en = {
   "scene.resume": "Resume",
   "scene.restart": "Restart",
   "scene.stop": "Stop",
+  "scene.exit": "Exit presentation (Esc)",
   "scene.hide_hud": "Hide HUD",
   "scene.show_hud": "Show HUD",
   "scene.hint": "Pick a scene and press Play, or press P to show or hide this menu. Hide the HUD for clean takes.",

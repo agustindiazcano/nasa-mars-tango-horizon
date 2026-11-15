@@ -196,7 +196,15 @@
   overflow-wrap: anywhere;
 }
 
+.scene-panel.clean .scene-exit,
 .scene-panel.clean .scene-rec,
 .scene-panel.clean .scene-toast {
   opacity: 1;
+}
+
+/* Always reachable exit during a take, even with the HUD hidden. */
+.scene-exit {
+  background: rgba(255, 77, 94, 0.22);
+  border-color: var(--crit, #ff4d5e);
+  color: #fff;
 }

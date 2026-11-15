@@ -196,6 +196,7 @@ export const de: Record<Key, string> = {
   "scene.resume": "Fortsetzen",
   "scene.restart": "Neu starten",
   "scene.stop": "Stopp",
+  "scene.exit": "Präsentation beenden (Esc)",
   "scene.hide_hud": "HUD ausblenden",
   "scene.show_hud": "HUD einblenden",
   "scene.hint": "Szene wählen und Abspielen drücken, oder P drücken, um dieses Menü ein- oder auszublenden. HUD für saubere Aufnahmen ausblenden.",
