@@ -5,22 +5,34 @@
 
 # Tango Horizon: AI Systems for EVA and Mars Exploration
 
-**Autonomous Multi-Agent AI Systems for Extravehicular Activities (EVA)** — Real-time 3D Mars surface operations simulator over NASA/USGS Gale Crater cartography, pairing deterministic bioastronautics/physics (`@th/shared`) and hands-free multilingual voice control with a hierarchical Multi-Agent AI System guarded by Run-Time Assurance (`GUARDIAN`).
+**Tango Horizon** is a real-time 3D Mars surface mission operations simulator and tactical digital twin (Three.js WebGL2 at 60 FPS) built over real NASA and USGS Gale Crater cartography (`1 m/px` MRO HiRISE DTM and `0.25 m/px` orthoimage) to safeguard a four-astronaut crew (`SOTELO`, `YACONIS`, `SALERNO`, `DIAZ-CANO`) during extravehicular activities (EVA) under 4-to-24-minute one-way Earth-Mars communication delays. Rather than a game or a mock dashboard, it is a deterministic robotics, bioastronautics, and planetary climate simulator (`@th/shared`) with hands-free bidirectional radio voice in five languages (`English`, `Spanish`, `French`, `German`, `Italian`), a QR-paired smartphone gyroscope laser pointer and Push-to-Talk transceiver (`/remote` over WebSocket), and multimodal camera vision (`capture_vision`). Crew members and the mission orchestrator command a multi-robot fleet—where each vehicle is an autonomous agent—capable of analytic 4-DOF inverse-kinematics manipulation (`drill`, `sample`, `photograph`, `handover`), coaxial drone overwatch with Kevlar tether pendulum physics and 3D LiDAR cones, GPS-denied localization (HiRISE Map-Relative Localization + 6.5 GHz UWB ranging + VIO + 360° Flash LiDAR), 8.0 kg RK4 ballistic life-support drop-pod deployment (COPV $\text{O}_2$, $\text{LiOH}$ $\text{CO}_2$ scrubber, $200\text{ Wh}$ battery, breach patch) with non-pyrotechnic LED/UWB breadcrumb beacons, and autonomous multi-vehicle crew rescue when telemetry or crew requests trigger an emergency.
+
+To drive decision-making without physical hallucinations, the system pairs a hierarchical Multi-Agent AI runtime (`SUIT.VOICE-EXEC` fast suit executor escalating to the `BASE` large orchestrator, which delegates to `SUIT.HEALTH`, `EVA-PLANNER`, `SCIENCE`, `WEATHER-RAD`, `MAINTENANCE`, and per-unit `ROBOT.<id>` planners) with a three-provider LLM failover stack: **Google Cloud Vertex AI** and **Google AI Studio** (`google/gemini-4-carbon` large, `google/gemini-4-argon` medium/vision/judge, `google/gemini-4-hydrogen` fast/audio STT), **Meta Muse** backup (`muse-wonder-1.0`, `muse-spark-1.3`), and a deterministic offline engine (`offline.ts`)—architected so that in an actual Mars surface mission, open-weight models execute locally on the habitat's `compute` module and onboard vehicle processors. Spoken orders combine `<5 ms` local critical intents, 16 kHz PCM + Web Speech API capture, domain-glossary multimodal STT, and **Google Cloud Neural Text-to-Speech (`Journey` voices)** with Apollo Quindar tones ($2525/2475\text{ Hz}$) and a 32-band live FFT spectrum analyzer. Six in-process MCP servers (`InMemoryTransport`) and a `<2 ms` in-memory BM25 RAG engine (`1,002` chunks across 15 NASA standards including `NASA-STD-3001` Vol. 1 & 2, `OCHMO`, `AMCL`, `MEDPRAT`, `Mars-GRAM`, `MCD`, and `MOXIE`) power predictive biomedical alerts (personal baselines + Casson blood rheology bio-twin), predictive hardware fault isolation (`FDIR` and Remaining Useful Life `RUL`), and dust/radiation maneuvers, alongside three custom-trained ML models validated on real NASA PDS data (`Hydration Prospector` on MSL DAN neutrons + CRISM/THEMIS, `Storm Nowcaster` on 3,953 sols of MSL REMS barometric tides, and `Mineral Vein Detector` using frozen Meta `DINOv2-small` on Curiosity Mastcam/MAHLI frames), all gated by three-layer `GUARDIAN` Run-Time Assurance and three-model escalated consensus voting.
 
 **Live Demo:** [https://tangohorizon.vercel.app](https://tangohorizon.vercel.app)
 
 ## Index
 
 - [Team: Tango Horizon (Buenos Aires, Argentina)](#team-tango-horizon-buenos-aires-argentina)
-- [NASA Space Apps Challenge Links](#nasa-space-apps-challenge-links)
+- [Core Features & Operational Capabilities](#core-features--operational-capabilities)
 - [System Architecture & Multi-Agent Runtime](#system-architecture--multi-agent-runtime)
+- [Bidirectional Voice, Speech Models & 5-Language Support](#bidirectional-voice-speech-models--5-language-support)
+- [In-Memory BM25 RAG & Predictive Telemetry (Health, FDIR & Weather)](#in-memory-bm25-rag--predictive-telemetry-health-fdir--weather)
+- [Simulated Robotics, Fleet Autonomy & Cooperative Crew Rescue](#simulated-robotics-fleet-autonomy--cooperative-crew-rescue)
+- [Real vs. Simulated vs. Engineering Design Assumptions](#real-vs-simulated-vs-engineering-design-assumptions)
 - [NASA & USGS Data Used](#nasa--usgs-data-used)
 - [Deterministic Physics Models](#deterministic-physics-models)
 - [Physics & Engineering Constants](#physics--engineering-constants)
 - [Our Models & Empirical Validation](#our-models--empirical-validation)
 - [Known Limitations](#known-limitations)
+- [NASA Space Apps Challenge Links](#nasa-space-apps-challenge-links)
 - [AI Usage](#ai-usage)
 - [Technologies & Local Run Commands](#technologies--local-run-commands)
+- **Presentation & Pitch Materials (`docs/slides/`):**
+  - [`docs/slides/PROJECT_OVERVIEW.md`](docs/slides/PROJECT_OVERVIEW.md) — Plain-language complete technical overview (EN / ES)
+  - [`docs/slides/PRESENTATION_SCRIPT_3MIN.md`](docs/slides/PRESENTATION_SCRIPT_3MIN.md) — 3-minute presentation & live rescue script (ES / EN)
+  - [`docs/slides/PRESENTATION_SCRIPT_30S.md`](docs/slides/PRESENTATION_SCRIPT_30S.md) — 30-second video script (ES / EN)
+  - [`docs/slides/SLIDES.md`](docs/slides/SLIDES.md) — 10-slide presentation deck outline
 - [License](#license)
 
 ## Team: Tango Horizon (Buenos Aires, Argentina)
@@ -30,19 +42,25 @@
 - **Milagros Sotelo:** Systems Engineering Student ([UTN, FRBA](https://frba.utn.edu.ar/)) · [GitHub](https://github.com/Milagros-Sotelo)
 - **Federico Yaconis:** 3D Developer & QA
 
-## NASA Space Apps Challenge Links
+<details>
+<summary><strong>🔽 Toggle Full Technical Documentation — Features, Multi-Agent AI, Voice, RAG, Robotics, ML Models & NASA Data</strong></summary>
 
-- **Team:** https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project
-- **Local Event — [Universidad de Palermo](https://www.palermo.edu/) (Buenos Aires, Argentina) Node:** https://www.spaceappschallenge.org/2026/local-events/buenos-aires/
-- **Challenge — Interplanetary Survival Guide: Martian Map:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
-- **Rules (Participant Terms & Conditions):** https://www.spaceappschallenge.org/legal/
-- **Project Submission Guide:** https://www.spaceappschallenge.org/resources/project-submission-guide/
-- **Participant Resources & FAQs:** https://www.spaceappschallenge.org/resources/ · https://www.spaceappschallenge.org/resources/participant-faqs/
-- **Space Apps Challenge:** https://www.spaceappschallenge.org/
+## Core Features & Operational Capabilities
+
+- **Hands-Free Voice Command & Live Telemetry Assistant:** Full mission operation by voice in **5 languages (`EN`, `ES`, `FR`, `DE`, `IT`)** with sub-5 ms local emergency intents, domain-normalized multimodal speech-to-text, neural radio voice synthesis, Apollo Quindar tones ($2525/2475\text{ Hz}$), and a 32-band real-time FFT audio visualizer.
+- **Hierarchical Multi-Agent Orchestration & Per-Robot Agents:** Fast suit voice executor (`SUIT.VOICE-EXEC`), large base orchestrator (`BASE`), five domain specialists (`SUIT.HEALTH`, `EVA-PLANNER`, `SCIENCE`, `WEATHER-RAD`, `MAINTENANCE`), and dedicated onboard agents (`ROBOT.<id>`) for every rover, drone, glider, manipulator, and rescue robot—controllable directly by the astronaut or delegated by `BASE`.
+- **Autonomous Emergency & Crew Rescue Deployment:** Triggered either by crew voice command or automatically when `SUIT.HEALTH` / `MAINTENANCE` / `WEATHER-RAD` detect suit depressurization, crew incapacitation, rover actuator failure, or dust storm onset—dispatching overwatch drones, a pressurized rescue rover (`rescue-1`), and a tracked rescue robot (`rescue-bot-1`) with a motorized winch and stretcher.
+- **8.0 kg Ballistic Life-Support Drop-Pod & Solid-State Beacons:** Suborbital emergency pod launched from the habitat and integrated via 4th-order Runge-Kutta (RK4) under stratified Martian $\text{CO}_2$ drag and REMS logarithmic wind shear (`4.0 kg` high-pressure COPV with `1.0 kg` breathable $\text{O}_2$ at $3,000\text{ psi}$, `1.2 kg` $\text{LiOH}$ $\text{CO}_2$ scrubber cartridge, `1.0 kg` $200\text{ Wh}$ Li-ion battery, `0.35 kg` RTV/HybridSil suit breach patch kit, and `1.45 kg` aeroshell/parachute/UWB beacon), paired with non-pyrotechnic LED/laser + 6.5 GHz UWB breadcrumb beacons (`deploy_beacons`) compliant with `NASA-STD-3001 V2 6002` ($100\%\text{ O}_2$ fire safety).
+- **GPS-Denied Mars Localization & 3D Flash LiDAR (`get_localization_and_lidar`):** Since Mars has no GPS constellation, units localize via HiRISE `1 m/px` Map-Relative Localization (MRL), 6.5 GHz IEEE 802.15.4z UWB time-of-flight mesh ranging, Visual-Inertial Odometry (VIO), and 360° 3D Flash LiDAR slope/hazard scanning.
+- **Multimodal Camera Vision (`capture_vision` & `/api/agent/vision`):** Crew members can ask what their helmet camera or any rover/drone camera sees; the system captures the active viewport or offscreen vehicle camera frame and analyzes geological features or hazards with vision LLMs (`gemini-4-argon` / `muse-wonder-1.0`).
+- **Predictive RAG over Aerospace Standards (`<2 ms` BM25):** In-memory retrieval across `1,002` chunks of `NASA-STD-3001` (Vol. 1 & 2), `OCHMO` briefs, `AMCL`, `MEDPRAT`, `Mars-GRAM`, `MCD`, `MSL RAD`, and `MOXIE` with exact `(document, page)` citations for biomedical early warning, FDIR fault recovery, and weather/radiation aborts.
+- **3 Custom-Trained Scientific ML Models:** Offline-trained, cross-validated models on real NASA PDS datasets: **Hydration Prospector** (subsurface H/OH mineral hydration from MSL DAN + CRISM + THEMIS), **Storm Nowcaster** (1–3 sol dust opacity quantile forecast from MSL REMS pressure tides), and **Mineral Vein Detector** (frozen Meta `DINOv2-small` patch classifier/heatmap on real Curiosity Mastcam/MAHLI frames).
+- **USGS/NASA-Style Cartographic Map & 6 Terrain Layers:** Interactive 3D terrain overlays (`Optical HiRISE`, `THEMIS Thermal Class`, `Slope`, `Sky View Factor`, `Radiation Dose`, `DAN/CRISM Hydration + Uncertainty`) plus a full-screen NASA/USGS planetary cartography map showing hypsometric tint, hillshade, contour lines, lat/lon graticule, base/Starship launch complex, science sites, fleet units, and all four crew callsigns.
+- **QR Smartphone Laser Pointer & PTT Remote (`/remote`):** Pairing a phone via QR code turns its gyroscope (`DeviceOrientation`) into a low-latency 3D HUD laser pointer and Push-to-Talk radio handset over `/ws/remote` with haptic vibration on critical alerts.
 
 ## System Architecture & Multi-Agent Runtime
 
-Tango Horizon keeps the browser WebGL2 simulation (`web/`) as the single source of truth for mission telemetry, rendering the 4 km × 4 km Gale Crater HiRISE DTM with 5 overlay rasters, curved helmet CSS3D HUD, hands-free multilingual voice (`EN`/`ES`/`FR`/`DE`/`IT`), and a QR-paired mobile pointer (`remote.html` over `/ws/remote`). Each spoken or text order passes a JSON `MissionContext` snapshot to the stateless Fastify server (`server/`), which executes tool calls across six in-process MCP servers (`InMemoryTransport`), an in-memory BM25 corpus (`NASA-STD-3001` Vol. 1 & 2, `OCHMO` briefs, `AMCL`, `Mars-GRAM`, `MOXIE`), and `GUARDIAN` before returning approved actions.
+Tango Horizon keeps the browser WebGL2 simulation (`web/`) as the single source of truth for mission telemetry, rendering the 4 km × 4 km Gale Crater HiRISE DTM with overlay rasters, helmet HUD, hands-free multilingual voice (`EN`/`ES`/`FR`/`DE`/`IT`), and QR-paired mobile pointer (`remote.html` over `/ws/remote`). Each spoken or text order passes a JSON `MissionContext` snapshot to the stateless Fastify server (`server/`), which executes tool calls across six in-process MCP servers (`InMemoryTransport`), an in-memory BM25 corpus (`NASA-STD-3001` Vol. 1 & 2, `OCHMO` briefs, `AMCL`, `Mars-GRAM`, `MOXIE`), and `GUARDIAN` before returning approved actions.
 
 ```mermaid
 flowchart LR
@@ -54,18 +72,120 @@ flowchart LR
   VOICE -.->|"Tools"| MCP
   BASE -.->|"Tools"| MCP["In-Process MCP Servers (terrain, suit, environment, fleet, hud, knowledge/BM25)"]
   SPEC -.->|"Tools"| MCP
-  MCP -->|"Proposed Actions"| GUARD["GUARDIAN: Deterministic Rule Check -> LLM Safety Judge"]
+  MCP -->|"Proposed Actions"| GUARD["GUARDIAN: Rule Check -> LLM Judge -> 3-Model Voting"]
   GUARD -->|"allow / ask_human / deny"| CREW
   GUARD -->|"Radio Reply"| TTS["/api/tts (Cloud TTS Journey Voices)"]
 ```
 
-- **3-Provider LLM Failover (`server/src/llm/provider.ts`):** Automatic failover across Google Cloud Vertex AI (primary via ADC: `google/gemini-4-carbon`, `google/gemini-4-argon`, `google/gemini-4-hydrogen`), Google AI Studio, and Meta Muse API (`muse-wonder-1.0`, `muse-spark-1.3`), backed by a deterministic offline execution engine (`offline.ts`).
-- **GUARDIAN Run-Time Assurance (`server/src/agents/guardian.ts`):** Enforces vehicle slope limits, a 15 m ballistic O2 pod keep-out radius, 2 m manipulator arm clearance around crew, rotorcraft dust-opacity grounding (`tau >= 1.8`), non-pyrotechnic beacon rules near 100% O2 suits, and contextual LLM safety verification before actions reach the browser.
+### Multi-Agent Hierarchy & Decision Flow
+
+| Agent | Tier | Role & Decision Scope |
+|---|---|---|
+| `SUIT.VOICE-EXEC` | `fast` | Suit-level voice assistant. Handles HUD layers/panels/map, language switching, suit consumables/O2 readouts, fleet status/position queries, ballistic pod trajectory previews (`calculate_pod_launch`), and camera vision queries (`capture_vision`). Escalates physical actuation, routing, FDIR, science, and emergencies to `BASE`. |
+| `BASE` | `large` | Central habitat mission orchestrator. Prioritizes crew survival over science. Reads live localization/LiDAR and environment telemetry, dispatches fleet units, triggers autonomous leak/rescue protocols, and delegates specialized analysis to domain and robot agents. |
+| `SUIT.HEALTH` | `medium` | Biomedical decision-support specialist. Evaluates sliding-window vitals trends, time-to-breach, and Early Warning Scores (`evaluate_crew_biomed`) against personal baselines and `NASA-STD-3001` / `OCHMO` citations (`search_docs`). Issues operational advisories only (never clinical diagnoses or prescriptions). |
+| `EVA-PLANNER` | `medium` | Traverse planner over `1 m/px` HiRISE DEM. Computes A* routes (`plan_route`, `show_route`) minimizing metabolic $\text{O}_2$ cost and radiation dose, checks storm forecasts, and deploys solid-state UWB/LED breadcrumb beacons (`deploy_beacons`). |
+| `WEATHER-RAD` | `medium` | Atmospheric and space-weather specialist. Monitors REMS barometric tides, 3-sol dust opacity quantiles (`get_storm_forecast`), solar power margins, RAD surface dose, and DONKI SEP alerts (`evaluate_environmental_risk`, `evaluate_eva_weather`) to issue Go / Go-with-changes / No-Go verdicts. |
+| `MAINTENANCE` | `medium` | Deterministic FDIR and predictive maintenance agent. Computes degradation slopes and Remaining Useful Life (`rul_s`) via `evaluate_component_health`, retrieves cited recovery SOPs from `search_docs` by `fault_code`, and proposes `isolate_component` (`switch_redundant`, `derate`, `safe_halt`, `quarantine`). |
+| `SCIENCE` | `medium` | Astrobiology and geology specialist. Queries `get_hydration_at`, `rank_sample_sites`, and `detect_veins` to recommend high-priority drilling targets with low uncertainty. |
+| `ROBOT.<id>` | `medium` | Per-unit autonomous onboard planner (`rover-1`, `rover-2`, `rover-3`/`manip-1`, `rescue-1`, `rescue-bot-1`, `drone-1`, `drone-2`, `glider-1`, `scout-1`). Enforces unit-scoped self-commanding, checks 360° LiDAR slopes, and executes mobility or 4-DOF arm skills (`arm_skill`). |
+
+### Multi-Provider LLM Stack, Failover & Local Mars Compute Architecture
+
+| Tier / Role | Primary: Google Cloud Vertex AI (`vertex`, ADC) | Secondary: Google AI Studio (`gemini`) | Backup: Meta Muse API (`meta`) | Offline Fallback (`AGENTS_OFFLINE=1`) |
+|---|---|---|---|---|
+| **Large (`BASE` Orchestrator)** | `google/gemini-4-carbon` | `gemini-4-carbon` | `muse-wonder-1.0` (`muse-wonder`) | Deterministic rule/tool router (`offline.ts`) |
+| **Medium (`SUIT.HEALTH`, `EVA-PLANNER`, `SCIENCE`, `WEATHER-RAD`, `MAINTENANCE`, `ROBOT.<id>`)** | `google/gemini-4-argon` | `gemini-4-argon` | `muse-wonder-1.0` (`muse-wonder`) | Deterministic domain handlers (`offline.ts`) |
+| **Fast (`SUIT.VOICE-EXEC`, Audio STT & ASR Normalization)** | `google/gemini-4-hydrogen` | `gemini-4-hydrogen` | `muse-spark-1.3` (`muse-spark`) | Regex/intent parser + local intents (`offline.ts`) |
+| **Safety Judge (`GUARDIAN` Step 2)** | `google/gemini-4-argon` | `gemini-4-argon` | `muse-spark-1.3` (`muse-spark`) | Deterministic `ruleCheck` + `ask_human` gate |
+| **Multimodal Vision (`capture_vision`, `/api/agent/vision`)** | `google/gemini-4-argon` | `gemini-4-argon` | `muse-wonder-1.0` (`muse-wonder`) | Offline telemetry + precomputed DINOv2 vein heatmaps |
+
+- **Real Mars Deployment vs. Cloud Simulation:** In this web simulator, LLM inference runs on Google Cloud Run / Vertex AI with automatic per-request failover to Google AI Studio and Meta Muse. In an actual Mars mission—where Earth-Mars one-way light time is 4 to 24 minutes and solar conjunctions block links entirely—cloud APIs are unreachable; therefore, the architecture is stateless and modular so open-weight multimodal/reasoning models run locally on the **Mars Base `compute` module** (nuclear/solar microgrid) while fast-tier models (`SUIT.VOICE-EXEC`, `ROBOT.<id>`, `DINOv2`) run on suit and rover edge NPUs.
+- **3-Layer Run-Time Assurance (`GUARDIAN` + Escalated Multi-Model Voting):**
+  1. **Step 1 — Deterministic Hard Limits (`ruleCheck` in `guardian.ts`):** Blocks any action violating vehicle slope limits, 15 m ballistic pod keep-out around crew, 2 m manipulator arm keep-out (except stationary handover), 25 m drone overwatch standoff from crew during rescue, rotorcraft flight under high dust (`tau >= 1.8`), high wind, or low air density, outward dispatch during active SEP radiation spikes, uncorroborated FDIR component isolation, pyrotechnic flares near $100\%\text{ O}_2$ suits, or clinical overreach by `SUIT.HEALTH`.
+  2. **Step 2 — Contextual LLM Safety Judge (`judge` in `guardian.ts`):** Wraps speech, document chunks, and subagent text in `<untrusted>` tags and verifies alignment with crew intent, failing closed (`deny`) on manipulation attempts.
+  3. **Step 3 — Post-Guardrail 3-Model Escalated Voting (`voting.ts`):** For high-consequence actions (ballistic pod launch, ballistic beacons, long/steep/rescue dispatch, borderline `ask_human` verdicts, or severe telemetry), three heterogeneous models vote concurrently (**Voter A:** `gemini-4-carbon`, **Voter B:** `gemini-4-argon`, **Voter C:** `muse-wonder-1.0`). If a 2-allow / 1-deny split occurs and the dissenting model reports confidence $\ge 0.85$, an **Asymmetric Safety Override** downgrades the action to `ask_human` for explicit crew confirmation.
+
+## Bidirectional Voice, Speech Models & 5-Language Support
+
+Implemented across [`web/src/voice/listen.ts`](web/src/voice/listen.ts), [`web/src/voice/speak.ts`](web/src/voice/speak.ts), [`web/src/voice/localIntents.ts`](web/src/voice/localIntents.ts), [`server/src/agents/stt.ts`](server/src/agents/stt.ts), and [`server/src/tts.ts`](server/src/tts.ts):
+
+- **5 Supported Languages (`EN`, `ES`, `FR`, `DE`, `IT`):** Full reactive localization (`setLang`) across HUD panels, alerts, provenance cards, speech recognition locales (`en-US`, `es-AR`/`es-ES`, `fr-FR`, `de-DE`, `it-IT`), agent responses, and neural text-to-speech synthesis.
+- **Sub-5 ms Local Critical Intents (`localIntents.ts`):** Urgent safety and UI orders (*"stop"*, *"abort"*, *"show the map"* / *"muéstrame el mapa"* / *"montre la carte"* / *"zeig die Karte"* / *"mostra la mappa"*, layer switches, panel toggles, language changes) execute immediately in the browser with zero network latency.
+- **Dual Speech Capture & Multimodal LLM Transcription (`listen.ts` + `stt.ts`):**
+  - Captures live interim text via the browser Web Speech API while simultaneously recording mono 16 kHz 16-bit PCM WAV audio via `AudioContext` (triggered by Spacebar PTT, mobile `/remote` PTT, or continuous wake-word `"Base, ..."`).
+  - Transcribes WAV audio using fast-tier multimodal LLMs (`google/gemini-4-hydrogen` via `input_audio`) conditioned on a dynamic Mars mission glossary (`buildDomainGlossary`), repairing phonetic ASR errors (e.g., *"rober uno"* $\to$ `rover-1`, *"masip 1"* $\to$ `rover-3`, *"moxy"* $\to$ `MOXIE`, *"gail crater"* $\to$ `Gale Crater`).
+- **Neural Text-to-Speech & NASA Radio DSP (`tts.ts` + `speak.ts`):**
+  - Synthesizes spoken replies via **Google Cloud Text-to-Speech (`@google-cloud/text-to-speech`)** using **Google Journey / Neural voices** (`es-US-Journey-D`, `en-US-Journey-D`, and localized neural voices for `fr-FR`, `de-DE`, `it-IT`) with an in-memory SHA-1 audio cache and automatic fallback to browser `speechSynthesis`.
+  - Routes all speech through a Web Audio API radio chain featuring authentic Apollo **Quindar tones** ($2525\text{ Hz}$ intro beep, $2475\text{ Hz}$ outro beep), a $300\text{–}3200\text{ Hz}$ biquad bandpass filter, and a 64-point `AnalyserNode` driving the **32-band live FFT spectrum canvas** in the HUD.
+
+## In-Memory BM25 RAG & Predictive Telemetry (Health, FDIR & Weather)
+
+The knowledge engine ([`server/src/agents/tools/knowledge.ts`](server/src/agents/tools/knowledge.ts)) indexes **1,002 chunks across 15 authoritative aerospace documents** in `server/corpus/chunks.json` (`BM25` with $k_1 = 1.5, b = 0.75$ and optional `fault_codes` pre-filtering) in `<2 ms` with zero external database dependencies:
+
+1. **Predictive Crew Biomedical Monitoring (`SUIT.HEALTH` + [`shared/src/physics/biomed.ts`](shared/src/physics/biomed.ts) + [`web/src/hud/cassonTwin.ts`](web/src/hud/cassonTwin.ts)):**
+   - Computes sliding-window slopes and deterministic `time_to_breach_s` for inspired $\text{CO}_2$ (`PICO2` hypercapnia), core body temperature, Physiological Strain Index (PSI), arterial oxygen saturation ($\text{SpO}_2$), heart rate, and cardiac drift (`HR / metabolic_w`), producing a composite `0–3` Early Warning Score (`green / amber / red`).
+   - Enforces a **Two-Tier Threshold Model**: personal astronaut baselines tighten early warnings sooner for an individual crew member's physiology while never relaxing `NASA-STD-3001` population safety ceilings/floors.
+   - Simulates a **Casson/Quemada Non-Newtonian Blood Rheology Bio-Twin** (`cassonTwin.ts`), tracking hemoconcentration (hematocrit $H(t)$ from LCVG sublimation and sweat loss) and apparent blood viscosity $\mu_{\text{app}}$ under hypogravity.
+   - Queries BM25 RAG over `NASA-STD-3001 Vol. 1 & 2`, `OCHMO-TB-004` ($\text{CO}_2$ / hypercapnia), `AMCL`, and `MEDPRAT` to cite exact `(document, page)` countermeasures while enforcing mandatory advisory framing (*"Decision support advisory only; not a medical diagnosis"*).
+2. **Predictive Equipment Maintenance & Aerospace FDIR (`MAINTENANCE` + [`shared/src/physics/fdir.ts`](shared/src/physics/fdir.ts)):**
+   - Evaluates sliding telemetry windows via linear least-squares slopes and z-score residuals to compute clamped **Remaining Useful Life (`rul_s`)** and isolate canonical fault codes across four subsystems:
+     - **Suit PLSS:** `PLSS-FAN-01` (primary fan RPM degradation), `PLSS-SCRUB-01` ($\text{LiOH}$ / amine $\text{CO}_2$ scrubber saturation), `PLSS-COOL-01` (LCVG coolant loop loss/pressure drop).
+     - **Fleet Rovers & Manipulator Arm:** `RVR-MOB-01` (wheel slip ratio / actuator stall in loose THEMIS Class 0 sand), `RVR-THM-01` (drive motor overheating), `ARM-TORQ-01` (`rover-3` / `manip-1` drill/joint overcurrent).
+     - **Habitat Power & ISRU:** `HAB-PWR-01` (solar array dust fouling / bus voltage droop) and `ISRU-MOX-01` (MOXIE scroll compressor / $800^\circ\text{C}$ SOXE stack degradation).
+   - Retrieves matching recovery SOPs from `search_docs` filtered by `fault_code` and executes `isolate_component` (`switch_redundant`, `derate`, `safe_halt`, `quarantine`), verified by `GUARDIAN` against live telemetry to block false or injected shutdowns.
+3. **Predictive Weather, Dust Storms & Radiation (`WEATHER-RAD` + [`shared/src/physics/envNowcast.ts`](shared/src/physics/envNowcast.ts)):**
+   - Combines rolling surface pressure-tide gradients ($\dot{P}$), dust opacity ramps ($\dot{\tau}$), wind shear, solar array output, battery autonomy (`time_to_zero_solar_margin_s`, `battery_autonomy_s`), MSL RAD dose rates, and NASA DONKI / WSA-Enlil SEP arrival alerts with `Mars-GRAM` and `MCD v5.2` RAG citations to trigger proactive maneuvers (`shorten_eva`, `reroute_near_rover`, `preposition_rover`, `recall_aircraft`, `charge_batteries`, `switch_to_fission`, `postpone`).
+
+## Simulated Robotics, Fleet Autonomy & Cooperative Crew Rescue
+
+### Simulated Robotics (Zero Mocks)
+
+- **Analytic 4-DOF Inverse Kinematics Manipulator (`rover-3` / `manip-1` "HANDS", [`web/src/world/manipulatorArm.ts`](web/src/world/manipulatorArm.ts)):** Four articulated joints (`base yaw`, `shoulder pitch`, `elbow pitch`, `wrist pitch`, $0.9\text{ m}$ upper arm + $0.8\text{ m}$ forearm = $1.7\text{ m}$ reach) and a 4-tool turret (`gripper`, `core drill`, `scoop`, `wrist camera`). The agent selects a high-level skill (`drill`, `sample`, `photograph`, `handover`) and visual target marker (`T1..Tn` or `astronaut`); the browser `SkillRunner` state machine solves exact joint angles analytically every frame and renders an offscreen $512 \times 384$ mast-camera feed.
+- **Coaxial Rotorcraft, Sky-Crane Tether Pendulum & LiDAR Cone (`drone-1`, `drone-2`, [`web/src/world/skyCraneProc.ts`](web/src/world/skyCraneProc.ts)):** Models a 6-rotor Mars helicopter (Ingenuity / Mars Science Helicopter heritage) with a damped spherical pendulum Kevlar tether ($k = 4.2 \times 10^4\text{ N/m}$) under Martian wind shear and a 532 nm green LiDAR scanning cone, subject to aerodynamic density and dust-grounding (`tau >= 1.8`) envelopes.
+- **Terrain-Coupled A\* Navigation & Mesh-Optimized 3D Assets:** All ground vehicles (`rover-1`, `rover-2`, `rover-3`, `rescue-1`, `rescue-bot-1`, `scout-1`) follow A\* paths computed over the real `2048 × 2048` HiRISE elevation grid, respecting per-vehicle slope limits and THEMIS thermal traction classes, rendered with NASA 3D Resources glTF models and 16 custom 3D assets simplified and quantized via `meshoptimizer` (`tools/assets/optimize.mjs`).
+
+### Autonomous 4-Astronaut Crew Rescue Scenario
+
+- **Cast & Base Layout:** Four astronauts operate from the main habitat complex (`conae-base-mars`, solar array field, antenna farm, and Starship launch complex at `LAUNCH_SITE_COORD`): **`SOTELO`** and **`YACONIS`** at base control, while **`SALERNO`** (driver) and **`DIAZ-CANO`** (geologist) conduct a science traverse $1.5\text{–}2.5\text{ km}$ away at `RESCUE_SITE` aboard pressurized rover **`rover-1`**.
+- **Crisis & Autonomous Multi-Agent Response:**
+  1. `rover-1` suffers a critical wheel actuator fault (`RVR-MOB-01`), isolated by `MAINTENANCE`.
+  2. While sampling near a natural sinkhole pit (`RESCUE_PIT`), `DIAZ-CANO` falls into the shaft and is incapacitated (`SUIT.HEALTH` triggers a critical biomedical alert).
+  3. Dust opacity $\tau$ ramps from $0.5$ toward $6.0$; `WEATHER-RAD` flags a `NO-GO` verdict for walking back.
+  4. `BASE` dispatches the pressurized rescue vehicle **`rescue-1`** (carrying tracked **`rescue-bot-1`** in its rear bay) and launches overwatch drones **`drone-1`** and **`drone-2`** while $\tau < 1.8$. `GUARDIAN` enforces a strict $\ge 25\text{ m}$ horizontal standoff and $20\text{–}30\text{ m}$ altitude band so rotorcraft never fly directly over injured crew.
+  5. When dust crosses $\tau \ge 1.8$, `BASE` executes `recall_aircraft` to land the drones safely. `rescue-1` reaches the pit rim, and—after human-in-the-loop confirmation (`ask_human`)—deploys **`rescue-bot-1`** down the rear ramp to descend the tether into the pit, secure `DIAZ-CANO` onto the stretcher, winch and drag the casualty into `rescue-1`, and return both astronauts to base.
+
+## Real vs. Simulated vs. Engineering Design Assumptions
+
+| Category | What is 100% Real (Unmodified Science & Standards) | What is Deterministic Simulation | What is a Flagged Engineering `[design assumption]` |
+|---|---|---|---|
+| **Cartography & Terrain** | MRO HiRISE DTM `DTEEC_009149_1750_009294_1750_U01` ($1\text{ m/px}$), HiRISE Orthoimage `PSP_009149_1750_RED` ($0.25\text{ m/px}$), CTX DEM ($20\text{ m/px}$), Odyssey THEMIS Night/Day IR (`mc23_aeolis_nir`/`dir`). | Adaptive $8\times 8$ LOD WebGL2 terrain mesh, central-difference slope ($\theta$), 16-azimuthal raycast Sky View Factor ($\Omega$), and A\* pathfinding. | 3-tercile qualitative mapping of uncalibrated THEMIS Night IR DN values (`193.0`, `220.0`) to terrain traction coefficients $\eta \in [1.0, 2.37]$; procedural natural sinkhole pit geometry (`RESCUE_PIT`). |
+| **Atmosphere, Weather & Radiation** | MSL Curiosity REMS hourly time series (`mslrem_1001`, clear sols & MY 34 2018 global dust storm), Mastcam 880 nm optical depth (`msl_tau_880.csv`), MSL RAD surface dose rates (`MSL-M-RAD-3-RDR-V1.0` quiet & Sep 2017 SEP), JPL Horizons ephemeris (`DE441`), NASA DONKI SEP/WSA-Enlil alerts. | Barometric tide harmonic fitting ($S_1, S_2$), direct-beam solar extinction $\exp(-\tau/\mu)$, geometric SVF + regolith albedo dose integration, and 20,000-particle GPU dust shaders. | Albedo neutron backscatter factor $\beta = 0.09$; aerodynamic surface roughness $z_0 = 0.01\text{ m}$; worst-case Carrington-class reference SPE peak ($5,840\text{ }\mu\text{Sv/h}$) for shelter stress-testing. |
+| **Bioastronautics & Life Support** | `NASA-STD-3001` Vol. 1 & 2 limits ($P_{\text{nom}} = 29.6\text{ kPa}$, Armstrong $6.27\text{ kPa}$, $\text{PICO}_2$ bounds), OCHMO hypercapnia briefs, AMCL & MEDPRAT corpus, Pandolf (1977) + Santee (2001) equations, isentropic choked orifice flow ($\text{Ma}=1$). | 1 Hz PLSS consumables integrator ($\text{O}_2$, $\text{CO}_2$, battery, coolant), RK4 3D ballistic drop-pod flight with wind drift, and sliding-window EWS / time-to-breach calculator. | Scaling Pandolf weight terms by $g_{\text{Mars}}/g_\oplus = 0.378$ in a pressurized suit; suit free gas volume ($0.135\text{ m}^3$), suit mass ($65\text{–}122\text{ kg}$), 8.0 kg multi-consumable drop-pod mass breakdown, 15 m pod keep-out radius, and Casson blood rheology Hct/viscosity parameterization. |
+| **Robotics, FDIR & AI Models** | 1,567 MSL DAN neutron stops, 9 MRO CRISM MTRDR cubes, 117 human-audited Curiosity Mastcam/MAHLI frames, frozen Meta `DINOv2-small` weights, and Perseverance MOXIE O2 production logs (`mars2020_moxie`). | Analytic 2-bone / 4-DOF arm inverse kinematics, Sky-Crane tether spring-damper pendulum, linear-regression FDIR `RUL` prognostics, in-memory MCP tool execution, and 3-stage `GUARDIAN` + 3-model voting. | Vehicle max slope limits ($15^\circ\text{–}30^\circ$), 2 m arm crew keep-out, 25 m drone overwatch standoff, `tau >= 1.8` rotorcraft grounding threshold, and synthetic FDIR actuator fault injection profiles. |
 
 ## NASA & USGS Data Used
 
+### How Each NASA & USGS Dataset Powers the Simulator
+
+| Mission / Source | Dataset / Instrument | Operational Role in Tango Horizon |
+|---|---|---|
+| **Mars Reconnaissance Orbiter (MRO) — HiRISE** | USGS Astrogeology STAC `DTEEC_009149_1750_009294_1750_U01` ($1\text{ m/px}$ DTM) & `PSP_009149_1750_RED` ($0.25\text{ m/px}$ Orthoimage) | Provides the real $4\text{ km} \times 4\text{ km}$ Gale Crater / Aeolis Mons 3D elevation mesh (`height_2048.u16`), slope hazard map (`slope_1024.png`), 16-ray horizon Sky View Factor radiation shielding map (`svf_1024.png`), Map-Relative Localization (MRL), and photogrammetric surface texture (`ortho_4096.webp`). |
+| **Mars Reconnaissance Orbiter (MRO) — CTX** | USGS STAC Stereo DEM `T01_000815_1749...` ($20\text{ m/px}$) | Supplies wide-area geomorphometry along the entire Curiosity traverse to train the **Hydration Prospector** model and quantify the MOLA areoid vs. IAU 2015 sphere vertical datum offset. |
+| **Mars Odyssey — THEMIS IR** | Night (`mc23_aeolis_nir`) & Day (`mc23_aeolis_dir`) Controlled IR Mosaics ($100\text{ m/px}$) | Segments terrain into 3 thermal inertia proxy classes (`thermal_class.png`: loose eolian sand traps vs. consolidated bedrock) driving Pandolf metabolic walking cost and rover sinkage/slip prevention, plus orbital thermal features for hydration ML. |
+| **MSL Curiosity — DAN** | PDS Geosciences `MSL-M-DAN-3/4-RDR-V1.0` (1,567 passive neutron measurements; 377 inside scene) | Provides ground-truth subsurface thermal-to-epithermal neutron count ratios (bound mineral H/OH indicator) to train and validate **Hydration Prospector** (`tango-horizon-hydration-v1`). |
+| **Mars Reconnaissance Orbiter (MRO) — CRISM** | PDS Geosciences 9 MTRDR Spectral Summary Products (`BD1900_2`, `SINDEX2`) | Supplies orbital $1.9\text{ }\mu\text{m}$ H2O band depth and hydrated sulfate spectral indices as predictors for **Hydration Prospector**. |
+| **MSL Curiosity — REMS & Mastcam Opacity** | PDS Atmospheres `mslrem_1001` (Sols 1–3953) & `msl_tau_880.csv` (Lemmon 2024) | Drives real hourly pressure, air/ground temperature, wind, and UV telemetry (`rems_clear.json`, `rems_storm2018.json`) and trains **Storm Nowcaster** (`rems_hgbr_quantile_v1`) on diurnal/semidiurnal pressure-tide amplification ahead of the MY 34 global dust storm. |
+| **MSL Curiosity — RAD** | PDS-PPI `MSL-M-RAD-3-RDR-V1.0` (Sols 1773–1779 quiet & Sols 1811–1817 Sep 2017 SEP) | Anchors nominal Galactic Cosmic Ray surface dose rates (`rad_quiet.json`, $\sim 27\text{ }\mu\text{Sv/h}$) and real Solar Energetic Particle surface spikes (`rad_sep2017.json`) for `WEATHER-RAD` and `EVA-PLANNER`. |
+| **MSL Curiosity — Mastcam & MAHLI** | NASA Mars Raw Images API (Sols 170, 925, 929, 931, 1190; 117 audited frames) | Real rover outcrop photographs (*Garden City*, *Sheepbed*, *Bagnold Dunes*) used to train, validate, and display **Mineral Vein Detector** (`tango-horizon-veins-v1`) heatmaps for robotic arm drilling. |
+| **NASA JPL Horizons (`DE441 / mar099`)** | Earth-Mars Light Time & Gale Solar Ephemeris (`ephem.json`) | Computes real one-way/round-trip communication latency and hourly solar zenith/azimuth angles for solar array power generation (`solar.ts`). |
+| **NASA CCMC DONKI** | `SEP`, `CMEAnalysis` & `WSAEnlilSimulations` APIs | Provides heliospheric space-weather alerts and coronal mass ejection arrival windows at Mars (`donki_alert`), gating outward EVA dispatch in `GUARDIAN`. |
+| **Mars 2020 Perseverance — MOXIE** | PDS Atmospheres `mars2020_moxie` (Sols 0–659 $\text{O}_2$ production logs) | Models habitat ISRU solid-oxide electrolysis ($\text{CO}_2 \to \text{O}_2$) rates and compressor/SOXE fault signatures (`ISRU-MOX-01`) in `MAINTENANCE`. |
+| **NASA OCHMO, NTRS & Standards** | `NASA-STD-3001` Vol. 1 & 2, `OCHMO-TB-004`, `AMCL`, `MEDPRAT`, `Mars-GRAM`, `MCD v5.2` | Forms the 1,002-chunk in-memory BM25 RAG corpus (`server/corpus/chunks.json`) cited by `SUIT.HEALTH`, `WEATHER-RAD`, `EVA-PLANNER`, and `MAINTENANCE`. |
+| **NASA 3D Resources & Custom GLBs** | `ingenuity.glb`, `mro.glb`, `rover.glb` + 16 meshopt-compressed mission GLBs | Renders authentic NASA spacecraft/rovers alongside the habitat complex, Starship launch pad, solar arrays, antennas, rescue vehicles, and animated 4-astronaut crew. |
+
 <!-- BEGIN AUTO:DATA -->
-Tracked runtime assets in `web/public/data/provenance.json` (**37 entries**; SHA-256 checksums and CRS transforms recorded in the manifest):
+Tracked runtime assets in `web/public/data/provenance.json` (**57 entries**; SHA-256 checksums and CRS transforms recorded in the manifest):
 
 | Asset | Source | Product / Model ID | Retrieved / Ref |
 |---|---|---|---|
@@ -90,6 +210,26 @@ Tracked runtime assets in `web/public/data/provenance.json` (**37 entries**; SHA
 | `models/ingenuity.glb` | NASA 3D Resources (Ingenuity Mars Helicopter) | `ingenuity` | 2026-11-14 · [link](https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Ingenuity%20Mars%20Helicopter/Ingenuity%20Mars%20Helicopter.glb) |
 | `models/mro.glb` | NASA 3D Resources (Mars Reconnaissance Orbiter) | `mro` | 2026-11-14 · [link](https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A)/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A).glb) |
 | `models/rover.glb` | NASA 3D Resources (Mars 2020 Perseverance Rover, MSL/Curiosity-class chassis) | `rover` | 2026-11-14 · [link](https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%202020%20Perseverance%20Rover/Mars%202020%20Perseverance%20Rover.glb) |
+| `models/antenna.glb` | Project owner (original 3D model) | `antenna` | 2026-11-15 · local pipeline |
+| `models/asset-1.glb` | Project owner (original 3D model) | `asset-1` | 2026-11-15 · local pipeline |
+| `models/asset-2.glb` | Project owner (original 3D model) | `asset-2` | 2026-11-15 · local pipeline |
+| `models/asset-3.glb` | Project owner (original 3D model) | `asset-3` | 2026-11-15 · local pipeline |
+| `models/asset-4.glb` | Project owner (original 3D model) | `asset-4` | 2026-11-15 · local pipeline |
+| `models/astronaut.glb` | Project owner (original 3D model) | `astronaut` | 2026-11-15 · local pipeline |
+| `models/astronaut-animated.glb` | Project owner (original 3D model) | `astronaut-animated` | 2026-11-15 · local pipeline |
+| `models/building-1.glb` | Project owner (original 3D model) | `building-1` | 2026-11-15 · local pipeline |
+| `models/building-2.glb` | Project owner (original 3D model) | `building-2` | 2026-11-15 · local pipeline |
+| `models/building-3.glb` | Project owner (original 3D model) | `building-3` | 2026-11-15 · local pipeline |
+| `models/building-connector.glb` | Project owner (original 3D model) | `building-connector` | 2026-11-15 · local pipeline |
+| `models/conae-base-mars.glb` | Project owner (original 3D model) | `conae-base-mars` | 2026-11-15 · local pipeline |
+| `models/rescue-robot-astronaut.glb` | Project owner (original 3D model) | `rescue-robot-astronaut` | 2026-11-15 · local pipeline |
+| `models/rescue-robot-without-astronaut.glb` | Project owner (original 3D model) | `rescue-robot-without-astronaut` | 2026-11-15 · local pipeline |
+| `models/rescue-rover.glb` | Project owner (original 3D model) | `rescue-rover` | 2026-11-15 · local pipeline |
+| `models/rocket.glb` | Project owner (original 3D model) | `rocket` | 2026-11-15 · local pipeline |
+| `models/rover-1.glb` | Project owner (original 3D model) | `rover-1` | 2026-11-15 · local pipeline |
+| `models/rover-2.glb` | Project owner (original 3D model) | `rover-2` | 2026-11-15 · local pipeline |
+| `models/solar-panel.glb` | Project owner (original 3D model) | `solar-panel` | 2026-11-15 · local pipeline |
+| `models/manifest.json` | Generated by tools/assets/optimize.mjs | `models-manifest` | 2026-11-15 · local pipeline |
 | `veins/*_DXXX.jpg` (8 frames) | NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API) | MSL Mastcam/MAHLI Sols 170–1190 | 2026-11-14 |
 | `veins/*_heat.png` (8 maps) | Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS) | `tango-horizon-veins-v1` (256x256) | 2026-11-14 |
 <!-- END AUTO:DATA -->
@@ -210,12 +350,25 @@ All three domain models are trained offline by Python scripts in [`tools/`](tool
 - **Visual-Only Vein Detection:** `tango-horizon-veins-v1` is strictly calibrated for real NASA Mastcam/MAHLI photographs (never synthetic 3D renders) and detects visual bright-vein signatures only; elemental/mineral identification still requires active LIBS (`ChemCam`) or XRD (`CheMin`).
 - **Biomedical & FDIR Advisory Scope:** Crew physiological evaluations in `biomed.ts` and `SUIT.HEALTH` are decision-support advisories anchored to `NASA-STD-3001` thresholds and never replace flight-surgeon clinical diagnosis or telemetric command authority.
 
+</details>
+
+## NASA Space Apps Challenge Links
+
+- **Team:** https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project
+- **Local Event — [Universidad de Palermo](https://www.palermo.edu/) (Buenos Aires, Argentina) Node:** https://www.spaceappschallenge.org/2026/local-events/buenos-aires/
+- **Challenge — Interplanetary Survival Guide: Martian Map:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
+- **Rules (Participant Terms & Conditions):** https://www.spaceappschallenge.org/legal/
+- **Project Submission Guide:** https://www.spaceappschallenge.org/resources/project-submission-guide/
+- **Participant Resources & FAQs:** https://www.spaceappschallenge.org/resources/ · https://www.spaceappschallenge.org/resources/participant-faqs/
+- **Space Apps Challenge:** https://www.spaceappschallenge.org/
+
 ## AI Usage
 
-### AI-assisted development methodology (Software 3.0)
+### AI-assisted development methodology (Software 3.0 — AFAW)
 
-This project was built with AI-assisted development in the Software 3.0 style: AI coding agents took part in the whole development process (implementation, tests, CI/CD, pull requests, commits and documentation validated and designed by human, deploy), under human direction and review.
+This project was built with AI-assisted development in the Software 3.0 style using our own [**AFAW (Anti-Fragile Agentic Workflow)**](https://github.com/agustindiazcano/afaw-anti-fragile-agentic-workflow) methodology for multi-agent coordination: AI coding agents took part in the whole development process (implementation, tests, CI/CD, pull requests, commits and documentation validated and designed by human, deploy), under human direction and review.
 
+- **Multi-agent coordination methodology:** [**AFAW — Anti-Fragile Agentic Workflow**](https://github.com/agustindiazcano/afaw-anti-fragile-agentic-workflow) (author's methodology for coordinating multiple autonomous coding agents with shared contracts, worktree isolation, atomic commits, and human-in-the-loop verification)
 - **Coding agents:** Codex, Claude Code, Gemini Antigravity, IBM Bob, Meta Muse
 - **Parallel orchestration & isolation:** Multiple agents running in parallel via an orchestrator coordinating medium-tier models, each in its own git worktree and branch to avoid conflicts, plus a code reviewer agent
 - **Workflow AI:** ChatGPT, Gemini, Google AI Studio, Grok
@@ -231,7 +384,7 @@ This project was built with AI-assisted development in the Software 3.0 style: A
 | Frontend & 3D Viewer | TypeScript, Vite, Three.js (`three` WebGL2), CSS 3D curved HUD, Web Speech API, Web Audio API, `qrcode`, `@vercel/analytics` |
 | Backend & Agent Runtime | Node.js 22, Fastify 5 (`@fastify/static`, `@fastify/websocket`, `@fastify/rate-limit`), `@modelcontextprotocol/sdk` (`InMemoryTransport`), Zod, `openai` SDK, `google-auth-library` |
 | Shared Physics & Testing | TypeScript (`@th/shared`: deterministic physics, schemas, 5-language i18n), Vitest (`vitest`) |
-| Data Science & GIS Pipeline | Python 3, NumPy, Pandas, SciPy, scikit-learn, PyTorch, Hugging Face `transformers`, Pillow, Matplotlib, Rasterio, PyProj, PyMuPDF |
+| Data Science & GIS Pipeline | Python 3, NumPy, Pandas, SciPy, scikit-learn, PyTorch, Hugging Face `transformers`, Pillow, Matplotlib, Rasterio, PyProj, PyMuPDF, `meshoptimizer` |
 | Google Cloud & Hosting | Terraform (`infra/terraform/`), Cloud Run, Cloud Build, Artifact Registry, Secret Manager, Vertex AI, Cloud Text-to-Speech, Vercel, GitHub Actions |
 
 ### Run Locally
