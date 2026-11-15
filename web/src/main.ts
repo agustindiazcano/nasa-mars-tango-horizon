@@ -23,6 +23,7 @@ import { CINEMATIC_CAM_IDS, CinematicCams, type CinematicCamId } from "./world/c
 import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
 import { PodBallistics } from "./world/podBallistics";
+import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
 import { TerrainProc } from "./world/terrainProc";
 
@@ -116,6 +117,11 @@ scene.add(astronaut.group);
 
 const baseProc = new BaseProc(scene, terrain);
 const launchSite = new LaunchSiteProc(scene, terrain);
+const skyCrane = new SkyCraneProc(scene, terrain);
+createSkyCraneToggle(() => {
+  skyCrane.setVisible(!skyCrane.visible);
+  return skyCrane.visible;
+});
 const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [LAUNCHER_PRIMARY_COORD.x, LAUNCHER_PRIMARY_COORD.z, 6];
 const podBallistics = new PodBallistics(scene, terrain, podLauncherOrigin);
 
@@ -674,6 +680,7 @@ function animate(now: number): void {
     });
   }
   launchSite.update(now / 1000);
+  skyCrane.update(realDt, store.env.tau);
 
   skyDust.update(
     now / 1000,
