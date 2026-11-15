@@ -193,6 +193,7 @@ describe("VoiceController.offlineFallback fleet navigation", () => {
       { text: "drone 1 vení", lang: "es", unitId: "drone-1", type: "dispatch" },
       { text: "rescue 1 acércate", lang: "es", unitId: "rescue-1", type: "dispatch" },
       { text: "rescue 1 vuelve", lang: "es", unitId: "rescue-1", type: "unit_action", action: "return_to_base" },
+      { text: "Base, manda al rover 2 a mi posicion", lang: "es", unitId: "rover-2", type: "dispatch" },
       { text: "rover-1 120, -40", lang: "en", unitId: "rover-1", type: "dispatch" },
     ];
 
@@ -205,6 +206,11 @@ describe("VoiceController.offlineFallback fleet navigation", () => {
       expect(res.actions[0].verdict?.decision, item.text).toBe("allow");
       if (item.action) {
         expect(res.actions[0].args.action, item.text).toBe(item.action);
+      }
+      if (item.text === "Base, manda al rover 2 a mi posicion") {
+        expect(
+          Math.hypot(Number(res.actions[0].args.x) - store.astronaut.x, Number(res.actions[0].args.z) - store.astronaut.z),
+        ).toBeLessThanOrEqual(5.5);
       }
       if (item.text === "rover-1 120, -40") {
         expect(res.actions[0].args.x).toBe(120);
