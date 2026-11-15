@@ -247,7 +247,7 @@ export async function judge(
           }),
         },
       ],
-      { json: true, maxTokens: 120 },
+      { json: true }, // default token budget: reasoning models spend most of a small one before the JSON
     );
     const raw = (msg.content ?? "")
       .trim()

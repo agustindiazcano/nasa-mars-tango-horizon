@@ -12,8 +12,16 @@ export interface TerrainMeta {
   z_min_m: number;
   z_max_m: number;
   slope_max_deg: number;
+  /** Planetocentric latitude of the scene center (deg, north positive). */
+  center_lat: number;
+  /** IAU 2000 east longitude of the scene center (deg). */
+  center_lon_e: number;
   synthetic?: boolean;
 }
+
+// Center of the shipped HiRISE DTM window (web/public/data/terrain/meta.json): lower Mount Sharp, Gale Crater.
+const DEFAULT_CENTER_LAT_DEG = -4.745;
+const DEFAULT_CENTER_LON_E_DEG = 137.4;
 
 export interface HydrationMeta {
   weh_min: number;
@@ -233,6 +241,8 @@ function buildSyntheticTerrain(): LoadedTerrain {
       z_min_m: zMin,
       z_max_m: zMax,
       slope_max_deg: 45,
+      center_lat: DEFAULT_CENTER_LAT_DEG,
+      center_lon_e: DEFAULT_CENTER_LON_E_DEG,
       synthetic: true,
     },
     heightPx,
@@ -408,6 +418,8 @@ function loadTerrainFromDisk(): LoadedTerrain {
         z_min_m: zMin,
         z_max_m: zMax,
         slope_max_deg: slopeMax,
+        center_lat: Number.isFinite(metaRaw.center_lat) ? (metaRaw.center_lat as number) : DEFAULT_CENTER_LAT_DEG,
+        center_lon_e: Number.isFinite(metaRaw.center_lon_e) ? (metaRaw.center_lon_e as number) : DEFAULT_CENTER_LON_E_DEG,
         synthetic: false,
       },
       heightPx,
@@ -520,20 +532,20 @@ export function thermalClassAt(x: number, z: number): 0 | 1 | 2 {
   return raw < 85 ? 0 : raw < 170 ? 1 : 2;
 }
 
-const GALE_CENTER_LAT_DEG = -4.5895;
-const GALE_CENTER_LON_E_DEG = 137.4417;
 const MARS_RADIUS_M = 3_396_190;
 
 /**
  * Converts local tangent-plane coordinates (x east, z south in metres) into
  * IAU Mars 2000 planetocentric latitude and east longitude (degrees).
+ * The origin is the center of the loaded DTM window (terrain/meta.json), so the result matches the cartography.
  */
 export function worldToPlanetocentric(x: number, z: number): { lat_deg: number; lon_e_deg: number } {
   const mPerDegLat = (Math.PI / 180) * MARS_RADIUS_M;
-  const mPerDegLon = mPerDegLat * Math.cos((GALE_CENTER_LAT_DEG * Math.PI) / 180);
+  const { center_lat, center_lon_e } = state.meta;
+  const mPerDegLon = mPerDegLat * Math.cos((center_lat * Math.PI) / 180);
   return {
-    lat_deg: Number((GALE_CENTER_LAT_DEG - z / mPerDegLat).toFixed(6)),
-    lon_e_deg: Number((GALE_CENTER_LON_E_DEG + x / mPerDegLon).toFixed(6)),
+    lat_deg: Number((center_lat - z / mPerDegLat).toFixed(6)),
+    lon_e_deg: Number((center_lon_e + x / mPerDegLon).toFixed(6)),
   };
 }
 

@@ -200,8 +200,8 @@ describe("8.0 kg pod, non-pyrotechnic beacons, and Mars GNSS-denied localization
       lidar_scan: { range_m: number; sectors: unknown[] };
     };
     expect(loc.localization_mode).toMatch(/HiRISE/i);
-    expect(loc.astronaut.lat_deg).toBeCloseTo(-4.59, 1);
-    expect(loc.astronaut.lon_e_deg).toBeCloseTo(137.44, 1);
+    expect(loc.astronaut.lat_deg).toBeCloseTo(-4.745, 1);
+    expect(loc.astronaut.lon_e_deg).toBeCloseTo(137.4, 1);
     expect(loc.lidar_scan.range_m).toBe(60);
     expect(loc.lidar_scan.sectors.length).toBe(8);
 
