@@ -462,7 +462,7 @@ function applyRescueView(v: RescueView): void {
   fleet.applyRescueBotPose(v.robot.pose);
   for (const id of ["crew-2", "crew-3"] as const) {
     const c = v.crew[id];
-    crew.place(id, c.x, c.z, c.yaw, c.pose, c.status, { yOffset: c.yOffset, inPit: c.inPit, visible: c.visible });
+    crew.place(id, c.x, c.z, c.yaw, c.pose, { yOffset: c.yOffset, visible: c.visible });
   }
 }
 
@@ -710,7 +710,7 @@ function stepSimulation(dt: number): void {
   fleet.update(dt, store.env.tau);
   store.fleet = fleet.snapshots();
   crew.update(dt);
-  store.crew = crew.snapshots();
+  store.crew = rescue.getCrewSnapshots();
 
   podBallistics.updateKeepoutRing(astronaut.pos.x, astronaut.pos.z);
   podBallistics.update(dt, store.podTelemetry);

@@ -1,9 +1,8 @@
 import * as THREE from "three";
-import { CREW4_START, type CrewSnapshot, type CrewStatus } from "@th/shared";
+import { CREW4_START, CREW_ROSTER, type CrewId } from "@th/shared";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
-/** Crew ids: `crew-1` is the player astronaut (`AstronautProc`); the others are scripted entities of this module. */
-export type CrewId = "crew-1" | "crew-2" | "crew-3" | "crew-4";
+/** `crew-1` (DIAZ-CANO) is the player astronaut (`AstronautProc`); the others are scripted entities of this module. */
 export type CrewPose = "idle" | "walk" | "lying" | "hidden";
 
 interface CrewMember {
@@ -14,9 +13,7 @@ interface CrewMember {
   rightLeg: THREE.Group;
   leftArm: THREE.Group;
   rightArm: THREE.Group;
-  status: CrewStatus;
   pose: CrewPose;
-  inPit: boolean;
   phase: number;
   /** World y offset applied on top of the terrain height (pit floor, stretcher height). */
   yOffset: number;
@@ -49,9 +46,9 @@ export class CrewProc {
       this.group.add(m.group);
     }
     // crew-2/3 only exist during the traverse; crew-4 stands by the habitat.
-    this.place("crew-2", 0, 0, 0, "idle", "active", { visible: false });
-    this.place("crew-3", 0, 0, 0, "idle", "active", { visible: false });
-    this.place("crew-4", CREW4_START.x, CREW4_START.z, Math.PI * 0.75, "idle", "idle");
+    this.place("crew-2", 0, 0, 0, "idle", { visible: false });
+    this.place("crew-3", 0, 0, 0, "idle", { visible: false });
+    this.place("crew-4", CREW4_START.x, CREW4_START.z, Math.PI * 0.75, "idle");
     scene.add(this.group);
   }
 
@@ -109,7 +106,7 @@ export class CrewProc {
       leg.add(boot);
     }
 
-    const label = makeSpriteLabel(id.toUpperCase(), `#${ACCENT[id].toString(16).padStart(6, "0")}`);
+    const label = makeSpriteLabel(CREW_ROSTER.find((c) => c.id === id)?.name ?? id, `#${ACCENT[id].toString(16).padStart(6, "0")}`);
     label.position.y = 2.2;
     label.scale.set(3.4, 0.64, 1);
     g.add(label);
@@ -122,9 +119,7 @@ export class CrewProc {
       rightLeg,
       leftArm,
       rightArm,
-      status: "idle",
       pose: "idle",
-      inPit: false,
       phase: 0,
       yOffset: 0,
       x: 0,
@@ -139,16 +134,13 @@ export class CrewProc {
     z: number,
     yaw: number,
     pose: CrewPose,
-    status: CrewStatus,
-    opts: { yOffset?: number; inPit?: boolean; visible?: boolean } = {},
+    opts: { yOffset?: number; visible?: boolean } = {},
   ): void {
     const m = this.members.get(id);
     if (!m) return;
     m.x = x;
     m.z = z;
     m.pose = pose;
-    m.status = status;
-    m.inPit = opts.inPit ?? false;
     m.yOffset = opts.yOffset ?? 0;
     m.group.visible = opts.visible !== false && pose !== "hidden";
     m.group.position.set(x, this.terrain.heightAt(x, z) + m.yOffset, z);
@@ -192,21 +184,5 @@ export class CrewProc {
     const m = this.members.get(id);
     if (!m) return null;
     return new THREE.Vector3(m.x, this.terrain.heightAt(m.x, m.z) + m.yOffset, m.z);
-  }
-
-  /** Snapshots of the visible scripted crew members for `MissionContext.crew`. */
-  snapshots(): CrewSnapshot[] {
-    const out: CrewSnapshot[] = [];
-    for (const m of this.members.values()) {
-      if (!m.group.visible && m.status !== "boarded") continue;
-      out.push({
-        id: m.id,
-        x: Number(m.x.toFixed(1)),
-        z: Number(m.z.toFixed(1)),
-        status: m.status,
-        ...(m.inPit ? { in_pit: true } : {}),
-      });
-    }
-    return out;
   }
 }

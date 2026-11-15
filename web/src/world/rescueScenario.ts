@@ -5,12 +5,15 @@ import {
   BASE_MODULE_FOOTPRINTS,
   BASE_ORIGIN,
   CREW4_START,
+  CREW_ROSTER,
+  findCrew,
+  initialCrewSnapshots,
   fleetStartPos,
   RESCUE_PIT,
   RESCUE_SITE,
   t as tr,
 } from "@th/shared";
-import type { CrewStatus } from "@th/shared";
+import type { CrewLocation, CrewSnapshot, CrewStatus } from "@th/shared";
 import {
   RESCUE_POSE_STOWED,
   RESCUE_SKILL_DURATION_S,
@@ -55,7 +58,9 @@ export interface RescueUnitView {
 
 export interface RescueCrewView extends RescueUnitView {
   pose: CrewViewPose;
+  location: CrewLocation;
   status: CrewStatus;
+  unit_id?: string;
   /** Offset above the terrain height (negative inside the pit). */
   yOffset: number;
   inPit: boolean;
@@ -274,7 +279,7 @@ function computeView(t: number): RescueView {
   if (t < T_FALL) {
     const x = ROVER1.x + 3 * Math.cos(c2a);
     const z = ROVER1.z + 3 * Math.sin(c2a);
-    crew2 = { x, z, yaw: yawOf(-Math.sin(c2a), Math.cos(c2a)), pose: "walk", status: "active", yOffset: 0, inPit: false, visible: true };
+    crew2 = { x, z, yaw: yawOf(-Math.sin(c2a), Math.cos(c2a)), pose: "walk", location: "traverse", status: "nominal", yOffset: 0, inPit: false, visible: true };
   } else if (t < 70) {
     const u = smooth(seg(t, T_FALL, 70));
     const from = { x: ROVER1.x + 3 * Math.cos(0.5 * T_FALL), z: ROVER1.z + 3 * Math.sin(0.5 * T_FALL) };
@@ -283,13 +288,13 @@ function computeView(t: number): RescueView {
       z: lerp(from.z, CREW2_RIM.z, u),
       yaw: yawOf(P.x - from.x, P.z - from.z),
       pose: u < 1 ? "walk" : "idle",
-      status: "active",
+      location: "traverse", status: "nominal",
       yOffset: 0,
       inPit: false,
       visible: true,
     };
   } else if (t < T_DRAG - 2) {
-    crew2 = { x: CREW2_RIM.x, z: CREW2_RIM.z, yaw: yawOf(P.x - CREW2_RIM.x, P.z - CREW2_RIM.z), pose: "idle", status: "active", yOffset: 0, inPit: false, visible: true };
+    crew2 = { x: CREW2_RIM.x, z: CREW2_RIM.z, yaw: yawOf(P.x - CREW2_RIM.x, P.z - CREW2_RIM.z), pose: "idle", location: "traverse", status: "nominal", yOffset: 0, inPit: false, visible: true };
   } else if (t < T_DRAG_END) {
     const u = seg(t, T_DRAG - 2, T_DRAG_END);
     crew2 = {
@@ -297,13 +302,13 @@ function computeView(t: number): RescueView {
       z: lerp(CREW2_RIM.z, CREW2_BOARD.z, u),
       yaw: yawOf(CREW2_BOARD.x - CREW2_RIM.x, CREW2_BOARD.z - CREW2_RIM.z),
       pose: "walk",
-      status: "active",
+      location: "traverse", status: "nominal",
       yOffset: 0,
       inPit: false,
       visible: true,
     };
   } else {
-    crew2 = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw, pose: "hidden", status: "boarded", yOffset: 0, inPit: false, visible: false };
+    crew2 = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw, pose: "hidden", location: "rescue_vehicle", status: "evacuating", unit_id: "rescue-1", yOffset: 0, inPit: false, visible: false };
   }
 
   // crew-3 (geologist): walks the rim, falls into the pit, is raised on the stretcher and dragged to rescue-1
@@ -312,7 +317,7 @@ function computeView(t: number): RescueView {
   let crew3: RescueCrewView;
   if (t < T_FAULT) {
     const c = crew3Circle(t);
-    crew3 = { x: c.x, z: c.z, yaw: yawOf(-Math.sin(c.a), Math.cos(c.a)), pose: "walk", status: "active", yOffset: 0, inPit: false, visible: true };
+    crew3 = { x: c.x, z: c.z, yaw: yawOf(-Math.sin(c.a), Math.cos(c.a)), pose: "walk", location: "traverse", status: "nominal", yOffset: 0, inPit: false, visible: true };
   } else if (t < T_FALL) {
     const u = smooth(seg(t, T_FAULT, T_FALL));
     crew3 = {
@@ -320,7 +325,7 @@ function computeView(t: number): RescueView {
       z: lerp(c3.z, c3Rim.z, u),
       yaw: yawOf(P.x - c3.x, P.z - c3.z),
       pose: "walk",
-      status: "active",
+      location: "traverse", status: "nominal",
       yOffset: 0,
       inPit: false,
       visible: true,
@@ -332,7 +337,7 @@ function computeView(t: number): RescueView {
       z: lerp(c3Rim.z, PIT_FLOOR_XZ.z, u),
       yaw: YAW_TO_BASE,
       pose: "lying",
-      status: "injured",
+      location: (u >= 1) ? "in_pit" : "traverse", status: t < (T_WINCH + T_DRAG) / 2 ? "incapacitated" : "evacuating",
       yOffset: -RESCUE_PIT.depthM * u,
       inPit: u >= 1,
       visible: true,
@@ -344,16 +349,16 @@ function computeView(t: number): RescueView {
       z: PIT_FLOOR_XZ.z,
       yaw: YAW_TO_BASE,
       pose: "lying",
-      status: "injured",
+      location: (u < 0.5) ? "in_pit" : "traverse", status: t < (T_WINCH + T_DRAG) / 2 ? "incapacitated" : "evacuating",
       yOffset: lerp(-RESCUE_PIT.depthM, 0.35, u),
       inPit: u < 0.5,
       visible: true,
     };
   } else if (t < T_DRAG_END) {
     const trail = at(robot, neg(toBase), 1.9);
-    crew3 = { x: trail.x, z: trail.z, yaw: YAW_TO_BASE, pose: "lying", status: "injured", yOffset: 0.35, inPit: false, visible: true };
+    crew3 = { x: trail.x, z: trail.z, yaw: YAW_TO_BASE, pose: "lying", location: "traverse", status: t < (T_WINCH + T_DRAG) / 2 ? "incapacitated" : "evacuating", yOffset: 0.35, inPit: false, visible: true };
   } else {
-    crew3 = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw, pose: "hidden", status: "boarded", yOffset: 0, inPit: false, visible: false };
+    crew3 = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw, pose: "hidden", location: "rescue_vehicle", status: "evacuating", unit_id: "rescue-1", yOffset: 0, inPit: false, visible: false };
   }
 
   const phase: RescueView["phase"] =
@@ -421,6 +426,7 @@ export class RescueScenario {
   private fired: RescueEvent[] = [];
   private nextEvent = 0;
   private silent = false;
+  private started = false;
 
   constructor(private deps: RescueScenarioDeps) {}
 
@@ -444,6 +450,7 @@ export class RescueScenario {
 
   start(): void {
     this.reset();
+    this.started = true;
     this._running = true;
     this.fireDue();
   }
@@ -462,6 +469,7 @@ export class RescueScenario {
     this._running = false;
     this.fired = [];
     this.nextEvent = 0;
+    this.started = false;
   }
 
   /** Advances the scenario by `dt` seconds (rounded down to whole 1/30 s ticks; the remainder carries over). */
@@ -481,6 +489,7 @@ export class RescueScenario {
     const wasRunning = this._running;
     const target = Math.round(Math.min(this.durationS, Math.max(0, tS)) / RESCUE_TICK_S);
     this.reset();
+    this.started = true;
     this.silent = true;
     this._running = true;
     this.fireDue();
@@ -490,7 +499,9 @@ export class RescueScenario {
   }
 
   /** World position of an entity, or null for an unknown id. `y` is terrain height plus altitude or pit offset. */
-  getEntityPosition(id: string): THREE.Vector3 | null {
+  getEntityPosition(rawId: string): THREE.Vector3 | null {
+    // Crew entities accept both ids ("crew-3") and callsigns ("YACONIS").
+    const id = findCrew(rawId)?.id ?? rawId;
     const v = this.view;
     const h = (x: number, z: number) => this.deps.heightAt(x, z);
     const ground = (x: number, z: number, dy = 0) => new THREE.Vector3(x, h(x, z) + dy, z);
@@ -534,6 +545,34 @@ export class RescueScenario {
       default:
         return null;
     }
+  }
+
+  /**
+   * The four astronauts by callsign (roster order): position, location and status at the current time.
+   * Before `start()` the expedition crew rides in `rover-1` at its base position.
+   */
+  getCrewSnapshots(): CrewSnapshot[] {
+    const crew1 = this.deps.getCrew1?.() ?? ASTRONAUT_START;
+    const rover = fleetStartPos("rover-1");
+    const v = this.view;
+    const base = initialCrewSnapshots(BASE_ORIGIN, rover);
+    return CREW_ROSTER.map((m) => {
+      const init = base.find((c) => c.id === m.id)!;
+      if (m.id === "crew-1") return { ...init, x: crew1.x, z: crew1.z };
+      if (m.id === "crew-4") return { ...init, x: CREW4_START.x, z: CREW4_START.z };
+      if (!this.started) return init;
+      const c = v.crew[m.id as "crew-2" | "crew-3"];
+      return {
+        id: m.id,
+        name: m.name,
+        assignment: m.assignment,
+        x: c.x,
+        z: c.z,
+        location: c.location,
+        status: c.status,
+        ...(c.unit_id ? { unit_id: c.unit_id } : {}),
+      };
+    });
   }
 
   private fireDue(): void {

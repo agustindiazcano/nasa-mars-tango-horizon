@@ -158,7 +158,7 @@ export class MissionStore {
   env: EnvState = createInitialEnv();
 
   fleet: UnitSnapshot[] = [];
-  /** Scripted crew members (`crew-2..4`); `crew-1` is the player astronaut and is added in `toContext`. */
+  /** The four astronauts by callsign, refreshed each simulation step. */
   crew: CrewSnapshot[] = [];
   alerts: HudAlert[] = [];
   trace: TraceEvent[] = [];
@@ -250,10 +250,7 @@ export class MissionStore {
         battery: Number(u.battery.toFixed(3)),
         busy: u.busy,
       })),
-      crew: [
-        { id: "crew-1", x: Number(this.astronaut.x.toFixed(1)), z: Number(this.astronaut.z.toFixed(1)), status: "active" },
-        ...this.crew,
-      ],
+      crew: this.crew.map((c) => ({ ...c, x: Number(c.x.toFixed(1)), z: Number(c.z.toFixed(1)) })),
       ...(this.activeScenario === "rescue" ? { rescue_active: true } : {}),
       hud: {
         layer: this.layer,

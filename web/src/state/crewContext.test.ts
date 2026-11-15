@@ -1,16 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { BASE_ORIGIN, initialCrewSnapshots } from "@th/shared";
 import { MissionStore } from "../state";
 
-describe("MissionContext crew positions", () => {
-  it("includes the player astronaut as crew-1 followed by the scripted crew", () => {
+describe("MissionContext crew", () => {
+  it("passes the four callsigns with positions rounded to 0.1 m", () => {
     const store = new MissionStore();
-    store.astronaut.x = 12.34;
-    store.astronaut.z = -5.67;
-    store.crew = [{ id: "crew-4", x: 218, z: -488, status: "idle" }];
+    store.crew = initialCrewSnapshots(BASE_ORIGIN, { x: 100.04, z: -20.06 });
     const ctx = store.toContext();
-    expect(ctx.crew).toEqual([
-      { id: "crew-1", x: 12.3, z: -5.7, status: "active" },
-      { id: "crew-4", x: 218, z: -488, status: "idle" },
-    ]);
+    expect(ctx.crew?.map((c) => c.name)).toEqual(["DIAZ-CANO", "SALERNO", "SOTELO", "YACONIS"]);
+    expect(ctx.crew?.find((c) => c.name === "YACONIS")).toMatchObject({ x: 100, z: -20.1, location: "in_rover", status: "nominal" });
   });
 });

@@ -178,8 +178,8 @@ describe("RescueScenario", () => {
     const dragged = s.getEntityPosition("crew-3")!;
     expect(dragged.y).toBeCloseTo(100.35, 6);
     s.seekTo(176);
-    expect(s.view.crew["crew-3"].status).toBe("boarded");
-    expect(s.view.crew["crew-2"].status).toBe("boarded");
+    expect(s.view.crew["crew-3"].location).toBe("rescue_vehicle");
+    expect(s.view.crew["crew-2"].location).toBe("rescue_vehicle");
   });
 
   it("parks rescue-1 beyond the 15 m keep-out of the pit and the robot reaches the rim", () => {
@@ -201,5 +201,32 @@ describe("RescueScenario", () => {
     expect(s.view.tau).toBeGreaterThan(nominal + 2);
     s.seekTo(180);
     expect(s.view.tau).toBeCloseTo(6, 6);
+  });
+
+  it("reports the four callsigns with location and status, and accepts names as entity ids", () => {
+    const s = make();
+    const idle = s.getCrewSnapshots();
+    expect(idle.map((c) => c.name)).toEqual(["DIAZ-CANO", "SALERNO", "SOTELO", "YACONIS"]);
+    expect(idle.find((c) => c.name === "YACONIS")).toMatchObject({ location: "in_rover", unit_id: "rover-1", status: "nominal" });
+    s.seekTo(100);
+    const snaps = s.getCrewSnapshots();
+    const yaconis = snaps.find((c) => c.name === "YACONIS")!;
+    expect(yaconis).toMatchObject({ id: "crew-3", location: "in_pit", status: "incapacitated" });
+    expect(snaps.find((c) => c.name === "SOTELO")).toMatchObject({ location: "traverse", status: "nominal" });
+    expect(snaps.find((c) => c.name === "SALERNO")).toMatchObject({ location: "base", assignment: "base" });
+    expect(s.getEntityPosition("YACONIS")!.toArray()).toEqual(s.getEntityPosition("crew-3")!.toArray());
+    expect(s.getEntityPosition("Sotelo")).not.toBeNull();
+    s.seekTo(166);
+    expect(s.getCrewSnapshots().find((c) => c.name === "YACONIS")).toMatchObject({ location: "traverse", status: "evacuating" });
+    s.seekTo(178);
+    expect(s.getCrewSnapshots().find((c) => c.name === "YACONIS")).toMatchObject({ location: "rescue_vehicle", unit_id: "rescue-1" });
+  });
+
+  it("uses callsigns in event texts", () => {
+    const s = make();
+    s.seekTo(60);
+    const fall = s.events.find((e) => e.id === "crew3_fall")!;
+    expect(fall.text).toContain("YACONIS");
+    expect(fall.text).not.toContain("crew-3");
   });
 });
