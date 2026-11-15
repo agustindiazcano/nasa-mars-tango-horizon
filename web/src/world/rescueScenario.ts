@@ -596,3 +596,8 @@ export class RescueScenario {
 export function rescueEventIds(): string[] {
   return EVENT_SPECS.map((e) => e.id);
 }
+
+/** Scenario time (s) of an event, or null for an unknown id. Used by the scripted narration. */
+export function rescueEventTimeS(id: string): number | null {
+  return EVENT_SPECS.find((e) => e.id === id)?.tS ?? null;
+}

@@ -8,7 +8,7 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { apiUrl } from "./api";
-import { ASR_LOCALE, getLang, t } from "@th/shared";
+import { ASR_LOCALE, getLang, onLangChange, t } from "@th/shared";
 import { AIRCRAFT_GROUNDING_TAU, C, leakTimeline, planRoute, stepSuitTelemetry } from "@th/shared";
 import type { ArmSkillId, LayerId, RouteDisplay } from "@th/shared";
 import { createDemoDeck } from "./hud/demoDeck";
@@ -24,8 +24,17 @@ import { CINEMATIC_CAM_IDS, CinematicCams, type CinematicCamId } from "./world/c
 import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
 import { PitProc } from "./world/pitProc";
-import { RescueScenario, type RescueView } from "./world/rescueScenario";
+import {
+  DRONE_STANDOFF_M,
+  RescueScenario,
+  rescueEventTimeS,
+  rescueTauAt,
+  type RescueView,
+} from "./world/rescueScenario";
+import { formatCoordinates } from "./world/terrainValidation";
 import { ScenePanel } from "./hud/scenePanel";
+import { AgentChat } from "./hud/agentChat";
+import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
 import { SceneDirector } from "./world/sceneDirector";
 import { PodBallistics } from "./world/podBallistics";
 import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
@@ -458,6 +467,25 @@ const sceneDirector = new SceneDirector(rescue, {
     }
   },
 });
+// Scripted narration of the orchestrator agent (no model calls): values come from a probe copy of the scenario.
+const agentChat = new AgentChat();
+const narrationProbe = new RescueScenario({ heightAt: (x, z) => terrain.heightAt(x, z) });
+const narrationCtx: NarrationCtx = {
+  eventT: (id) => rescueEventTimeS(id),
+  pos: (id, tS) => {
+    narrationProbe.seekTo(tS);
+    const p = narrationProbe.getEntityPosition(id);
+    return p ? { x: p.x, z: p.z } : null;
+  },
+  tau: (tS) => rescueTauAt(tS),
+  coords: (x, z) => {
+    const ll = terrain.toLonLat(x, z);
+    return formatCoordinates(ll.lat, ll.lon);
+  },
+  standoffM: DRONE_STANDOFF_M,
+};
+const narrationFeeder = new NarrationFeeder(buildNarration(narrationCtx, (k, p) => t(k, p)), agentChat);
+onLangChange(() => narrationFeeder.setLines(buildNarration(narrationCtx, (k, p) => t(k, p))));
 const scenePanel = new ScenePanel(sceneDirector, { setHudVisible: (v) => store.setHudVisible(v) });
 
 /** Applies the scripted rescue state to the fleet, crew, rescue robot and environment. */
@@ -766,6 +794,8 @@ function animate(now: number): void {
     camera.lookAt(shot.target.x, shot.target.y, shot.target.z);
   }
   scenePanel.update();
+  narrationFeeder.sync(rescue.elapsedS, store.activeScenario === "rescue");
+  agentChat.update(store.hudVisible);
   launchSite.update(now / 1000);
   skyCrane.update(realDt, store.env.tau);
 
