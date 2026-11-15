@@ -260,8 +260,11 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       skill: string;
       target_id: string;
     };
-    const unit = ctx.fleet.find((u) => u.id === (unit_id ?? "manip-1"));
-    if (!unit) return deny("Manipulator rover manip-1 not available");
+    const unit =
+      ctx.fleet.find((u) => u.id === unit_id) ??
+      ctx.fleet.find((u) => u.kind === "manipulator") ??
+      ctx.fleet.find((u) => u.id === "rover-3" || u.id === "manip-1");
+    if (!unit) return deny(`Manipulator rover ${unit_id ?? "rover-3"} not available`);
     if (a.proposedBy.startsWith("ROBOT.") && a.proposedBy !== `ROBOT.${unit.id}`) {
       return deny(`Only ROBOT.${unit.id} may invoke arm skills`);
     }

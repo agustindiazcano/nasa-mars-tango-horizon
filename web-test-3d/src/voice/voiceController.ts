@@ -39,10 +39,15 @@ const OFFLINE_ACTION_KINDS: Record<string, string[]> = {
   deliver_supplies: ["rover_cargo", "rescue", "rover_crew"],
 };
 
-function matchOfflineExplicitUnitId(low: string): string | null {
+function matchOfflineExplicitUnitId(low: string, fleet: { id: string; kind: string }[] = []): string | null {
+  const resolveManipId = () =>
+    fleet.find((u) => u.kind === "manipulator")?.id ??
+    (fleet.some((u) => u.id === "manip-1") && !fleet.some((u) => u.id === "rover-3") ? "manip-1" : "rover-3");
   const direct = low.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i);
   if (direct) return direct[1].toLowerCase();
-  if (/\b(hands|manip(?:ulador|ulator)?(?:\s*(?:uno|one|1))?|brazo|arm)\b/i.test(low)) return "manip-1";
+  if (/\b(hands|manip(?:ulador|ulator)?(?:\s*(?:uno|one|1))?|masip\s*(?:uno|one|1)|brazo|arm)\b/i.test(low)) {
+    return resolveManipId();
+  }
   if (/\b(rescate|rescue)(?:\s*(?:uno|one|1))?\b/i.test(low)) return "rescue-1";
   if (/\b(glider|planeador|planeur|segler|aliante)\b/i.test(low)) return "glider-1";
   if (/\bscout\s*(?:dos|two|deux|zwei|due|2)\b/i.test(low)) return "scout-2";
@@ -492,7 +497,7 @@ export class VoiceController {
     const low = text.toLowerCase();
     const lang = getLang();
     const es = lang === "es";
-    const explicitUnit = matchOfflineExplicitUnitId(low);
+    const explicitUnit = matchOfflineExplicitUnitId(low, this.store.fleet);
 
     if (/thermal|t[eé]rmic/.test(low)) {
       const a: Action = {
@@ -635,7 +640,9 @@ export class VoiceController {
             ? "sample"
             : "photograph";
       const targetId = skill === "handover" ? "astronaut" : "T1";
-      const manipUnit = this.store.fleet.find((u) => u.id === "manip-1");
+      const manipUnit = this.store.fleet.find((u) => u.kind === "manipulator") ?? this.store.fleet.find((u) => u.id === "rover-3" || u.id === "manip-1");
+      const manipId = manipUnit?.id ?? "rover-3";
+      const manipAgent = `ROBOT.${manipId}`;
       const distCrew = manipUnit
         ? Math.hypot(manipUnit.x - this.store.astronaut.x, manipUnit.z - this.store.astronaut.z)
         : 99;
@@ -647,8 +654,8 @@ export class VoiceController {
       }
       const act: Action = {
         type: "arm_skill",
-        args: { unit_id: "manip-1", skill, target_id: targetId },
-        proposedBy: "ROBOT.manip-1",
+        args: { unit_id: manipId, skill, target_id: targetId },
+        proposedBy: manipAgent,
         verdict,
       };
       return {
@@ -656,16 +663,16 @@ export class VoiceController {
           verdict.decision === "deny"
             ? verdict.reason
             : es
-              ? `ROBOT.manip-1 ejecutando ${skill} en ${targetId}.`
-              : `ROBOT.manip-1 executing ${skill} on ${targetId}.`,
+              ? `${manipAgent} ejecutando ${skill} en ${targetId}.`
+              : `${manipAgent} executing ${skill} on ${targetId}.`,
         actions: [act],
         trace: [
           { t: now, agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } },
-          { t: now + 2, agent: "BASE", kind: "delegate", detail: { to: "ROBOT.manip-1" } },
-          { t: now + 4, agent: "ROBOT.manip-1", kind: "tool", detail: { tool: "arm_skill", args: act.args } },
+          { t: now + 2, agent: "BASE", kind: "delegate", detail: { to: manipAgent } },
+          { t: now + 4, agent: manipAgent, kind: "tool", detail: { tool: "arm_skill", args: act.args } },
           { t: now + 6, agent: "GUARDIAN", kind: "verdict", detail: act },
         ],
-        route: ["SUIT.VOICE-EXEC", "BASE", "ROBOT.manip-1"],
+        route: ["SUIT.VOICE-EXEC", "BASE", manipAgent],
       };
     }
 

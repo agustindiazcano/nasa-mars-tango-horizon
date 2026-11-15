@@ -554,13 +554,19 @@ export const TOOLS: ToolDef[] = [
     server: "fleet",
     effect: true,
     schema: z.object({
-      unit_id: z.literal("manip-1"),
+      unit_id: z.enum(["rover-3", "manip-1"]).default("rover-3"),
       skill: z.enum(["handover", "sample", "drill", "photograph"]),
       target_id: z.string().describe("ID of a target marker visible in the camera frame, or 'astronaut'"),
       item: z.enum(["hammer", "sample_tube", "patch_kit", "o2_bottle"]).optional(),
     }),
-    description: "Runs an arm skill on a visible target with manip-1. The rover drives into reach first if needed.",
-    run: (a, _c, caller) => ({ type: "arm_skill", args: a, proposedBy: caller }),
+    description: "Runs an arm skill on a visible target with rover-3 (legacy alias manip-1). The rover drives into reach first if needed.",
+    run: (a, ctx, caller) => {
+      const resolvedId =
+        ctx.fleet.find((u) => u.id === a.unit_id)?.id ??
+        ctx.fleet.find((u) => u.kind === "manipulator")?.id ??
+        a.unit_id;
+      return { type: "arm_skill", args: { ...a, unit_id: resolvedId }, proposedBy: caller };
+    },
   }),
 
   def({

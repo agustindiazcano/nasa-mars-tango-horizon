@@ -616,7 +616,7 @@ export class TacticalHud {
       this.modalEl.style.display = "block";
       this.modalEl.innerHTML = `
         <div class="panel-hdr">
-          <span>RVR-2 / MANIP-1 VISION FEED (POST /api/agent/vision)</span>
+          <span>RVR-2 / RVR-3 VISION FEED (POST /api/agent/vision)</span>
           <button class="hud-btn" data-pointable id="modal-close">X</button>
         </div>
         ${s.injectionBlockedBanner ? `<div class="alert-banner"><b>${t("agents.injection_blocked")}</b></div>` : ""}
@@ -626,7 +626,7 @@ export class TacticalHud {
         <div style="font-size:12px; color:#fff; margin-bottom:8px;">${s.roverPreviewCaption}</div>
         <div class="btn-row">
           <button class="hud-btn" data-pointable id="rvr-snap-2">Capture RVR-2 Sign</button>
-          <button class="hud-btn" data-pointable id="rvr-snap-m">Capture MANIP-1 Targets</button>
+          <button class="hud-btn" data-pointable id="rvr-snap-m">Capture RVR-3 Targets</button>
         </div>
       `;
       this.modalEl.querySelector("#modal-close")!.addEventListener("click", () => {
@@ -637,7 +637,7 @@ export class TacticalHud {
         this.actions.captureRoverVision("rover-2", t("deck.say.8")),
       );
       this.modalEl.querySelector("#rvr-snap-m")!.addEventListener("click", () =>
-        this.actions.captureRoverVision("manip-1", "Identify numbered rock targets T1, T2, T3"),
+        this.actions.captureRoverVision("rover-3", "Identify numbered rock targets T1, T2, T3"),
       );
       return;
     }
@@ -725,7 +725,7 @@ export class TacticalHud {
         )
         .join("");
       this.modalEl.innerHTML = `
-        ${closeHdr("FLEET & MANIP-1 4-DOF IK")}
+        ${closeHdr("FLEET & ROVER-3 4-DOF IK")}
         <table class="prov-tbl">
           <thead><tr><th>ID</th><th>Kind</th><th>XZ (m)</th><th>Bat</th><th>Task</th></tr></thead>
           <tbody>${rows}</tbody>

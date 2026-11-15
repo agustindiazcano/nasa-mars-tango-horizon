@@ -271,10 +271,16 @@ function parseSiteTarget(
   return { x: s2.x, z: s2.z, label: s2.id };
 }
 
-function matchExplicitUnitId(q: string): string | null {
+function resolveManipUnitId(ctx?: MissionContext): string {
+  return ctx?.fleet?.find((u) => u.kind === "manipulator")?.id ?? "rover-3";
+}
+
+function matchExplicitUnitId(q: string, ctx?: MissionContext): string | null {
   const direct = q.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i);
   if (direct) return direct[1].toLowerCase();
-  if (/\b(hands|manip(?:ulador|ulator)?(?:\s*(?:uno|one|1))?|brazo|arm)\b/i.test(q)) return "manip-1";
+  if (/\b(hands|manip(?:ulador|ulator)?(?:\s*(?:uno|one|1))?|masip\s*(?:uno|one|1)|brazo|arm)\b/i.test(q)) {
+    return resolveManipUnitId(ctx);
+  }
   if (/\b(rescate|rescue)(?:\s*(?:uno|one|1))?\b/i.test(q)) return "rescue-1";
   if (/\b(glider|planeador|planeur|segler|aliante)\b/i.test(q)) return "glider-1";
   if (/\bscout\s*(?:dos|two|deux|zwei|due|2)\b/i.test(q)) return "scout-2";
@@ -288,10 +294,10 @@ function matchExplicitUnitId(q: string): string | null {
 }
 
 function parseUnitId(q: string, ctx: MissionContext, history: ConversationTurn[] = []): string | null {
-  const explicit = matchExplicitUnitId(q);
+  const explicit = matchExplicitUnitId(q, ctx);
   if (explicit) return explicit;
   for (let i = history.length - 1; i >= 0; i--) {
-    const fromHistory = matchExplicitUnitId(history[i].content);
+    const fromHistory = matchExplicitUnitId(history[i].content, ctx);
     if (fromHistory) return fromHistory;
   }
   return ctx.fleet[0]?.id ?? null;
@@ -558,9 +564,10 @@ export async function offlineReply(
     );
   if (
     !isMaintenanceQuery &&
-    (hasManipArmIntent || (/(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?)(?![\p{L}\d])/iu.test(q) && !hasMovementOnlyVerb))
+    (hasManipArmIntent || (/(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?|masip\s*(?:uno|one|1))(?![\p{L}\d])/iu.test(q) && !hasMovementOnlyVerb))
   ) {
-    const caller = "ROBOT.manip-1";
+    const manipId = resolveManipUnitId(ctx);
+    const caller = `ROBOT.${manipId}`;
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
@@ -589,7 +596,7 @@ export async function offlineReply(
     const targetId = skill === "handover" ? "astronaut" : (matchedTarget?.id ?? ctx.targets?.[0]?.id ?? "T1");
     const act = proposeAction(
       "arm_skill",
-      { unit_id: "manip-1", skill, target_id: targetId, ...(item ? { item } : {}) },
+      { unit_id: manipId, skill, target_id: targetId, ...(item ? { item } : {}) },
       ctx,
       caller,
       actions,

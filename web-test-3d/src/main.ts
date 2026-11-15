@@ -112,11 +112,11 @@ const fleet = new FleetProc(scene, terrain, (ev, skill) => {
     });
     store.astronaut.load_kg += 0.45;
     store.lastDrillDepthCm = skill === "drill" ? 5.2 : store.lastDrillDepthCm;
-    store.pushAlert("info", `MANIP-1: ${ev} (${store.samples.length} logged)`);
+    store.pushAlert("info", `ROVER-3: ${ev} (${store.samples.length} logged)`);
   } else if (ev === "tool_offered") {
-    store.pushAlert("info", "MANIP-1: Tool offered at crew hand height (1.1 m)");
+    store.pushAlert("info", "ROVER-3: Tool offered at crew hand height (1.1 m)");
   } else if (ev === "photo_taken") {
-    void captureAndInspectVision("manip-1", "Inspect wrist target and nearby geology");
+    void captureAndInspectVision("rover-3", "Inspect wrist target and nearby geology");
   }
 });
 

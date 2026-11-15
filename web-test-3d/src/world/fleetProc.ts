@@ -27,10 +27,10 @@ export interface UnitSpec {
 export const FLEET_SPECS: UnitSpec[] = [
   { id: "rover-1", kind: "rover_crew", speed: 3.2, flies: false, startX: fleetStartPos("rover-1").x, startZ: fleetStartPos("rover-1").z },
   { id: "rover-2", kind: "rover_science", speed: 1.4, flies: false, startX: fleetStartPos("rover-2").x, startZ: fleetStartPos("rover-2").z },
+  { id: "rover-3", kind: "manipulator", speed: 1.6, flies: false, startX: fleetStartPos("rover-3").x, startZ: fleetStartPos("rover-3").z },
   { id: "rescue-1", kind: "rescue", speed: 5.5, flies: false, startX: fleetStartPos("rescue-1").x, startZ: fleetStartPos("rescue-1").z },
   { id: "drone-1", kind: "drone", speed: 11.0, flies: true, altitude: 14, startX: fleetStartPos("drone-1").x, startZ: fleetStartPos("drone-1").z },
   { id: "drone-2", kind: "drone", speed: 11.0, flies: true, altitude: 16, startX: fleetStartPos("drone-2").x, startZ: fleetStartPos("drone-2").z },
-  { id: "manip-1", kind: "manipulator", speed: 1.6, flies: false, startX: fleetStartPos("manip-1").x, startZ: fleetStartPos("manip-1").z },
 ];
 
 export interface DispatchPlannedInfo {
@@ -372,6 +372,13 @@ export class FleetProc {
     this.pendingSkill = null;
   }
 
+  private resolveManipulatorUnit(): FleetUnit | undefined {
+    for (const u of this.units.values()) {
+      if (u.spec.kind === "manipulator") return u;
+    }
+    return this.units.get("rover-3") ?? this.units.get("manip-1");
+  }
+
   executeArmSkill(
     skill: ArmSkillId,
     targetId: string,
@@ -379,8 +386,9 @@ export class FleetProc {
     astronautYaw: number,
     item?: string,
   ): void {
-    const manip = this.units.get("manip-1");
+    const manip = this.resolveManipulatorUnit();
     if (!manip) return;
+    const manipId = manip.spec.id;
 
     let worldTarget: THREE.Vector3;
     if (skill === "handover" || targetId === "astronaut") {
@@ -397,7 +405,7 @@ export class FleetProc {
       const dist = Math.hypot(manip.object.position.x - parkX, manip.object.position.z - parkZ);
       if (dist > 0.65) {
         this.pendingSkill = { skill, targetId, item };
-        this.dispatchTo("manip-1", parkX, parkZ, `arm:${skill}`, () => {
+        this.dispatchTo(manipId, parkX, parkZ, `arm:${skill}`, () => {
           this.triggerArmOnWorldPoint(skill, worldTarget);
         });
         return;
@@ -414,7 +422,7 @@ export class FleetProc {
       const parkX = worldTarget.x + Math.sin(ang) * 1.25;
       const parkZ = worldTarget.z + Math.cos(ang) * 1.25;
       this.pendingSkill = { skill, targetId, item };
-      this.dispatchTo("manip-1", parkX, parkZ, `arm:${skill}`, () => {
+      this.dispatchTo(manipId, parkX, parkZ, `arm:${skill}`, () => {
         this.triggerArmOnWorldPoint(skill, worldTarget);
       });
     } else {
@@ -423,7 +431,7 @@ export class FleetProc {
   }
 
   private triggerArmOnWorldPoint(skill: ArmSkillId, worldTarget: THREE.Vector3): void {
-    const manip = this.units.get("manip-1");
+    const manip = this.resolveManipulatorUnit();
     if (!manip) return;
     // Face the target before solving local arm IK
     const dx = worldTarget.x - manip.object.position.x;
@@ -476,7 +484,7 @@ export class FleetProc {
     ctx.fillStyle = "#35e0ff";
     ctx.fillText(`MASTCAM // ${unit.spec.id.toUpperCase()} // 512x384`, 10, 17);
 
-    if (unit.spec.id === "manip-1") {
+    if (unit.spec.kind === "manipulator" || unit.spec.id === "rover-3" || unit.spec.id === "manip-1") {
       for (const tgt of this.targets) {
         const ty = this.terrain.heightAt(tgt.x, tgt.z) + 0.35;
         const proj = new THREE.Vector3(tgt.x, ty, tgt.z).project(cam);
@@ -726,7 +734,7 @@ export class FleetProc {
         unit.mastCamera = cam;
       }
 
-      if (spec.id === "manip-1") {
+      if (spec.kind === "manipulator") {
         this.manipArm.root.position.set(0, 0.76, 0.88);
         g.add(this.manipArm.root);
       }
