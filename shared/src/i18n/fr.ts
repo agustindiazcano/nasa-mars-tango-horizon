@@ -92,8 +92,8 @@ export const fr: Record<Key, string> = {
   "alert.emergency_local": "Protocole d'urgence activé localement",
   "alert.eva_aborted": "EVA annulée. Retour à la base.",
   "alert.all_stop": "Toutes les unités arrêtées",
-  "scenario.storm_source": "Données : REMS, MSL, tempête globale de 2018",
-  "scenario.sep2017_source": "Événement réel mesuré par RAD, septembre 2017",
+  "scenario.storm_source": "Tempête de conception (courbe synthétique ; données REMS 2018 dans l'archive)",
+  "scenario.sep2017_source": "Événement SEP de conception (courbe synthétique ; données RAD sept 2017 dans l'archive)",
 
   // GUARDIAN rule & judge reasons
   "guard.slope": "Pente de {slope}° supérieure à la limite de {max}° de {unit}",

@@ -90,8 +90,8 @@ export const en = {
   "alert.emergency_local": "Emergency protocol activated locally",
   "alert.eva_aborted": "EVA aborted. Returning to base.",
   "alert.all_stop": "All units halted",
-  "scenario.storm_source": "Data: REMS, MSL, 2018 global dust storm",
-  "scenario.sep2017_source": "Real event measured by RAD, September 2017",
+  "scenario.storm_source": "Design dust storm (synthetic curve; REMS 2018 data in archive)",
+  "scenario.sep2017_source": "Design SEP radiation event (synthetic curve; RAD Sep 2017 data in archive)",
 
   // GUARDIAN rule & judge reasons
   "guard.slope": "{slope}° slope exceeds the {max}° limit of {unit}",

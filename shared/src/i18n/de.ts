@@ -92,8 +92,8 @@ export const de: Record<Key, string> = {
   "alert.emergency_local": "Notfallprotokoll lokal aktiviert",
   "alert.eva_aborted": "EVA abgebrochen. Rückkehr zur Basis.",
   "alert.all_stop": "Alle Einheiten gestoppt",
-  "scenario.storm_source": "Daten: REMS, MSL, globaler Staubsturm 2018",
-  "scenario.sep2017_source": "Reales Ereignis gemessen von RAD, September 2017",
+  "scenario.storm_source": "Design-Staubsturm (synthetische Kurve; REMS-2018-Daten im Archiv)",
+  "scenario.sep2017_source": "Design-SEP-Strahlungsereignis (synthetische Kurve; RAD-Sep-2017-Daten im Archiv)",
 
   // GUARDIAN rule & judge reasons
   "guard.slope": "{slope}° Neigung überschreitet das Limit von {max}° für {unit}",

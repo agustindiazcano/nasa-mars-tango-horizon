@@ -85,6 +85,8 @@ function createInitialEnv(): EnvState {
     sol: 4120,
     ls_deg: 215,
     ltst_hours: 11.4,
+    data_category: "design",
+    radiation_quantity: "absorbed_dose_silicon",
     pressure_pa: 748,
     air_temp_k: 234,
     ground_temp_k: 248,
@@ -93,7 +95,7 @@ function createInitialEnv(): EnvState {
     wind_dir_rad: 0.65,
     dose_rate_ugy_h: 9.8,
     sun_elev_deg: 54,
-    earth_light_time_s: 492, // Design assumption; recorded Horizons epochs are shown separately in the archive.
+    earth_light_time_s: 492, // Design assumption; recorded Horizons epochs (e.g. 660.9 s at 2026-Nov-14 00:00 TDB) are shown separately in the archive.
     storm_source: "Design clear atmosphere",
     rad_source: "Design quiet absorbed dose",
   };
@@ -217,8 +219,8 @@ export class MissionStore {
         fan_rpm: Math.round(this.suit.fan_rpm),
       },
       env: {
-        data_category: "design",
-        radiation_quantity: "absorbed_dose_silicon",
+        data_category: this.env.data_category ?? "design",
+        radiation_quantity: this.env.radiation_quantity ?? "absorbed_dose_silicon",
         storm_source: this.env.storm_source,
         rad_source: this.env.rad_source,
         pressure_pa: Math.round(this.env.pressure_pa),
