@@ -1,4 +1,6 @@
-/** Independent historical inspection: never merges epochs into mission telemetry. */
+﻿import { ARCHIVE_IDS, parseHistoricalSeries, SampleReplay, type HistoricalSeries } from "../data/historicalSeries";
+
+/** Historical playback never writes to design mission telemetry or agent context. */
 export function installHistoricalArchive(): void {
   const open = document.createElement("button");
   open.textContent = "Historical data archive";
@@ -7,48 +9,83 @@ export function installHistoricalArchive(): void {
   const dialog = document.createElement("dialog");
   dialog.style.cssText = "max-width:750px;background:#07111e;color:white;padding:24px";
   const title = document.createElement("h2");
-  title.textContent = "Independent historical records (mission state is unchanged)";
+  title.textContent = "Historical replay — independent of mission telemetry";
   const select = document.createElement("select");
-  for (const name of ["rems_clear", "rems_storm2018", "rad_quiet", "rad_sep2017", "ephem"]) {
-    select.add(new Option(name, name));
-  }
+  select.setAttribute("aria-label", "Historical dataset");
+  for (const name of ARCHIVE_IDS) select.add(new Option(name, name));
   const output = document.createElement("pre");
   output.style.whiteSpace = "pre-wrap";
+  output.setAttribute("aria-live", "polite");
   const slider = document.createElement("input");
   slider.type = "range"; slider.min = "0"; slider.step = "1"; slider.value = "0";
+  slider.setAttribute("aria-label", "Historical sample");
+  const play = document.createElement("button"); play.textContent = "Play";
+  const reset = document.createElement("button"); reset.textContent = "Reset";
+  const rate = document.createElement("select");
+  rate.setAttribute("aria-label", "Replay speed in samples per second");
+  for (const speed of [1, 4, 12]) rate.add(new Option(`${speed} samples/s (gaps skipped)`, String(speed)));
   const close = document.createElement("button"); close.textContent = "Close";
-  close.onclick = () => dialog.close();
-  dialog.append(title, select, slider, output, close); document.body.append(dialog);
-  let generation = 0;
-  async function load(): Promise<void> {
-    const current = ++generation;
-    slider.disabled = true; output.textContent = "Loading historical asset";
-    try {
-      const name = select.value;
-      const response = await fetch(`/data/env/${name}.json`, { signal: AbortSignal.timeout(30000) });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      if (typeof data.source !== "string") throw new Error("Missing source");
-      const ephem = name === "ephem";
-      const rad = name.startsWith("rad_");
-      const times: number[] = ephem ? data.earth_series.map((r: { jdtdb: number }) => r.jdtdb) : data.hours;
-      const values: number[] = ephem ? data.earth_series.map((r: { light_time_s: number }) => r.light_time_s) : rad ? data.dose_rate_ugy_h : data.tau;
-      if (!Array.isArray(times) || !Array.isArray(values) || !times.length || times.length !== values.length ||
-          !times.every(Number.isFinite) || !values.every(Number.isFinite) ||
-          times.some((t, i) => i > 0 && t <= times[i - 1])) throw new Error("Invalid historical series");
-      if (rad && (data.unit !== "uGy/h" || data.quality_factor_applied !== null)) throw new Error("Unsupported radiation units");
-      if (current !== generation) return;
-      slider.max = String(times.length - 1); slider.value = "0"; slider.disabled = false;
-      function render(): void {
-        const i = Number(slider.value);
-        const category = ephem ? "Ephemeris calculation" : rad ? "Absorbed dose in silicon detector B; no equivalent dose conversion" : "Derived UV opacity proxy; not Mastcam measured tau";
-        const epoch = ephem ? data.earth_series[i].tdb : rad ? data.source : `Selected sols: ${data.sols.join(", ")}; file hours compress nonconsecutive sols`;
-        output.textContent = `${data.source}\n${category}\n${epoch}\nSample ${i + 1}/${values.length}: ${values[i]} ${ephem ? "s one-way light time" : rad ? "uGy/h" : "dimensionless opacity proxy"}\nCoordinate: ${times[i]} ${ephem ? "JD TDB" : "file hours"}\nMaximum: ${Math.max(...values)}\nManual sample playback: exact samples only; gaps are not interpolated, no extrapolation. Selection resets to the first sample.\n${data.tau_note ?? ""}`;
-      }
-      slider.oninput = render; render();
-    } catch (error) {
-      if (current === generation) output.textContent = `Historical replay unavailable: ${String(error)}`;
+  dialog.append(title, select, slider, play, reset, rate, output, close);
+  document.body.append(dialog);
+  let request: AbortController | undefined;
+  let series: HistoricalSeries | undefined;
+  let replay: SampleReplay | undefined;
+  let frame = 0;
+  let lastTime = 0;
+  function render(): void {
+    if (!series || !replay) return;
+    slider.value = String(replay.index);
+    play.textContent = replay.playing ? "Pause" : "Play";
+    output.textContent = `${series.source}\nSample ${replay.index + 1}/${replay.count}\n${series.epochs[replay.index]}\n\n` +
+      series.variables.map(v => `${v.key}: ${v.values[replay!.index] ?? "unavailable"} ${v.unit}\n  ${v.category}: ${v.processing}`).join("\n") +
+      `\n\n${series.limitations}\nPlayback uses exact source samples only; no interpolation, extrapolation or amplitude scaling. Source time gaps are not playback durations.`;
+  }
+  function stop(): void {
+    cancelAnimationFrame(frame);
+    if (replay) replay.playing = false;
+  }
+  function animate(now: number): void {
+    if (!replay?.playing || !dialog.open) return;
+    replay.advance((now - lastTime) / 1000, Number(rate.value));
+    lastTime = now; render();
+    if (replay.playing) frame = requestAnimationFrame(animate);
+  }
+  play.onclick = () => {
+    if (!replay) return;
+    if (replay.playing) stop();
+    else {
+      if (replay.index === replay.count - 1) replay.reset();
+      replay.playing = true; lastTime = performance.now(); frame = requestAnimationFrame(animate);
     }
+    render();
+  };
+  slider.oninput = () => { stop(); replay?.seek(Number(slider.value)); render(); };
+  reset.onclick = () => { stop(); replay?.reset(); render(); };
+  rate.onchange = () => { stop(); render(); };
+  dialog.addEventListener("close", () => { stop(); request?.abort(); });
+  close.onclick = () => dialog.close();
+  async function load(): Promise<void> {
+    stop(); request?.abort();
+    const active = new AbortController(); request = active;
+    const timeout = setTimeout(() => active.abort(), 30000);
+    series = undefined; replay = undefined;
+    slider.disabled = play.disabled = reset.disabled = true;
+    play.textContent = "Play";
+    output.textContent = "Loading historical asset";
+    try {
+      const id = ARCHIVE_IDS.find(id => id === select.value);
+      if (!id) throw new Error("Unknown historical asset");
+      const response = await fetch(`/data/env/${id}.json`, { signal: active.signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const loaded = parseHistoricalSeries(id, await response.json());
+      if (request !== active || active.signal.aborted || !dialog.open) return;
+      series = loaded; replay = new SampleReplay(series.epochs.length);
+      slider.max = String(replay.count - 1); slider.value = "0";
+      slider.disabled = play.disabled = reset.disabled = false;
+      render();
+    } catch (error) {
+      if (request === active && dialog.open) output.textContent = `Historical replay unavailable: ${String(error)}`;
+    } finally { clearTimeout(timeout); }
   }
   select.onchange = () => { void load(); };
   open.onclick = () => { dialog.showModal(); void load(); };
