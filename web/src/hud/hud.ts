@@ -22,6 +22,14 @@ import type { VoiceController } from "../voice/voiceController";
 import { BASE_MODULES } from "../world/baseProc";
 import type { TerrainProc } from "../world/terrainProc";
 import type { DeckButton } from "./demoDeck";
+import {
+  buildChartModel,
+  drawStormChart,
+  fetchStormForecast,
+  stormVerdict,
+  type StormForecastData,
+} from "./stormForecast";
+import { barHeight } from "../voice/spectrum";
 
 export interface HudActions {
   togglePov(): void;
@@ -98,6 +106,8 @@ export class TacticalHud {
   private provenanceState: "idle" | "loading" | "ready" | "error" = "idle";
   private provenanceData: ProvenanceManifest | null = null;
   private provenanceError = "";
+  private stormData: StormForecastData | null = null;
+  private stormState: "loading" | "ready" | "error" = "loading";
 
   constructor(
     private store: MissionStore,
@@ -136,6 +146,12 @@ export class TacticalHud {
     this.buildQrContainer();
     this.buildBottomStatic();
 
+    void fetchStormForecast().then((data) => {
+      this.stormData = data;
+      this.stormState = data ? "ready" : "error";
+      this.renderDynamic();
+    });
+    this.startFft();
     this.store.subscribe(() => this.renderDynamic());
     this.actions.sessions?.subscribe(() => {
       this.sessionsRenderKey = "";
@@ -211,6 +227,27 @@ export class TacticalHud {
     });
   }
 
+  private startFft(): void {
+    const bins = new Uint8Array(32);
+    const loop = () => {
+      requestAnimationFrame(loop);
+      const cv = document.getElementById("voice-fft") as HTMLCanvasElement | null;
+      if (!cv || !this.store.hudVisible) return;
+      const g = cv.getContext("2d");
+      if (!g) return;
+      const live = this.voice.radio.getSpectrum(bins);
+      const color = getComputedStyle(cv).getPropertyValue("--ok").trim() || "#e8a33d";
+      const w = cv.width / bins.length;
+      g.clearRect(0, 0, cv.width, cv.height);
+      g.fillStyle = color;
+      for (let i = 0; i < bins.length; i++) {
+        const h = barHeight(live ? bins[i] : 0, cv.height);
+        g.fillRect(i * w + 1, cv.height - h, w - 2, h);
+      }
+    };
+    requestAnimationFrame(loop);
+  }
+
   private buildBottomStatic(): void {
     const langBtns = LANGS.map(
       (l) =>
@@ -270,6 +307,7 @@ export class TacticalHud {
         <button class="hud-btn ${this.voice.radio.radioEffect ? "active" : ""}" data-pointable id="btn-radio">${t("voice.radio")}</button>
         <input id="voice-input" type="text" placeholder="${t("voice.placeholder")}" />
         <button class="hud-btn" data-pointable id="btn-send">${t("voice.send")}</button>
+        <canvas id="voice-fft" class="voice-fft" width="200" height="28"></canvas>
         <span id="base-proc-badge" class="pill warn" style="display:none;">${t("voice.processing")}</span>
       </div>
 
@@ -514,9 +552,12 @@ export class TacticalHud {
       <div class="kv-row"><span>${t("hud.dose_rate")}</span><span class="val">${fmt(s.env.dose_rate_ugy_h, 1)} uGy/h</span></div>
       <div class="kv-row"><span>${t("hud.cum_dose")}</span><span class="val">${fmt(suit.cumulative_dose_ugy, 2)} uGy</span></div>
       ${hydValBlock}
+      ${this.stormBlockHtml(s.env.tau)}
       <div style="font-size:10px; opacity:0.75; margin-top:4px;">[${escapeHtml(s.env.data_category ?? "design")}] ${escapeHtml(s.env.storm_source)}<br>${escapeHtml(s.env.rad_source)} (${escapeHtml(s.env.radiation_quantity ?? "absorbed_dose_silicon")})<br>${terrainProvenanceLine} (${this.terrain.heightGridN} DEM)</div>
       ${latestAlerts}
     `;
+
+    this.drawStormCanvas();
 
     // Bottom live controls
     this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-layer]").forEach((b) => {
@@ -615,6 +656,36 @@ export class TacticalHud {
     }
 
     this.renderModal();
+  }
+
+  private stormBlockHtml(tau: number): string {
+    if (this.stormState === "loading") return "";
+    if (!this.stormData) {
+      return `<div class="storm-block"><div class="panel-hdr"><span>${t("hud.storm_forecast")}</span></div><div class="storm-note">${escapeHtml(t("storm.chart.unavailable"))}</div></div>`;
+    }
+    const d = this.stormData;
+    const verdict = stormVerdict(d, tau);
+    const cov = d.coverage80.filter((c): c is number => c !== null);
+    const covLine = cov.length
+      ? `<div class="storm-note">${escapeHtml(t("storm.chart.coverage", { lo: fmt(Math.min(...cov) * 100, 0), hi: fmt(Math.max(...cov) * 100, 0) }))}</div>`
+      : "";
+    const level = verdict.verdict === "go" ? "good" : verdict.verdict === "no_go" ? "crit" : "warn";
+    return `
+      <div class="storm-block">
+        <div class="panel-hdr"><span>${t("hud.storm_forecast")}</span><span>Sol ${d.forecast_sol}</span></div>
+        <canvas id="storm-chart" width="236" height="96"></canvas>
+        <div class="storm-note">${escapeHtml(t("storm.chart.legend"))}</div>
+        <div class="kv-row"><span>${escapeHtml(t("storm.chart.verdict"))}</span><span class="val storm-verdict ${level}">${t(`storm.verdict.${verdict.verdict}`)}</span></div>
+        ${verdict.reasons.map((r) => `<div class="storm-note">• ${escapeHtml(t(r))}</div>`).join("")}
+        ${covLine}
+        <div class="storm-note">${escapeHtml(t("storm.nowcast_disclaimer"))}</div>
+      </div>`;
+  }
+
+  private drawStormCanvas(): void {
+    const canvas = document.getElementById("storm-chart") as HTMLCanvasElement | null;
+    if (!canvas || !this.stormData) return;
+    drawStormChart(canvas, buildChartModel(this.stormData));
   }
 
   private renderVotingCard(tr: TraceEvent, s: MissionStore): string {

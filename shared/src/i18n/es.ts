@@ -151,6 +151,10 @@ export const es: Record<Key, string> = {
   "science.vein_disclaimer": "Solo firma visual de vetas; la composición mineral requiere confirmación por espectrómetro",
   "science.hydration_disclaimer": "Predice el índice de hidrógeno superficial ligado a minerales (razón DAN adimensional), no agua líquida, hielo ni % H2O",
   "storm.nowcast_disclaimer": "Pronóstico estadístico de corto alcance en un sitio; no modela física global de tormentas",
+  "storm.chart.legend": "puntos: tau observado · línea: mediana · banda: q10–q90 · línea punteada: nivel de tormenta",
+  "storm.chart.coverage": "Cobertura fuera de muestra de la banda del 80 %: {lo}–{hi} %",
+  "storm.chart.verdict": "Veredicto de EVA en q90",
+  "storm.chart.unavailable": "Datos de pronóstico no disponibles",
 
   // Demo deck
   "deck.title": "BOTONERA DEMO",

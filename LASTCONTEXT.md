@@ -4,19 +4,19 @@
 
 ## Summary of work done
 
-- Squash-merged PR #28 (`2ff2db9`, NASA insignias, FPS-independent limb relaxation, HUD i18n in 5 languages, vision 503 instead of fabricated text).
-- Migrated the frontend `web-test-3d/` to `web/` (`B22`, PR #29, merged): workspace `@th/web`, `dev:test3d` renamed to `dev:web`, Dockerfile, `vercel.json`, lockfile and docs updated.
-- Deployed: Cloud Run `tangohorizon-api` revision `00027` (`deploy.sh`, health OK, `ALLOWED_ORIGINS` includes `tangohorizon.vercel.app`) and Vercel production from `main` (new `nasa-insignia.png` served).
-- Reconciled `F1`–`F15` against `web/src` in `PENDING_FRONT.md` (9 done, 6 partial) and fixed `localIntents.test.ts` (9 categories). Branch `chore/reconcile-pending-front`.
+- Merged PR #29 (`web-test-3d` renamed to `web`) and PR #30 (reconciliation); deployed Cloud Run `tangohorizon-api` revision `00027` and Vercel from `main`.
+- Branch `feat/storm-forecast-fft-cinematic-cams`:
+  - `F8`: 3-sol storm forecast fan chart and EVA verdict in the right HUD panel (`web/src/hud/stormForecast.ts`, data from `public/data/env/storm_forecast.json`). The chart caption shows the held-out coverage of the q10–q90 band (44–52 %), lower than the nominal 80 %.
+  - `F6`: 32-band FFT canvas in the voice HUD (`RadioSpeaker` analyser in `speak.ts`, canvas in `hud.ts`), delivered by a subagent and cherry-picked. Playback falls back to the destination when `AnalyserNode` is missing.
+  - Plan `docs/impl/22_RESCUE_SCENARIO_AND_BASE_REVISION.md` (rescue scenario, three astronauts, unit renames, base revision) and task `B24` in `PENDING.md`.
+- `F14` (cinematic cameras, Casson panel, Sky-Crane tether and LiDAR) runs in a separate subagent worktree on branch `feat/f14-cinematic-casson-skycrane`; not merged here.
 
 ## Decisions made
 
-- The `rover-2` sign/injection canned demo removed by PR #28 stays removed (it was a test fixture).
-- Vercel serves the frontend and Cloud Run serves the API only: CDN for the large 3D assets, and Cloud Run needs one fixed instance for WebSocket rooms. The Dockerfile builds no frontend; the `web/dist` mirror in `server/src/index.ts` stays inactive. Written into `AGENTS.md`.
-- Reconciliation is based on code presence in `web/src`, not on visual checks (those stay under `B37`).
-- CI was not awaited for PR #29 at the user's request; it passed afterwards.
+- Frontend ships through Vercel only; Cloud Run stays API-only.
+- The `rover-2` sign/injection demo stays removed.
 
 ## Where the work was left
 
-- `chore/reconcile-pending-front` has the test fix plus the status-file commits; not pushed, no PR yet.
-- The `submission` tag is not created: it needs an end-to-end check of the deployed app first.
+- Waiting for the user's GLB models: 3 astronauts, solar panels, antennas, Starship and launch base, rescue robot (see plan 22, section 2).
+- Visual verification of the new HUD pieces in a browser is pending (`B37`).
