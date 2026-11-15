@@ -3,27 +3,32 @@
 > Summary of the previous session. Overwritten at the end of every session.
 
 **Date:** 2026-11-14
-**Agent:** Antigravity
+**Agent:** Claude Code
 
 ## What was done
 
-- Merged PR #10 and worked on branch `feat/robot-action-catalog`:
-  - Added the 10-action robot capability catalog (`server/src/agents/unitCapabilities.ts`), the `unit_action` MCP tool, deterministic `GUARDIAN` capability/dust-grounding checks, direct `BASE` execution for single-unit orders, and `web-test-3d` handlers (`state.ts`, `main.ts`) plus a 70 s voice request timeout (`voiceController.ts`).
-  - Added deterministic life-support safety net in `hierarchy.ts` when `leak_diameter_m > 0`, updated `GUARDIAN` judge prompt for active leaks, raised `LLM_MAX_OUTPUT_TOKENS` default to `1500`, bound Gemini `reasoning_effort` to `"low"` and failed over on empty completions in `provider.ts`, and popped empty assistant turns before forced final replies in `runAgent.ts`.
-  - Added unit tests (`unit_actions.test.ts`, `safety_fixes.test.ts`), added `.github/workflows/ci.yml` (parallel `test-shared`, `test-server`, `build`), updated `AGENTS.md` (parallel CI on branches + explicit prohibition on prompt-injection/adversarial tests), and added the collapsible `View full README` toggle with Models and Technologies tables to `README.md` and `README_ES.md`.
-  - Deployed to Cloud Run (`tangohorizon-api-00015-62r`) and validated all 11 normal voice/TTS cases in parallel against production (`3.6 s` health fast-path, `8.2–11.7 s` weather/route/return/storm/wrong-kind, `20.9 s` full 4-action leak life-support protocol, `22.9 s` drone takeoff + east photo, `36.0 s` manip-1 rock sample).
+- Audit of the repo, then fixes merged in PR #11: vision intercept regex, single leak emergency protocol (`emergency_response_active`), aircraft grounding at tau >= 1.8 in `GUARDIAN` and frontend, `deploy.sh` carriage return, one trusted proxy hop for rate limits, sanitized `MissionContext`, vision route error handling, server tests in `npm test`.
+- AI/RAG test run against a local server (no adversarial inputs): RAG integrity and latency (p95 0.53 ms), 62 `GUARDIAN` rule cases, offline fallback, providers, 15 agent cases through `/api/agent/run`.
+- Branch `fix/ai-rag-findings` (former B28-B31 plus the coordinate anchor):
+  - `chat()` returns an empty completion instead of throwing when every provider answers empty; agent routes return `offline: true/false`.
+  - `decide()` takes the measured tau; `evaluate_eva_weather` returns `no_go` at tau 3.0.
+  - Spoken replies pass through `plainSpeech` (no Markdown/LaTeX); `search_docs` capped at 2 per run and queried in English.
+  - 120-token cap removed from the `GUARDIAN` judge and `check-llm.ts`: Meta models answer tool calls and JSON with the default budget.
+  - `worldToPlanetocentric` anchors at the DTM window center from `terrain/meta.json` (-4.745, 137.400) instead of Bradbury Landing; every server lat/lon was 9.54 km off.
+- Read-only audit of NASA data usage and of the scene coordinates; open gaps recorded as B32-B36.
 
 ## Files touched
 
-- `AGENTS.md`, `README.md`, `README_ES.md`, `.github/workflows/ci.yml`, `.env.example`, `deploy.sh`
-- `server/src/config.ts`, `server/src/llm/provider.ts`, `server/src/agents/{guardian,hierarchy,runAgent,unitCapabilities}.ts`, `server/src/agents/tools/registry.ts`, `server/src/agents/__tests__/unit_actions.test.ts`
-- `web-test-3d/src/{main,state}.ts`, `web-test-3d/src/voice/voiceController.ts`
+- `server/src/llm/provider.ts`, `server/src/agents/{routes,runAgent,guardian,speech}.ts`, `server/src/agents/tools/{registry,terrainData}.ts`, `server/src/scripts/check-llm.ts`, `server/src/agents/__tests__/{speech,coordinates,knowledge}.test.ts`
+- `shared/src/physics/stormDecision.ts` and its test
 
 ## Decisions
 
-- Bounded `reasoning_effort` to `"low"` for Vertex/Gemini and treated empty `{content:"", tool_calls:[]}` completions as failover errors so `BASE` no longer stalls or returns empty replies.
-- Replaced sequential local full-suite runs with parallel GitHub Actions jobs (`ci.yml`) and concurrent live probes, and prohibited prompt-injection/adversarial tests in `AGENTS.md`.
+- An empty LLM completion is handled by the forced-final path in `runAgent.ts`, not by the offline rule engine: the offline engine answered a delegation order with a fixed site (S2) unrelated to the tool results.
+- The scene anchor comes from the cartography metadata, so server and HUD report the same coordinates.
+- Subagents run in isolated worktrees: sharing one working tree with another session moved the checkout mid-edit.
 
 ## State the work was left in
 
-- `feat/robot-action-catalog` pushed with a PR opened to `main`, CI checks passing, and Cloud Run `tangohorizon-api-00015-62r` serving the validated backend. Waiting for user approval to merge the PR and proceed to `PENDING.md` / `PENDING_FRONT.md`.
+- `fix/ai-rag-findings` pushed with a PR to `main`; not deployed. Local checks: 46 tests in `shared`, 35 in `server`.
+- A voice test run (local server, benign orders) was still in progress when the PR was opened; its results are not in this file.
