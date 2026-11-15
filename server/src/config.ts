@@ -22,6 +22,7 @@ const env = (key: string, fallback = "") => process.env[key] ?? fallback;
 
 export type ProviderName = "vertex" | "gemini" | "meta";
 export type Tier = "large" | "medium" | "fast" | "judge" | "vision";
+export type ReasoningEffort = "low" | "medium" | "high";
 
 export interface ProviderConfig {
   name: ProviderName;
@@ -100,6 +101,7 @@ export const config = {
   fastTimeoutMs: Math.max(6000, Number(env("LLM_FAST_TIMEOUT_MS", "8000"))),
   defaultTimeoutMs: Math.max(15000, Number(env("LLM_DEFAULT_TIMEOUT_MS", "20000"))),
   offline: env("AGENTS_OFFLINE", "0") === "1",
+  votingEnabled: env("ESCALATED_VOTING_ENABLED", "1") !== "0",
   primary,
   providerOrder,
   providers,

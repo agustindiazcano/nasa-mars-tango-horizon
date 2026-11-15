@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import { GoogleAuth } from "google-auth-library";
-import { config, type ProviderName, type Tier } from "../config.js";
+import { config, type ProviderName, type ReasoningEffort, type Tier } from "../config.js";
+
+export type { ReasoningEffort };
 
 /**
  * Multi-provider OpenAI-compatible client supporting:
@@ -67,9 +69,24 @@ export interface ChatOptions {
   tools?: ChatTool[];
   json?: boolean;
   maxTokens?: number;
+  reasoning_effort?: ReasoningEffort;
+  timeoutMs?: number;
+  signal?: AbortSignal;
   provider?: ProviderName;
   providers?: ProviderName[];
   onMeta?: (meta: ChatCallMeta) => void;
+}
+
+/** Adapts optional reasoning_effort across providers while preserving existing bounded Gemini defaults. */
+export function reasoningPayloadFor(
+  provider: ProviderName,
+  effort?: ReasoningEffort,
+): { reasoning_effort?: ReasoningEffort } {
+  if (effort !== undefined) {
+    return { reasoning_effort: effort };
+  }
+  // Keep Gemini reasoning bounded on Vertex/AI Studio so tool turns stay fast and never burn all tokens on thought.
+  return provider !== "meta" ? { reasoning_effort: "low" } : {};
 }
 
 /** Strips Google-specific extension fields from assistant/tool_call history when sending to non-Google providers. */
@@ -105,11 +122,14 @@ export async function chat(
     throw new Error("No LLM provider enabled");
   }
 
-  const timeout = tier === "fast" ? config.fastTimeoutMs : config.defaultTimeoutMs;
+  const timeout = opts.timeoutMs ?? (tier === "fast" ? config.fastTimeoutMs : config.defaultTimeoutMs);
   let lastErr: unknown;
   let emptyMessage: OpenAI.Chat.Completions.ChatCompletionMessage | undefined;
 
   for (const provider of order) {
+    if (opts.signal?.aborted) {
+      throw opts.signal.reason ?? new Error("LLM request aborted");
+    }
     const model = modelFor(tier, provider);
     const started = Date.now();
     try {
@@ -121,10 +141,12 @@ export async function chat(
           tools: opts.tools?.length ? opts.tools : undefined,
           response_format: opts.json ? { type: "json_object" } : undefined,
           max_tokens: opts.maxTokens ?? config.maxTokens,
-          // Keep Gemini reasoning bounded on Vertex/AI Studio so tool turns stay fast and never burn all tokens on thought.
-          ...(provider !== "meta" ? { reasoning_effort: "low" as const } : {}),
+          ...reasoningPayloadFor(provider, opts.reasoning_effort),
         } as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
-        { timeout }
+        {
+          timeout,
+          ...(opts.signal ? { signal: opts.signal } : {}),
+        }
       );
       const ms = Date.now() - started;
       const choice = res.choices[0];
@@ -177,6 +199,7 @@ export async function chat(
         })
       );
       lastErr = err;
+      if (opts.signal?.aborted) break;
     }
   }
 
