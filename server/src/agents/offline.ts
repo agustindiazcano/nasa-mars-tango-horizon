@@ -1,4 +1,9 @@
-import type { ComponentHealthReport } from "@th/shared";
+import {
+  BASE_ORIGIN,
+  getMissionSite,
+  MISSION_SITES_BY_ID,
+  type ComponentHealthReport,
+} from "@th/shared";
 import { MAX_SLOPE, ruleCheck } from "./guardian.js";
 import { callTool, missionScope, startMcpServers } from "./tools/mcp.js";
 import { TOOLS } from "./tools/registry.js";
@@ -12,13 +17,6 @@ export interface OfflineResult {
   trace: TraceEvent[];
   route: string[];
 }
-
-const SITE_COORDS: Record<number, { x: number; z: number; name: string }> = {
-  1: { x: 250, z: -180, name: "S1" },
-  2: { x: 480, z: 320, name: "S2" },
-  3: { x: -420, z: 390, name: "S3" },
-  4: { x: 720, z: -450, name: "S4" },
-};
 
 function toolByName(name: string): ToolDef {
   const t = TOOLS.find((x) => x.name === name);
@@ -216,15 +214,15 @@ function matchExplicitSiteTarget(q: string): { x: number; z: number; label: stri
       "3": 3, tres: 3, three: 3, trois: 3, drei: 3, tre: 3,
       "4": 4, cuatro: 4, four: 4, quatre: 4, vier: 4, quattro: 4,
     };
-    const site = SITE_COORDS[map[word] ?? 2];
-    return { x: site.x, z: site.z, label: site.name };
+    const site = getMissionSite(map[word] ?? 2);
+    return { x: site.x, z: site.z, label: site.id };
   }
   const coords = parseSpokenCoords(q);
   if (coords) {
     return { x: coords.x, z: coords.z, label: `(${coords.x}, ${coords.z})` };
   }
   if (/\b(base|hab|habitat|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q)) {
-    return { x: 0, z: 0, label: "Base" };
+    return { x: BASE_ORIGIN.x, z: BASE_ORIGIN.z, label: "Base" };
   }
   return null;
 }
@@ -263,7 +261,8 @@ function parseSiteTarget(
       if (fromHistory) return fromHistory;
     }
   }
-  return { x: SITE_COORDS[2].x, z: SITE_COORDS[2].z, label: "S2" };
+  const s2 = MISSION_SITES_BY_ID.S2;
+  return { x: s2.x, z: s2.z, label: s2.id };
 }
 
 function matchExplicitUnitId(q: string): string | null {
@@ -456,8 +455,8 @@ export async function offlineReply(
     const rescueUnit =
       ctx.fleet.find((u) => u.id === "rescue-1") ??
       ctx.fleet.find((u) => u.kind === "rescue" || u.kind.startsWith("rover"));
-    const shelterX = rescueUnit ? Math.round(rescueUnit.x) : 0;
-    const shelterZ = rescueUnit ? Math.round(rescueUnit.z) : 0;
+    const shelterX = rescueUnit ? Math.round(rescueUnit.x) : BASE_ORIGIN.x;
+    const shelterZ = rescueUnit ? Math.round(rescueUnit.z) : BASE_ORIGIN.z;
     const beaconTool = toolByName("deploy_beacons");
     const beaconProposal = (await missionScope.run({ ctx, caller }, () =>
       beaconTool.run({ to_x: shelterX, to_z: shelterZ, mode: "auto", spacing_m: 50 }, ctx, caller),
@@ -508,8 +507,8 @@ export async function offlineReply(
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
     const target = parseSiteTarget(q, ctx, history);
-    const toX = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? 0 : target.x;
-    const toZ = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? 0 : target.z;
+    const toX = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? BASE_ORIGIN.x : target.x;
+    const toZ = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? BASE_ORIGIN.z : target.z;
     const beaconTool = toolByName("deploy_beacons");
     const beaconProposal = (await missionScope.run({ ctx, caller }, () =>
       beaconTool.run({ to_x: toX, to_z: toZ, mode: "auto", spacing_m: 50 }, ctx, caller),
@@ -898,15 +897,18 @@ export async function offlineReply(
 
     const ranked = await execRead("rank_sample_sites", { k: 3 }, ctx, caller, trace);
     const top = ranked?.sites?.[0];
+    const fallbackSite = MISSION_SITES_BY_ID.S2;
+    const sx = top?.x ?? fallbackSite.x;
+    const sz = top?.z ?? fallbackSite.z;
     if (/\b(veta|vein|veine|ader|vena)\b/i.test(q)) {
       const vein = await execRead("detect_veins", { waypoint_id: "wp-1" }, ctx, caller, trace);
       return {
         speech: pick(lang, {
-          es: `Candidato a veta (p=${vein.vein_probability}); composición requiere espectrómetro. Mejor sitio hidratación (${top?.x ?? 480}, ${top?.z ?? 320}) con ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`,
-          en: `Vein candidate (p=${vein.vein_probability}); composition needs spectrometer. Top hydration site (${top?.x ?? 480}, ${top?.z ?? 320}) at ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`,
-          fr: `Veine candidate (p=${vein.vein_probability}) ; spectromètre requis. Meilleur site (${top?.x ?? 480}, ${top?.z ?? 320}) avec ${top?.hydration_index ?? 5.1} indice d'hydratation (adimensionnel).`,
-          de: `Ader-Kandidat (p=${vein.vein_probability}); Spektrometer nötig. Bester Standort (${top?.x ?? 480}, ${top?.z ?? 320}) mit ${top?.hydration_index ?? 5.1} Hydratationsindex (dimensionslos).`,
-          it: `Vena candidata (p=${vein.vein_probability}); serve spettrometro. Miglior sito (${top?.x ?? 480}, ${top?.z ?? 320}) con ${top?.hydration_index ?? 5.1} indice di idratazione (adimensionale).`,
+          es: `Candidato a veta (p=${vein.vein_probability}); composición requiere espectrómetro. Mejor sitio hidratación (${sx}, ${sz}) con ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`,
+          en: `Vein candidate (p=${vein.vein_probability}); composition needs spectrometer. Top hydration site (${sx}, ${sz}) at ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`,
+          fr: `Veine candidate (p=${vein.vein_probability}) ; spectromètre requis. Meilleur site (${sx}, ${sz}) avec ${top?.hydration_index ?? 5.1} indice d'hydratation (adimensionnel).`,
+          de: `Ader-Kandidat (p=${vein.vein_probability}); Spektrometer nötig. Bester Standort (${sx}, ${sz}) mit ${top?.hydration_index ?? 5.1} Hydratationsindex (dimensionslos).`,
+          it: `Vena candidata (p=${vein.vein_probability}); serve spettrometro. Miglior sito (${sx}, ${sz}) con ${top?.hydration_index ?? 5.1} indice di idratazione (adimensionale).`,
         }),
         actions,
         trace,
@@ -916,11 +918,11 @@ export async function offlineReply(
     proposeAction("set_layer", { layer: "hydration" }, ctx, caller, actions, trace);
     return {
       speech: pick(lang, {
-        es: `Mejor sitio (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, pendiente ${top?.slope_deg ?? 4}° (hidratación mineral).`,
-        en: `Top site (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, slope ${top?.slope_deg ?? 4}° (bound mineral hydration).`,
-        fr: `Meilleur site (${top?.x ?? 480}, ${top?.z ?? 320}) : ${top?.hydration_index ?? 5.1} indice d'hydratation (adimensionnel) ± ${top?.uncertainty_index ?? 0.6}, pente ${top?.slope_deg ?? 4}° (hydratation minérale).`,
-        de: `Bester Standort (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} Hydratationsindex (dimensionslos) ± ${top?.uncertainty_index ?? 0.6}, Neigung ${top?.slope_deg ?? 4}° (Mineralhydratation).`,
-        it: `Miglior sito (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} indice di idratazione (adimensionale) ± ${top?.uncertainty_index ?? 0.6}, pendenza ${top?.slope_deg ?? 4}° (idratazione minerale).`,
+        es: `Mejor sitio (${sx}, ${sz}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, pendiente ${top?.slope_deg ?? 4}° (hidratación mineral).`,
+        en: `Top site (${sx}, ${sz}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, slope ${top?.slope_deg ?? 4}° (bound mineral hydration).`,
+        fr: `Meilleur site (${sx}, ${sz}) : ${top?.hydration_index ?? 5.1} indice d'hydratation (adimensionnel) ± ${top?.uncertainty_index ?? 0.6}, pente ${top?.slope_deg ?? 4}° (hydratation minérale).`,
+        de: `Bester Standort (${sx}, ${sz}): ${top?.hydration_index ?? 5.1} Hydratationsindex (dimensionslos) ± ${top?.uncertainty_index ?? 0.6}, Neigung ${top?.slope_deg ?? 4}° (Mineralhydratation).`,
+        it: `Miglior sito (${sx}, ${sz}): ${top?.hydration_index ?? 5.1} indice di idratazione (adimensionale) ± ${top?.uncertainty_index ?? 0.6}, pendenza ${top?.slope_deg ?? 4}° (idratazione minerale).`,
       }),
       actions,
       trace,

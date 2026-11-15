@@ -2,6 +2,7 @@ import { z } from "zod";
 import { UNIT_ACTION_IDS } from "../unitCapabilities.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
+  BASE_ORIGIN,
   decide,
   directTransmission,
   ENV_LIMITS,
@@ -411,8 +412,8 @@ export const TOOLS: ToolDef[] = [
     server: "fleet",
     effect: true,
     schema: z.object({
-      to_x: z.number().default(0).describe("Shelter or rover destination X coordinate in metres east"),
-      to_z: z.number().default(0).describe("Shelter or rover destination Z coordinate in metres south"),
+      to_x: z.number().default(BASE_ORIGIN.x).describe("Shelter or rover destination X coordinate in metres east"),
+      to_z: z.number().default(BASE_ORIGIN.z).describe("Shelter or rover destination Z coordinate in metres south"),
       mode: z
         .enum(["auto", "drone_drop", "ballistic_canister"])
         .default("auto")
