@@ -1,4 +1,4 @@
-import { BASE_ORIGIN, MISSION_SITES } from "@th/shared";
+import { BASE_ORIGIN, LAUNCH_SITE_COORD, MISSION_SITES } from "@th/shared";
 import { formatCoordinates } from "../world/terrainValidation";
 import { hydrationRgb } from "../world/terrainRasters";
 import { ASR_LOCALE, fmt, getLang, LANGS, onLangChange, setLang, t } from "@th/shared";
@@ -1231,6 +1231,16 @@ export class TacticalHud {
     ctx.fillStyle = "#9aa6b2";
     ctx.font = "9px monospace";
     ctx.fillText("BASE", bp.x + 5, bp.y + 3);
+
+    const lp = toPx(LAUNCH_SITE_COORD.x, LAUNCH_SITE_COORD.z);
+    ctx.fillStyle = "#ff7a3a";
+    ctx.beginPath();
+    ctx.moveTo(lp.x, lp.y - 6);
+    ctx.lineTo(lp.x + 4, lp.y + 4);
+    ctx.lineTo(lp.x - 4, lp.y + 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillText("LAUNCH", lp.x - 36, lp.y + 3);
 
     for (const site of MISSION_SITES) {
       const sp = toPx(site.x, site.z);
