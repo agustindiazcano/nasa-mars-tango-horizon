@@ -1,6 +1,77 @@
 import * as THREE from "three";
 import { CREW4_START, CREW_ROSTER, type CrewId } from "@th/shared";
+import { models } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
+
+export type CrewClipName = "Idle_11" | "Walking" | "Running" | "Fall_Dead_from_Abdominal_Injury" | "Dead";
+
+/** Ground speed (m/s) above which the player astronaut plays the run clip (walk 2.4, sprint 4.4 in `AstronautProc`). */
+export const RUN_SPEED_MS = 3.2;
+const WALK_SPEED_MS = 0.15;
+
+/** Pure clip selection. A fall into the pit plays once, then the incapacitated crew member keeps the lying clip. */
+export function clipForState(pose: CrewPose | "run", previous: CrewClipName | null): CrewClipName {
+  if (pose === "lying") {
+    return previous === "Fall_Dead_from_Abdominal_Injury" || previous === "Dead" ? previous : "Fall_Dead_from_Abdominal_Injury";
+  }
+  if (pose === "run") return "Running";
+  if (pose === "walk") return "Walking";
+  return "Idle_11";
+}
+
+/** Locomotion clip for a measured ground speed. */
+export function poseForSpeed(speedMs: number): CrewPose | "run" {
+  return speedMs > RUN_SPEED_MS ? "run" : speedMs > WALK_SPEED_MS ? "walk" : "idle";
+}
+
+/** Small `AnimationMixer` state machine over the clips of `astronaut-animated`. */
+export class CrewAnimator {
+  private readonly mixer: THREE.AnimationMixer;
+  private readonly actions = new Map<string, THREE.AnimationAction>();
+  current: CrewClipName | null = null;
+
+  constructor(root: THREE.Object3D, clips: THREE.AnimationClip[]) {
+    this.mixer = new THREE.AnimationMixer(root);
+    for (const c of clips) this.actions.set(c.name, this.mixer.clipAction(c));
+    this.mixer.addEventListener("finished", (e) => {
+      if ((e as unknown as { action: THREE.AnimationAction }).action === this.actions.get("Fall_Dead_from_Abdominal_Injury")) {
+        this.play("Dead", { instant: false });
+      }
+    });
+  }
+
+  /** `instant` skips the fall and shows the last frame of the lying clip (used when a scene is seeked). */
+  request(pose: CrewPose | "run", opts: { instant?: boolean } = {}): void {
+    let clip = clipForState(pose, this.current);
+    if (clip === "Fall_Dead_from_Abdominal_Injury" && opts.instant) clip = "Dead";
+    if (clip !== this.current) this.play(clip, { instant: opts.instant });
+  }
+
+  private play(clip: CrewClipName, opts: { instant?: boolean }): void {
+    const next = this.actions.get(clip);
+    if (!next) return;
+    const prev = this.current ? this.actions.get(this.current) : undefined;
+    next.reset();
+    const once = clip === "Fall_Dead_from_Abdominal_Injury" || clip === "Dead";
+    next.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, once ? 1 : Infinity);
+    next.clampWhenFinished = once;
+    if (clip === "Dead") next.time = Math.max(0, next.getClip().duration - 1e-3);
+    next.play();
+    if (prev && prev !== next) {
+      if (opts.instant) prev.stop();
+      else next.crossFadeFrom(prev, 0.25, false);
+    }
+    this.current = clip;
+    if (clip === "Dead") {
+      next.paused = true;
+      this.mixer.update(0);
+    }
+  }
+
+  update(dt: number): void {
+    this.mixer.update(dt);
+  }
+}
 
 /** `crew-1` (SOTELO) is the player astronaut (`AstronautProc`); the others are scripted entities of this module. */
 export type CrewPose = "idle" | "walk" | "lying" | "hidden";
@@ -20,6 +91,9 @@ interface CrewMember {
   yOffset: number;
   x: number;
   z: number;
+  anim?: CrewAnimator;
+  /** True once the animated GLB replaced the procedural body. */
+  modelReady?: boolean;
 }
 
 const ACCENT: Record<Exclude<CrewId, "crew-1">, number> = {
@@ -50,7 +124,52 @@ export class CrewProc {
     this.place("crew-2", 0, 0, 0, "idle", { visible: false });
     this.place("crew-3", 0, 0, 0, "idle", { visible: false });
     this.place("crew-4", CREW4_START.x, CREW4_START.z, Math.PI * 0.75, "idle");
+    this.player = this.build("crew-2");
+    this.player.id = "crew-1" as CrewId;
+    this.player.group.name = "crew:crew-1";
+    for (const c of [...this.player.group.children]) if ((c as THREE.Sprite).isSprite) this.player.group.remove(c);
+    const playerLabel = makeSpriteLabel(CREW_ROSTER.find((c) => c.id === "crew-1")?.name ?? "crew-1", "#ff9f40");
+    playerLabel.position.y = 2.2;
+    playerLabel.scale.set(3.4, 0.64, 1);
+    this.player.group.add(playerLabel);
+    this.player.group.visible = false;
+    this.group.add(this.player.group);
+    for (const m of [...this.members.values(), this.player]) void this.attachModel(m);
     scene.add(this.group);
+  }
+
+  /** Player astronaut (`crew-1`, SOTELO): only exists as a model for the third-person views; hidden until the GLB loads. */
+  private readonly player: CrewMember;
+
+  get playerModelReady(): boolean {
+    return this.player.modelReady === true;
+  }
+
+  /** Follows the first-person controller. Visible only outside first person and once the model has loaded. */
+  syncPlayer(x: number, z: number, yaw: number, speedMs: number, show: boolean): void {
+    const m = this.player;
+    m.x = x;
+    m.z = z;
+    m.group.position.set(x, this.terrain.heightAt(x, z), z);
+    m.group.rotation.y = yaw;
+    m.group.visible = show && m.modelReady === true;
+    m.anim?.request(poseForSpeed(speedMs));
+  }
+
+  private async attachModel(m: CrewMember): Promise<void> {
+    const spawned = await models.spawn("astronaut-animated");
+    if (!spawned) return;
+    // The GLB faces +z; crew groups face -z (same as the procedural body), so turn the model half a revolution.
+    const root = new THREE.Group();
+    root.name = `glb:${m.id}`;
+    root.rotation.y = Math.PI;
+    root.add(spawned.object);
+    m.group.add(root);
+    m.body.visible = false;
+    m.anim = new CrewAnimator(spawned.object, spawned.clips);
+    m.anim.request(m.pose === "walk" ? "walk" : m.pose === "lying" ? "lying" : "idle", { instant: true });
+    m.modelReady = true;
+    // SHOULDER-PATCH HOOK (single place): call `attachShoulderPatches(root, m.id)` here for every crew model.
   }
 
   private build(id: Exclude<CrewId, "crew-1">): CrewMember {
@@ -142,6 +261,7 @@ export class CrewProc {
   ): void {
     const m = this.members.get(id);
     if (!m) return;
+    const wasVisible = m.group.visible;
     m.x = x;
     m.z = z;
     m.pose = pose;
@@ -149,6 +269,7 @@ export class CrewProc {
     m.group.visible = opts.visible !== false && pose !== "hidden";
     m.group.position.set(x, this.terrain.heightAt(x, z) + m.yOffset, z);
     m.group.rotation.y = yaw;
+    if (m.anim) m.anim.request(pose === "hidden" ? "idle" : pose, { instant: !wasVisible });
     this.applyPose(m, 0);
   }
 
@@ -182,8 +303,9 @@ export class CrewProc {
   }
 
   update(dt: number): void {
-    for (const m of this.members.values()) {
-      if (m.pose === "walk") this.applyPose(m, dt);
+    for (const m of [...this.members.values(), this.player]) {
+      if (m.anim) m.anim.update(dt);
+      else if (m.pose === "walk") this.applyPose(m, dt);
     }
   }
 

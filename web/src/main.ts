@@ -758,6 +758,8 @@ function stepSimulation(dt: number): void {
 
   fleet.update(dt, store.env.tau);
   store.fleet = fleet.snapshots();
+  crew.syncPlayer(astronaut.pos.x, astronaut.pos.z, astronaut.yaw, astronaut.speed, store.povMode !== "1st");
+  astronaut.group.visible = !crew.playerModelReady;
   crew.update(dt);
   store.crew = rescue.getCrewSnapshots();
 
