@@ -37,6 +37,7 @@ import { AgentChat } from "./hud/agentChat";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
 import { SceneDirector } from "./world/sceneDirector";
 import { PodBallistics } from "./world/podBallistics";
+import { RocksProc } from "./world/rocksProc";
 import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
 import { TerrainProc } from "./world/terrainProc";
@@ -133,6 +134,8 @@ const baseProc = new BaseProc(scene, terrain);
 const launchSite = new LaunchSiteProc(scene, terrain);
 new PitProc(scene, terrain);
 const crew = new CrewProc(scene, terrain);
+const rocks = new RocksProc(scene, terrain);
+void rocks;
 const skyCrane = new SkyCraneProc(scene, terrain);
 createSkyCraneToggle(() => {
   skyCrane.setVisible(!skyCrane.visible);
