@@ -14,6 +14,8 @@ export class RadioSpeaker {
   /** Shared 32-bin analyser; all playback routes through it before the destination. */
   private output(ctx: AudioContext): AudioNode {
     if (!this.analyser) {
+      // Contexts without AnalyserNode support (older engines, test doubles) play straight to the destination.
+      if (typeof ctx.createAnalyser !== "function") return ctx.destination;
       const a = ctx.createAnalyser();
       a.fftSize = 64;
       a.smoothingTimeConstant = 0.7;
