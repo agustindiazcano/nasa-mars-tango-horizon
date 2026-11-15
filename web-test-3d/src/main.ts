@@ -85,7 +85,7 @@ if (!rasterStatus.rastersOk) {
 if (rasterStatus.danCount > 0) {
   store.pushAlert("info", `Loaded ${rasterStatus.danCount} in-scene MSL DAN hydration stations`);
 }
-store.pushAlert("info", `Terrain ready: ${READY_TERRAIN.version}. HiRISE source verified; mesh uses 256 samples.`);
+store.pushAlert("info", `Terrain ready: ${READY_TERRAIN.version}. HiRISE 2048x2048 DEM verified; adaptive chunked LOD active.`);
 terrain.mesh.visible = true;
 terrain.markersGroup.visible = true;
 loading.remove();
@@ -361,11 +361,13 @@ store.setHooks({
 function startScenario(id: "storm" | "sep2017" | "leak"): void {
   store.activeScenario = id;
   store.scenarioElapsedS = 0;
+  store.env.data_category = "design";
+  store.env.radiation_quantity = "absorbed_dose_silicon";
   if (id === "storm") {
-    store.env.storm_source = "Design dust storm (synthetic opacity curve)";
+    store.env.storm_source = "Design dust storm (synthetic opacity curve; REMS 2018 archive peak tau = 4.243)";
     store.pushAlert("warn", `Dust storm approaching: tau rising, drones grounding at tau >= ${AIRCRAFT_GROUNDING_TAU}`, "WEATHER-RAD");
   } else if (id === "sep2017") {
-    store.env.rad_source = "Design radiation event (synthetic absorbed dose)";
+    store.env.rad_source = "Design radiation event (synthetic absorbed dose; RAD Sep 2017 archive peak = 25.89 uGy/h)";
     store.setLayer("radiation");
     // Find lowest SVF sheltered ridge spot within 300 m
     let bestX = astronaut.pos.x;
@@ -593,6 +595,7 @@ function animate(now: number): void {
     scene,
   );
 
+  terrain.updateLod(camera.position.x, camera.position.z);
   renderer.render(scene, camera);
 
   hudTick += realDt;

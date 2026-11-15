@@ -480,7 +480,7 @@ export class TacticalHud {
       <div class="kv-row"><span>${t("hud.dose_rate")}</span><span class="val">${fmt(s.env.dose_rate_ugy_h, 1)} uGy/h</span></div>
       <div class="kv-row"><span>${t("hud.cum_dose")}</span><span class="val">${fmt(suit.cumulative_dose_ugy, 2)} uGy</span></div>
       ${hydValBlock}
-      <div style="font-size:10px; opacity:0.75; margin-top:4px;">${escapeHtml(s.env.storm_source)}<br>${escapeHtml(s.env.rad_source)}<br>${terrainProvenanceLine}</div>
+      <div style="font-size:10px; opacity:0.75; margin-top:4px;">[${escapeHtml(s.env.data_category ?? "design")}] ${escapeHtml(s.env.storm_source)}<br>${escapeHtml(s.env.rad_source)} (${escapeHtml(s.env.radiation_quantity ?? "absorbed_dose_silicon")})<br>${terrainProvenanceLine} (${this.terrain.heightGridN} DEM)</div>
       ${latestAlerts}
     `;
 
@@ -824,7 +824,11 @@ export class TacticalHud {
 
       this.modalEl.innerHTML = `
         ${closeHdr(t("prov.title"))}
-        <div style="margin-bottom:6px;">Terrain DEM: <b>${escapeHtml(this.terrain.meta.product_id)}</b></div>
+        <div style="margin-bottom:6px;">Terrain DEM: <b>${escapeHtml(this.terrain.meta.product_id)}</b> (${this.terrain.heightGridN}×${this.terrain.heightGridN} height samples)</div>
+        <div style="margin-bottom:6px; font-size:11px; opacity:0.85;">
+          Mission env [${escapeHtml(s.env.data_category ?? "design")}]: ${escapeHtml(s.env.storm_source)}; ${escapeHtml(s.env.rad_source)}; Earth link ${escapeHtml(String(s.env.earth_light_time_s))} s one-way [design].
+          Recorded NASA/JPL series (REMS 2018, RAD Sep 2017, Horizons 2026-Nov-14 TDB = 660.9 s) live in the independent Historical Data Archive.
+        </div>
         ${this.buildProvenanceManifestHtml(datasetCount)}
         <div class="prov-section">
           <div class="panel-hdr"><span>${escapeHtml(t("prov.constants"))}</span></div>

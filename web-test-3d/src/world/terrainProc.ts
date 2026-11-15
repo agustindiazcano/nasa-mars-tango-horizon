@@ -61,10 +61,41 @@ export const CURIOSITY_TRAVERSE: { x: number; z: number; sol: number }[] = SHARE
   sol: p.sol,
 }));
 
+interface TerrainChunk {
+  readonly index: number;
+  readonly cx: number;
+  readonly cz: number;
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+  readonly mesh: THREE.Mesh;
+  seg: number;
+  readonly cached: Map<number, THREE.BufferGeometry>;
+}
+
+interface LodCacheEntry {
+  chunk: TerrainChunk;
+  seg: number;
+  geo: THREE.BufferGeometry;
+  lastUsed: number;
+}
+
+export interface TerrainLodStats {
+  chunks: number;
+  heightGridN: number;
+  nearChunkSeg: number;
+  maxChunkSeg: number;
+  minChunkSeg: number;
+  effectiveVertexGridN: number;
+  cachedGeometries: number;
+}
+
 export class TerrainProc {
   readonly sizeM = 4000;
   readonly gridN = 256;
-  readonly mesh: THREE.Mesh;
+  readonly chunksPerSide = 8;
+  readonly mesh = new THREE.Group();
   readonly markersGroup = new THREE.Group();
   meta: TerrainMeta = {
     product_id: "PROC_GALE_BOXWORK_256 (Fallback)",
@@ -84,7 +115,10 @@ export class TerrainProc {
   hydrationSites: HydrationSitesData | null = null;
   danPoints: DanMeasurement[] = [];
 
+  private heightN = 256;
+  private elevationMidM = 0;
   private h = new Float32Array(256 * 256);
+  private hGrid = new Float32Array(256 * 256);
   private layerN = 256;
   private slopeField = new Float32Array(256 * 256);
   private svfField = new Float32Array(256 * 256);
@@ -95,18 +129,29 @@ export class TerrainProc {
   private hydrationUncTexture: THREE.DataTexture;
   private realOptical: THREE.Texture | null = null;
   private activeLayer: LayerId = "optical";
+  private detailNormalMap: THREE.DataTexture | null = null;
   private material: THREE.MeshStandardMaterial;
   private routeLine: THREE.Line | null = null;
   private beaconsGroup = new THREE.Group();
   private sceneRef: THREE.Scene;
+  private chunks: TerrainChunk[] = [];
+  private lodLru = new Map<string, LodCacheEntry>();
+  private lodTick = 0;
+  private lastCamX = 0;
+  private lastCamZ = 0;
+
+  get heightGridN(): number {
+    return this.heightN;
+  }
+
+  get midElevationM(): number {
+    return this.elevationMidM;
+  }
 
   constructor(scene: THREE.Scene) {
     this.sceneRef = scene;
+    this.mesh.name = "terrain-lod";
     this.generateProceduralFields();
-
-    const geo = new THREE.PlaneGeometry(this.sizeM, this.sizeM, this.gridN - 1, this.gridN - 1);
-    geo.rotateX(-Math.PI / 2);
-    this.applyHeightsToGeometry(geo);
 
     this.textures = {
       optical: this.buildLayerTexture("optical"),
@@ -121,10 +166,11 @@ export class TerrainProc {
       map: this.textures.optical,
       roughness: 0.94,
       metalness: 0.04,
+      normalScale: new THREE.Vector2(0.28, 0.28),
     });
 
-    this.mesh = new THREE.Mesh(geo, this.material);
-    this.mesh.receiveShadow = true;
+    this.initChunks();
+    this.updateLod(0, 0, true);
     scene.add(this.mesh);
 
     this.buildMarkers();
@@ -145,21 +191,23 @@ export class TerrainProc {
     const srcN = meta.height_px;
     const mid = (meta.z_min_m + meta.z_max_m) / 2;
     const span = meta.z_max_m - meta.z_min_m;
-    const n = this.gridN;
-    for (let j = 0; j < n; j++) {
-      const sj = Math.min(srcN - 1, Math.round((j / (n - 1)) * (srcN - 1)));
-      for (let i = 0; i < n; i++) {
-        const si = Math.min(srcN - 1, Math.round((i / (n - 1)) * (srcN - 1)));
-        const val = meta.z_min_m + (raw[sj * srcN + si] / 65535) * span - mid;
-        this.h[j * n + i] = val;
-      }
+    const total = srcN * srcN;
+    const full = new Float32Array(total);
+    for (let k = 0; k < total; k++) {
+      full[k] = meta.z_min_m + (raw[k] / 65535) * span - mid;
     }
-    this.meta = { ...meta, height_px: n, product_id: `${meta.product_id} (256-sampled)` };
+    this.h = full;
+    this.heightN = srcN;
+    this.elevationMidM = mid;
+    this.syncHeightGrid();
+    this.meta = { ...meta };
     if (!this.realRastersLoaded) {
       this.recomputeDerivedFields();
       this.refreshTextures();
     }
-    this.applyHeightsToGeometry(this.mesh.geometry);
+    this.clearLodCache();
+    this.updateLod(this.lastCamX, this.lastCamZ, true);
+    this.refreshNormalMap();
     this.clearMarkersGroup();
     this.buildMarkers();
     this.committed = true;
@@ -182,7 +230,7 @@ export class TerrainProc {
     signal.throwIfAborted();
     this.realOptical.colorSpace = THREE.SRGBColorSpace;
     this.realOpticalLoaded = true;
-    // PlaneGeometry rotated -90 degrees maps north (negative z) to v=1.
+    // UVs match PlaneGeometry rotated -90 deg: north (negative z) maps to v=1.
     this.setLayer(this.activeLayer);
   }
 
@@ -303,16 +351,108 @@ export class TerrainProc {
   }
 
   heightAt(x: number, z: number): number {
-    return this.sampleField(this.h, this.gridN, x, z);
+    const n = this.heightN;
+    const u = THREE.MathUtils.clamp(x / this.sizeM + 0.5, 0, 1);
+    const v = THREE.MathUtils.clamp(z / this.sizeM + 0.5, 0, 1);
+    const fx = u * (n - 1);
+    const fy = v * (n - 1);
+    const x0 = Math.floor(fx);
+    const y0 = Math.floor(fy);
+    const x1 = Math.min(n - 1, x0 + 1);
+    const y1 = Math.min(n - 1, y0 + 1);
+    const tx = fx - x0;
+    const ty = fy - y0;
+    const h00 = this.h[y0 * n + x0];
+    const h10 = this.h[y0 * n + x1];
+    const h01 = this.h[y1 * n + x0];
+    const h11 = this.h[y1 * n + x1];
+    return (h00 * (1 - tx) + h10 * tx) * (1 - ty) + (h01 * (1 - tx) + h11 * tx) * ty;
   }
 
-  slopeAt(x: number, z: number, d = 4): number {
+  absoluteHeightAt(x: number, z: number): number {
+    return this.heightAt(x, z) + this.elevationMidM;
+  }
+
+  slopeAt(x: number, z: number, d = 2): number {
     if (this.realRastersLoaded) {
       return this.sampleField(this.slopeField, this.layerN, x, z);
     }
     const gx = (this.heightAt(x + d, z) - this.heightAt(x - d, z)) / (2 * d);
     const gz = (this.heightAt(x, z + d) - this.heightAt(x, z - d)) / (2 * d);
     return THREE.MathUtils.radToDeg(Math.atan(Math.hypot(gx, gz)));
+  }
+
+  updateLod(camX: number, camZ: number, immediate = false): void {
+    this.lastCamX = camX;
+    this.lastCamZ = camZ;
+    this.lodTick += 1;
+
+    if (this.heightN <= 256) {
+      for (const chunk of this.chunks) {
+        if (chunk.seg !== 32 || !chunk.mesh.geometry || chunk.mesh.geometry.attributes.position === undefined) {
+          this.assignChunkLod(chunk, 32);
+        }
+      }
+      return;
+    }
+
+    let upgradesThisFrame = 0;
+    const maxUpgradesPerFrame = immediate ? this.chunks.length : 2;
+
+    for (const chunk of this.chunks) {
+      const dist = this.distanceToChunk(chunk, camX, camZ);
+      const targetSeg = this.targetSegForDistance(dist, chunk.seg);
+      if (targetSeg === chunk.seg) {
+        this.touchLodEntry(chunk, chunk.seg);
+        continue;
+      }
+      const isUpgrade = targetSeg > chunk.seg;
+      const alreadyCached = chunk.cached.has(targetSeg);
+      if (isUpgrade && !alreadyCached && !immediate) {
+        if (upgradesThisFrame >= maxUpgradesPerFrame) {
+          this.touchLodEntry(chunk, chunk.seg);
+          continue;
+        }
+        upgradesThisFrame += 1;
+      }
+      this.assignChunkLod(chunk, targetSeg);
+    }
+
+    this.evictLodCache();
+  }
+
+  getLodStats(): TerrainLodStats {
+    let nearChunkSeg = 0;
+    let maxChunkSeg = 0;
+    let minChunkSeg = Number.POSITIVE_INFINITY;
+    for (const chunk of this.chunks) {
+      if (chunk.seg > maxChunkSeg) maxChunkSeg = chunk.seg;
+      if (chunk.seg < minChunkSeg) minChunkSeg = chunk.seg;
+      if (this.distanceToChunk(chunk, this.lastCamX, this.lastCamZ) <= 350 && chunk.seg > nearChunkSeg) {
+        nearChunkSeg = chunk.seg;
+      }
+    }
+    if (minChunkSeg === Number.POSITIVE_INFINITY) minChunkSeg = 0;
+    return {
+      chunks: this.chunks.length,
+      heightGridN: this.heightN,
+      nearChunkSeg: nearChunkSeg || maxChunkSeg,
+      maxChunkSeg,
+      minChunkSeg,
+      effectiveVertexGridN: this.chunksPerSide * (nearChunkSeg || maxChunkSeg),
+      cachedGeometries: this.lodLru.size,
+    };
+  }
+
+  dispose(): void {
+    this.clearLodCache();
+    for (const chunk of this.chunks) {
+      chunk.mesh.geometry.dispose();
+    }
+    for (const tex of Object.values(this.textures)) tex.dispose();
+    this.realOptical?.dispose();
+    this.detailNormalMap?.dispose();
+    this.material.dispose();
   }
 
   svfAt(x: number, z: number): number {
@@ -377,7 +517,7 @@ export class TerrainProc {
     return {
       n,
       cellM: this.sizeM / (n - 1),
-      z: this.h,
+      z: this.hGrid,
       terrain,
       doseRel,
     };
@@ -407,7 +547,7 @@ export class TerrainProc {
         new THREE.CylinderGeometry(0.45, 0.55, 0.25, 16),
         new THREE.MeshStandardMaterial({ color: 0x1b2430, emissive: 0x00e5ff, emissiveIntensity: 0.9 }),
       );
-      puck.position.set(b.x, y + 0.15, b.z);
+      puck.position.set(b.x, y + 0.125, b.z);
       this.beaconsGroup.add(puck);
 
       // Vertical solid-state 505 nm cyan / 615 nm red-orange laser-LED beam (no flame)
@@ -485,9 +625,24 @@ export class TerrainProc {
         elev = elev * fisBlend + 3.0 * (1 - fisBlend);
 
         this.h[j * n + i] = elev;
+        this.hGrid[j * n + i] = elev;
       }
     }
+    this.heightN = n;
+    this.elevationMidM = 0;
+    void cellM;
     this.recomputeDerivedFields();
+  }
+
+  private syncHeightGrid(): void {
+    const gn = this.gridN;
+    for (let j = 0; j < gn; j++) {
+      const wz = (j / (gn - 1) - 0.5) * this.sizeM;
+      for (let i = 0; i < gn; i++) {
+        const wx = (i / (gn - 1) - 0.5) * this.sizeM;
+        this.hGrid[j * gn + i] = this.heightAt(wx, wz);
+      }
+    }
   }
 
   private recomputeDerivedFields(): void {
@@ -505,17 +660,17 @@ export class TerrainProc {
       for (let i = 0; i < n; i++) {
         const x = (i / (n - 1) - 0.5) * this.sizeM;
         const idx = j * n + i;
-        const l = this.h[j * n + Math.max(0, i - 1)];
-        const r = this.h[j * n + Math.min(n - 1, i + 1)];
-        const u = this.h[Math.max(0, j - 1) * n + i];
-        const d = this.h[Math.min(n - 1, j + 1) * n + i];
+        const l = this.hGrid[j * n + Math.max(0, i - 1)];
+        const r = this.hGrid[j * n + Math.min(n - 1, i + 1)];
+        const u = this.hGrid[Math.max(0, j - 1) * n + i];
+        const d = this.hGrid[Math.min(n - 1, j + 1) * n + i];
         const slopeDeg = THREE.MathUtils.radToDeg(
           Math.atan(Math.hypot((r - l) / (2 * cellM), (d - u) / (2 * cellM))),
         );
         this.slopeField[idx] = slopeDeg;
 
         const meanNb = (l + r + u + d) * 0.25;
-        const convexity = this.h[idx] - meanNb;
+        const convexity = this.hGrid[idx] - meanNb;
         this.svfField[idx] = THREE.MathUtils.clamp(
           0.88 - Math.max(0, -convexity) * 0.14 - slopeDeg * 0.008,
           0.42,
@@ -538,16 +693,282 @@ export class TerrainProc {
     }
   }
 
-  private applyHeightsToGeometry(geo: THREE.BufferGeometry): void {
-    const pos = geo.attributes.position as THREE.BufferAttribute;
-    const n = this.gridN;
-    for (let j = 0; j < n; j++) {
-      for (let i = 0; i < n; i++) {
-        pos.setY(j * n + i, this.h[j * n + i]);
+  private initChunks(): void {
+    const perSide = this.chunksPerSide;
+    const chunkSize = this.sizeM / perSide;
+    const half = this.sizeM * 0.5;
+    for (let cz = 0; cz < perSide; cz++) {
+      for (let cx = 0; cx < perSide; cx++) {
+        const index = cz * perSide + cx;
+        const minX = -half + cx * chunkSize;
+        const maxX = minX + chunkSize;
+        const minZ = -half + cz * chunkSize;
+        const maxZ = minZ + chunkSize;
+        const mesh = new THREE.Mesh(new THREE.BufferGeometry(), this.material);
+        mesh.name = `terrain-chunk:${cx},${cz}`;
+        mesh.receiveShadow = true;
+        this.mesh.add(mesh);
+        this.chunks.push({
+          index,
+          cx,
+          cz,
+          minX,
+          maxX,
+          minZ,
+          maxZ,
+          mesh,
+          seg: 0,
+          cached: new Map(),
+        });
       }
     }
-    pos.needsUpdate = true;
-    geo.computeVertexNormals();
+  }
+
+  private distanceToChunk(chunk: TerrainChunk, x: number, z: number): number {
+    const dx = x < chunk.minX ? chunk.minX - x : x > chunk.maxX ? x - chunk.maxX : 0;
+    const dz = z < chunk.minZ ? chunk.minZ - z : z > chunk.maxZ ? z - chunk.maxZ : 0;
+    return Math.hypot(dx, dz);
+  }
+
+  private targetSegForDistance(dist: number, currentSeg: number): number {
+    // Hysteresis bands prevent rapid LOD thrashing near chunk borders.
+    if (dist <= 350 || (currentSeg === 256 && dist <= 410)) return 256;
+    if (dist <= 1050 || (currentSeg === 128 && dist <= 1150)) return 128;
+    return 48;
+  }
+
+  private lodCacheKey(chunk: TerrainChunk, seg: number): string {
+    return `${chunk.index}:${seg}`;
+  }
+
+  private touchLodEntry(chunk: TerrainChunk, seg: number): void {
+    const key = this.lodCacheKey(chunk, seg);
+    const entry = this.lodLru.get(key);
+    if (entry) entry.lastUsed = this.lodTick;
+  }
+
+  private assignChunkLod(chunk: TerrainChunk, seg: number): void {
+    let geo = chunk.cached.get(seg);
+    if (!geo) {
+      geo = this.buildChunkGeometry(chunk, seg);
+      chunk.cached.set(seg, geo);
+      this.lodLru.set(this.lodCacheKey(chunk, seg), {
+        chunk,
+        seg,
+        geo,
+        lastUsed: this.lodTick,
+      });
+    } else {
+      this.touchLodEntry(chunk, seg);
+    }
+    chunk.mesh.geometry = geo;
+    chunk.seg = seg;
+  }
+
+  private evictLodCache(): void {
+    const maxHigh = 12;
+    const maxMid = 24;
+    const evictTier = (segTier: number, limit: number): void => {
+      const entries = Array.from(this.lodLru.values())
+        .filter((e) => e.seg === segTier && e.chunk.mesh.geometry !== e.geo)
+        .sort((a, b) => a.lastUsed - b.lastUsed);
+      const activeCount = Array.from(this.lodLru.values()).filter((e) => e.seg === segTier).length;
+      let excess = activeCount - limit;
+      for (const entry of entries) {
+        if (excess <= 0) break;
+        entry.chunk.cached.delete(entry.seg);
+        this.lodLru.delete(this.lodCacheKey(entry.chunk, entry.seg));
+        entry.geo.dispose();
+        excess -= 1;
+      }
+    };
+    evictTier(256, maxHigh);
+    evictTier(128, maxMid);
+  }
+
+  private clearLodCache(): void {
+    for (const entry of this.lodLru.values()) {
+      entry.geo.dispose();
+    }
+    this.lodLru.clear();
+    for (const chunk of this.chunks) {
+      chunk.cached.clear();
+      chunk.seg = 0;
+    }
+  }
+
+  private buildChunkGeometry(chunk: TerrainChunk, seg: number): THREE.BufferGeometry {
+    const cols = seg + 1;
+    const topVerts = cols * cols;
+    const skirtVerts = cols * 4;
+    const totalVerts = topVerts + skirtVerts;
+
+    const positions = new Float32Array(totalVerts * 3);
+    const normals = new Float32Array(totalVerts * 3);
+    const uvs = new Float32Array(totalVerts * 2);
+
+    const chunkW = chunk.maxX - chunk.minX;
+    const chunkD = chunk.maxZ - chunk.minZ;
+    const eps = Math.max(0.5, this.sizeM / (this.heightN - 1));
+    const skirtDropM = 4.0;
+
+    for (let j = 0; j < cols; j++) {
+      const tz = j / seg;
+      const wz = chunk.minZ + tz * chunkD;
+      const v = 1 - (wz / this.sizeM + 0.5);
+      for (let i = 0; i < cols; i++) {
+        const tx = i / seg;
+        const wx = chunk.minX + tx * chunkW;
+        const u = wx / this.sizeM + 0.5;
+        const wy = this.heightAt(wx, wz);
+
+        const dhdx = (this.heightAt(wx + eps, wz) - this.heightAt(wx - eps, wz)) / (2 * eps);
+        const dhdz = (this.heightAt(wx, wz + eps) - this.heightAt(wx, wz - eps)) / (2 * eps);
+        const invLen = 1 / Math.hypot(dhdx, 1, dhdz);
+
+        const k = j * cols + i;
+        const p3 = k * 3;
+        positions[p3] = wx;
+        positions[p3 + 1] = wy;
+        positions[p3 + 2] = wz;
+        normals[p3] = -dhdx * invLen;
+        normals[p3 + 1] = invLen;
+        normals[p3 + 2] = -dhdz * invLen;
+        const p2 = k * 2;
+        uvs[p2] = u;
+        uvs[p2 + 1] = v;
+      }
+    }
+
+    const writeSkirtEdge = (
+      offset: number,
+      topIndexAt: (s: number) => number,
+    ): void => {
+      for (let s = 0; s < cols; s++) {
+        const src = topIndexAt(s);
+        const dst = offset + s;
+        positions[dst * 3] = positions[src * 3];
+        positions[dst * 3 + 1] = positions[src * 3 + 1] - skirtDropM;
+        positions[dst * 3 + 2] = positions[src * 3 + 2];
+        normals[dst * 3] = normals[src * 3];
+        normals[dst * 3 + 1] = normals[src * 3 + 1];
+        normals[dst * 3 + 2] = normals[src * 3 + 2];
+        uvs[dst * 2] = uvs[src * 2];
+        uvs[dst * 2 + 1] = uvs[src * 2 + 1];
+      }
+    };
+
+    const northOff = topVerts;
+    const southOff = northOff + cols;
+    const westOff = southOff + cols;
+    const eastOff = westOff + cols;
+    writeSkirtEdge(northOff, (s) => s);
+    writeSkirtEdge(southOff, (s) => seg * cols + s);
+    writeSkirtEdge(westOff, (s) => s * cols);
+    writeSkirtEdge(eastOff, (s) => s * cols + seg);
+
+    const topTriCount = seg * seg * 2;
+    const skirtTriCount = seg * 4 * 2;
+    const indexCount = (topTriCount + skirtTriCount) * 3;
+    const indices = totalVerts > 65535 ? new Uint32Array(indexCount) : new Uint16Array(indexCount);
+
+    let ptr = 0;
+    for (let j = 0; j < seg; j++) {
+      for (let i = 0; i < seg; i++) {
+        const a = j * cols + i;
+        const b = a + 1;
+        const c = a + cols;
+        const d = c + 1;
+        indices[ptr++] = a;
+        indices[ptr++] = c;
+        indices[ptr++] = b;
+        indices[ptr++] = b;
+        indices[ptr++] = c;
+        indices[ptr++] = d;
+      }
+    }
+
+    const addSkirtQuads = (
+      topIndexAt: (s: number) => number,
+      skirtOffset: number,
+      flip: boolean,
+    ): void => {
+      for (let s = 0; s < seg; s++) {
+        const t0 = topIndexAt(s);
+        const t1 = topIndexAt(s + 1);
+        const b0 = skirtOffset + s;
+        const b1 = skirtOffset + s + 1;
+        if (!flip) {
+          indices[ptr++] = t0;
+          indices[ptr++] = b0;
+          indices[ptr++] = t1;
+          indices[ptr++] = t1;
+          indices[ptr++] = b0;
+          indices[ptr++] = b1;
+        } else {
+          indices[ptr++] = t0;
+          indices[ptr++] = t1;
+          indices[ptr++] = b0;
+          indices[ptr++] = t1;
+          indices[ptr++] = b1;
+          indices[ptr++] = b0;
+        }
+      }
+    };
+
+    // Outward winding for vertical edge skirts around chunk perimeter
+    addSkirtQuads((s) => s, northOff, false);
+    addSkirtQuads((s) => seg * cols + s, southOff, true);
+    addSkirtQuads((s) => s * cols, westOff, true);
+    addSkirtQuads((s) => s * cols + seg, eastOff, false);
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
+    geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+    geo.setIndex(new THREE.BufferAttribute(indices, 1));
+    geo.computeBoundingBox();
+    geo.computeBoundingSphere();
+    return geo;
+  }
+
+  private refreshNormalMap(): void {
+    const n = this.heightN;
+    if (n <= 256) return;
+    const cellM = this.sizeM / (n - 1);
+    const bytes = new Uint8Array(n * n * 4);
+    for (let j = 0; j < n; j++) {
+      // Flip row vertically so flipY=false DataTexture aligns row n-1-j with v=1 (north, j=0).
+      const imgJ = n - 1 - j;
+      const jm = Math.max(0, j - 1);
+      const jp = Math.min(n - 1, j + 1);
+      const dz = (jp - jm) * cellM;
+      for (let i = 0; i < n; i++) {
+        const im = Math.max(0, i - 1);
+        const ip = Math.min(n - 1, i + 1);
+        const dx = (ip - im) * cellM;
+        const dhdx = (this.h[j * n + ip] - this.h[j * n + im]) / dx;
+        const dhdz = (this.h[jp * n + i] - this.h[jm * n + i]) / dz;
+        const inv = 1 / Math.hypot(dhdx, dhdz, 1);
+        const nx = -dhdx * inv;
+        const ny = dhdz * inv;
+        const nz = inv;
+        const p = (imgJ * n + i) * 4;
+        bytes[p] = Math.round((nx * 0.5 + 0.5) * 255);
+        bytes[p + 1] = Math.round((ny * 0.5 + 0.5) * 255);
+        bytes[p + 2] = Math.round((nz * 0.5 + 0.5) * 255);
+        bytes[p + 3] = 255;
+      }
+    }
+    this.detailNormalMap?.dispose();
+    const tex = new THREE.DataTexture(bytes, n, n, THREE.RGBAFormat);
+    tex.magFilter = THREE.LinearFilter;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.generateMipmaps = true;
+    tex.needsUpdate = true;
+    this.detailNormalMap = tex;
+    this.material.normalMap = tex;
+    this.material.needsUpdate = true;
   }
 
   private getRenderInput(): LayerRenderInput {
@@ -561,7 +982,7 @@ export class TerrainProc {
       hydrationMin: this.hydrationMeta.weh_min,
       hydrationMax: this.hydrationMeta.weh_max,
       hydrationUncMax: this.hydrationMeta.interval_width_max,
-      heightM: this.h,
+      heightM: this.hGrid,
       heightGridN: this.gridN,
       realRasters: this.realRastersLoaded,
     };
