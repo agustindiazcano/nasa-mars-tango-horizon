@@ -191,6 +191,8 @@ export const en = {
   "hud.pov_iso": "POV: AERIAL ISO",
   "hud.btn_iso": "Aerial Base (V)",
   "hud.iso_hint": "WASD: Pan · Wheel: Zoom · Left-drag: Rotate · Right-drag: Move",
+  "hud.pov_cinematic": "POV: CINEMATIC",
+  "hud.cam_hint": "Cinematic camera (Shift+1..5)",
   "hud.layers": "TERRAIN LAYERS",
   "hud.layer.optical": "Optical",
   "hud.layer.slope": "Slope",

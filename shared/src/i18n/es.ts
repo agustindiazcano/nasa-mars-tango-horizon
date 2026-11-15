@@ -193,6 +193,8 @@ export const es: Record<Key, string> = {
   "hud.pov_iso": "CAM: AEREA BASE",
   "hud.btn_iso": "Vista Base (V)",
   "hud.iso_hint": "WASD: Mover · Rueda: Zoom · Click izq: Rotar · Click der: Desplazar",
+  "hud.pov_cinematic": "POV: CINEMATICA",
+  "hud.cam_hint": "Camara cinematica (Shift+1..5)",
   "hud.layers": "CAPAS TERRENO",
   "hud.layer.optical": "Optica",
   "hud.layer.slope": "Pendiente",

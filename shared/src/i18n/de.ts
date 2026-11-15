@@ -193,6 +193,8 @@ export const de: Record<Key, string> = {
   "hud.pov_iso": "KAM: BASIS LUFTBILD",
   "hud.btn_iso": "Basis-Ansicht (V)",
   "hud.iso_hint": "WASD: Bewegen · Mausrad: Zoom · Linksziehen: Drehen · Rechtsziehen: Verschieben",
+  "hud.pov_cinematic": "POV: KINEMATISCH",
+  "hud.cam_hint": "Kinokamera (Shift+1..5)",
   "hud.layers": "GELÄNDE-EBENEN",
   "hud.layer.optical": "Optisch",
   "hud.layer.slope": "Neigung",
