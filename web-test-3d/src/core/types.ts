@@ -84,6 +84,10 @@ export interface MissionContext {
   };
   suit: Record<string, number>;
   env: {
+    data_category?: "design" | "observation" | "derived";
+    radiation_quantity?: "absorbed_dose_silicon";
+    storm_source?: string;
+    rad_source?: string;
     pressure_pa: number;
     air_temp_k: number;
     tau: number;
