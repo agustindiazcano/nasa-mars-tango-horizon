@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { READY_TERRAIN, TERRAIN_HEIGHT_SHA256, TERRAIN_META_SHA256 } from "@th/shared";
+import { normalizeTerrainMetadata, READY_TERRAIN, TERRAIN_HEIGHT_SHA256, TERRAIN_META_SHA256 } from "@th/shared";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -302,7 +302,7 @@ function loadTerrainFromDisk(): LoadedTerrain {
 
   try {
     const metaBytes = readFileSync(path.join(root, "terrain/meta.json"));
-    if (createHash("sha256").update(metaBytes).digest("hex") !== TERRAIN_META_SHA256) throw new Error("Terrain metadata identity mismatch");
+    if (createHash("sha256").update(normalizeTerrainMetadata(metaBytes.toString("utf8"))).digest("hex") !== TERRAIN_META_SHA256) throw new Error("Terrain metadata identity mismatch");
     const metaRaw = JSON.parse(metaBytes.toString("utf8")) as Partial<TerrainMeta>;
     const sizeM = metaRaw.size_m ?? 4000;
     const heightPx = metaRaw.height_px ?? 2048;

@@ -3,8 +3,8 @@ import * as THREE from "three";
 import { TerrainProc } from "../../../../web-test-3d/src/world/terrainProc";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
-import { READY_TERRAIN, terrainMatches } from "@th/shared";
-import { TerrainLoader } from "../../../../web-test-3d/src/world/terrainLoader";
+import { READY_TERRAIN, terrainMatches, normalizeTerrainMetadata, TERRAIN_META_SHA256 } from "@th/shared";
+import { TerrainLoader, sha256 } from "../../../../web-test-3d/src/world/terrainLoader";
 import { groundPlacement, footprintContacts } from "../../../../web-test-3d/src/world/groundPlacement";
 import { buildContext, registerAgentRoutes } from "../routes.js";
 import { terrainIdentity } from "../tools/terrainData.js";
@@ -98,6 +98,12 @@ describe("terrain lifecycle", () => {
 });
 
 describe("terrain contract and placement", () => {
+  it("pins metadata identically across LF and CRLF checkouts", async () => {
+    const lf = meta.toString("utf8").replace(/\r\n/g, "\n");
+    for (const text of [lf, lf.replace(/\n/g, "\r\n")]) {
+      expect(await sha256(new TextEncoder().encode(normalizeTerrainMetadata(text)).buffer)).toBe(TERRAIN_META_SHA256);
+    }
+  });
   it("checks readiness and each identity component", () => {
     expect(terrainMatches(terrainIdentity)).toBe(true);
     for (const bad of [undefined, {}, { ...READY_TERRAIN, status: "loading" }, { ...READY_TERRAIN, version: "other" }, { ...READY_TERRAIN, metaSha256: "other" }, { ...READY_TERRAIN, heightSha256: "other" }]) expect(terrainMatches(bad)).toBe(false);

@@ -1,4 +1,4 @@
-import { READY_TERRAIN, TERRAIN_HEIGHT_SHA256, TERRAIN_META_SHA256, type TerrainIdentity } from "@th/shared";
+import { normalizeTerrainMetadata, READY_TERRAIN, TERRAIN_HEIGHT_SHA256, TERRAIN_META_SHA256, type TerrainIdentity } from "@th/shared";
 import { validateTerrain } from "./terrainValidation";
 import type { TerrainMeta } from "./terrainProc";
 
@@ -37,7 +37,7 @@ export class TerrainLoader {
           return response.arrayBuffer();
         };
         const metaBytes = await read("meta.json");
-        if (await sha256(metaBytes) !== TERRAIN_META_SHA256) throw new Error("Terrain metadata identity mismatch");
+        if (await sha256(new TextEncoder().encode(normalizeTerrainMetadata(new TextDecoder().decode(metaBytes))).buffer) !== TERRAIN_META_SHA256) throw new Error("Terrain metadata identity mismatch");
         const meta = JSON.parse(new TextDecoder().decode(metaBytes)) as TerrainMeta;
         validateTerrain(meta, 4000);
         const bytes = await read("height_2048.u16");
