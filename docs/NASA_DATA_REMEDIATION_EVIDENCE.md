@@ -9,7 +9,7 @@ Baseline: `928039cdd87c8abc60eefb9421c3a4eaea8be339`. Coordinate fix `42c5e92` i
 | Package | Implemented / observed | Open acceptance |
 |---|---|---|
 | P0 | Branch baseline, coordinate integration and asset inventory recorded | Full source-to-consumer audit |
-| P1 | Design labels, hemisphere formatter, independent exact-sample historical viewer, dimensionless backend hydration fields, category in agent context | Mission replay clock/adapters, baseline epoch presentation, full unit audit |
+| P1 | Design labels, hemisphere formatter, independent exact-sample historical viewer, dimensionless backend hydration fields, category in agent context | Browser replay/reset validation and full unit audit |
 | P2 | 60-second per-fetch deadline, three attempts with backoff, visible error and manual retry; exact DEM length and metadata validation | Slow/offline/corrupt browser checks, explicit cancellation, asset version identity contract |
 | P3 | All mission actors constructed after DEM success; terrain markers rebuilt on loaded heights | Model contact offsets, footprints, movement/reset and browser residuals |
 | P4 | Authoritative source crop reproduced using the pipeline sampling policy | CTX comparison, vertical datum, projection-contract audit and distributed control points |
@@ -51,3 +51,11 @@ DAN file inspection: 1,567 records total; 377 inside the 4 km crop by x/z bounds
 | `web/public/data/terrain/meta.json` | product_id, size_m, height_px, z_min_m, z_max_m, center_lon_e, center_lat, bounds_projected_m, slope_max_deg, hole_pct | `41906c6d6d9f04ee0bfda88be2db2acd90723642dc7dbfaf6be6a2ca902269e8` |
 | `web/public/data/veins/index.json` | model, disclaimer, provenance, validation, images | `1b959e671509abbd84d6590982d49202ac8b6cfd86e964746c542193435602bb` |
 | `web/public/data/veins/manifest.json` | model, disclaimer, provenance, validation, images | `1b959e671509abbd84d6590982d49202ac8b6cfd86e964746c542193435602bb` |
+
+## Historical replay follow-up (PR #15)
+
+Baseline main `8a18b17` includes PR #14. Branch `fix/nasa-historical-replay` adds typed validation of five files and deterministic exact-sample playback with explicit rates, pause, seek, reset and end-of-series handling. Every consumed variable has units, category and processing; every sample has its epoch or labelled aggregate bin. Wind nulls remain unavailable. Mission Earth-link defaults are design assumptions.
+
+Targeted command `npx vitest run src/agents/__tests__/historicalSeries.test.ts --root server`: 17 passed. Frontend `npm run typecheck --workspace web-test-3d`: passed. Tests cover exact arrays, radiation peak, epochs, missing data, invalid arrays/units and replay lifecycle/frame partition invariance.
+
+Browser inventory was retried: no apps/browsers; native pipe unavailable (os error 2). No visual result is claimed. Full CI is linked from PR #15: https://github.com/agustindiazcano/nasa-mars-tango-horizon/pull/15 . No new source acquisition or production deployment.

@@ -149,3 +149,13 @@ Write repository content in English and progress/final replies in Spanish. Make 
 
 Update the three status files in a separate commit, push the task branch(es), and open/update PRs to main. Do not merge or deploy without the applicable authorization. Finish with completed packages, outstanding blockers, exact validation results, evidence paths, PR links, and integration/deployment status. Do not claim the full plan is complete while an acceptance gate remains unresolved.
 ```
+
+## P1 replay implementation decisions (2026-11-14)
+
+- Keep playback inside the independent archive. Selecting a historical file does not overwrite mission or agent design telemetry with records from another epoch.
+- Advance exact samples at 1, 4, or 12 samples per wall-clock second. This is sample compression, not a mapping to elapsed Martian or terrestrial time. The storm sequence contains nonconsecutive sols.
+- Do not interpolate or extrapolate. Null measurements remain unavailable. Closing pauses playback and cancels requests. Selecting another file cancels the prior request and resets playback. Playback stops at the final record. Reset returns to sample zero and pauses.
+- Display source, units, category, processing and epoch. REMS clear values aggregate sols 2004-2006 and clear opacity is an assumed reference. Storm opacity is a UV proxy. RAD is absorbed silicon dose with recorded UTC/sol/observation ID. Horizons uses TDB epochs and one-way seconds; round-trip seconds are a labelled symmetric approximation.
+- Validate all consumed arrays before enabling controls. Reject invalid lengths, empty series, nonfinite values, unsupported radiation quantities and nonincreasing time. Never fill missing wind from mission defaults.
+
+Validation scope: numeric adapters and clock are tested against all five files. Browser controls, modal accessibility and visual layout still require browser verification; the browser surface is unavailable.
