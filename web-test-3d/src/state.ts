@@ -175,6 +175,10 @@ export class MissionStore {
         fan_rpm: Math.round(this.suit.fan_rpm),
       },
       env: {
+        data_category: "design",
+        radiation_quantity: "absorbed_dose_silicon",
+        storm_source: this.env.storm_source,
+        rad_source: this.env.rad_source,
         pressure_pa: Math.round(this.env.pressure_pa),
         air_temp_k: Number(this.env.air_temp_k.toFixed(1)),
         tau: Number(this.env.tau.toFixed(2)),
