@@ -497,7 +497,13 @@ const narrationCtx: NarrationCtx = {
 };
 const narrationFeeder = new NarrationFeeder(buildNarration(narrationCtx, (k, p) => t(k, p)), agentChat);
 onLangChange(() => narrationFeeder.setLines(buildNarration(narrationCtx, (k, p) => t(k, p))));
-const scenePanel = new ScenePanel(sceneDirector, { setHudVisible: (v) => store.setHudVisible(v) });
+const scenePanel = new ScenePanel(sceneDirector, { setHudVisible: (v) => store.setHudVisible(v), getCanvas: () => canvas });
+// Links: ?present=1 opens the presentation panel, ?autoplay=1 also starts the full presentation once loaded.
+{
+  const qs = new URLSearchParams(location.search);
+  if (qs.has("present") || qs.has("autoplay")) scenePanel.show();
+  if (qs.has("autoplay")) setTimeout(() => void scenePanel.startPresentation(false), 1500);
+}
 
 /** Applies the scripted rescue state to the fleet, crew, rescue robot and environment. */
 function applyRescueView(v: RescueView): void {
