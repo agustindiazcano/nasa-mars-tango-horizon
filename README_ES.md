@@ -25,6 +25,11 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
 - [Enlaces del NASA Space Apps Challenge](#enlaces-del-nasa-space-apps-challenge)
 - [Uso de IA](#uso-de-ia)
 - [Tecnologías y Comandos de Ejecución Local](#tecnologías-y-comandos-de-ejecución-local)
+- **Materiales de Presentación y Pitch (`docs/slides/`):**
+  - [`docs/slides/PROJECT_OVERVIEW.md`](docs/slides/PROJECT_OVERVIEW.md) — Resumen técnico completo en lenguaje claro (EN / ES)
+  - [`docs/slides/PRESENTATION_SCRIPT_3MIN.md`](docs/slides/PRESENTATION_SCRIPT_3MIN.md) — Guion de presentación y rescate en vivo de 3 minutos (ES / EN)
+  - [`docs/slides/PRESENTATION_SCRIPT_30S.md`](docs/slides/PRESENTATION_SCRIPT_30S.md) — Guion de video de 30 segundos (ES / EN)
+  - [`docs/slides/SLIDES.md`](docs/slides/SLIDES.md) — Estructura de las 10 diapositivas (Slides)
 - [Licencia](#licencia)
 
 ## Equipo: Tango Horizon (Buenos Aires, Argentina)
