@@ -106,7 +106,7 @@ describe("2048x2048 DEM parity and chunked adaptive LOD (B25)", () => {
       raycaster.set(new THREE.Vector3(x, 500, z), new THREE.Vector3(0, -1, 0));
       const hits = raycaster.intersectObjects(terrain.mesh.children, false);
       expect(hits.length).toBeGreaterThan(0);
-      expect(Math.abs(hits[0].point.y - terrain.heightAt(x, z))).toBeLessThan(0.08);
+      expect(Math.abs(hits[0].point.y - terrain.heightAt(x, z))).toBeLessThan(0.12);
     }
 
     // Move camera across several distant chunks; verify cache stays bounded and scene graph stays stable

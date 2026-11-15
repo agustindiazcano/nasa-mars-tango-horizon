@@ -36,6 +36,7 @@ import { ScenePanel } from "./hud/scenePanel";
 import { AgentChat } from "./hud/agentChat";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
 import { SceneDirector } from "./world/sceneDirector";
+import { RescueLitter } from "./world/rescueLitter";
 import { PodBallistics } from "./world/podBallistics";
 import { RocksProc } from "./world/rocksProc";
 import { DecorRobots } from "./world/decorRobots";
@@ -136,6 +137,7 @@ const baseProc = new BaseProc(scene, terrain);
 const launchSite = new LaunchSiteProc(scene, terrain);
 new PitProc(scene, terrain);
 const crew = new CrewProc(scene, terrain);
+const litter = new RescueLitter(scene);
 const rescueRocks = rescuePitRockOptions();
 const rocks = new RocksProc(scene, terrain, { extraClusters: rescueRocks.clusters, extraExclusions: rescueRocks.exclusions });
 // Decorative ground robots (the team rover.glb at robot scale, procedurally weathered).
@@ -519,6 +521,8 @@ function applyRescueView(v: RescueView): void {
     const c = v.crew[id];
     crew.place(id, c.x, c.z, c.yaw, c.pose, { yOffset: c.yOffset, visible: c.visible });
   }
+  const c3 = v.crew["crew-3"];
+  litter.update(v.litter.active, { x: c3.x, y: terrain.heightAt(c3.x, c3.z) + c3.yOffset, z: c3.z, yaw: c3.yaw }, fleet.towPointWorld());
 }
 
 function startScenario(id: "storm" | "sep2017" | "leak" | "rescue"): void {
@@ -764,6 +768,8 @@ function stepSimulation(dt: number): void {
 
   fleet.update(dt, store.env.tau);
   store.fleet = fleet.snapshots();
+  crew.syncPlayer(astronaut.pos.x, astronaut.pos.z, astronaut.yaw, astronaut.speed, store.povMode !== "1st");
+  astronaut.group.visible = !crew.playerModelReady;
   crew.update(dt);
   store.crew = rescue.getCrewSnapshots();
 
