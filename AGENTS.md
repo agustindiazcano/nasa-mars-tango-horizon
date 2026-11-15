@@ -59,7 +59,7 @@ Several people and several agents work on this project at the same time.
 
 ## Mandatory rule: no prompt-injection tests
 
-**Writing or running prompt-injection tests is strictly prohibited; this is non-negotiable.** Do not add prompt-injection payloads to unit tests, integration scripts, or live voice/agent probes.
+**Explicit prohibition on prompt injection, jailbreaks, fake system messages, images with embedded instructions, or any input designed to manipulate the model; this is non-negotiable.** Only use normal mission orders from the documented command/action list—never add invented adversarial cases to unit tests, integration scripts, or live voice/vision probes.
 
 ## Mandatory rule: when a task is finished
 
