@@ -282,13 +282,14 @@ export async function runAgent(
   ]);
   let finalText = (finalMsg.content ?? "").trim();
   if (!finalText) {
-    // Never return an empty reply: fall back to the deterministic outcome.
+    // Model stayed silent: report the deterministic outcome when there is one.
+    // With nothing done the text stays empty so the caller can escalate or use the offline rules.
     finalText = hardDenied
       ? `Denied: ${hardDenied}`
       : actions.length
         ? `Done: ${actions.map((a) => a.type).join(", ")}`
-        : "No action taken.";
+        : "";
   }
-  trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
+  if (finalText) trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
   return { text: finalText, actions, trace };
 }

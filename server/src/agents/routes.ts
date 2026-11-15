@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { config } from "../config.js";
 import { chat, llmAvailable } from "../llm/provider.js";
-import { getAgentSpec, handleVoice } from "./hierarchy.js";
+import { getAgentSpec, handleVoice, isSilent } from "./hierarchy.js";
 import { offlineReply } from "./offline.js";
 import { runAgent } from "./runAgent.js";
 import { plainSpeech } from "./speech.js";
@@ -155,8 +155,9 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
     try {
       const r = await handleVoice(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
-      req.log.info({ latency_ms, route: r.route, offline: false }, "/api/agent/voice");
-      return { speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, route: r.route, offline: false, latency_ms };
+      const offline = r.offline === true;
+      req.log.info({ latency_ms, route: r.route, offline }, "/api/agent/voice");
+      return { speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, route: r.route, offline, latency_ms };
     } catch (err) {
       req.log.error(err);
       const res = await offlineReply(b.data.text, ctx);
@@ -183,6 +184,7 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
 
     try {
       const r = await runAgent(spec, b.data.text, ctx);
+      if (isSilent(r)) throw new Error(`Agent ${spec.name} returned no reply and no action`);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, agent: spec.name }, "/api/agent/run");
       return { speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, offline: false, latency_ms };

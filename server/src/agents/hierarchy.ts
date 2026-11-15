@@ -169,11 +169,16 @@ export function needsLeakSafetyNet(ctx: MissionContext, actions: { type: string 
   return ctx.leak_diameter_m > 0 && !ctx.emergency_response_active && !actions.some((a) => a.type === "launch_pod");
 }
 
+/** True when an agent run ended with no reply text and no action. */
+export function isSilent(r: { text: string; actions: unknown[] }): boolean {
+  return !r.text.trim() && r.actions.length === 0;
+}
+
 /** Voice entrypoint: fast suit executor first, escalating to BASE when needed. */
 export async function handleVoice(
   text: string,
   ctx: MissionContext,
-): Promise<AgentResult & { route: string[] }> {
+): Promise<AgentResult & { route: string[]; offline?: boolean }> {
   const fast = await runAgent(AGENTS["SUIT.VOICE-EXEC"], text, ctx);
   const needsEscalation =
     /ESCALATE/i.test(fast.text) || (!fast.text.trim() && fast.actions.length === 0);
@@ -195,6 +200,17 @@ export async function handleVoice(
       actions: [...fast.actions, ...det.actions],
       trace: [...fast.trace, ...base.trace, ...det.trace],
       route: det.route,
+    };
+  }
+  // BASE produced neither a reply nor an action: answer with the deterministic rules instead of silence.
+  if (isSilent(base)) {
+    const det = await offlineReply(text, ctx);
+    return {
+      text: det.speech,
+      actions: [...fast.actions, ...det.actions],
+      trace: [...fast.trace, ...base.trace, ...det.trace],
+      route: det.route,
+      offline: true,
     };
   }
   const delegatedAgents = base.trace
