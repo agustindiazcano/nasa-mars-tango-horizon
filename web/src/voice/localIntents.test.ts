@@ -2,13 +2,16 @@ import { describe, expect, it } from "vitest";
 import { LOCAL_INTENTS, matchLocalIntent, type LocalIntentId } from "./localIntents";
 
 describe("localIntents (web)", () => {
-  it("defines all 6 critical local intent categories", () => {
+  it("defines all 9 local intent categories", () => {
     expect(LOCAL_INTENTS.map((d) => d.id)).toEqual([
       "emergency",
       "abort_eva",
       "stop_all",
       "open_map",
+      "open_menu",
       "close_panel",
+      "hide_hud",
+      "show_hud",
       "repeat",
     ]);
   });
