@@ -1,5 +1,5 @@
 import { AIRLOCK_COORD, MISSION_SITES_BY_ID, terrainMatches } from "@th/shared";
-import { postAgentVoice, type VoiceAgentResponse } from "../api";
+import { postAgentVoice, type VoiceAgentRequest, type VoiceAgentResponse } from "../api";
 import { ASR_LOCALE, getLang, onLangChange, t } from "../core/i18n";
 import { C } from "../core/physics";
 import type { Action, ConversationTurn, TraceEvent } from "../core/types";
@@ -22,6 +22,7 @@ export interface VoiceControllerHooks {
 
 const MAX_BRIDGE_HISTORY_TURNS = 6;
 const MAX_BRIDGE_TURN_CHARS = 400;
+const VOICE_REQUEST_TIMEOUT_MS = 45000;
 
 export class VoiceController {
   private static readonly MAX_HISTORY = 6;
@@ -37,6 +38,7 @@ export class VoiceController {
     this.listener = new Listener({
       onInterim: (txt) => this.store.pushTranscript("you", txt, false),
       onFinal: (txt) => void this.handle(txt),
+      onFinalAudio: (wavBase64, fallbackText) => void this.handleAudio(wavBase64, fallbackText),
       onState: (listening) => {
         this.store.micListening = listening;
         this.store.notify();
@@ -115,6 +117,30 @@ export class VoiceController {
     this.listener.pushEnd();
   }
 
+  /** Handles recorded PTT WAV audio with optional Web Speech interim text as hint/fallback. */
+  async handleAudio(wavBase64: string, fallbackText = ""): Promise<void> {
+    const cleanAudio = wavBase64.trim();
+    const hint = fallbackText.trim();
+    if (!cleanAudio) {
+      if (hint) await this.handle(hint);
+      return;
+    }
+
+    await this.radio.unlock();
+    // Preserve <5 ms local critical intents and explicit camera vision checks when browser ASR captured them.
+    if (hint && (matchLocalIntent(hint) || (isVisionQuestion(hint) && this.hooks.onVisionRequest))) {
+      await this.handle(hint);
+      return;
+    }
+
+    this.store.pushTranscript("you", hint || "...", false);
+    await this.dispatchVoiceRequest({
+      cleanText: hint,
+      audioBase64: cleanAudio,
+      isAudioTurn: true,
+    });
+  }
+
   async handle(text: string): Promise<void> {
     const clean = text.trim();
     if (!clean) return;
@@ -178,6 +204,18 @@ export class VoiceController {
       return;
     }
 
+    await this.dispatchVoiceRequest({
+      cleanText: clean,
+      isAudioTurn: false,
+    });
+  }
+
+  private async dispatchVoiceRequest(opts: {
+    cleanText: string;
+    audioBase64?: string;
+    isAudioTurn: boolean;
+  }): Promise<void> {
+    const activeLang = getLang();
     this.store.baseProcessing = true;
     this.store.notify();
     void this.radio.beep(820, 0.06);
@@ -190,20 +228,38 @@ export class VoiceController {
     let replyRoute: string[] | undefined;
     let excludeReplyFromHistory = false;
 
+    const finalizeAudioUserLine = (text: string, excludeFromHistory = false) => {
+      if (!opts.isAudioTurn) return;
+      const trimmed = text.trim();
+      if (trimmed) {
+        this.store.pushTranscript("you", trimmed, true, {
+          lang: activeLang,
+          ...(excludeFromHistory ? { excludeFromHistory: true } : {}),
+        });
+      } else {
+        this.store.discardInterimTranscript("you");
+      }
+    };
+
     try {
-      const lang = getLang();
-      const apiLang = ASR_LOCALE[lang];
+      const apiLang = ASR_LOCALE[activeLang];
       const history = this.getHistory();
-      const res = await postAgentVoice(
-        {
-          text: clean,
-          lang: apiLang,
-          context: this.store.toContext(),
-          ...(history.length ? { history } : {}),
-        },
-        AbortSignal.timeout(70000),
-      );
+      const payload: VoiceAgentRequest = {
+        lang: apiLang,
+        context: this.store.toContext(),
+        ...(history.length ? { history } : {}),
+      };
+      if (opts.audioBase64) {
+        payload.audio_base64 = opts.audioBase64;
+        payload.audio_format = "wav";
+        if (opts.cleanText) payload.raw_text = opts.cleanText;
+      } else {
+        payload.text = opts.cleanText;
+      }
+
+      const res = await postAgentVoice(payload, AbortSignal.timeout(VOICE_REQUEST_TIMEOUT_MS));
       if (res.status === 409) {
+        finalizeAudioUserLine(opts.cleanText, true);
         this.lastReply = "Terrain unavailable or incompatible. Reload and verify server assets.";
         this.store.pushAlert("crit", this.lastReply);
         this.store.pushTranscript("base", this.lastReply, true, {
@@ -215,6 +271,7 @@ export class VoiceController {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const out = (await res.json()) as VoiceAgentResponse;
       if (!terrainMatches(out.terrain) || !terrainMatches(this.store.terrain)) {
+        finalizeAudioUserLine(opts.cleanText, true);
         this.lastReply = "Terrain identity missing or incompatible; agent result discarded.";
         this.store.pushAlert("crit", this.lastReply);
         this.store.pushTranscript("base", this.lastReply, true, {
@@ -223,24 +280,41 @@ export class VoiceController {
         });
         return;
       }
+
       this.store.lastAgentLatencyMs = Math.round(performance.now() - reqStart);
+      const resolvedUserText = (out.transcript ?? opts.cleanText).trim();
+      if (opts.isAudioTurn) {
+        finalizeAudioUserLine(resolvedUserText);
+      } else if (resolvedUserText && resolvedUserText !== opts.cleanText) {
+        this.store.updateLastTranscriptText("you", resolvedUserText);
+      }
+
       if (out.trace) this.store.setTrace(out.trace, out.route ?? []);
       if (out.actions?.length) this.store.applyActions(out.actions);
       replyRoute = out.route;
       const speech = (out.speech ?? "").trim();
       this.lastReply = speech || "Acknowledged.";
-      if (res.status === 200 && speech) {
-        this.appendHistoryTurn(clean, speech);
+      if (res.status === 200 && speech && resolvedUserText) {
+        this.appendHistoryTurn(resolvedUserText, speech);
       }
     } catch {
       // Deterministic local simulation fallback when backend :8080 is offline
       this.store.lastAgentLatencyMs = Math.round(performance.now() - reqStart);
-      const sim = this.offlineFallback(clean);
-      this.store.setTrace(sim.trace, sim.route);
-      this.store.applyActions(sim.actions);
-      replyRoute = sim.route;
-      excludeReplyFromHistory = true;
-      this.lastReply = sim.speech;
+      const fallbackText = opts.cleanText.trim();
+      if (fallbackText) {
+        finalizeAudioUserLine(fallbackText, true);
+        const sim = this.offlineFallback(fallbackText);
+        this.store.setTrace(sim.trace, sim.route);
+        this.store.applyActions(sim.actions);
+        replyRoute = sim.route;
+        excludeReplyFromHistory = true;
+        this.lastReply = sim.speech;
+      } else {
+        this.store.discardInterimTranscript("you");
+        replyRoute = ["SUIT.VOICE-EXEC"];
+        excludeReplyFromHistory = true;
+        this.lastReply = t("voice.no_link");
+      }
     } finally {
       this.store.baseProcessing = false;
       this.store.notify();

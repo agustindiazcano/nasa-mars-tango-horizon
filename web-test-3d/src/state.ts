@@ -304,6 +304,31 @@ export class MissionStore {
     this.notify();
   }
 
+  /** Removes a trailing non-final interim transcript line when an audio request yields no text. */
+  discardInterimTranscript(who?: "you" | "base" | "system"): void {
+    const last = this.transcripts[this.transcripts.length - 1];
+    if (last && !last.final && (!who || last.who === who)) {
+      this.transcripts.pop();
+      this.notify();
+    }
+  }
+
+  /** Updates the latest transcript text for a speaker when the server returns a normalized ASR transcript. */
+  updateLastTranscriptText(who: "you" | "base" | "system", text: string): void {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    for (let i = this.transcripts.length - 1; i >= 0; i--) {
+      const line = this.transcripts[i];
+      if (line.who === who) {
+        if (line.text !== trimmed) {
+          line.text = trimmed;
+          this.notify();
+        }
+        break;
+      }
+    }
+  }
+
   /** Replace displayed transcripts (e.g. when restoring a saved session) without triggering auto-save. */
   loadTranscriptLines(lines: TranscriptLine[]): void {
     this.transcripts = lines.slice(-MAX_RAM_TRANSCRIPTS).map((line) => ({
