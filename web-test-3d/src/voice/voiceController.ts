@@ -9,9 +9,19 @@ import { matchLocalIntent, type LocalIntentId } from "./localIntents";
 import { RadioSpeaker } from "./speak";
 import { isVisionQuestion } from "./visionIntent";
 
+export interface VoiceHistoryTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface VoiceControllerHooks {
   onVisionRequest?(unitId: string, question: string): Promise<{ speech: string; injection: boolean }>;
+  onLoadHistory?(turns: VoiceHistoryTurn[]): void;
+  onClearHistory?(): void;
 }
+
+const MAX_BRIDGE_HISTORY_TURNS = 6;
+const MAX_BRIDGE_TURN_CHARS = 400;
 
 export class VoiceController {
   private static readonly MAX_HISTORY = 6;
@@ -58,17 +68,19 @@ export class VoiceController {
     const next: ConversationTurn[] = [];
     for (const turn of turns) {
       if (turn.role !== "user" && turn.role !== "assistant") continue;
-      const content = String(turn.content ?? "").trim().slice(0, 400);
+      const content = String(turn.content ?? "").trim().slice(0, MAX_BRIDGE_TURN_CHARS).trim();
       if (!content) continue;
       if (turn.role === "assistant" && /^ESCALATE$/i.test(content)) continue;
       next.push({ role: turn.role, content });
     }
-    this.history = next.slice(-VoiceController.MAX_HISTORY);
+    this.history = next.slice(-MAX_BRIDGE_HISTORY_TURNS);
+    this.hooks.onLoadHistory?.(this.getHistory());
   }
 
   /** Clears the rolling conversational history buffer. */
   clearHistory(): void {
     this.history = [];
+    this.hooks.onClearHistory?.();
   }
 
   /** Returns a shallow copy of the bounded conversational history buffer. */
@@ -77,12 +89,12 @@ export class VoiceController {
   }
 
   private appendHistoryTurn(userText: string, assistantText: string): void {
-    const userContent = userText.trim().slice(0, 400);
+    const userContent = userText.trim().slice(0, MAX_BRIDGE_TURN_CHARS);
     const assistantContent = assistantText
       .replace(/\bESCALATE\b/gi, "")
       .replace(/\s{2,}/g, " ")
       .trim()
-      .slice(0, 400);
+      .slice(0, MAX_BRIDGE_TURN_CHARS);
     if (!userContent || !assistantContent) return;
     this.history.push(
       { role: "user", content: userContent },
@@ -107,14 +119,22 @@ export class VoiceController {
     const clean = text.trim();
     if (!clean) return;
     await this.radio.unlock();
-    this.store.pushTranscript("you", clean, true);
 
     // <5 ms local critical intents
     const t0 = performance.now();
+    const activeLang = getLang();
     const local = matchLocalIntent(clean);
+    this.store.pushTranscript("you", clean, true, {
+      lang: activeLang,
+      excludeFromHistory: Boolean(local && local !== "emergency"),
+    });
+
     if (local === "repeat") {
       if (this.lastReply) {
-        this.store.pushTranscript("base", this.lastReply, true);
+        this.store.pushTranscript("base", this.lastReply, true, {
+          lang: activeLang,
+          excludeFromHistory: true,
+        });
         void this.radio.say(this.lastReply);
       }
       return;
@@ -123,7 +143,12 @@ export class VoiceController {
       const reply = this.runLocalIntent(local);
       this.store.lastAgentLatencyMs = Math.max(1, Math.round(performance.now() - t0));
       this.lastReply = reply;
-      this.store.pushTranscript("base", reply, true);
+      this.store.pushTranscript("base", reply, true, {
+        latencyMs: this.store.lastAgentLatencyMs,
+        route: ["LOCAL"],
+        lang: activeLang,
+        excludeFromHistory: true,
+      });
       void this.radio.say(reply);
       if (local !== "emergency") return;
       // For emergency, trigger local instant alert AND escalate to BASE for pod + rescue
@@ -140,7 +165,11 @@ export class VoiceController {
         const res = await this.hooks.onVisionRequest("rover-2", clean);
         this.store.lastAgentLatencyMs = Math.round(performance.now() - start);
         this.lastReply = res.speech;
-        this.store.pushTranscript("base", res.speech, true);
+        this.store.pushTranscript("base", res.speech, true, {
+          latencyMs: this.store.lastAgentLatencyMs,
+          route: this.store.routePath.length ? this.store.routePath : ["ROBOT.rover-2"],
+          lang: activeLang,
+        });
         void this.radio.say(res.speech);
       } finally {
         this.store.baseProcessing = false;
@@ -158,6 +187,9 @@ export class VoiceController {
       this.store.earthDelayRemainingS = this.store.env.earth_light_time_s * 2;
     }
 
+    let replyRoute: string[] | undefined;
+    let excludeReplyFromHistory = false;
+
     try {
       const lang = getLang();
       const apiLang = ASR_LOCALE[lang];
@@ -174,7 +206,10 @@ export class VoiceController {
       if (res.status === 409) {
         this.lastReply = "Terrain unavailable or incompatible. Reload and verify server assets.";
         this.store.pushAlert("crit", this.lastReply);
-        this.store.pushTranscript("base", this.lastReply, true);
+        this.store.pushTranscript("base", this.lastReply, true, {
+          lang: activeLang,
+          excludeFromHistory: true,
+        });
         return;
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -182,12 +217,16 @@ export class VoiceController {
       if (!terrainMatches(out.terrain) || !terrainMatches(this.store.terrain)) {
         this.lastReply = "Terrain identity missing or incompatible; agent result discarded.";
         this.store.pushAlert("crit", this.lastReply);
-        this.store.pushTranscript("base", this.lastReply, true);
+        this.store.pushTranscript("base", this.lastReply, true, {
+          lang: activeLang,
+          excludeFromHistory: true,
+        });
         return;
       }
       this.store.lastAgentLatencyMs = Math.round(performance.now() - reqStart);
       if (out.trace) this.store.setTrace(out.trace, out.route ?? []);
       if (out.actions?.length) this.store.applyActions(out.actions);
+      replyRoute = out.route;
       const speech = (out.speech ?? "").trim();
       this.lastReply = speech || "Acknowledged.";
       if (res.status === 200 && speech) {
@@ -199,13 +238,20 @@ export class VoiceController {
       const sim = this.offlineFallback(clean);
       this.store.setTrace(sim.trace, sim.route);
       this.store.applyActions(sim.actions);
+      replyRoute = sim.route;
+      excludeReplyFromHistory = true;
       this.lastReply = sim.speech;
     } finally {
       this.store.baseProcessing = false;
       this.store.notify();
     }
 
-    this.store.pushTranscript("base", this.lastReply, true);
+    this.store.pushTranscript("base", this.lastReply, true, {
+      route: replyRoute,
+      latencyMs: this.store.lastAgentLatencyMs,
+      lang: activeLang,
+      excludeFromHistory: excludeReplyFromHistory,
+    });
     void this.radio.say(this.lastReply);
   }
 

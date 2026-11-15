@@ -1,6 +1,6 @@
 import type { TerrainIdentity } from "@th/shared";
 export type LayerId = "optical" | "slope" | "thermal" | "radiation" | "hydration";
-export type PanelId = "map" | "fleet" | "agents" | "health" | "provenance" | "base" | "none";
+export type PanelId = "map" | "fleet" | "agents" | "health" | "provenance" | "base" | "sessions" | "none";
 export type AlertLevel = "ok" | "warn" | "crit";
 export type UnitKind = "rover_crew" | "rover_science" | "rescue" | "drone" | "manipulator";
 export type ArmSkillId = "handover" | "sample" | "drill" | "photograph";
