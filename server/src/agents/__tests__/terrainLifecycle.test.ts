@@ -1,3 +1,4 @@
+import { FleetUnit } from "../../../../web-test-3d/src/world/fleetProc";
 import * as THREE from "three";
 import { TerrainProc } from "../../../../web-test-3d/src/world/terrainProc";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -111,6 +112,23 @@ describe("terrain contract and placement", () => {
       expect(res.json().actions).toEqual([]);
       expect(res.json().terrain).toEqual(READY_TERRAIN);
     } finally { await app.close(); }
+  });
+  it("uses actual rover wheel centers and radius when pitched on a slope", () => {
+    const object = new THREE.Group();
+    object.position.set(10, 0, 20);
+    object.rotation.set(0.1, 0.3, 0);
+    const terrain = { heightAt: (x: number, z: number) => x * 0.1 + z * 0.2 } as TerrainProc;
+    const unit = new FleetUnit({ id: "rover-1", kind: "rover_crew", speed: 3.2, flies: false, startX: 10, startZ: 20 }, object, terrain);
+    for (const z of [-0.95, 0, 0.95]) for (const x of [-0.99, 0.99]) {
+      const wheel = new THREE.Mesh(); wheel.position.set(x, 0.32, z); unit.wheels.push(wheel);
+    }
+    unit.placeOnGround();
+    const clearances = unit.wheels.map(w => {
+      const c = w.position.clone().applyEuler(object.rotation);
+      return object.position.y + c.y - 0.32 - terrain.heightAt(10 + c.x, 20 + c.z);
+    });
+    expect(Math.min(...clearances)).toBeCloseTo(0, 10);
+    expect(clearances.every(v => v >= -1e-10)).toBe(true);
   });
   it("accounts for contact offsets and footprint slope with no penetrating supports", () => {
     const placed = groundPlacement((x, z) => x + z, 10, 20, footprintContacts(4, 6, -0.5));
