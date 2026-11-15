@@ -4,6 +4,7 @@ import { C, directTransmission } from "@th/shared";
 import type {
   Action,
   ArmSkillId,
+  CrewSnapshot,
   EnvState,
   HudAlert,
   LayerId,
@@ -152,6 +153,8 @@ export class MissionStore {
   env: EnvState = createInitialEnv();
 
   fleet: UnitSnapshot[] = [];
+  /** Scripted crew members (`crew-2..4`); `crew-1` is the player astronaut and is added in `toContext`. */
+  crew: CrewSnapshot[] = [];
   alerts: HudAlert[] = [];
   trace: TraceEvent[] = [];
   routePath: string[] = [];
@@ -242,6 +245,10 @@ export class MissionStore {
         battery: Number(u.battery.toFixed(3)),
         busy: u.busy,
       })),
+      crew: [
+        { id: "crew-1", x: Number(this.astronaut.x.toFixed(1)), z: Number(this.astronaut.z.toFixed(1)), status: "active" },
+        ...this.crew,
+      ],
       hud: {
         layer: this.layer,
         panel: this.panel === "none" ? null : this.panel,

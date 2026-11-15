@@ -19,6 +19,7 @@ import { MissionStore } from "./state";
 import { VoiceController } from "./voice/voiceController";
 import { AstronautProc } from "./world/astronautProc";
 import { BaseProc } from "./world/baseProc";
+import { CrewProc } from "./world/crewProc";
 import { CINEMATIC_CAM_IDS, CinematicCams, type CinematicCamId } from "./world/cinematicCams";
 import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
@@ -119,6 +120,7 @@ scene.add(astronaut.group);
 const baseProc = new BaseProc(scene, terrain);
 const launchSite = new LaunchSiteProc(scene, terrain);
 new PitProc(scene, terrain);
+const crew = new CrewProc(scene, terrain);
 const skyCrane = new SkyCraneProc(scene, terrain);
 createSkyCraneToggle(() => {
   skyCrane.setVisible(!skyCrane.visible);
@@ -652,6 +654,8 @@ function stepSimulation(dt: number): void {
 
   fleet.update(dt, store.env.tau);
   store.fleet = fleet.snapshots();
+  crew.update(dt);
+  store.crew = crew.snapshots();
 
   podBallistics.updateKeepoutRing(astronaut.pos.x, astronaut.pos.z);
   podBallistics.update(dt, store.podTelemetry);
