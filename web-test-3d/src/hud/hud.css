@@ -522,3 +522,14 @@ table.prov-tbl td {
   text-decoration: underline;
   word-break: break-all;
 }
+
+.hud-confirm {
+  top: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(460px, 90vw);
+  z-index: 25;
+  border-color: var(--warn);
+  background: rgba(24, 16, 4, 0.9);
+  box-shadow: 0 10px 32px rgba(255, 184, 0, 0.25);
+}

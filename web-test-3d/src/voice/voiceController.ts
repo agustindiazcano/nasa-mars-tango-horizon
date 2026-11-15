@@ -39,10 +39,15 @@ const OFFLINE_ACTION_KINDS: Record<string, string[]> = {
   deliver_supplies: ["rover_cargo", "rescue", "rover_crew"],
 };
 
-function matchOfflineExplicitUnitId(low: string): string | null {
+function matchOfflineExplicitUnitId(low: string, fleet: { id: string; kind: string }[] = []): string | null {
+  const resolveManipId = () =>
+    fleet.find((u) => u.kind === "manipulator")?.id ??
+    (fleet.some((u) => u.id === "manip-1") && !fleet.some((u) => u.id === "rover-3") ? "manip-1" : "rover-3");
   const direct = low.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i);
   if (direct) return direct[1].toLowerCase();
-  if (/\b(hands|manip(?:ulador|ulator)?(?:\s*(?:uno|one|1))?|brazo|arm)\b/i.test(low)) return "manip-1";
+  if (/\b(hands|manip(?:ulador|ulator)?(?:\s*(?:uno|one|1))?|masip\s*(?:uno|one|1)|brazo|arm)\b/i.test(low)) {
+    return resolveManipId();
+  }
   if (/\b(rescate|rescue)(?:\s*(?:uno|one|1))?\b/i.test(low)) return "rescue-1";
   if (/\b(glider|planeador|planeur|segler|aliante)\b/i.test(low)) return "glider-1";
   if (/\bscout\s*(?:dos|two|deux|zwei|due|2)\b/i.test(low)) return "scout-2";
@@ -303,6 +308,49 @@ export class VoiceController {
       // For emergency, trigger local instant alert AND escalate to BASE for pod + rescue
     }
 
+    // Voice confirmation / cancellation when GUARDIAN queued an ask_human action
+    if (this.store.pendingActions.length > 0) {
+      const confirmRe =
+        /^(?:s[ií](?:\s*[,.]?\s*(?:confirmo|lanz[aá](?:lo)?|adelante|dale|por favor))?|yes(?:\s*[,.]?\s*(?:confirm|launch|go ahead))?|confirmo|confirmar?|confirm|adelante|dale|ejecut[aá](?:lo)?|lanz[aá](?:lo)?(?:\s+ya)?|do it|go ahead|approved?)$/i;
+      const cancelRe = /^(?:no|no[,.]?\s*cancel\w*|cancelar?|cancel|abortar?|abort|descartar?)$/i;
+      if (confirmRe.test(clean) || /\b(?:confirmo|confirmar|confirm)\b.*\b(?:lanz\w*|pod|soporte|acci[oó]n|action)\b/i.test(clean)) {
+        const types = this.store.pendingActions.map((a) => a.type);
+        while (this.store.pendingActions.length > 0) {
+          this.store.confirmPendingAction(0, true);
+        }
+        const reply =
+          activeLang === "es"
+            ? `Confirmado: ejecutando ${types.join(", ")}.`
+            : `Confirmed: executing ${types.join(", ")}.`;
+        this.store.lastAgentLatencyMs = Math.max(1, Math.round(performance.now() - t0));
+        this.lastReply = reply;
+        this.store.pushTranscript("base", reply, true, {
+          latencyMs: this.store.lastAgentLatencyMs,
+          route: ["GUARDIAN", "CONFIRMED"],
+          lang: activeLang,
+          excludeFromHistory: true,
+        });
+        void this.radio.say(reply);
+        return;
+      }
+      if (cancelRe.test(clean)) {
+        while (this.store.pendingActions.length > 0) {
+          this.store.confirmPendingAction(0, false);
+        }
+        const reply = activeLang === "es" ? "Lanzamiento u orden pendiente cancelada." : "Pending action cancelled.";
+        this.store.lastAgentLatencyMs = Math.max(1, Math.round(performance.now() - t0));
+        this.lastReply = reply;
+        this.store.pushTranscript("base", reply, true, {
+          latencyMs: this.store.lastAgentLatencyMs,
+          route: ["GUARDIAN", "CANCELLED"],
+          lang: activeLang,
+          excludeFromHistory: true,
+        });
+        void this.radio.say(reply);
+        return;
+      }
+    }
+
     // Intercept explicit vision questions so the 3D mast camera frame goes to /api/agent/vision.
     // A bare unit mention ("rover dos, scout the north") must reach the agent instead.
     if (isVisionQuestion(clean) && this.hooks.onVisionRequest) {
@@ -492,7 +540,7 @@ export class VoiceController {
     const low = text.toLowerCase();
     const lang = getLang();
     const es = lang === "es";
-    const explicitUnit = matchOfflineExplicitUnitId(low);
+    const explicitUnit = matchOfflineExplicitUnitId(low, this.store.fleet);
 
     if (/thermal|t[eé]rmic/.test(low)) {
       const a: Action = {
@@ -617,6 +665,36 @@ export class VoiceController {
       };
     }
 
+    if (/\b(soporte\s*vital|life[- ]?support|pod|c[aá]psula|capsula)\b/i.test(low)) {
+      const podX = Number((this.store.astronaut.x + C.pod_keepout_m.value + 7).toFixed(1));
+      const podZ = Number(this.store.astronaut.z.toFixed(1));
+      const podAct: Action = {
+        type: "launch_pod",
+        args: { target_x: podX, target_z: podZ, payload: "full_life_support" },
+        proposedBy: "BASE",
+        verdict: {
+          decision: "ask_human",
+          reason: es
+            ? `Cálculo offline: impacto seguro a 22 m (${podX}, ${podZ}), fuera del radio de 15 m. Confirmar lanzamiento.`
+            : `Offline calc: safe landing 22 m away (${podX}, ${podZ}), outside 15 m keep-out. Confirm launch.`,
+          by: "rules",
+        },
+      };
+      return {
+        speech: es
+          ? `Cálculo de soporte vital: punto seguro a 22 m (${podX}, ${podZ}) respetando exclusión de 15 m. Decí "confirmo" o usá el botón para lanzar.`
+          : `Life-support pod calculation: safe point 22 m away at (${podX}, ${podZ}) outside 15 m keep-out. Say "confirm" or press Confirm to launch.`,
+        actions: [podAct],
+        trace: [
+          { t: now, agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } },
+          { t: now + 2, agent: "BASE", kind: "tool", detail: { tool: "calculate_pod_launch", args: {} } },
+          { t: now + 4, agent: "BASE", kind: "tool", detail: { tool: "launch_pod", args: podAct.args } },
+          { t: now + 5, agent: "GUARDIAN", kind: "verdict", detail: podAct },
+        ],
+        route: ["SUIT.VOICE-EXEC", "BASE"],
+      };
+    }
+
     const hasArmSkillVerb =
       /(?<![\p{L}\d])(drill|taladr[\p{L}]*|sample|muestra|hammer|martillo|handover|entreg[\p{L}]*|grab|agarr[\p{L}]*)(?![\p{L}\d])/iu.test(
         low,
@@ -635,7 +713,9 @@ export class VoiceController {
             ? "sample"
             : "photograph";
       const targetId = skill === "handover" ? "astronaut" : "T1";
-      const manipUnit = this.store.fleet.find((u) => u.id === "manip-1");
+      const manipUnit = this.store.fleet.find((u) => u.kind === "manipulator") ?? this.store.fleet.find((u) => u.id === "rover-3" || u.id === "manip-1");
+      const manipId = manipUnit?.id ?? "rover-3";
+      const manipAgent = `ROBOT.${manipId}`;
       const distCrew = manipUnit
         ? Math.hypot(manipUnit.x - this.store.astronaut.x, manipUnit.z - this.store.astronaut.z)
         : 99;
@@ -647,8 +727,8 @@ export class VoiceController {
       }
       const act: Action = {
         type: "arm_skill",
-        args: { unit_id: "manip-1", skill, target_id: targetId },
-        proposedBy: "ROBOT.manip-1",
+        args: { unit_id: manipId, skill, target_id: targetId },
+        proposedBy: manipAgent,
         verdict,
       };
       return {
@@ -656,16 +736,16 @@ export class VoiceController {
           verdict.decision === "deny"
             ? verdict.reason
             : es
-              ? `ROBOT.manip-1 ejecutando ${skill} en ${targetId}.`
-              : `ROBOT.manip-1 executing ${skill} on ${targetId}.`,
+              ? `${manipAgent} ejecutando ${skill} en ${targetId}.`
+              : `${manipAgent} executing ${skill} on ${targetId}.`,
         actions: [act],
         trace: [
           { t: now, agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } },
-          { t: now + 2, agent: "BASE", kind: "delegate", detail: { to: "ROBOT.manip-1" } },
-          { t: now + 4, agent: "ROBOT.manip-1", kind: "tool", detail: { tool: "arm_skill", args: act.args } },
+          { t: now + 2, agent: "BASE", kind: "delegate", detail: { to: manipAgent } },
+          { t: now + 4, agent: manipAgent, kind: "tool", detail: { tool: "arm_skill", args: act.args } },
           { t: now + 6, agent: "GUARDIAN", kind: "verdict", detail: act },
         ],
-        route: ["SUIT.VOICE-EXEC", "BASE", "ROBOT.manip-1"],
+        route: ["SUIT.VOICE-EXEC", "BASE", manipAgent],
       };
     }
 

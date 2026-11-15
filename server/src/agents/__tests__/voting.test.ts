@@ -278,18 +278,18 @@ describe("Post-guardrail escalated multi-model voting (B16)", () => {
       expect.objectContaining({
         providers: ["vertex", "gemini"],
         reasoning_effort: "low",
-        maxTokens: 250,
+        maxTokens: 650,
         timeoutMs: 2500,
       }),
       expect.objectContaining({
         providers: ["vertex", "gemini"],
-        maxTokens: 200,
+        maxTokens: 600,
         timeoutMs: 2000,
       }),
       expect.objectContaining({
         providers: ["meta"],
         reasoning_effort: "medium",
-        maxTokens: 250,
+        maxTokens: 650,
         timeoutMs: 2500,
       }),
     ]);

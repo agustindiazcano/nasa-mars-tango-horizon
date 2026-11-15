@@ -116,11 +116,13 @@ export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
 
 /** Fleet spawn offsets relative to `BASE_ORIGIN`. */
 export const FLEET_START_OFFSETS: Readonly<Record<string, Readonly<Coord2D>>> = {
-  "rover-1": { x: -22, z: 18 },
+  "rover-1": { x: -30, z: 24 },
   "rover-2": { x: 62, z: 48 },
-  "rescue-1": { x: -18, z: 12 },
+  "rover-3": { x: 34, z: 42 },
+  "rescue-1": { x: -16, z: 24 },
   "drone-1": { x: 40, z: -30 },
   "drone-2": { x: -60, z: 55 },
+  // Legacy alias kept for backward compatibility with existing tests/snapshots
   "manip-1": { x: 34, z: 42 },
 };
 
@@ -130,7 +132,7 @@ export function fleetStartPos(unitId: string): Coord2D {
   return { x: BASE_ORIGIN.x + off.x, z: BASE_ORIGIN.z + off.z };
 }
 
-/** Manipulator arm inspection targets positioned adjacent to `manip-1`. */
+/** Manipulator arm inspection targets positioned adjacent to `rover-3` (formerly `manip-1`). */
 export const MANIP_TARGETS: readonly ManipTargetSpec[] = [
   {
     id: "T1",

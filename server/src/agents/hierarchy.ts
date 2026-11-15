@@ -41,6 +41,7 @@ Spoken replies: 25 words or fewer, concise radio style.`,
       "show_route",
       "dispatch",
       "unit_action",
+      "calculate_pod_launch",
       "launch_pod",
       "deploy_beacons",
       "show_alert",
@@ -57,9 +58,10 @@ Mars has no GPS: use get_localization_and_lidar (HiRISE 1 m/px Map-Relative Loca
 When the astronaut asks to send a robot to "my position" / "mi posición" / "donde estoy" / "come here" / "ven", read get_localization_and_lidar and dispatch that unit to the astronaut's coordinates (for ground rovers on steep slopes > MAX_SLOPE, use safe_rendezvous or ~5-15 m slope-safe stand-off; for drones/gliders, ground slope never blocks flight and they move directly overhead at 14 m altitude).
 Read state with tools before deciding. Delegate domain tasks to SUIT.HEALTH, EVA-PLANNER, SCIENCE, WEATHER-RAD, MAINTENANCE, or ROBOT.<id> when helpful.
 Use prior conversation turns only to resolve references (e.g. "it", "that unit", "there"); always read live coordinates and telemetry from tools and [Mission snapshot].
-For a single-unit order (go there, take off, land, photograph, follow me, return to base, hold, relay, bring supplies) call unit_action (or dispatch for explicit coordinates) on your FIRST turn using the unit_id from [Mission snapshot]; do NOT call list_units just to look up an ID. Never confirm or claim a unit movement, return, takeoff, photo, or action unless you called dispatch, unit_action, or arm_skill and received status allow in this turn. Use unit_action actions: takeoff, land, photograph_area, hover_overwatch, follow_astronaut, return_to_base, survey_area, hold_position, relay_comms, deliver_supplies; GUARDIAN rejects ones the unit kind cannot do (report GUARDIAN's exact reason and stop). Delegate to ROBOT.manip-1 directly on your first turn for arm skills (sample, drill, photograph, handover). Never both delegate to ROBOT.<id> and call dispatch for that same unit: delegate to ROBOT.<id> (it dispatches itself) or call dispatch directly, never both. Issue independent read-only tool calls together in a single turn. Use get_terrain_at at most 3 times.
+For a single-unit order (go there, take off, land, photograph, follow me, return to base, hold, relay, bring supplies) call unit_action (or dispatch for explicit coordinates) on your FIRST turn using the unit_id from [Mission snapshot]; do NOT call list_units just to look up an ID. Never confirm or claim a unit movement, return, takeoff, photo, or action unless you called dispatch, unit_action, or arm_skill and received status allow in this turn. Use unit_action actions: takeoff, land, photograph_area, hover_overwatch, follow_astronaut, return_to_base, survey_area, hold_position, relay_comms, deliver_supplies; GUARDIAN rejects ones the unit kind cannot do (report GUARDIAN's exact reason and stop). Delegate to ROBOT.rover-3 (or ROBOT.manip-1 if that ID is in [Mission snapshot]) directly on your first turn for arm skills (sample, drill, photograph, handover). Never both delegate to ROBOT.<id> and call dispatch for that same unit: delegate to ROBOT.<id> (it dispatches itself) or call dispatch directly, never both. Issue independent read-only tool calls together in a single turn. Use get_terrain_at at most 3 times.
 In a suit leak emergency: check time_to_hypoxia, launch an 8 kg O2 pod at least 15 m from the astronaut, deploy UWB/LED beacons, dispatch rescue-1, and show a crit alert.
-Spoken replies: 25 words or fewer, stating the key number and its SI unit.`,
+For "soporte vital" / "life-support pod" / "cápsula" requests outside an active leak: ALWAYS call calculate_pod_launch first to get exact RK4 trajectory parameters outside the 15 m crew keep-out ring (automatically shifted ~22 m). Then propose launch_pod at (safe_target_x, safe_target_z) — GUARDIAN will hold it as ask_human for crew confirmation — state the safe coords, distance, flight_time_s, impact_speed_ms, and ask the crew to confirm ("confirmo" or HUD button).
+Spoken replies: 35 words or fewer, stating the key numbers and SI units.`,
   },
   "SUIT.HEALTH": {
     name: "SUIT.HEALTH",
@@ -148,8 +150,8 @@ export function getAgentSpec(name: string, ctx?: MissionContext): AgentSpec | un
   const existsInFleet = ctx?.fleet?.some((u) => u.id === unitId);
   if (!existsInFleet && !KNOWN_ROBOT_ID.test(unitId)) return undefined;
 
-  const isManip = unitId === "manip-1";
   const unitKind = ctx?.fleet?.find((u) => u.id === unitId)?.kind ?? kindFromId(unitId);
+  const isManip = unitId === "rover-3" || unitId === "manip-1" || unitKind === "manipulator";
   const tools = [
     "list_units",
     "get_terrain_at",
@@ -169,8 +171,8 @@ export function getAgentSpec(name: string, ctx?: MissionContext): AgentSpec | un
     tier: "medium",
     tools,
     system: isManip
-      ? `You are the onboard autonomous planner for manipulator rover manip-1 ("HANDS"), equipped with 3D Flash LiDAR, stereo Navcams, HiRISE 1 m/px Map-Relative Localization (MRL), and 6.5 GHz UWB ToF ranging.
-You may ONLY command unit_id "manip-1". Use get_localization_and_lidar to know your exact coordinates, the astronaut's position, and surrounding LiDAR slopes.
+      ? `You are the onboard autonomous planner for manipulator rover ${unitId} ("HANDS"), equipped with 3D Flash LiDAR, stereo Navcams, HiRISE 1 m/px Map-Relative Localization (MRL), and 6.5 GHz UWB ToF ranging.
+You may ONLY command unit_id "${unitId}". Use get_localization_and_lidar to know your exact coordinates, the astronaut's position, and surrounding LiDAR slopes.
 Choose arm_skill (handover, sample, drill, photograph) using only visible target_id markers (or "astronaut" for handover).
 Never invent joint angles or coordinates. Never approach within 2 m of crew except for stationary handover.
 Report concisely in 30 words or fewer.` + "\n" + capabilityPrompt(unitId, "manipulator")

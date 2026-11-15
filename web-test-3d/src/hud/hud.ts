@@ -25,6 +25,7 @@ import type { DeckButton } from "./demoDeck";
 
 export interface HudActions {
   togglePov(): void;
+  toggleIso(): void;
   setLayer(layer: LayerId): void;
   runManipSkill(skill: ArmSkillId, targetId: string): void;
   captureRoverVision(unitId: string, question: string): void;
@@ -70,10 +71,12 @@ export class TacticalHud {
   private rightEl: HTMLElement;
   private topEl: HTMLElement;
   private bottomEl: HTMLElement;
+  private confirmEl: HTMLElement;
   private voiceInput!: HTMLInputElement;
   private invX = false;
   private invY = false;
   private lastModalPanel: PanelId = "none";
+  private lastConfirmKey = "";
   private sessionsRenderKey = "";
   private provenanceRenderKey = "";
   private provenanceState: "idle" | "loading" | "ready" | "error" = "idle";
@@ -91,6 +94,7 @@ export class TacticalHud {
     this.root.innerHTML = `
       <div id="visor-vignette"></div>
       <div id="hud-top" class="hud-panel hud-top"></div>
+      <div id="hud-confirm" class="hud-panel hud-confirm" data-level="warn" style="display:none"></div>
       <div id="hud-left" class="hud-panel hud-left"></div>
       <div id="hud-right" class="hud-panel hud-right"></div>
       <div id="hud-modal" class="hud-panel hud-modal" style="display:none"></div>
@@ -99,6 +103,7 @@ export class TacticalHud {
     `;
 
     this.topEl = document.getElementById("hud-top")!;
+    this.confirmEl = document.getElementById("hud-confirm")!;
     this.leftEl = document.getElementById("hud-left")!;
     this.rightEl = document.getElementById("hud-right")!;
     this.modalEl = document.getElementById("hud-modal")!;
@@ -224,7 +229,8 @@ export class TacticalHud {
           ${menuHtml}
           <button class="hud-btn" data-pointable id="btn-rover-cam">${t("menu.rover_cam")}</button>
           <button class="hud-btn" data-pointable id="btn-qr">${t("menu.remote")}</button>
-          <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : t("hud.pov_3rd")}</button>
+          <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : this.store.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso")}</button>
+          <button class="hud-btn ${this.store.povMode === "iso" ? "active" : ""}" data-pointable id="btn-iso" title="${t("hud.iso_hint")}">${t("hud.btn_iso")}</button>
         </div>
         <div class="btn-row">
           <span style="opacity:0.75; font-size:10px;">${t("hud.layers")}:</span>
@@ -284,6 +290,7 @@ export class TacticalHud {
     });
 
     document.getElementById("btn-pov")!.addEventListener("click", () => this.actions.togglePov());
+    document.getElementById("btn-iso")!.addEventListener("click", () => this.actions.toggleIso());
     document.getElementById("btn-qr")!.addEventListener("click", () => this.toggleQrModal());
     document.getElementById("btn-rover-cam")!.addEventListener("click", () => {
       this.roverModalOpen = true;
@@ -497,7 +504,14 @@ export class TacticalHud {
       b.classList.toggle("active", b.dataset.panel === s.panel);
     });
     const povBtn = document.getElementById("btn-pov");
-    if (povBtn) povBtn.textContent = s.povMode === "1st" ? t("hud.pov_1st") : t("hud.pov_3rd");
+    if (povBtn) {
+      povBtn.textContent =
+        s.povMode === "1st" ? t("hud.pov_1st") : s.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso");
+    }
+    const isoBtn = document.getElementById("btn-iso");
+    if (isoBtn) isoBtn.classList.toggle("active", s.povMode === "iso");
+    const visorEl = document.getElementById("visor-vignette");
+    if (visorEl) visorEl.style.display = s.povMode === "1st" ? "block" : "none";
     const pttBtn = document.getElementById("btn-ptt");
     if (pttBtn) pttBtn.classList.toggle("listening", s.micListening);
     const procBadge = document.getElementById("base-proc-badge");
@@ -530,6 +544,37 @@ export class TacticalHud {
     if (qrSt) {
       qrSt.textContent = s.remoteConnected ? t("remote.connected") : `${t("remote.waiting")} (${s.remoteRoom})`;
       qrSt.className = `pill ${s.remoteConnected ? "" : "warn"}`;
+    }
+
+    const confirmKey = s.pendingActions.map((a) => `${a.type}:${JSON.stringify(a.args)}:${a.verdict?.reason ?? ""}`).join("|");
+    if (confirmKey !== this.lastConfirmKey) {
+      this.lastConfirmKey = confirmKey;
+      if (s.pendingActions.length === 0) {
+        this.confirmEl.style.display = "none";
+        this.confirmEl.innerHTML = "";
+      } else {
+        this.confirmEl.style.display = "block";
+        this.confirmEl.innerHTML = s.pendingActions
+          .map(
+            (a, idx) => `
+            <div style="margin-bottom:${idx < s.pendingActions.length - 1 ? 8 : 0}px;">
+              <div style="font-weight:700;">GUARDIAN · ${escapeHtml(a.type.toUpperCase())}</div>
+              <div style="font-size:11px; color:#fff; margin:3px 0;">${escapeHtml(a.verdict?.reason || JSON.stringify(a.args))}</div>
+              <div class="btn-row" style="margin-top:5px;">
+                <button class="hud-btn" data-pointable data-hud-confirm="${idx}">${t("agents.confirm")}</button>
+                <button class="hud-btn danger" data-pointable data-hud-cancel="${idx}">${t("agents.cancel")}</button>
+              </div>
+            </div>
+          `,
+          )
+          .join("");
+        this.confirmEl.querySelectorAll<HTMLButtonElement>("[data-hud-confirm]").forEach((b) =>
+          b.addEventListener("click", () => s.confirmPendingAction(Number(b.dataset.hudConfirm), true)),
+        );
+        this.confirmEl.querySelectorAll<HTMLButtonElement>("[data-hud-cancel]").forEach((b) =>
+          b.addEventListener("click", () => s.confirmPendingAction(Number(b.dataset.hudCancel), false)),
+        );
+      }
     }
 
     this.renderModal();
@@ -606,7 +651,7 @@ export class TacticalHud {
       this.modalEl.style.display = "block";
       this.modalEl.innerHTML = `
         <div class="panel-hdr">
-          <span>RVR-2 / MANIP-1 VISION FEED (POST /api/agent/vision)</span>
+          <span>RVR-2 / RVR-3 VISION FEED (POST /api/agent/vision)</span>
           <button class="hud-btn" data-pointable id="modal-close">X</button>
         </div>
         ${s.injectionBlockedBanner ? `<div class="alert-banner"><b>${t("agents.injection_blocked")}</b></div>` : ""}
@@ -616,7 +661,7 @@ export class TacticalHud {
         <div style="font-size:12px; color:#fff; margin-bottom:8px;">${s.roverPreviewCaption}</div>
         <div class="btn-row">
           <button class="hud-btn" data-pointable id="rvr-snap-2">Capture RVR-2 Sign</button>
-          <button class="hud-btn" data-pointable id="rvr-snap-m">Capture MANIP-1 Targets</button>
+          <button class="hud-btn" data-pointable id="rvr-snap-m">Capture RVR-3 Targets</button>
         </div>
       `;
       this.modalEl.querySelector("#modal-close")!.addEventListener("click", () => {
@@ -627,7 +672,7 @@ export class TacticalHud {
         this.actions.captureRoverVision("rover-2", t("deck.say.8")),
       );
       this.modalEl.querySelector("#rvr-snap-m")!.addEventListener("click", () =>
-        this.actions.captureRoverVision("manip-1", "Identify numbered rock targets T1, T2, T3"),
+        this.actions.captureRoverVision("rover-3", "Identify numbered rock targets T1, T2, T3"),
       );
       return;
     }
@@ -715,7 +760,7 @@ export class TacticalHud {
         )
         .join("");
       this.modalEl.innerHTML = `
-        ${closeHdr("FLEET & MANIP-1 4-DOF IK")}
+        ${closeHdr("FLEET & ROVER-3 4-DOF IK")}
         <table class="prov-tbl">
           <thead><tr><th>ID</th><th>Kind</th><th>XZ (m)</th><th>Bat</th><th>Task</th></tr></thead>
           <tbody>${rows}</tbody>

@@ -294,6 +294,20 @@ export class BaseProc {
       mesh.updateMatrix();
       mesh.geometry.computeBoundingBox();
       const localBounds = mesh.geometry.boundingBox!.clone().applyMatrix4(mesh.matrix);
+
+      // Anchor every module with a structural foundation plinth so no corner floats on real slopes
+      const plinthMat = new THREE.MeshStandardMaterial({ color: 0x2a313b, roughness: 0.78, metalness: 0.25 });
+      const plinthH = 3.6;
+      const plinth = new THREE.Mesh(
+        new THREE.BoxGeometry(mod.footprint[0] + 0.5, plinthH, mod.footprint[1] + 0.5),
+        plinthMat,
+      );
+      plinth.position.y = localBounds.min.y - plinthH / 2 + 0.05;
+      plinth.castShadow = true;
+      plinth.receiveShadow = true;
+      plinth.userData = { baseModuleId: mod.id };
+      mGroup.add(plinth);
+
       const placement = groundPlacement((x, z) => terrain.heightAt(x, z), wx, wz,
         footprintGridContacts(mod.footprint[0], mod.footprint[1], localBounds.min.y, 2));
       mGroup.position.y = placement.y;

@@ -450,7 +450,7 @@ function evaluateFleetUnit(
   const metrics: ChannelMetric[] = [];
   const faults: FaultFinding[] = [];
 
-  const isManip = unitKind === "manipulator" || unitId === "manip-1";
+  const isManip = unitKind === "manipulator" || unitId === "manip-1" || unitId === "rover-3";
 
   const slip = analyzeChannel(
     buildSeriesFromWindow(win, (x) => x.slip_ratio, health?.slip_ratio, metS),
@@ -773,10 +773,14 @@ export function evaluateComponentHealth(
     const fleetKindMap = new Map<string, string>();
     for (const u of ctx.fleet ?? []) fleetKindMap.set(u.id, u.kind);
     for (const id of Object.keys(ctx.fleet_health ?? {})) {
-      if (!fleetKindMap.has(id)) fleetKindMap.set(id, id === "manip-1" ? "manipulator" : "rover_crew");
+      if (!fleetKindMap.has(id)) {
+        fleetKindMap.set(id, id === "manip-1" || id === "rover-3" ? "manipulator" : "rover_crew");
+      }
     }
     for (const id of Object.keys(ctx.fleet_windows ?? {})) {
-      if (!fleetKindMap.has(id)) fleetKindMap.set(id, id === "manip-1" ? "manipulator" : "rover_crew");
+      if (!fleetKindMap.has(id)) {
+        fleetKindMap.set(id, id === "manip-1" || id === "rover-3" ? "manipulator" : "rover_crew");
+      }
     }
 
     const targetIds = unitId

@@ -37,14 +37,14 @@ export const VOTER_PANEL: readonly VoterSpec[] = [
     tier: "large",
     providers: ["vertex", "gemini"],
     reasoning_effort: "low",
-    maxTokens: 250,
+    maxTokens: 650,
     timeoutMs: 2500,
   },
   {
     voter: "Voter B",
     tier: "medium",
     providers: ["vertex", "gemini"],
-    maxTokens: 200,
+    maxTokens: 600,
     timeoutMs: 2000,
   },
   {
@@ -52,7 +52,7 @@ export const VOTER_PANEL: readonly VoterSpec[] = [
     tier: "large",
     providers: ["meta"],
     reasoning_effort: "medium",
-    maxTokens: 250,
+    maxTokens: 650,
     timeoutMs: 2500,
   },
 ];

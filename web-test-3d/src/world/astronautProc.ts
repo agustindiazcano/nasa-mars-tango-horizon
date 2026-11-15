@@ -1,21 +1,33 @@
-import { ASTRONAUT_START } from "@th/shared";
+import { ASTRONAUT_START, BASE_ORIGIN } from "@th/shared";
 import * as THREE from "three";
 import { metabolicRateW, terrainFromThermalClass } from "@th/shared";
 import type { TerrainProc } from "./terrainProc";
 
+export type PovMode = "1st" | "3rd" | "iso";
+
 export class AstronautProc {
   readonly group = new THREE.Group();
   readonly pos = new THREE.Vector3(ASTRONAUT_START.x, 0, ASTRONAUT_START.z);
-  yaw = 0.4;
-  pitch = -0.05;
+  yaw = 0.65;
+  pitch = -0.04;
   speed = 0;
   gradePct = 0;
-  povMode: "1st" | "3rd" = "1st";
+  povMode: PovMode = "1st";
+  mouseSensitivity = 0.0028;
   orbitYaw = 0.6;
   orbitPitch = 0.42;
   orbitDist = 11;
+  readonly isoTarget = new THREE.Vector3(BASE_ORIGIN.x + 15, 0, BASE_ORIGIN.z - 5);
+  isoYaw = Math.PI / 4;
+  isoPitch = 0.68;
+  isoDist = 145;
 
   private keys = new Set<string>();
+  private velX = 0;
+  private velZ = 0;
+  private dragDistPx = 0;
+  private breathBob = 0;
+  private breathFreq = 1.4;
   private leftLeg: THREE.Group;
   private rightLeg: THREE.Group;
   private leftArm: THREE.Group;
@@ -125,20 +137,69 @@ export class AstronautProc {
     this.group.position.copy(this.pos);
     this.setPovMode("1st");
 
-    window.addEventListener("keydown", (e) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      this.keys.add(e.code);
+    if (typeof window !== "undefined") {
+      window.addEventListener("keydown", (e) => {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+        this.keys.add(e.code);
+      });
+      window.addEventListener("keyup", (e) => this.keys.delete(e.code));
+      window.addEventListener("blur", () => this.keys.clear());
+    }
+
+    this.dom.addEventListener("mousedown", () => {
+      this.dragDistPx = 0;
     });
-    window.addEventListener("keyup", (e) => this.keys.delete(e.code));
+
+    this.dom.addEventListener("contextmenu", (e) => {
+      if (this.povMode === "iso" || this.povMode === "3rd") {
+        e.preventDefault();
+      }
+    });
 
     this.dom.addEventListener("mousemove", (e) => {
+      if (e.buttons !== 0) {
+        this.dragDistPx += Math.hypot(e.movementX, e.movementY);
+      }
       if (this.povMode === "1st") {
-        if (document.pointerLockElement !== this.dom) return;
-        this.yaw -= e.movementX * 0.0022;
-        this.pitch = THREE.MathUtils.clamp(this.pitch - e.movementY * 0.0022, -1.25, 1.25);
-      } else if (e.buttons === 1 || document.pointerLockElement === this.dom) {
-        this.orbitYaw -= e.movementX * 0.004;
-        this.orbitPitch = THREE.MathUtils.clamp(this.orbitPitch + e.movementY * 0.004, 0.08, 1.35);
+        if (typeof document === "undefined" || document.pointerLockElement !== this.dom) return;
+        this.yaw -= e.movementX * this.mouseSensitivity;
+        this.pitch = THREE.MathUtils.clamp(
+          this.pitch - e.movementY * this.mouseSensitivity,
+          -1.45,
+          1.45,
+        );
+        this.syncCamera();
+      } else if (this.povMode === "3rd") {
+        if ((e.buttons & 1) !== 0 || (typeof document !== "undefined" && document.pointerLockElement === this.dom)) {
+          this.orbitYaw -= e.movementX * 0.004;
+          this.orbitPitch = THREE.MathUtils.clamp(this.orbitPitch + e.movementY * 0.004, 0.08, 1.35);
+          this.syncCamera();
+        }
+      } else if (this.povMode === "iso") {
+        if ((e.buttons & 1) !== 0 && !e.shiftKey) {
+          this.isoYaw -= e.movementX * 0.005;
+          this.isoPitch = THREE.MathUtils.clamp(this.isoPitch + e.movementY * 0.005, 0.18, 1.48);
+          this.syncCamera();
+        } else if ((e.buttons & 2) !== 0 || (e.buttons & 4) !== 0 || ((e.buttons & 1) !== 0 && e.shiftKey)) {
+          const panScale = Math.max(0.06, this.isoDist * 0.0016);
+          const fwdX = -Math.sin(this.isoYaw);
+          const fwdZ = -Math.cos(this.isoYaw);
+          const rightX = Math.cos(this.isoYaw);
+          const rightZ = -Math.sin(this.isoYaw);
+          const half = this.terrain.sizeM / 2 - 20;
+          this.isoTarget.x = THREE.MathUtils.clamp(
+            this.isoTarget.x - (rightX * e.movementX - fwdX * e.movementY) * panScale,
+            -half,
+            half,
+          );
+          this.isoTarget.z = THREE.MathUtils.clamp(
+            this.isoTarget.z - (rightZ * e.movementX - fwdZ * e.movementY) * panScale,
+            -half,
+            half,
+          );
+          this.isoTarget.y = this.terrain.heightAt(this.isoTarget.x, this.isoTarget.z);
+          this.syncCamera();
+        }
       }
     });
 
@@ -147,56 +208,183 @@ export class AstronautProc {
       (e) => {
         if (this.povMode === "3rd") {
           this.orbitDist = THREE.MathUtils.clamp(this.orbitDist + e.deltaY * 0.012, 3.5, 55);
+          this.syncCamera();
+        } else if (this.povMode === "iso") {
+          this.isoDist = THREE.MathUtils.clamp(
+            this.isoDist * Math.exp(e.deltaY * 0.0012),
+            10,
+            1800,
+          );
+          this.syncCamera();
         }
       },
       { passive: true },
     );
   }
 
-  setPovMode(mode: "1st" | "3rd"): void {
-    this.povMode = mode;
-    // Hide own head/visor in 1st person so camera never clips inside helmet mesh
-    this.headGroup.visible = mode === "3rd";
-    this.torsoGroup.visible = mode === "3rd";
-    this.leftLeg.visible = mode === "3rd";
-    this.rightLeg.visible = mode === "3rd";
+  consumeWasDragged(thresholdPx = 6): boolean {
+    const dragged = this.dragDistPx >= thresholdPx;
+    this.dragDistPx = 0;
+    return dragged;
   }
 
-  togglePov(): "1st" | "3rd" {
-    this.setPovMode(this.povMode === "1st" ? "3rd" : "1st");
+  setKeyForTest(code: string, down: boolean): void {
+    if (down) this.keys.add(code);
+    else this.keys.delete(code);
+  }
+
+  setPovMode(mode: PovMode): void {
+    this.povMode = mode;
+    if (mode !== "1st" && typeof document !== "undefined" && document.pointerLockElement === this.dom) {
+      document.exitPointerLock?.();
+    }
+    if (mode === "iso") {
+      const bx = BASE_ORIGIN.x + 15;
+      const bz = BASE_ORIGIN.z - 5;
+      this.isoTarget.set(bx, this.terrain.heightAt(bx, bz), bz);
+      this.isoYaw = Math.PI / 4;
+      this.isoPitch = 0.68;
+      this.isoDist = 145;
+    }
+    // Hide own head/visor in 1st person so camera never clips inside helmet mesh
+    const showBody = mode !== "1st";
+    this.headGroup.visible = showBody;
+    this.torsoGroup.visible = showBody;
+    this.leftLeg.visible = showBody;
+    this.rightLeg.visible = showBody;
+    this.syncCamera();
+  }
+
+  togglePov(): PovMode {
+    if (this.povMode === "1st") this.setPovMode("3rd");
+    else this.setPovMode("1st");
     return this.povMode;
   }
 
-  update(
-    dt: number,
+  toggleIso(): PovMode {
+    this.setPovMode(this.povMode === "iso" ? "1st" : "iso");
+    return this.povMode;
+  }
+
+  /** High-rate (60+ FPS) movement and camera integration for crisp Half-Life / aerial responsiveness. */
+  updateMovement(dt: number): void {
+    const safeDt = Math.min(Math.max(dt, 0), 0.1);
+    const f =
+      (this.keys.has("KeyW") || this.keys.has("ArrowUp") ? 1 : 0) -
+      (this.keys.has("KeyS") || this.keys.has("ArrowDown") ? 1 : 0);
+    const s =
+      (this.keys.has("KeyD") || this.keys.has("ArrowRight") ? 1 : 0) -
+      (this.keys.has("KeyA") || this.keys.has("ArrowLeft") ? 1 : 0);
+    const sprint = this.keys.has("ShiftLeft") || this.keys.has("ShiftRight");
+    const half = this.terrain.sizeM / 2 - 20;
+
+    if (this.povMode === "iso") {
+      const panDir = new THREE.Vector3(s, 0, -f);
+      if (panDir.lengthSq() > 0) {
+        panDir.normalize().applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.isoYaw);
+        const panSpeed = Math.max(24, this.isoDist * 0.85) * (sprint ? 2.2 : 1.0);
+        this.isoTarget.x = THREE.MathUtils.clamp(this.isoTarget.x + panDir.x * panSpeed * safeDt, -half, half);
+        this.isoTarget.z = THREE.MathUtils.clamp(this.isoTarget.z + panDir.z * panSpeed * safeDt, -half, half);
+        this.isoTarget.y = this.terrain.heightAt(this.isoTarget.x, this.isoTarget.z);
+      }
+      this.velX = 0;
+      this.velZ = 0;
+      this.speed = 0;
+      this.gradePct = 0;
+      this.relaxLimbs();
+      this.syncCamera();
+      return;
+    }
+
+    const maxSpeed = sprint ? 4.4 : 2.4;
+    const wishDir = new THREE.Vector3(s, 0, -f);
+    const hasInput = wishDir.lengthSq() > 0;
+    const refYaw = this.povMode === "1st" ? this.yaw : this.orbitYaw;
+    if (hasInput) {
+      wishDir.normalize().applyAxisAngle(THREE.Object3D.DEFAULT_UP, refYaw);
+      // In 3rd person, rotate character toward travel vector; in 1st person, keep FPS aim untouched.
+      if (this.povMode === "3rd") {
+        this.yaw = Math.atan2(-wishDir.x, -wishDir.z);
+      }
+    }
+
+    // Half-Life style crisp ground acceleration & high stopping friction
+    const wishVx = hasInput ? wishDir.x * maxSpeed : 0;
+    const wishVz = hasInput ? wishDir.z * maxSpeed : 0;
+    const rate = hasInput ? 18 : 15;
+    const blend = 1 - Math.exp(-rate * safeDt);
+    this.velX += (wishVx - this.velX) * blend;
+    this.velZ += (wishVz - this.velZ) * blend;
+    if (!hasInput && Math.hypot(this.velX, this.velZ) < 0.04) {
+      this.velX = 0;
+      this.velZ = 0;
+    }
+
+    const beforeY = this.terrain.heightAt(this.pos.x, this.pos.z);
+    const dx = this.velX * safeDt;
+    const dz = this.velZ * safeDt;
+    const step = Math.hypot(dx, dz);
+    this.pos.x = THREE.MathUtils.clamp(this.pos.x + dx, -half, half);
+    this.pos.z = THREE.MathUtils.clamp(this.pos.z + dz, -half, half);
+    const afterY = this.terrain.heightAt(this.pos.x, this.pos.z);
+    this.pos.y = afterY;
+
+    this.speed = Math.hypot(this.velX, this.velZ);
+    this.gradePct = step > 0.0005 ? THREE.MathUtils.clamp(((afterY - beforeY) / step) * 100, -45, 45) : 0;
+
+    this.breathPhase += safeDt * this.breathFreq;
+    this.breathBob = Math.sin(this.breathPhase) * 0.011;
+
+    if (this.speed > 0.08) {
+      this.gaitPhase += safeDt * this.speed * 4.4;
+      const swing = Math.sin(this.gaitPhase) * 0.55;
+      this.leftLeg.rotation.x = swing;
+      this.rightLeg.rotation.x = -swing;
+      this.leftArm.rotation.x = -swing * 0.65;
+      this.rightArm.rotation.x = swing * 0.65;
+    } else {
+      this.relaxLimbs();
+    }
+
+    this.torsoGroup.position.y = 0.96 + this.breathBob;
+    this.group.position.copy(this.pos);
+    this.group.rotation.y = this.yaw;
+    this.syncCamera();
+  }
+
+  private relaxLimbs(): void {
+    this.leftLeg.rotation.x *= 0.82;
+    this.rightLeg.rotation.x *= 0.82;
+    this.leftArm.rotation.x *= 0.82;
+    this.rightArm.rotation.x *= 0.82;
+  }
+
+  syncCamera(): void {
+    if (this.povMode === "1st") {
+      this.camera.position.set(this.pos.x, this.pos.y + this.eyeHeight + this.breathBob, this.pos.z);
+      this.camera.rotation.set(this.pitch, this.yaw, 0, "YXZ");
+    } else if (this.povMode === "3rd") {
+      const cx = this.pos.x + Math.sin(this.orbitYaw) * Math.cos(this.orbitPitch) * this.orbitDist;
+      const cy = this.pos.y + 1.5 + Math.sin(this.orbitPitch) * this.orbitDist;
+      const cz = this.pos.z + Math.cos(this.orbitYaw) * Math.cos(this.orbitPitch) * this.orbitDist;
+      const minGround = this.terrain.heightAt(cx, cz) + 1.2;
+      this.camera.position.set(cx, Math.max(cy, minGround), cz);
+      this.camera.lookAt(this.pos.x, this.pos.y + 1.4, this.pos.z);
+    } else {
+      const cx = this.isoTarget.x + Math.sin(this.isoYaw) * Math.cos(this.isoPitch) * this.isoDist;
+      const cy = this.isoTarget.y + Math.sin(this.isoPitch) * this.isoDist;
+      const cz = this.isoTarget.z + Math.cos(this.isoYaw) * Math.cos(this.isoPitch) * this.isoDist;
+      const minGround = this.terrain.heightAt(cx, cz) + 4.0;
+      this.camera.position.set(cx, Math.max(cy, minGround), cz);
+      this.camera.lookAt(this.isoTarget.x, this.isoTarget.y + 2.0, this.isoTarget.z);
+    }
+  }
+
+  computeBioMetrics(
     bodyKg: number,
     loadKg: number,
     leakActive: boolean,
   ): { metabolicW: number; svf: number; thermalClass: 0 | 1 | 2 } {
-    const f = (this.keys.has("KeyW") ? 1 : 0) - (this.keys.has("KeyS") ? 1 : 0);
-    const s = (this.keys.has("KeyD") ? 1 : 0) - (this.keys.has("KeyA") ? 1 : 0);
-    const sprint = this.keys.has("ShiftLeft") || this.keys.has("ShiftRight");
-    const maxSpeed = sprint ? 2.1 : 1.25;
-
-    const dir = new THREE.Vector3(s, 0, -f);
-    const moving = dir.lengthSq() > 0;
-    if (moving) {
-      const refYaw = this.povMode === "1st" ? this.yaw : this.orbitYaw;
-      dir.normalize().applyAxisAngle(THREE.Object3D.DEFAULT_UP, refYaw);
-      this.yaw = Math.atan2(-dir.x, -dir.z);
-    }
-
-    const beforeY = this.terrain.heightAt(this.pos.x, this.pos.z);
-    const step = moving ? maxSpeed * dt : 0;
-    const half = this.terrain.sizeM / 2 - 20;
-    this.pos.x = THREE.MathUtils.clamp(this.pos.x + dir.x * step, -half, half);
-    this.pos.z = THREE.MathUtils.clamp(this.pos.z + dir.z * step, -half, half);
-    const afterY = this.terrain.heightAt(this.pos.x, this.pos.z);
-    this.pos.y = afterY;
-
-    this.speed = moving ? maxSpeed : 0;
-    this.gradePct = step > 0 ? THREE.MathUtils.clamp(((afterY - beforeY) / step) * 100, -45, 45) : 0;
-
     const tc = this.terrain.thermalClassAt(this.pos.x, this.pos.z);
     const svf = this.terrain.svfAt(this.pos.x, this.pos.z);
     const metabolicW = metabolicRateW({
@@ -206,31 +394,8 @@ export class AstronautProc {
       gradePct: this.gradePct,
       terrain: terrainFromThermalClass(tc),
     });
+    this.breathFreq = 1.4 + (metabolicW - 150) * 0.004;
 
-    // Articulated limb gait + breathing oscillation
-    const breathFreq = 1.4 + (metabolicW - 150) * 0.004;
-    this.breathPhase += dt * breathFreq;
-    const breathBob = Math.sin(this.breathPhase) * 0.011;
-
-    if (moving) {
-      this.gaitPhase += dt * this.speed * 5.2;
-      const swing = Math.sin(this.gaitPhase) * 0.55;
-      this.leftLeg.rotation.x = swing;
-      this.rightLeg.rotation.x = -swing;
-      this.leftArm.rotation.x = -swing * 0.65;
-      this.rightArm.rotation.x = swing * 0.65;
-    } else {
-      this.leftLeg.rotation.x *= 0.85;
-      this.rightLeg.rotation.x *= 0.85;
-      this.leftArm.rotation.x *= 0.85;
-      this.rightArm.rotation.x *= 0.85;
-    }
-
-    this.torsoGroup.position.y = 0.96 + breathBob;
-    this.group.position.copy(this.pos);
-    this.group.rotation.y = this.yaw;
-
-    // PLSS status LED pulses red during suit leak
     const ledMat = this.plssLed.material as THREE.MeshBasicMaterial;
     if (leakActive) {
       ledMat.color.setHex(Math.sin(this.breathPhase * 5) > 0 ? 0xff2a55 : 0x440814);
@@ -238,19 +403,16 @@ export class AstronautProc {
       ledMat.color.setHex(0x35e0ff);
     }
 
-    // Update camera
-    if (this.povMode === "1st") {
-      this.camera.position.set(this.pos.x, afterY + this.eyeHeight + breathBob, this.pos.z);
-      this.camera.rotation.set(this.pitch, this.yaw, 0, "YXZ");
-    } else {
-      const cx = this.pos.x + Math.sin(this.orbitYaw) * Math.cos(this.orbitPitch) * this.orbitDist;
-      const cy = afterY + 1.5 + Math.sin(this.orbitPitch) * this.orbitDist;
-      const cz = this.pos.z + Math.cos(this.orbitYaw) * Math.cos(this.orbitPitch) * this.orbitDist;
-      const minGround = this.terrain.heightAt(cx, cz) + 1.2;
-      this.camera.position.set(cx, Math.max(cy, minGround), cz);
-      this.camera.lookAt(this.pos.x, afterY + 1.4, this.pos.z);
-    }
-
     return { metabolicW, svf, thermalClass: tc };
+  }
+
+  update(
+    dt: number,
+    bodyKg: number,
+    loadKg: number,
+    leakActive: boolean,
+  ): { metabolicW: number; svf: number; thermalClass: 0 | 1 | 2 } {
+    this.updateMovement(dt);
+    return this.computeBioMetrics(bodyKg, loadKg, leakActive);
   }
 }

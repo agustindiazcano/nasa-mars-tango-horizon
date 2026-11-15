@@ -2,12 +2,14 @@ import { z } from "zod";
 import { MAX_SLOPE, UNIT_ACTION_IDS } from "../unitCapabilities.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
+  aimDelivery,
   BASE_ORIGIN,
   decide,
   directTransmission,
   ENV_LIMITS,
   evaluateComponentHealth,
   evaluateCrewBiomed,
+  LAUNCHER_PRIMARY_COORD,
   leakTimeline,
   metabolicRateW,
   o2KgPerHour,
@@ -438,6 +440,94 @@ export const TOOLS: ToolDef[] = [
     },
   }),
   def({
+    name: "calculate_pod_launch",
+    server: "fleet",
+    effect: false,
+    schema: z.object({
+      target_x: z.number().optional().describe("Requested X coordinate in metres east (defaults to astronaut position)"),
+      target_z: z.number().optional().describe("Requested Z coordinate in metres south (defaults to astronaut position)"),
+      payload: z.enum(["o2", "battery", "patch_kit", "full_life_support"]).default("full_life_support"),
+    }),
+    description:
+      "Computes RK4 ballistic launch parameters for the 8.0 kg life-support pod (COPV O2, LiOH scrubber, 200 Wh battery, patch kit) from the base launcher, automatically shifting inside-keep-out (<15 m) requests to a safe ~22 m slope-safe landing point.",
+    run: (a, ctx) => {
+      const reqX = a.target_x ?? ctx.astronaut.x;
+      const reqZ = a.target_z ?? ctx.astronaut.z;
+      let safeX = reqX;
+      let safeZ = reqZ;
+      let shifted = false;
+      const reqDist = Math.hypot(reqX - ctx.astronaut.x, reqZ - ctx.astronaut.z);
+      if (reqDist < 15 || slopeAt(reqX, reqZ) > 18) {
+        shifted = reqDist < 15 || slopeAt(reqX, reqZ) > 18;
+        let bestX = ctx.astronaut.x + 22;
+        let bestZ = ctx.astronaut.z;
+        let bestSlope = slopeAt(bestX, bestZ);
+        for (const r of [22, 26, 32]) {
+          for (let k = 0; k < 16; k++) {
+            const ang = (2 * Math.PI * k) / 16;
+            const cx = reqX + r * Math.cos(ang);
+            const cz = reqZ + r * Math.sin(ang);
+            const dCrew = Math.hypot(cx - ctx.astronaut.x, cz - ctx.astronaut.z);
+            if (dCrew < 17) continue;
+            const sl = slopeAt(cx, cz);
+            if (sl < bestSlope) {
+              bestSlope = sl;
+              bestX = cx;
+              bestZ = cz;
+            }
+          }
+          if (bestSlope <= 12) break;
+        }
+        safeX = bestX;
+        safeZ = bestZ;
+      }
+
+      const lx = LAUNCHER_PRIMARY_COORD.x;
+      const lz = LAUNCHER_PRIMARY_COORD.z;
+      const ly = heightAt(lx, lz) + 6;
+      const targetElev = heightAt(safeX, safeZ);
+      const windDirRad = ((ctx.env.wind_dir_deg ?? 0) * Math.PI) / 180;
+      const aimed = aimDelivery(
+        [lx, lz, ly],
+        [safeX, safeZ, targetElev],
+        Math.PI / 4,
+        { massKg: 8.0, cdA: 0.025 },
+        { cdA: 18.0, deployBelowM: 140, inflateS: 1.0 },
+        {
+          rho0: surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k),
+          windRef: ctx.env.wind_ms,
+          windDirRad,
+          groundZ: heightAt,
+        },
+      );
+      const distCrew = Math.hypot(safeX - ctx.astronaut.x, safeZ - ctx.astronaut.z);
+      return {
+        launcher_x: lx,
+        launcher_z: lz,
+        requested_x: Number(reqX.toFixed(1)),
+        requested_z: Number(reqZ.toFixed(1)),
+        safe_target_x: Number(safeX.toFixed(1)),
+        safe_target_z: Number(safeZ.toFixed(1)),
+        distance_from_astronaut_m: Number(distCrew.toFixed(1)),
+        keepout_radius_m: 15,
+        shifted_for_keepout: shifted,
+        terrain_slope_deg: Number(slopeAt(safeX, safeZ).toFixed(1)),
+        payload: a.payload,
+        mass_kg: 8.0,
+        contents: "4.0 kg O2 COPV (1.0 kg usable O2), 1.2 kg LiOH scrubber, 1.0 kg 200 Wh battery, 0.35 kg patch kit, 1.45 kg chute",
+        reachable: Boolean(aimed),
+        elevation_deg: 45,
+        muzzle_speed_ms: aimed ? Number(Math.hypot(...aimed.v0).toFixed(1)) : null,
+        flight_time_s: aimed ? Number(aimed.delivery.flightTimeS.toFixed(1)) : null,
+        impact_x: aimed ? Number(aimed.delivery.impact[0].toFixed(1)) : Number(safeX.toFixed(1)),
+        impact_z: aimed ? Number(aimed.delivery.impact[1].toFixed(1)) : Number(safeZ.toFixed(1)),
+        impact_speed_ms: aimed ? Number(aimed.delivery.impactSpeed.toFixed(1)) : null,
+        max_height_m: aimed ? Number(aimed.delivery.maxHeightM.toFixed(0)) : null,
+        requires_confirmation: ctx.leak_diameter_m <= 0,
+      };
+    },
+  }),
+  def({
     name: "launch_pod",
     server: "fleet",
     effect: true,
@@ -554,13 +644,19 @@ export const TOOLS: ToolDef[] = [
     server: "fleet",
     effect: true,
     schema: z.object({
-      unit_id: z.literal("manip-1"),
+      unit_id: z.enum(["rover-3", "manip-1"]).default("rover-3"),
       skill: z.enum(["handover", "sample", "drill", "photograph"]),
       target_id: z.string().describe("ID of a target marker visible in the camera frame, or 'astronaut'"),
       item: z.enum(["hammer", "sample_tube", "patch_kit", "o2_bottle"]).optional(),
     }),
-    description: "Runs an arm skill on a visible target with manip-1. The rover drives into reach first if needed.",
-    run: (a, _c, caller) => ({ type: "arm_skill", args: a, proposedBy: caller }),
+    description: "Runs an arm skill on a visible target with rover-3 (legacy alias manip-1). The rover drives into reach first if needed.",
+    run: (a, ctx, caller) => {
+      const resolvedId =
+        ctx.fleet.find((u) => u.id === a.unit_id)?.id ??
+        ctx.fleet.find((u) => u.kind === "manipulator")?.id ??
+        a.unit_id;
+      return { type: "arm_skill", args: { ...a, unit_id: resolvedId }, proposedBy: caller };
+    },
   }),
 
   def({

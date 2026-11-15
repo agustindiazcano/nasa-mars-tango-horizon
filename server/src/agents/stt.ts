@@ -20,11 +20,11 @@ export interface SttResult {
 const DEFAULT_FLEET_IDS = [
   "rover-1",
   "rover-2",
+  "rover-3",
   "rescue-1",
   "drone-1",
   "drone-2",
   "glider-1",
-  "manip-1",
   "scout-1",
 ];
 
@@ -33,10 +33,10 @@ const DEFAULT_SITE_IDS = ["S1", "S2", "S3", "S4", "T1", "T2", "T3", "T4"];
 const BASE64_BODY_RE = /^[A-Za-z0-9+/]+={0,2}$/;
 
 const ASR_NOISE_RE =
-  /(?:\b(?:rover|rober|rubber|robber|dron|drone|rescue|rescate|glider|scout|manip|manipulador|manipulator)\s+(?:one|two|three|four|uno|dos|tres|cuatro|\d+)\b|\b(?:rober|rubber|robber|drones?\s+\d|gail\s+crater|gay\s+crater|jail\s+crater|girl\s+crater|firm\s*al|eslope|eslou|escruber|moxy|laider|bacons|valizas|o\s+dos|oh\s+two|astro\s+not|air\s+lock|high\s+ration)\b|\b(?:site|sitio|target|objetivo|s|t|ese|te)\s+(?:one|two|three|four|uno|dos|tres|cuatro|[1-4])\b|\b(\p{L}{2,})\s+\1\b)/iu;
+  /(?:\b(?:rover|rober|rubber|robber|dron|drone|rescue|rescate|glider|scout|manip|manipulador|manipulator|masip)\s+(?:one|two|three|four|uno|dos|tres|cuatro|\d+)\b|\b(?:rober|rubber|robber|drones?\s+\d|gail\s+crater|gay\s+crater|jail\s+crater|girl\s+crater|firm\s*al|eslope|eslou|escruber|moxy|laider|bacons|valizas|o\s+dos|oh\s+two|astro\s+not|air\s+lock|high\s+ration)\b|\b(?:site|sitio|target|objetivo|s|t|ese|te)\s+(?:one|two|three|four|uno|dos|tres|cuatro|[1-4])\b|\b(\p{L}{2,})\s+\1\b)/iu;
 
 const CLEAN_DOMAIN_RE =
-  /(?<![\p{L}])(?:suit|traje|oxygen|ox[ií]geno|o2|margin|margen|pressure|presi[oó]n|co2|pao2|battery|bater[ií]a|coolant|refrigerante|heart|pulso|fan|ventilador|layer|capa|thermal|t[eé]rmic[ao]?|slope|pendiente|hydration|hidrat\p{L}*|radiation|radiaci[oó]n|optical|[oó]ptic[ao]?|svf|panel|map|mapa|route|ruta|weather|clima|storm|tormenta|forecast|pron[oó]st\p{L}*|vitals|signos|biomed\p{L}*|fdir|moxie|scrubber|depurador|manipulador|manipulator|hands|rover-\d+|drone-\d+|rescue-\d+|glider-\d+|scout-\d+|manip-1|[st][1-4]|position|posici[oó]n|dispatch|despach\p{L}*|send|manda|env[ií]a|launch|lanza|pod|beacon|baliza|leak|fuga|emergency|emergencia|abort\p{L}*|stop|alto|status|estado|hola|hello|repeat|repit\p{L}*|what|how|where|c[oó]mo|d[oó]nde|qu[eé]|cu[aá]nto|check|revis\p{L}*|verif\p{L}*|vein|veta|sample|muestra|drill|taladr\p{L}*|take\s*off|despeg\p{L}*|land|aterriz\p{L}*|follow|sigu\p{L}*|return|vuelv\p{L}*|regres\p{L}*)(?![\p{L}])/iu;
+  /(?<![\p{L}])(?:suit|traje|oxygen|ox[ií]geno|o2|margin|margen|pressure|presi[oó]n|co2|pao2|battery|bater[ií]a|coolant|refrigerante|heart|pulso|fan|ventilador|layer|capa|thermal|t[eé]rmic[ao]?|slope|pendiente|hydration|hidrat\p{L}*|radiation|radiaci[oó]n|optical|[oó]ptic[ao]?|svf|panel|map|mapa|route|ruta|weather|clima|storm|tormenta|forecast|pron[oó]st\p{L}*|vitals|signos|biomed\p{L}*|fdir|moxie|scrubber|depurador|manipulador|manipulator|hands|rover-\d+|drone-\d+|rescue-\d+|glider-\d+|scout-\d+|manip-1|[st][1-4]|position|posici[oó]n|dispatch|despach\p{L}*|send|manda|env[ií]a|launch|lanz\p{L}*|pod|soporte|vital|c[aá]psula|capsula|c[aá]lcul\p{L}*|calcul\p{L}*|veh[ií]cul\p{L}*|flota|fleet|disponibl\p{L}*|cu[aá]ntos|c[aá]mara|camara|casco|helmet|viendo|confirmo|confirm\p{L}*|adelante|dale|cancel\p{L}*|beacon|baliza|leak|fuga|emergency|emergencia|abort\p{L}*|stop|alto|status|estado|hola|hello|repeat|repit\p{L}*|what|how|where|c[oó]mo|d[oó]nde|qu[eé]|cu[aá]nto|check|revis\p{L}*|verif\p{L}*|vein|veta|sample|muestra|drill|taladr\p{L}*|take\s*off|despeg\p{L}*|land|aterriz\p{L}*|follow|sigu\p{L}*|return|vuelv\p{L}*|regres\p{L}*)(?![\p{L}])/iu;
 
 /** Validates and strips optional data-URL headers from base64 audio payloads. */
 export function normalizeAudioBase64(raw: string): string | null {
@@ -118,7 +118,7 @@ export async function normalizeVoiceTranscript(
         `You repair noisy voice-recognition transcripts for a Mars EVA mission simulator.\n` +
         `Glossary: ${glossary}.\n` +
         `Output ONLY the cleaned mission command or question in language "${targetLang}". ` +
-        `Fix phonetic ASR slips and normalize spoken unit/site names (e.g. "rover 1"/"rover uno" -> "rover-1", "drone 1"/"dron uno" -> "drone-1", "site 2"/"sitio dos" -> "S2"). ` +
+        `Fix phonetic ASR slips and normalize spoken unit/site names (e.g. "rover 1"/"rover uno" -> "rover-1", "masip 1"/"manip 1"/"rover 3"/"rover tres" -> "rover-3", "drone 1"/"dron uno" -> "drone-1", "site 2"/"sitio dos" -> "S2"). ` +
         `Preserve the speaker's intent and language; do not answer the question, add quotes, or add commentary.`,
     },
     {
@@ -129,7 +129,7 @@ export async function normalizeVoiceTranscript(
 
   try {
     const msg = await chat("fast", messages, {
-      maxTokens: 256,
+      maxTokens: 700,
       reasoning_effort: "low",
       timeoutMs: config.sttTimeoutMs,
     });
@@ -185,7 +185,7 @@ export async function transcribeAudioDetailed(
         `You are a verbatim voice-to-text transcriber for a Mars EVA mission simulator.\n` +
         `Glossary: ${glossary}.\n` +
         `Output ONLY the clean verbatim normalized mission command or question in the speaker's language. ` +
-        `Fix mixed EN/ES phonetic slips and normalize spoken unit/site names (e.g. "rover 1"/"rover uno" -> "rover-1", "drone 1"/"dron uno" -> "drone-1", "site 2"/"sitio dos" -> "S2"). ` +
+        `Fix mixed EN/ES phonetic slips and normalize spoken unit/site names (e.g. "rover 1"/"rover uno" -> "rover-1", "masip 1"/"manip 1"/"rover 3" -> "rover-3", "drone 1"/"dron uno" -> "drone-1", "site 2"/"sitio dos" -> "S2"). ` +
         `No quotes, no markdown, no explanation, and do not answer the command.`,
     },
     {
@@ -206,7 +206,7 @@ export async function transcribeAudioDetailed(
   try {
     const msg = await chat("fast", messages, {
       providers: ["vertex", "gemini"],
-      maxTokens: 600,
+      maxTokens: 700,
       reasoning_effort: "low",
       timeoutMs: config.sttTimeoutMs,
     });
