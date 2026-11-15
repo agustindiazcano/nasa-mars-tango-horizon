@@ -1,3 +1,4 @@
+import type { ComponentHealthReport } from "@th/shared";
 import { MAX_SLOPE, ruleCheck } from "./guardian.js";
 import { callTool, missionScope, startMcpServers } from "./tools/mcp.js";
 import { TOOLS } from "./tools/registry.js";
@@ -535,10 +536,16 @@ export async function offlineReply(
 
   const mentionsMobileUnit = /\b(drone?|rover|scout|glider|rescue|rescate|rvr-\d)\b/i.test(q);
 
+  const isMaintenanceQuery =
+    /\b(ventilador|fan|ventilateur|lüfter|luefter|ventola|scrubber|depurador|coolant|refrigerante|moxie|soxe|slip|patinaje|stall|atasco|torque|sobrepar|overtorque|fdir|rul|diagn[oó]stic\w*|mantenim\w*|maintenance|wartung|manutenzione|falla|failure|tendencia|trend|component health|salud del componente|aislar|isolate)\b/i.test(
+      q,
+    );
+
   // 2. Manipulator arm skills (manip-1 / "Hands")
   if (
-    /(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?|martillo|hammer|perfor[\p{L}]*|drill|broca|handover|entreg[\p{L}]*|scoop|tubo|agarr[\p{L}]*|grab|recog[\p{L}]*|pick up)(?![\p{L}\d])/iu.test(q) ||
-    (/(?<![\p{L}\d])(fotograf[\p{L}]*|photograph[\p{L}]*)(?![\p{L}\d])/iu.test(q) && !mentionsMobileUnit)
+    !isMaintenanceQuery &&
+    (/(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?|martillo|hammer|perfor[\p{L}]*|drill|broca|handover|entreg[\p{L}]*|scoop|tubo|agarr[\p{L}]*|grab|recog[\p{L}]*|pick up)(?![\p{L}\d])/iu.test(q) ||
+      (/(?<![\p{L}\d])(fotograf[\p{L}]*|photograph[\p{L}]*)(?![\p{L}\d])/iu.test(q) && !mentionsMobileUnit))
   ) {
     const caller = "ROBOT.manip-1";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
@@ -787,33 +794,94 @@ export async function offlineReply(
     return { speech, actions, trace, route };
   }
 
-  // 6. Maintenance / Suit Fan Trend (MAINTENANCE)
-  if (/\b(ventilador|fan|ventilateur|lüfter|luefter|ventola|mantenim\w*|maintenance|wartung|manutenzione|falla|failure|tendencia|trend)\b/i.test(q)) {
+  // 6. Maintenance / FDIR Component Health & RUL (MAINTENANCE)
+  if (isMaintenanceQuery) {
     const caller = "MAINTENANCE";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
+    const explicitUnit = q.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i)?.[1]?.toLowerCase();
+    const scope = explicitUnit
+      ? "fleet"
+      : /\b(moxie|soxe|solar|isru|hab)\b/i.test(q)
+        ? "power_isru"
+        : "all";
+    const health = (await execRead(
+      "evaluate_component_health",
+      explicitUnit ? { scope: "fleet", unit_id: explicitUnit } : { scope },
+      ctx,
+      caller,
+      trace,
+    )) as ComponentHealthReport;
+
+    if (health?.faults?.length > 0) {
+      const top = health.faults[0];
+      const docs = await execRead(
+        "search_docs",
+        {
+          query: `${top.fault_code} ${top.subsystem} ${top.signature} recovery SOP`,
+          k: 1,
+          fault_codes: [top.fault_code],
+        },
+        ctx,
+        caller,
+        trace,
+      );
+      const topDoc = Array.isArray(docs) && docs[0] ? `${docs[0].doc} p.${docs[0].page}` : "NASA-STD-3001";
+      const rulStr = top.rul_s === null ? "n/a" : `${top.rul_s} s`;
+      const alertLevel = top.severity === "critical" ? "crit" : "warn";
+      const alertMsg = `${top.fault_code} (${top.severity}) ${top.target_id}: slope ${top.slope_per_s}/s, RUL ${rulStr} (${topDoc})`;
+      proposeAction("show_alert", { level: alertLevel, text: alertMsg.slice(0, 140), source: topDoc }, ctx, caller, actions, trace);
+      proposeAction(
+        "isolate_component",
+        {
+          target_type: top.target_type,
+          target_id: top.target_id,
+          subsystem: top.subsystem,
+          fault_code: top.fault_code,
+          action: top.recommended_action,
+        },
+        ctx,
+        caller,
+        actions,
+        trace,
+      );
+
+      return {
+        speech: pick(lang, {
+          es: `Falla ${top.fault_code} (${top.severity}) en ${top.target_id}: pendiente ${top.slope_per_s}/s, RUL ${rulStr}; acción ${top.recommended_action} según ${topDoc}.`,
+          en: `Fault ${top.fault_code} (${top.severity}) on ${top.target_id}: slope ${top.slope_per_s}/s, RUL ${rulStr}; action ${top.recommended_action} per ${topDoc}.`,
+          fr: `Panne ${top.fault_code} (${top.severity}) sur ${top.target_id} : pente ${top.slope_per_s}/s, RUL ${rulStr} ; action ${top.recommended_action} selon ${topDoc}.`,
+          de: `Fehler ${top.fault_code} (${top.severity}) an ${top.target_id}: Steigung ${top.slope_per_s}/s, RUL ${rulStr}; Maßnahme ${top.recommended_action} gemäß ${topDoc}.`,
+          it: `Guasto ${top.fault_code} (${top.severity}) su ${top.target_id}: pendenza ${top.slope_per_s}/s, RUL ${rulStr}; azione ${top.recommended_action} secondo ${topDoc}.`,
+        }),
+        actions,
+        trace,
+        route,
+      };
+    }
+
     const suit = await execRead("get_suit_telemetry", {}, ctx, caller, trace);
     const docs = await execRead("search_docs", { query: "suit fan failure CO2 NASA-STD-3001", k: 1 }, ctx, caller, trace);
     const topDoc = Array.isArray(docs) && docs[0] ? `${docs[0].doc} p.${docs[0].page}` : "NASA-STD-3001";
-    const fanRpm = suit?.fan_pri_rpm ?? suit?.fan_rpm ?? 29500;
+    const fanRpm = suit?.fan_pri_rpm ?? suit?.fan_rpm ?? 30000;
     const alertMsg = pick(lang, {
-      es: `Revisar ventilador (${fanRpm} rpm); verificar depuración CO2 (${topDoc})`,
-      en: `Check suit fan (${fanRpm} rpm); monitor CO2 scrub margin (${topDoc})`,
-      fr: `Vérifier ventilateur (${fanRpm} rpm) ; surveiller CO2 (${topDoc})`,
-      de: `Lüfter prüfen (${fanRpm} rpm); CO2-Filter überwachen (${topDoc})`,
-      it: `Controlla ventola (${fanRpm} rpm); monitora CO2 (${topDoc})`,
+      es: `Componentes nominales; ventilador ${fanRpm} rpm (${topDoc})`,
+      en: `Components nominal; suit fan ${fanRpm} rpm (${topDoc})`,
+      fr: `Composants nominaux ; ventilateur ${fanRpm} rpm (${topDoc})`,
+      de: `Komponenten nominal; Lüfter ${fanRpm} rpm (${topDoc})`,
+      it: `Componenti nominali; ventola ${fanRpm} rpm (${topDoc})`,
     });
-    proposeAction("show_alert", { level: "warn", text: alertMsg.slice(0, 140), source: topDoc }, ctx, caller, actions, trace);
+    proposeAction("show_alert", { level: "info", text: alertMsg.slice(0, 140), source: topDoc }, ctx, caller, actions, trace);
 
     return {
       speech: pick(lang, {
-        es: `Ventilador en ${fanRpm} rpm. Monitorear flujo y CO2 según ${topDoc}.`,
-        en: `Suit fan at ${fanRpm} rpm. Monitor airflow and CO2 per ${topDoc}.`,
-        fr: `Ventilateur à ${fanRpm} rpm. Surveiller le débit et le CO2 selon ${topDoc}.`,
-        de: `Anzuglüfter bei ${fanRpm} rpm. Luftstrom und CO2 gemäß ${topDoc} überwachen.`,
-        it: `Ventola tuta a ${fanRpm} rpm. Monitorare flusso e CO2 secondo ${topDoc}.`,
+        es: `Sin fallas FDIR activas. Ventilador en ${fanRpm} rpm; límites nominales según ${topDoc}.`,
+        en: `No active FDIR faults. Suit fan at ${fanRpm} rpm; nominal limits per ${topDoc}.`,
+        fr: `Aucune panne FDIR active. Ventilateur à ${fanRpm} rpm ; limites nominales selon ${topDoc}.`,
+        de: `Keine aktiven FDIR-Fehler. Anzuglüfter bei ${fanRpm} rpm; Sollwerte gemäß ${topDoc}.`,
+        it: `Nessun guasto FDIR attivo. Ventola tuta a ${fanRpm} rpm; limiti nominali secondo ${topDoc}.`,
       }),
       actions,
       trace,

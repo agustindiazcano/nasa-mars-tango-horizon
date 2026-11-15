@@ -102,9 +102,10 @@ Use evaluate_eva_weather to state go/no-go verdicts and concrete maneuvers with 
   MAINTENANCE: {
     name: "MAINTENANCE",
     tier: "medium",
-    tools: ["get_suit_telemetry", "list_units", "search_docs", "show_alert"],
-    system: `You predict equipment failures from suit and fleet telemetry trends. Use search_docs for failure modes and NASA-STD-3001 limits.
-State the trend, likely cause, cited source, and recommended action. 40 words or fewer.`,
+    tools: ["get_suit_telemetry", "list_units", "evaluate_component_health", "isolate_component", "search_docs", "show_alert"],
+    system: `You run deterministic FDIR and predictive maintenance across suit, fleet, habitat power, and MOXIE ISRU.
+Call evaluate_component_health first, then search_docs with matching fault_codes for cited recovery SOPs (doc and page), and propose isolate_component / show_alert when faulted.
+State slope, RUL, fault code, cited source, and action in 40 words or fewer.`,
   },
 };
 
@@ -142,6 +143,8 @@ export function getAgentSpec(name: string, ctx?: MissionContext): AgentSpec | un
     "show_route",
     "dispatch",
     "unit_action",
+    "evaluate_component_health",
+    "isolate_component",
     "show_alert",
   ];
   if (isManip) tools.push("arm_skill", "detect_veins");
@@ -175,7 +178,7 @@ setDelegateHandler(async (agentName, objective, ctx, userRequest, depth) => {
 });
 
 const ESCALATE_FAST_RE =
-  /(?<![\p{L}])(rover|rvr|rescue|rescate|drone|dron|glider|scout|manip(?:ulador|ulator)?|hands|despeg[aáe]?r?|take\s*off|aterriz[aáe]?r?|segu[ií](?:me)?|follow|volv[eé]r?|regres[aáe]?r?|return|relev[aáe]?r?|survey|vigil[aáe]?r?|hover|agarr[aáe]?r?|grab|drill|perfor[aáe]?r?|martill|hammer|entreg[aáe]?r?|handover|fotograf|photograph|env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|repetidor|relay|ruta|route|planif|navigate|naveg|lidar|ubicaci[oó]n|coordenada|clima|weather|tormenta|storm|pron[oó]st|forecast|radiaci[oó]n|radiation|dosis|dose|eva|puedo salir|can i go out|m[eé]t[eé]o|wetter|hidrat|hydrat|muestra|sample|veta|vein|prospector|sitio|site|ciencia|science|ventilador|fan|mantenim|maintenance|falla|failure|tendencia|trend|baliza|beacon|bengala|flare|fuga|leak|emergencia|emergency|mayday|socorro|cartel|sign|airlock|ignore|biomed[\p{L}]*|hypercapn[\p{L}]*|hipercapn[\p{L}]*|hypox[\p{L}]*|hipox[\p{L}]*|spo2|card[ií]ac[\p{L}]*|heart rate|frecuencia card[\p{L}]*|ritmo card[\p{L}]*|heat strain|estr[eé]s t[eé]rmic[\p{L}]*|estres termic[\p{L}]*|core temp[\p{L}]*|temperatura corporal|early warning|ews|triaje|triage|vitals|signos vitales|constantes vitales)(?![\p{L}])/iu;
+  /(?<![\p{L}])(rover|rvr|rescue|rescate|drone|dron|glider|scout|manip(?:ulador|ulator)?|hands|despeg[aáe]?r?|take\s*off|aterriz[aáe]?r?|segu[ií](?:me)?|follow|volv[eé]r?|regres[aáe]?r?|return|relev[aáe]?r?|survey|vigil[aáe]?r?|hover|agarr[aáe]?r?|grab|drill|perfor[aáe]?r?|martill|hammer|entreg[aáe]?r?|handover|fotograf|photograph|env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|repetidor|relay|ruta|route|planif|navigate|naveg|lidar|ubicaci[oó]n|coordenada|clima|weather|tormenta|storm|pron[oó]st|forecast|radiaci[oó]n|radiation|dosis|dose|eva|puedo salir|can i go out|m[eé]t[eé]o|wetter|hidrat|hydrat|muestra|sample|veta|vein|prospector|sitio|site|ciencia|science|ventilador|fan|scrubber|depurador|coolant|refrigerante|moxie|soxe|compresor|compressor|slip|patinaje|stall|atasco|torque|rul|fdir|aislar|isolate|diagn[oó]stic|mantenim|maintenance|falla|failure|tendencia|trend|baliza|beacon|bengala|flare|fuga|leak|emergencia|emergency|mayday|socorro|cartel|sign|airlock|ignore|biomed[\p{L}]*|hypercapn[\p{L}]*|hipercapn[\p{L}]*|hypox[\p{L}]*|hipox[\p{L}]*|spo2|card[ií]ac[\p{L}]*|heart rate|frecuencia card[\p{L}]*|ritmo card[\p{L}]*|heat strain|estr[eé]s t[eé]rmic[\p{L}]*|estres termic[\p{L}]*|core temp[\p{L}]*|temperatura corporal|early warning|ews|triaje|triage|vitals|signos vitales|constantes vitales)(?![\p{L}])/iu;
 
 /** Deterministic pre-router so obvious BASE orders skip the SUIT.VOICE-EXEC LLM round-trip. */
 export function shouldEscalateFast(text: string, ctx: MissionContext): boolean {

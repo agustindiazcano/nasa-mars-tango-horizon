@@ -1,3 +1,4 @@
+import { evaluateComponentHealth } from "@th/shared";
 import { z } from "zod";
 import { chat, llmAvailable } from "../llm/provider.js";
 import { slopeAt } from "./tools/terrainData.js";
@@ -42,6 +43,21 @@ function aircraftDeny(unit: { id: string; kind: string; battery: number }, what:
   if (unit.battery < AIRCRAFT_MIN_BATTERY) return `Battery of ${unit.id} is too low for ${what}`;
   if (ctx.env.tau >= AIRCRAFT_GROUNDING_TAU) {
     return `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${AIRCRAFT_GROUNDING_TAU} aircraft grounding limit`;
+  }
+  return null;
+}
+
+/** Deterministic FDIR block for isolated units or critical mobility/thermal faults. */
+function fleetMobilityFaultDeny(unitId: string, ctx: MissionContext): string | null {
+  if (ctx.fleet_health?.[unitId]?.isolated === true) {
+    return `Unit ${unitId} is isolated due to an active hardware fault`;
+  }
+  const report = evaluateComponentHealth(ctx, "fleet", unitId);
+  const crit = report.faults.find(
+    (f) => f.severity === "critical" && (f.fault_code === "RVR-MOB-01" || f.fault_code === "RVR-THM-01"),
+  );
+  if (crit) {
+    return `Unit ${unitId} has critical ${crit.fault_code} fault; dispatch blocked`;
   }
   return null;
 }
@@ -101,6 +117,8 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       return deny("A robot may only command itself");
     }
     if (unit.battery < 0.1) return deny(`Battery of ${unit_id} is below 10%`);
+    const mobFault = fleetMobilityFaultDeny(unit_id, ctx);
+    if (mobFault) return deny(mobFault);
     const aircraftReason = aircraftDeny(unit, "dispatch", ctx);
     if (aircraftReason) return deny(aircraftReason);
     const max = MAX_SLOPE[unit.kind];
@@ -130,6 +148,8 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     }
     if (unit.battery < 0.1) return deny(`Battery of ${unit_id} is too low for ${action}`);
     if (action !== "land" && action !== "hold_position") {
+      const mobFault = fleetMobilityFaultDeny(unit_id, ctx);
+      if (mobFault) return deny(mobFault);
       const aircraftReason = aircraftDeny(unit, action, ctx);
       if (aircraftReason) return deny(aircraftReason);
     }
@@ -221,6 +241,75 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     }
     if (skill === "handover" && ctx.astronaut.speed > 0.1) {
       return deny("Astronaut must be standing still for a handover");
+    }
+    if (skill === "drill" || skill === "sample" || skill === "handover") {
+      if (ctx.fleet_health?.[unit.id]?.isolated === true) {
+        return deny(`Manipulator ${unit.id} is isolated; ${skill} blocked`);
+      }
+      const armReport = evaluateComponentHealth(ctx, "fleet", unit.id);
+      const armCrit = armReport.faults.find(
+        (f) => f.severity === "critical" && (f.fault_code === "ARM-TORQ-01" || f.fault_code === "RVR-THM-01"),
+      );
+      if (armCrit) {
+        return deny(`Manipulator ${unit.id} has critical ${armCrit.fault_code} fault; ${skill} blocked`);
+      }
+    }
+  }
+
+  if (a.type === "isolate_component") {
+    const { target_type, target_id, fault_code, action } = a.args as {
+      target_type: "suit" | "fleet" | "hab_power" | "isru";
+      target_id: string;
+      subsystem: string;
+      fault_code: string;
+      action: "switch_redundant" | "derate" | "safe_halt" | "quarantine";
+    };
+    if (a.proposedBy.startsWith("ROBOT.")) {
+      const ownId = a.proposedBy.slice("ROBOT.".length);
+      if (target_type !== "fleet" || target_id !== ownId) {
+        return deny(`ROBOT.${ownId} may only isolate itself`);
+      }
+    }
+    const fleetUnit = target_type === "fleet" ? ctx.fleet.find((u) => u.id === target_id) : undefined;
+    if (target_type === "fleet" && !fleetUnit) {
+      return deny(`Unit ${target_id} does not exist`);
+    }
+
+    const report = evaluateComponentHealth(ctx, "all");
+    const corroborated = report.faults.find(
+      (f) =>
+        f.fault_code === fault_code &&
+        f.target_type === target_type &&
+        (target_type !== "fleet" || f.target_id === target_id),
+    );
+    if (!corroborated || corroborated.severity === "nominal") {
+      return deny(`Fault ${fault_code} on ${target_id} is not corroborated by telemetry`);
+    }
+
+    const isActiveRescue =
+      target_type === "fleet" &&
+      fleetUnit?.kind === "rescue" &&
+      (fleetUnit.busy || ctx.leak_diameter_m > 0 || ctx.emergency_response_active === true);
+
+    if (
+      (action === "quarantine" || action === "safe_halt") &&
+      (corroborated.severity === "degraded" || isActiveRescue)
+    ) {
+      return {
+        decision: "ask_human",
+        reason: isActiveRescue
+          ? `Active rescue unit ${target_id} (${fault_code}); human confirmation required for ${action}`
+          : `Asset ${target_id} is degraded (${fault_code}); human confirmation required for ${action}`,
+        by: "rules",
+      };
+    }
+
+    if (action === "switch_redundant" && corroborated.severity === "critical") {
+      return {
+        decision: "allow",
+        reason: `Verified switch_redundant for critical ${fault_code} on ${target_id}`,
+        by: "rules",
+      };
     }
   }
 
