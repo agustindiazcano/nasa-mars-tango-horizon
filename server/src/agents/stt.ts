@@ -88,10 +88,6 @@ function cleanTranscriptOutput(raw: string | null | undefined): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
-function isOfflineMode(): boolean {
-  return config.offline || process.env.AGENTS_OFFLINE === "1";
-}
-
 /** Fast heuristic deciding whether text needs LLM ASR normalization or already cleanly matches canonical mission terms. */
 export function needsTranscriptNormalization(rawText: string): boolean {
   const trimmed = rawText.trim();
@@ -110,7 +106,7 @@ export async function normalizeVoiceTranscript(
 ): Promise<string> {
   const trimmed = rawText.trim();
   if (!trimmed) return "";
-  if (isOfflineMode() || !llmAvailable()) return trimmed;
+  if (!llmAvailable()) return trimmed;
   if (!opts?.force && !needsTranscriptNormalization(trimmed)) return trimmed;
 
   const targetLang = normalizeLang(typeof lang === "string" ? lang : ctx?.lang);
@@ -169,7 +165,7 @@ export async function transcribeAudioDetailed(
     return { transcript: "", source: "none", fallback: true };
   }
 
-  if (isOfflineMode() || !llmAvailable()) {
+  if (!llmAvailable()) {
     return hint
       ? { transcript: hint, source: "raw_hint", fallback: true }
       : { transcript: "", source: "none", fallback: true };
