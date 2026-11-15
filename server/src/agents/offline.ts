@@ -202,7 +202,7 @@ function parseSpokenCoords(q: string): { x: number; z: number } | null {
   return null;
 }
 
-function matchExplicitSiteTarget(q: string): { x: number; z: number; label: string } | null {
+function matchExplicitSiteTarget(q: string, includeBase = true): { x: number; z: number; label: string } | null {
   const numMatch = q.match(
     /(?<![\p{L}\d])(?:sitio|site|estaci[oó]n|station|standort|sito|s)\s*[-#]?\s*(1|2|3|4|uno|un|one|eins|dos|two|deux|zwei|due|tres|three|trois|drei|tre|cuatro|four|quatre|vier|quattro)(?![\p{L}\d])/iu,
   );
@@ -221,7 +221,7 @@ function matchExplicitSiteTarget(q: string): { x: number; z: number; label: stri
   if (coords) {
     return { x: coords.x, z: coords.z, label: `(${coords.x}, ${coords.z})` };
   }
-  if (/\b(base|hab|habitat|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q)) {
+  if (includeBase && /\b(base|hab|habitat|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q)) {
     return { x: BASE_ORIGIN.x, z: BASE_ORIGIN.z, label: "Base" };
   }
   return null;
@@ -233,10 +233,12 @@ function parseSiteTarget(
   history: ConversationTurn[] = [],
 ): { x: number; z: number; label: string; isAstronaut?: boolean } {
   const lang = ctx?.lang ?? "en";
-  const explicit = matchExplicitSiteTarget(q);
+  // Check explicit S1-S4 or numeric coords first, but check astronaut position before "base"
+  // so vocative prefixes like "Base, manda al rover 2 a mi posicion" target the astronaut.
+  const explicitSiteOrCoords = matchExplicitSiteTarget(q, false);
   if (
     ctx &&
-    !explicit &&
+    !explicitSiteOrCoords &&
     (/(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?=$|\s|[.,;!?])/i.test(
       q,
     ) ||
@@ -257,6 +259,7 @@ function parseSiteTarget(
       }),
     };
   }
+  const explicit = explicitSiteOrCoords ?? matchExplicitSiteTarget(q, true);
   if (explicit) return explicit;
   if (/\b(there|all[ií]|ah[ií]|all[aá]|l[aà]|dort|l[iì])\b/i.test(q)) {
     for (let i = history.length - 1; i >= 0; i--) {
