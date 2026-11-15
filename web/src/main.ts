@@ -22,6 +22,7 @@ import { BaseProc } from "./world/baseProc";
 import { CINEMATIC_CAM_IDS, CinematicCams, type CinematicCamId } from "./world/cinematicCams";
 import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
+import { PitProc } from "./world/pitProc";
 import { PodBallistics } from "./world/podBallistics";
 import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
@@ -117,6 +118,7 @@ scene.add(astronaut.group);
 
 const baseProc = new BaseProc(scene, terrain);
 const launchSite = new LaunchSiteProc(scene, terrain);
+new PitProc(scene, terrain);
 const skyCrane = new SkyCraneProc(scene, terrain);
 createSkyCraneToggle(() => {
   skyCrane.setVisible(!skyCrane.visible);

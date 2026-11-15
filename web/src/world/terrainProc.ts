@@ -132,6 +132,8 @@ export class TerrainProc {
   private detailNormalMap: THREE.DataTexture | null = null;
   private regolithDetailMap: THREE.DataTexture;
   private uIsOptical = { value: 1.0 };
+  /** Circular hole cut in the terrain surface (x, z, radius m); radius 0 disables it. Used by the rescue pit. */
+  private uPitHole = { value: new THREE.Vector3(0, 0, 0) };
   private material: THREE.MeshStandardMaterial;
   private routeLine: THREE.Line | null = null;
   private beaconsGroup = new THREE.Group();
@@ -476,6 +478,7 @@ export class TerrainProc {
     this.material.onBeforeCompile = (shader) => {
       shader.uniforms.uDetailMap = { value: this.regolithDetailMap };
       shader.uniforms.uIsOptical = this.uIsOptical;
+      shader.uniforms.uPitHole = this.uPitHole;
 
       shader.vertexShader = shader.vertexShader
         .replace(
@@ -502,6 +505,7 @@ export class TerrainProc {
           #include <common>
           uniform sampler2D uDetailMap;
           uniform float uIsOptical;
+          uniform vec3 uPitHole;
           varying vec3 vMarsWorldPos;
           varying vec3 vMarsWorldNorm;
           // Rotations between detail scales hide the tile grid
@@ -513,6 +517,7 @@ export class TerrainProc {
         .replace(
           "#include <map_fragment>",
           /* glsl */ `
+          if (uPitHole.z > 0.0 && distance(vMarsWorldPos.xz, uPitHole.xy) < uPitHole.z) discard;
           vec2 marsDetailN = vec2(0.0);
           #ifdef USE_MAP
             vec4 sampledDiffuseColor = texture2D(map, vMapUv);
@@ -577,6 +582,11 @@ export class TerrainProc {
           `,
         );
     };
+  }
+
+  /** Cuts a circular opening in the terrain surface so a designed pit mesh is visible below it. */
+  setPitHole(x: number, z: number, radiusM: number): void {
+    this.uPitHole.value.set(x, z, radiusM);
   }
 
   getLayerTexture(layer: LayerId): THREE.DataTexture {
