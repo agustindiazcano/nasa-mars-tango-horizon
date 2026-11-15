@@ -1,3 +1,4 @@
+import { READY_TERRAIN } from "@th/shared";
 import "./hud/hud.css";
 import { installHistoricalArchive } from "./hud/historicalArchive";
 import { inject } from "@vercel/analytics";
@@ -48,21 +49,26 @@ loading.style.cssText = "position:fixed;inset:0;z-index:10000;background:#07111e
 document.body.append(loading);
 terrain.mesh.visible = false;
 terrain.markersGroup.visible = false;
+const cancel = () => terrain.loader.cancel();
+window.addEventListener("pagehide", cancel, { once: true });
 let loaded = false;
 while (!loaded) {
-  for (let attempt = 1; attempt <= 3 && !loaded; attempt++) {
-    loading.textContent = `Loading HiRISE terrain (attempt ${attempt}/3). Mission controls wait for validated terrain.`;
-    loaded = await terrain.tryLoadRealDem("/data/terrain");
-    if (!loaded && attempt < 3) await new Promise(resolve => setTimeout(resolve, attempt * 1000));
-  }
+  const cancelButton = document.createElement("button");
+  cancelButton.textContent = "Cancel terrain download";
+  cancelButton.onclick = cancel;
+  loaded = await terrain.tryLoadRealDem("/data/terrain", message => {
+    loading.textContent = message;
+    loading.append(cancelButton);
+  });
   if (!loaded) {
-    loading.textContent = `Terrain unavailable: ${terrain.loadError}.`;
+    loading.textContent = terrain.loader.state === "cancelled" ? "Terrain download cancelled." : `Terrain unavailable: ${terrain.loadError}.`;
     const retry = document.createElement("button");
     retry.textContent = "Retry terrain download";
     loading.append(retry);
-    await new Promise<void>(resolve => retry.addEventListener("click", () => resolve(), { once: true }));
+    await new Promise<void>(resolve => retry.addEventListener("click", () => { retry.disabled = true; resolve(); }, { once: true }));
   }
 }
+store.terrain = { ...READY_TERRAIN };
 loading.textContent = "Loading HiRISE orthoimage";
 try { await terrain.loadOptical(); }
 catch { store.pushAlert("warn", "Orthoimage unavailable; optical colors are a design approximation"); }

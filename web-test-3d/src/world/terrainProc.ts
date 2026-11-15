@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { validateTerrain } from "./terrainValidation";
+import { TerrainLoader } from "./terrainLoader";
 import { mulberry32, terrainFromThermalClass, type RouteGrid } from "../core/physics";
 import type { LayerId } from "../core/types";
 
@@ -93,20 +93,16 @@ export class TerrainProc {
     scene.add(this.markersGroup);
   }
 
-  loadError = "";
+  readonly loader = new TerrainLoader();
+  private committed = false;
+  get loadError(): string { return this.loader.error; }
 
-  /** Each asset has a 60 s deadline. Startup retries three times, then requires manual retry. */
-  async tryLoadRealDem(base = "/data/terrain"): Promise<boolean> {
-    try {
-      const metaRes = await fetch(`${base}/meta.json`, { signal: AbortSignal.timeout(60000) });
-      if (!metaRes.ok) throw new Error(`Metadata HTTP ${metaRes.status}`);
-      const meta = (await metaRes.json()) as TerrainMeta;
-      validateTerrain(meta, this.sizeM);
-      const u16Res = await fetch(`${base}/height_2048.u16`, { signal: AbortSignal.timeout(60000) });
-      if (!u16Res.ok) throw new Error(`Height HTTP ${u16Res.status}`);
-      const raw = new Uint16Array(await u16Res.arrayBuffer());
+  async tryLoadRealDem(base = "/data/terrain", report?: (message: string) => void): Promise<boolean> {
+      const asset = await this.loader.load(base, report);
+      if (!asset) return false;
+      if (this.committed) return true;
+      const { meta, raw } = asset;
       const srcN = meta.height_px;
-      if (raw.length !== srcN * srcN) throw new Error("Incorrect DEM byte length");
       const mid = (meta.z_min_m + meta.z_max_m) / 2;
       const span = meta.z_max_m - meta.z_min_m;
       const n = this.gridN;
@@ -124,11 +120,8 @@ export class TerrainProc {
       this.refreshTextures();
       this.markersGroup.clear();
       this.buildMarkers();
+      this.committed = true;
       return true;
-    } catch (error) {
-      this.loadError = error instanceof Error ? error.message : String(error);
-      return false;
-    }
   }
 
   async loadOptical(): Promise<void> {
