@@ -178,4 +178,89 @@ describe("VoiceController.offlineFallback fleet navigation", () => {
     const roverTakeoff = vc.offlineFallback("rover 1 takeoff");
     expect(roverTakeoff.actions[0].verdict?.decision).toBe("deny");
   });
+
+  it("supports all fleet units, accented Spanish verbs, and sanitized numeric coordinates", () => {
+    const store = makeStoreWithFleet();
+    const vc = new VoiceController(store);
+
+    const cases: Array<{ text: string; lang: "en" | "es"; unitId: string; type: string; action?: string }> = [
+      { text: "rover 2 come here", lang: "en", unitId: "rover-2", type: "dispatch" },
+      { text: "drone 2 takeoff", lang: "en", unitId: "drone-2", type: "unit_action", action: "takeoff" },
+      { text: "drone 2 land", lang: "en", unitId: "drone-2", type: "unit_action", action: "land" },
+      { text: "glider 1 takeoff", lang: "en", unitId: "glider-1", type: "unit_action", action: "takeoff" },
+      { text: "scout 1 follow", lang: "en", unitId: "scout-1", type: "unit_action", action: "follow_astronaut" },
+      { text: "rover 1 ven", lang: "es", unitId: "rover-1", type: "dispatch" },
+      { text: "drone 1 vení", lang: "es", unitId: "drone-1", type: "dispatch" },
+      { text: "rescue 1 acércate", lang: "es", unitId: "rescue-1", type: "dispatch" },
+      { text: "rescue 1 vuelve", lang: "es", unitId: "rescue-1", type: "unit_action", action: "return_to_base" },
+      { text: "rover-1 120, -40", lang: "en", unitId: "rover-1", type: "dispatch" },
+    ];
+
+    for (const item of cases) {
+      setLang(item.lang);
+      const res = vc.offlineFallback(item.text);
+      expect(res.actions, item.text).toHaveLength(1);
+      expect(res.actions[0].type, item.text).toBe(item.type);
+      expect(res.actions[0].args.unit_id, item.text).toBe(item.unitId);
+      expect(res.actions[0].verdict?.decision, item.text).toBe("allow");
+      if (item.action) {
+        expect(res.actions[0].args.action, item.text).toBe(item.action);
+      }
+      if (item.text === "rover-1 120, -40") {
+        expect(res.actions[0].args.x).toBe(120);
+        expect(res.actions[0].args.z).toBe(-40);
+      }
+    }
+  });
+
+  it("resolves slope-safe stand-off around steep astronaut positions and denies explicit steep hazards", () => {
+    const store = makeStoreWithFleet();
+    store.astronaut.x = 100;
+    store.astronaut.z = 100;
+    const slopeAt = (x: number, z: number) => {
+      if (Math.hypot(x - 110, z - 100) <= 3) return 8;
+      if (Math.hypot(x - 100, z - 100) <= 20) return 32;
+      if (Math.hypot(x - 500, z - 500) <= 10) return 34;
+      return 6;
+    };
+    const vc = new VoiceController(store, { slopeAt });
+
+    const roverApproach = vc.offlineFallback("rover one, go to my position");
+    expect(roverApproach.actions[0].type).toBe("dispatch");
+    expect(roverApproach.actions[0].verdict?.decision).toBe("allow");
+    expect(slopeAt(Number(roverApproach.actions[0].args.x), Number(roverApproach.actions[0].args.z))).toBeLessThanOrEqual(20);
+
+    const droneApproach = vc.offlineFallback("drone one go to my position");
+    expect(droneApproach.actions[0].verdict?.decision).toBe("allow");
+    expect(droneApproach.actions[0].args.x).toBe(100);
+    expect(droneApproach.actions[0].args.z).toBe(100);
+
+    const explicitHazard = vc.offlineFallback("rover 1 go to 500, 500");
+    expect(explicitHazard.actions[0].verdict?.decision).toBe("deny");
+  });
+
+  it("preserves existing thermal, route/s2, fan/trend, emergency, and hands/manip branches", () => {
+    const store = makeStoreWithFleet();
+    const vc = new VoiceController(store);
+
+    const thermal = vc.offlineFallback("show thermal layer");
+    expect(thermal.actions[0]).toMatchObject({ type: "set_layer", args: { layer: "thermal" } });
+
+    const route = vc.offlineFallback("plan route to site two");
+    expect(route.actions[0]).toMatchObject({ type: "show_route", args: { to_x: 180, to_z: 120 } });
+
+    const fan = vc.offlineFallback("check fan trend");
+    expect(store.fanDegraded).toBe(true);
+    expect(fan.actions[0].type).toBe("show_alert");
+
+    const emergency = vc.offlineFallback("emergency suit leak");
+    expect(emergency.actions.map((a) => a.type)).toEqual(["launch_pod", "dispatch"]);
+    expect(emergency.actions[0].verdict?.decision).toBe("ask_human");
+
+    const hands = vc.offlineFallback("hands drill T1");
+    expect(hands.actions[0]).toMatchObject({
+      type: "arm_skill",
+      args: { unit_id: "manip-1", skill: "drill", target_id: "T1" },
+    });
+  });
 });
