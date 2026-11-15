@@ -46,11 +46,26 @@ export interface SceneDef {
 
 export const SCENES: readonly SceneDef[] = [
   {
+    id: "S0",
+    nameKey: "scene.s0",
+    startS: 0,
+    durationS: 18,
+    segments: [
+      // Slow orbit around the stack on the pad (about 170 m tall), then a low wide shot with the tower.
+      { fromS: 0, kind: "orbit", target: "launch-site", radius: 260, height: 60, speed: 0.1, lookAboveM: 90 },
+      { fromS: 10, kind: "aerial", target: "launch-site", offset: { x: 150, y: 25, z: -190 }, lookAboveM: 110 },
+    ],
+  },
+  {
     id: "S1",
     nameKey: "scene.s1",
     startS: 0,
     durationS: 20,
-    segments: [{ fromS: 0, kind: "orbit", target: "base", radius: 95, height: 60, speed: 0.07, lookAboveM: 2 }],
+    segments: [
+      { fromS: 0, kind: "orbit", target: "base", radius: 95, height: 60, speed: 0.07, lookAboveM: 2 },
+      // From the base apron toward the Starship on its pad, 1.1 km east-north-east.
+      { fromS: 12, kind: "aerial", target: "launch-site", offset: { x: -960, y: 48, z: 500 }, lookAboveM: 95 },
+    ],
   },
   {
     id: "S2",
@@ -69,7 +84,7 @@ export const SCENES: readonly SceneDef[] = [
     durationS: 25,
     segments: [
       { fromS: 0, kind: "orbit", target: "crew-2", radius: 9, height: 2.4, speed: 0.3, lookAboveM: 1.2 },
-      { fromS: 8, kind: "follow", target: "rover-1", offset: { x: 6, y: 3, z: 7 }, lookAboveM: 1 },
+      { fromS: 8, kind: "follow", target: "rover-1", offset: { x: 11, y: 4.5, z: 12 }, lookAboveM: 1.5 },
       { fromS: 16, kind: "aerial", target: "pit", offset: { x: 7, y: 6, z: 7 }, lookAboveM: -1 },
     ],
   },
