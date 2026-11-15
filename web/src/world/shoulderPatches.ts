@@ -20,7 +20,7 @@ export type Side = "left" | "right";
 
 /** Patches are 2:3 (height:width), the usual flag patch proportion. */
 export const PATCH_ASPECT = 2 / 3;
-export const DEFAULT_PATCH_WIDTH_M = 0.08;
+export const DEFAULT_PATCH_WIDTH_M = 0.09;
 export const CONAE_LOGO_URL = "/textures/conae-logo.png";
 /** Astronaut's right shoulder carries the flag, the left one the agency patch. */
 export const PATCH_FOR_SIDE: Record<Side, ShoulderPatchKind> = { right: "flag", left: "conae" };
@@ -50,7 +50,7 @@ export function flagStripes(height: number): { y0: number; y1: number; color: st
 
 /** Sol de Mayo placement: centred in the white band; rays span most of its height. */
 export function sunGeometry(width: number, height: number): { cx: number; cy: number; discR: number; tipR: number } {
-  const tipR = (height / 3) * 0.46;
+  const tipR = (height / 3) * 0.48;
   return { cx: width / 2, cy: height / 2, discR: tipR * 0.5, tipR };
 }
 
@@ -259,7 +259,7 @@ function drawConaePlaceholderTexture(): THREE.CanvasTexture | null {
   ctx.fillStyle = "#FFFFFF";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `bold ${Math.round(r * 0.62)}px Rajdhani, Arial, sans-serif`;
+  ctx.font = `bold ${Math.round(r * 0.4)}px Rajdhani, Arial, sans-serif`;
   ctx.fillText("CONAE", cx, cy);
   addFabricNoise(ctx);
   drawBorder(ctx, "#E8EEF6", "#74ACDF");
@@ -416,19 +416,27 @@ function place(
   out.normalize();
 
   const onArm = p.clone().addScaledVector(axis, length * FRACTION_ALONG_ARM);
-  let radius = armRadiusM ?? FALLBACK_RADIUS_M;
-  if (armRadiusM === undefined && meshes.length > 0) {
-    const reach = 0.4;
-    const ray = new THREE.Raycaster(onArm.clone().addScaledVector(out, reach), out.clone().negate(), 0, reach * 2);
-    const hit = ray.intersectObjects(meshes, false)[0];
-    if (hit && hit.distance > reach - 0.2 && hit.distance < reach) radius = reach - hit.distance;
-  }
-  const worldPos = onArm.addScaledVector(out, radius + SURFACE_GAP_M);
-
   // Patch frame: +Z outward, +Y toward the shoulder (up when the arm hangs), +X completes it.
   const up = axis.clone().negate();
   up.addScaledVector(out, -up.dot(out)).normalize();
   const right = new THREE.Vector3().crossVectors(up, out);
+
+  let radius = armRadiusM ?? FALLBACK_RADIUS_M;
+  if (armRadiusM === undefined && meshes.length > 0) {
+    // Probe the centre and the four edge midpoints; the outermost surface wins so the flat
+    // patch floats over curved pauldrons instead of sinking into them.
+    const reach = 0.4;
+    const half = widthM / 2;
+    const probes = [[0, 0], [0, half], [0, -half], [half, 0], [-half, 0]];
+    let best = 0;
+    for (const [u, v] of probes) {
+      const origin = onArm.clone().addScaledVector(out, reach).addScaledVector(right, u).addScaledVector(up, v);
+      const hit = new THREE.Raycaster(origin, out.clone().negate(), 0, reach * 2).intersectObjects(meshes, false)[0];
+      if (hit && hit.distance > reach - 0.2 && hit.distance < reach) best = Math.max(best, reach - hit.distance);
+    }
+    if (best > 0) radius = best;
+  }
+  const worldPos = onArm.addScaledVector(out, radius + SURFACE_GAP_M);
   const worldQuat = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, out));
 
   patch.position.copy(node.worldToLocal(worldPos));
