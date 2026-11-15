@@ -706,9 +706,9 @@ export const TOOLS: ToolDef[] = [
     server: "hud",
     effect: true,
     schema: z.object({
-      panel: z.enum(["map", "fleet", "agents", "health", "provenance", "base", "sessions", "menu", "none"]),
+      panel: z.enum(["map", "fleet", "agents", "health", "provenance", "base", "sessions", "casson", "menu", "none"]),
     }),
-    description: "Opens or closes a helmet HUD panel or the central quick menu ('menu').",
+    description: "Opens or closes a helmet HUD panel (including 'casson', the BIO-TWIN blood viscosity panel) or the central quick menu ('menu').",
     run: (a, _c, caller) => ({ type: "open_panel", args: a, proposedBy: caller }),
   }),
   def({
