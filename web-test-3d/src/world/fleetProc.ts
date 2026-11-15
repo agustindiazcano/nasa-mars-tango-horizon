@@ -1,9 +1,10 @@
 import { fleetStartPos, MANIP_TARGETS } from "@th/shared";
-import { footprintContacts, groundPlacement } from "./groundPlacement";
+import { footprintContacts, groundPlacement, type ContactPoint } from "./groundPlacement";
 import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "../core/physics";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "../core/types";
 import { ManipulatorArm, SkillRunner } from "./manipulatorArm";
+import { extractIngenuityRotorPivots, loadNormalizedNasaGlb, type RotorPivot } from "./nasaModels";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
 export interface FleetTarget {
@@ -54,6 +55,9 @@ export class FleetUnit {
   task: string | null = null;
   wheels: THREE.Mesh[] = [];
   rotors: THREE.Group[] = [];
+  rotorPivots: RotorPivot[] = [];
+  contactPoints?: ContactPoint[];
+  proceduralGroup?: THREE.Group;
   lidarCone?: THREE.Mesh;
   mastCamera?: THREE.PerspectiveCamera;
   mastPivot?: THREE.Group;
@@ -120,6 +124,11 @@ export class FleetUnit {
         const spin = this.grounded ? 0.5 : i % 2 === 0 ? 28 : -28;
         this.rotors[i].rotation.y += spin * dt;
       }
+      for (let i = 0; i < this.rotorPivots.length; i++) {
+        const spin = this.grounded ? 0.5 : i % 2 === 0 ? 32 : -32;
+        const rp = this.rotorPivots[i];
+        rp.pivot.rotation[rp.axis] += spin * dt;
+      }
       if (this.lidarCone) {
         this.lidarCone.visible = !this.grounded;
       }
@@ -150,11 +159,16 @@ export class FleetUnit {
 
   placeOnGround(): void {
     const o = this.object;
-    const contacts = this.wheels.map(wheel => {
-      // Geometry radius is 0.32 m; retain each model's wheel track and wheelbase.
-      const center = wheel.position.clone().applyEuler(o.rotation);
-      return { x: center.x, y: center.y - 0.32, z: center.z };
-    });
+    const contacts: ContactPoint[] = this.contactPoints
+      ? this.contactPoints.map((pt) => {
+          const rotated = new THREE.Vector3(pt.x, pt.y, pt.z).applyEuler(o.rotation);
+          return { x: rotated.x, y: rotated.y, z: rotated.z };
+        })
+      : this.wheels.map((wheel) => {
+          // Geometry radius is 0.32 m; retain each model's wheel track and wheelbase.
+          const center = wheel.position.clone().applyEuler(o.rotation);
+          return { x: center.x, y: center.y - 0.32, z: center.z };
+        });
     o.position.y = groundPlacement((x, z) => this.terrain.heightAt(x, z), o.position.x, o.position.z, contacts).y;
   }
 
@@ -183,6 +197,8 @@ export class FleetProc {
   }));
 
   private group = new THREE.Group();
+  private orbiterGroup = new THREE.Group();
+  private orbiterAngle = 0.4;
   private renderTarget = new THREE.WebGLRenderTarget(512, 384);
   private pendingSkill: { skill: ArmSkillId; targetId: string; item?: string } | null = null;
   private handedItemMesh: THREE.Mesh;
@@ -210,9 +226,13 @@ export class FleetProc {
       this.group.add(unit.object);
     }
 
+    this.orbiterGroup.name = "orbiter:mro";
+    this.group.add(this.orbiterGroup);
+
     this.buildPromptInjectionSign();
     this.buildManipTargets();
     this.scene.add(this.group);
+    void this.attachNasaGlbModels();
   }
 
   get(id: string): FleetUnit | undefined {
@@ -479,8 +499,86 @@ export class FleetProc {
     for (const u of this.units.values()) {
       u.update(dt, tau);
     }
+    this.updateOrbiter(dt);
     this.manipRunner.update(dt);
     void this.pendingSkill;
+  }
+
+  private updateOrbiter(dt: number): void {
+    if (!this.orbiterGroup.children.length) return;
+    this.orbiterAngle = (this.orbiterAngle + dt * 0.045) % (Math.PI * 2);
+    const rx = 880;
+    const rz = 620;
+    const x = Math.cos(this.orbiterAngle) * rx;
+    const z = -220 + Math.sin(this.orbiterAngle) * rz;
+    const y = this.terrain.heightAt(0, 0) + 420;
+    this.orbiterGroup.position.set(x, y, z);
+    const nextX = Math.cos(this.orbiterAngle + 0.02) * rx;
+    const nextZ = -220 + Math.sin(this.orbiterAngle + 0.02) * rz;
+    this.orbiterGroup.rotation.y = Math.atan2(nextX - x, nextZ - z);
+  }
+
+  private async attachNasaGlbModels(): Promise<void> {
+    const rover2 = this.units.get("rover-2");
+    if (rover2) {
+      try {
+        const { group, size } = await loadNormalizedNasaGlb("/models/rover.glb", {
+          targetMaxSpanM: 3.1,
+          anchor: "bottom",
+        });
+        group.name = "glb:rover-2";
+        if (rover2.proceduralGroup) rover2.proceduralGroup.visible = false;
+        rover2.object.add(group);
+
+        const halfW = Math.max(0.55, size.x * 0.42);
+        const halfL = Math.max(0.75, size.z * 0.38);
+        rover2.contactPoints = [-halfL, 0, halfL].flatMap((z) =>
+          [-halfW, halfW].map((x) => ({ x, y: 0, z })),
+        );
+        if (rover2.mastPivot && rover2.mastCamera) {
+          rover2.mastPivot.position.set(0, size.y * 0.72, size.z * 0.16);
+          rover2.mastCamera.position.set(0, 0.25, 0.22);
+        }
+        rover2.alignToTerrain();
+        rover2.placeOnGround();
+      } catch (err) {
+        console.warn("Failed to load /models/rover.glb; keeping procedural mesh", err);
+      }
+    }
+
+    for (const droneId of ["drone-1", "drone-2"]) {
+      const drone = this.units.get(droneId);
+      if (!drone) continue;
+      try {
+        const { group } = await loadNormalizedNasaGlb("/models/ingenuity.glb", {
+          targetMaxSpanM: 2.0,
+          anchor: "center",
+        });
+        group.name = `glb:${droneId}`;
+        if (drone.proceduralGroup) drone.proceduralGroup.visible = false;
+        drone.object.add(group);
+        drone.rotorPivots = extractIngenuityRotorPivots(group);
+      } catch (err) {
+        console.warn(`Failed to load /models/ingenuity.glb for ${droneId}; keeping procedural mesh`, err);
+      }
+    }
+
+    try {
+      const { group, size } = await loadNormalizedNasaGlb("/models/mro.glb", {
+        targetMaxSpanM: 34,
+        anchor: "center",
+        castShadow: false,
+      });
+      group.name = "glb:mro";
+      this.orbiterGroup.add(group);
+      const lbl = makeSpriteLabel("MRO ORBITER", "#35e0ff");
+      lbl.position.y = size.y * 0.65 + 4;
+      lbl.scale.set(28, 5.2, 1);
+      this.orbiterGroup.add(lbl);
+      this.updateOrbiter(0);
+    } catch (err) {
+      console.warn("Failed to load /models/mro.glb", err);
+    }
   }
 
   private createUnit(spec: UnitSpec): FleetUnit {
@@ -490,6 +588,11 @@ export class FleetProc {
     g.position.set(spec.startX, y, spec.startZ);
 
     const unit = new FleetUnit(spec, g, this.terrain);
+    const procGroup = new THREE.Group();
+    procGroup.name = `proc:${spec.id}`;
+    unit.proceduralGroup = procGroup;
+    g.add(procGroup);
+
     const bodyColor =
       spec.kind === "rescue"
         ? 0xff3b5c
@@ -508,17 +611,17 @@ export class FleetProc {
     if (spec.kind === "drone") {
       const hull = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.35, 0.28, 10), accentMat);
       hull.castShadow = true;
-      g.add(hull);
+      procGroup.add(hull);
 
       const legMat = new THREE.MeshStandardMaterial({ color: 0x333b44 });
       for (let i = 0; i < 4; i++) {
         const ang = (i * Math.PI) / 2 + Math.PI / 4;
         const arm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.06, 1.3), chassisMat);
         arm.rotation.y = ang;
-        g.add(arm);
+        procGroup.add(arm);
         const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.6, 6), legMat);
         leg.position.set(Math.cos(ang) * 0.45, -0.3, Math.sin(ang) * 0.45);
-        g.add(leg);
+        procGroup.add(leg);
       }
 
       // Coaxial rotors
@@ -532,7 +635,7 @@ export class FleetProc {
         const blade2 = blade1.clone();
         blade2.rotation.y = Math.PI / 2;
         rotorGroup.add(blade1, blade2);
-        g.add(rotorGroup);
+        procGroup.add(rotorGroup);
         unit.rotors.push(rotorGroup);
       }
 
@@ -557,11 +660,11 @@ export class FleetProc {
       const deck = new THREE.Mesh(new THREE.BoxGeometry(wWid, 0.42, wLen), chassisMat);
       deck.position.y = 0.56;
       deck.castShadow = true;
-      g.add(deck);
+      procGroup.add(deck);
 
       const stripe = new THREE.Mesh(new THREE.BoxGeometry(wWid + 0.04, 0.12, wLen * 0.72), accentMat);
       stripe.position.y = 0.62;
-      g.add(stripe);
+      procGroup.add(stripe);
 
       const zOffsets = is6x6 ? [-0.95, 0, 0.95] : [-0.62, 0.62];
       const wheelGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.24, 14);
@@ -571,7 +674,7 @@ export class FleetProc {
           const w = new THREE.Mesh(wheelGeo, wheelMat);
           w.position.set(side * (wWid * 0.5 + 0.14), 0.32, wz);
           w.castShadow = true;
-          g.add(w);
+          procGroup.add(w);
           unit.wheels.push(w);
         }
       }
@@ -582,11 +685,11 @@ export class FleetProc {
           new THREE.MeshBasicMaterial({ color: 0xff2a55 }),
         );
         beacon.position.set(0, 1.05, -0.8);
-        g.add(beacon);
+        procGroup.add(beacon);
         const o2Tank = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.9, 10), accentMat);
         o2Tank.rotation.x = Math.PI / 2;
         o2Tank.position.set(0, 0.95, 0.2);
-        g.add(o2Tank);
+        procGroup.add(o2Tank);
       }
 
       if (spec.kind === "rover_science" || spec.kind === "manipulator") {
@@ -607,9 +710,19 @@ export class FleetProc {
         const cam = new THREE.PerspectiveCamera(54, 512 / 384, 0.2, 1200);
         cam.position.set(0, 1.0, 0.22);
         cam.rotation.set(-0.14, Math.PI, 0); // Looking forward along +Z
-        mast.add(cam);
-        g.add(mast);
-        unit.mastPivot = mast;
+        if (spec.id === "rover-2") {
+          // Keep mast camera outside proceduralGroup so RVR-2 CAM stays active when rover.glb loads
+          const mastMount = new THREE.Group();
+          mastMount.position.copy(mast.position);
+          mastMount.add(cam);
+          g.add(mastMount);
+          procGroup.add(mast);
+          unit.mastPivot = mastMount;
+        } else {
+          mast.add(cam);
+          procGroup.add(mast);
+          unit.mastPivot = mast;
+        }
         unit.mastCamera = cam;
       }
 
