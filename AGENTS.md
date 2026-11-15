@@ -65,7 +65,7 @@ Several people and several agents work on this project at the same time.
 `nasa-mars-tango-horizon` (Tango Horizon) — Real-time 3D Mars surface mission operations simulator (Three.js WebGL2 at 60 FPS) over real NASA/USGS Gale Crater cartography, coupled with deterministic bioastronautics/physics (`@th/shared`), hands-free bilingual voice, phone-as-pointer WebSocket control, and an autonomous Multi-Agent AI System guarded by Run-Time Assurance (`GUARDIAN`).
 
 - **Commands:**
-  - App & workspaces: `npm install` (install workspaces), `npm run dev` (run `web` on `:5173` and `server` on `:8080`), `npm run build` (build `shared`, `web`, `server`), `npm start` (production server on `:8080`), `npm test` (run Vitest unit tests in `shared`).
+  - App & workspaces: `npm install` (install workspaces), `npm run dev` (run `server` on `:8080` only), `npm run dev:test3d` (run `server` on `:8080` and `web-test-3d` on `:5174`), `npm run build` (build `shared`, `server`, `web-test-3d`), `npm start` (production server on `:8080`), `npm test` (run Vitest unit tests in `shared`, then in `server`; server tests run with `AGENTS_OFFLINE=1`).
   - GCP & Terraform (`nasa-tango-horizon`): `gcloud config set project nasa-tango-horizon`, `cd infra/terraform && terraform init && terraform plan && terraform apply`.
 
 ### Architecture: Frontend, Backend, Agents, MCP, RAG, and Deployment
@@ -89,7 +89,7 @@ Several people and several agents work on this project at the same time.
    - **Deterministic Offline Fallback (`server/src/agents/offline.ts`):** If all cloud LLM providers are unreachable or `AGENTS_OFFLINE=1`, the backend executes deterministic rule-based tool calls and replies so the demo never breaks.
 4. **Deployment & Terraform IaC (Vercel Frontend + Google Cloud Run Backend on `nasa-tango-horizon`):**
    - **Infrastructure-as-Code (`infra/terraform/`):** Provisions all Google Cloud APIs (`aiplatform`, `texttospeech`, `run`, `cloudbuild`, `artifactregistry`, `secretmanager`, `iam`), dedicated Service Account (`tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com` with `roles/aiplatform.user`), Artifact Registry (`us-central1-docker.pkg.dev/nasa-tango-horizon/tango-horizon`), Secret Manager secrets (`meta-api-key`, `gemini-api-key`), and Cloud Run service configuration.
-   - **Backend (`server/`):** Deployed as a Docker container on **Google Cloud Run** (`nasa-tango-horizon`, `us-central1`, `--service-account tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com`, `--min-instances 1 --max-instances 1 --session-affinity` for WebSocket rooms). Cloud Run also serves `web/dist` as a full mirror.
+   - **Backend (`server/`):** Deployed as a Docker container on **Google Cloud Run** (`nasa-tango-horizon`, `us-central1`, `--service-account tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com`, `--min-instances 1 --max-instances 1 --session-affinity` for WebSocket rooms). Cloud Run does not serve a frontend yet: the Dockerfile builds no frontend, so the `web/dist` mirror stays inactive until `B22` in `PENDING.md` consolidates the frontend.
    - **Frontend (`web/`):** Deployed on **Vercel** (global Edge CDN for fast 3D asset/texture loading) configured with `VITE_API_URL=https://<cloud-run-service>.run.app` for `/api/*` and `/ws/remote`, with the Vercel domain whitelisted in Cloud Run's `ALLOWED_ORIGINS`.
 
 ### Project files
