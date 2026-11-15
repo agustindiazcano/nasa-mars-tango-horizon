@@ -209,6 +209,17 @@ export const en = {
   "scene.s5": "Rescue vehicle arrives",
   "scene.s6": "Rescue and drag",
   "scene.s7": "Departure",
+  "scene.present": "PRESENTATION",
+  "scene.play_all": "Play all",
+  "scene.record_play_all": "Record + play all",
+  "scene.record": "Record",
+  "scene.record_stop": "Stop and save",
+  "scene.recording": "Recording this tab. Press Stop and save to download the video.",
+  "scene.rec_saved": "Saved {file}",
+  "scene.rec_unsupported": "This browser cannot record the screen. Use Chrome or Edge.",
+  "scene.copy_link": "Copy link",
+  "scene.link_copied": "Link copied: {url}",
+  "scene.model_lab": "Model lab",
 
   // Demo deck
   "deck.title": "DEMO DECK",
