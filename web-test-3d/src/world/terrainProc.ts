@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { validateTerrain } from "./terrainValidation";
 import { mulberry32, terrainFromThermalClass, type RouteGrid } from "../core/physics";
 import type { LayerId } from "../core/types";
 
@@ -56,6 +57,7 @@ export class TerrainProc {
   private thermal = new Uint8Array(256 * 256);
   private hydration = new Float32Array(256 * 256);
   private textures: Record<LayerId, THREE.DataTexture>;
+  private realOptical: THREE.Texture | null = null;
   private material: THREE.MeshStandardMaterial;
   private routeLine: THREE.Line | null = null;
   private beaconsGroup = new THREE.Group();
@@ -99,12 +101,7 @@ export class TerrainProc {
       const metaRes = await fetch(`${base}/meta.json`, { signal: AbortSignal.timeout(60000) });
       if (!metaRes.ok) throw new Error(`Metadata HTTP ${metaRes.status}`);
       const meta = (await metaRes.json()) as TerrainMeta;
-      if (!Number.isInteger(meta.height_px) || meta.height_px < 2 || meta.height_px > 8192 ||
-          meta.size_m !== this.sizeM || !meta.product_id ||
-          ![meta.z_min_m, meta.z_max_m, meta.center_lat, meta.center_lon_e].every(Number.isFinite) ||
-          meta.z_max_m <= meta.z_min_m || Math.abs(meta.center_lat) > 90) {
-        throw new Error("Invalid or incompatible terrain metadata");
-      }
+      validateTerrain(meta, this.sizeM);
       const u16Res = await fetch(`${base}/height_2048.u16`, { signal: AbortSignal.timeout(60000) });
       if (!u16Res.ok) throw new Error(`Height HTTP ${u16Res.status}`);
       const raw = new Uint16Array(await u16Res.arrayBuffer());
@@ -134,8 +131,19 @@ export class TerrainProc {
     }
   }
 
+  async loadOptical(): Promise<void> {
+    const response = await fetch("/data/terrain/ortho_4096.webp", { signal: AbortSignal.timeout(60000) });
+    if (!response.ok) throw new Error(`Orthoimage HTTP ${response.status}`);
+    const url = URL.createObjectURL(await response.blob());
+    try { this.realOptical = await new THREE.TextureLoader().loadAsync(url); }
+    finally { URL.revokeObjectURL(url); }
+    this.realOptical.colorSpace = THREE.SRGBColorSpace;
+    // PlaneGeometry rotated -90 degrees maps north (negative z) to v=1.
+    this.setLayer("optical");
+  }
+
   setLayer(layer: LayerId): void {
-    this.material.map = this.textures[layer];
+    this.material.map = layer === "optical" && this.realOptical ? this.realOptical : this.textures[layer];
     this.material.needsUpdate = true;
   }
 

@@ -1,4 +1,5 @@
 import "./hud/hud.css";
+import { installHistoricalArchive } from "./hud/historicalArchive";
 import { inject } from "@vercel/analytics";
 import * as THREE from "three";
 import { apiUrl } from "./api";
@@ -62,9 +63,13 @@ while (!loaded) {
     await new Promise<void>(resolve => retry.addEventListener("click", () => resolve(), { once: true }));
   }
 }
+loading.textContent = "Loading HiRISE orthoimage";
+try { await terrain.loadOptical(); }
+catch { store.pushAlert("warn", "Orthoimage unavailable; optical colors are a design approximation"); }
 terrain.mesh.visible = true;
 terrain.markersGroup.visible = true;
 loading.remove();
+installHistoricalArchive();
 
 const skyDust = new SkyDust(scene);
 const astronaut = new AstronautProc(terrain, camera, canvas);

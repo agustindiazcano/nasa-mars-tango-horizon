@@ -1,3 +1,4 @@
+import { formatCoordinates } from "../world/terrainValidation";
 import { fmt, getLang, LANG_NAME, LANGS, onLangChange, setLang, t } from "../core/i18n";
 import { C, leakTimeline } from "../core/physics";
 import type { AlertLevel, ArmSkillId, LayerId, PanelId } from "../core/types";
@@ -267,7 +268,7 @@ export class TacticalHud {
       <span style="font-weight:700;">${t("hud.title")}</span>
       <span>${t("hud.met")}: <b>${metH}:${metM}:${metSec}</b></span>
       <span>Sol ${s.env.sol} · ${fmt(s.env.ltst_hours, 2)}h</span>
-      <span>${fmt(Math.abs(ll.lat), 4)}${ll.lat < 0 ? "S" : "N"}, ${fmt(((ll.lon % 360) + 360) % 360, 4)}E</span>
+      <span>${formatCoordinates(ll.lat, ll.lon)}</span>
       <span>${t("hud.dist_base")}: <b>${fmt(baseDist, 0)} m</b></span>
       <span class="pill ${s.remoteConnected ? "" : "warn"}">${s.remoteConnected ? t("remote.connected") : `ROOM ${s.remoteRoom || "---"}`}</span>
       ${s.lastAgentLatencyMs > 0 ? `<span class="pill">${s.lastAgentLatencyMs} ms</span>` : ""}
@@ -345,7 +346,7 @@ export class TacticalHud {
       <div class="kv-row"><span>${t("hud.wind")}</span><span class="val">${fmt(s.env.wind_ms, 1)} m/s</span></div>
       <div class="kv-row"><span>${t("hud.dose_rate")}</span><span class="val">${fmt(s.env.dose_rate_ugy_h, 1)} uGy/h</span></div>
       <div class="kv-row"><span>${t("hud.cum_dose")}</span><span class="val">${fmt(suit.cumulative_dose_ugy, 2)} uGy</span></div>
-      <div style="font-size:10px; opacity:0.75; margin-top:4px;">${s.env.storm_source}</div>
+      <div style="font-size:10px; opacity:0.75; margin-top:4px;">${s.env.storm_source}<br>${s.env.rad_source}<br>Terrain: ${this.terrain.meta.product_id}; derived display layers are design approximations.</div>
       ${latestAlerts}
     `;
 
