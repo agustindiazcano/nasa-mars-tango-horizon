@@ -38,6 +38,7 @@ export interface ProvenanceEntry {
   datasets?: ProvenanceDatasetRef[];
   transform: string;
   notes?: string;
+  license?: string;
   vertical_datum_offset?: ProvenanceDatumOffset;
   retrieved: string;
 }
@@ -126,6 +127,9 @@ export function parseProvenanceManifest(input: unknown): ProvenanceManifest {
     if (datasets && datasets.length > 0) entry.datasets = datasets;
     if (typeof raw.notes === "string" && raw.notes.trim().length > 0) {
       entry.notes = raw.notes.trim();
+    }
+    if (typeof raw.license === "string" && raw.license.trim().length > 0) {
+      entry.license = raw.license.trim();
     }
     if (isPlainRecord(raw.vertical_datum_offset)) {
       entry.vertical_datum_offset = raw.vertical_datum_offset as ProvenanceDatumOffset;

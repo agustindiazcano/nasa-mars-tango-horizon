@@ -147,4 +147,31 @@ describe("offlineReply fixes (Issue 10)", () => {
     ]);
     expect(step2LangRes.speech).toMatch(/Language switched to English/i);
   });
+
+  it("opens and closes the map panel from natural phrases in five languages", async () => {
+    const openCases: Array<[Lang, string]> = [
+      ["en", "show the map"],
+      ["en", "show me the map"],
+      ["es", "muéstrame el mapa"],
+      ["es", "abrí el mapa"],
+      ["fr", "montre la carte"],
+      ["de", "zeig die Karte"],
+      ["it", "mostra la mappa"],
+    ];
+    for (const [lang, phrase] of openCases) {
+      const res = await offlineReply(phrase, makeContext({ lang }));
+      expect(res.actions, phrase).toEqual([expect.objectContaining({ type: "open_panel", args: { panel: "map" } })]);
+    }
+    const closeCases: Array<[Lang, string]> = [
+      ["en", "close the map"],
+      ["es", "cierra el mapa"],
+      ["fr", "ferme la carte"],
+      ["de", "schließ die Karte"],
+      ["it", "chiudi la mappa"],
+    ];
+    for (const [lang, phrase] of closeCases) {
+      const res = await offlineReply(phrase, makeContext({ lang }));
+      expect(res.actions, phrase).toEqual([expect.objectContaining({ type: "open_panel", args: { panel: "none" } })]);
+    }
+  });
 });

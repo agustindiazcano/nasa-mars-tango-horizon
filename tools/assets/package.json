@@ -1,0 +1,13 @@
+{
+  "name": "th-assets-tools",
+  "private": true,
+  "type": "module",
+  "description": "Offline GLB optimization pipeline (not part of the npm workspaces)",
+  "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
+    "meshoptimizer": "^1.3.0",
+    "sharp": "^0.35.5"
+  }
+}

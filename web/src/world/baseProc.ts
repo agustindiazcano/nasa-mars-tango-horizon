@@ -1,6 +1,7 @@
 import { BASE_ORIGIN } from "@th/shared";
 import { footprintGridContacts, groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
+import { models, type ModelId } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
 export interface BaseModuleSpec {
@@ -26,6 +27,9 @@ export interface BaseModuleSpec {
   footprint: [number, number];
   height: number;
   color: number;
+  /** Optimized GLB that replaces the procedural box; the box stays as the fallback and the click target. */
+  model?: ModelId;
+  modelYaw?: number;
   specs: { key: string; value: string; source: string; assumption?: boolean }[];
 }
 
@@ -35,9 +39,10 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Main Habitat",
     kind: "habitat",
     offset: [0, 0],
-    footprint: [12, 9],
-    height: 4.5,
+    footprint: [26, 24.6],
+    height: 7.0,
     color: 0xe6edf2,
+    model: "conae-base-mars",
     specs: [
       { key: "Crew size", value: "4 crew", source: "Design choice", assumption: true },
       { key: "Cabin pressure", value: "70 kPa (34% O2)", source: "NASA-STD-3001 Vol. 2" },
@@ -47,7 +52,7 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     id: "airlock",
     name: "EVA Airlock & Suit Port",
     kind: "airlock",
-    offset: [-9, 0],
+    offset: [-17, 0],
     footprint: [4.5, 4],
     height: 3.2,
     color: 0x35e0ff,
@@ -60,7 +65,7 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     id: "compute",
     name: "Local AI Compute Node",
     kind: "compute",
-    offset: [10, 0],
+    offset: [17, 0],
     footprint: [4, 4],
     height: 3.0,
     color: 0x5c8eff,
@@ -73,37 +78,41 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     id: "lab",
     name: "Geoscience Lab",
     kind: "lab",
-    offset: [0, 12],
-    footprint: [8, 6],
-    height: 3.5,
+    offset: [3, -24],
+    footprint: [14, 8.5],
+    height: 8.3,
     color: 0xd6dfe8,
+    model: "asset-2",
     specs: [{ key: "Instruments", value: "XRD / Raman / Mass Spec", source: "Design choice", assumption: true }],
   },
   {
     id: "med",
     name: "Medical Bay",
     kind: "medical",
-    offset: [10, 12],
-    footprint: [5, 4.5],
-    height: 3.2,
+    offset: [32, -6],
+    footprint: [12, 11.3],
+    height: 6.1,
     color: 0xff5470,
+    model: "building-2",
     specs: [{ key: "Hyperbaric", value: "210 kPa chamber", source: "NASA-STD-3001 Vol. 1" }],
   },
   {
     id: "greenhouse",
     name: "Hydroponic Greenhouse",
     kind: "greenhouse",
-    offset: [-14, -12],
-    footprint: [13, 6],
-    height: 3.4,
+    offset: [-28, -24],
+    footprint: [18, 11.4],
+    height: 6.5,
     color: 0x45d97b,
+    model: "asset-1",
+    modelYaw: Math.PI / 2,
     specs: [{ key: "Growing area", value: "64 m^2", source: "ISS Veggie / APH scaled", assumption: true }],
   },
   {
     id: "eclss",
     name: "ECLSS & Water",
     kind: "eclss",
-    offset: [10, -10],
+    offset: [22, -18],
     footprint: [5.5, 4.5],
     height: 3.4,
     color: 0x4ec4e8,
@@ -116,19 +125,20 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     id: "isru",
     name: "MOXIE-Scale ISRU",
     kind: "isru",
-    offset: [26, 0],
-    footprint: [7, 5],
-    height: 3.6,
+    offset: [36, -26],
+    footprint: [10, 8.6],
+    height: 3.7,
     color: 0xf59e42,
+    model: "building-3",
     specs: [{ key: "O2 rate", value: "2.4 kg/h scaled", source: "PDS Atmospheres MOXIE scaled", assumption: true }],
   },
   {
     id: "solar",
     name: "Primary Solar Array",
     kind: "solar",
-    offset: [0, -40],
-    footprint: [48, 22],
-    height: 1.2,
+    offset: [0, -52],
+    footprint: [36, 13],
+    height: 3.0,
     color: 0x203b66,
     specs: [
       { key: "Array area", value: "850 m^2", source: "Design choice", assumption: true },
@@ -139,7 +149,7 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     id: "battery",
     name: "Battery Bank",
     kind: "battery",
-    offset: [20, -24],
+    offset: [22, -34],
     footprint: [6, 4],
     height: 2.4,
     color: 0x35e0ff,
@@ -162,17 +172,18 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     id: "garage",
     name: "Fleet Garage",
     kind: "garage",
-    offset: [-26, 12],
-    footprint: [11, 9],
-    height: 4.2,
+    offset: [-52, 18],
+    footprint: [20, 12.6],
+    height: 3.1,
     color: 0x9aa6b2,
+    model: "building-1",
     specs: [{ key: "Bays", value: "4 pressurized/unpressurized", source: "Design choice", assumption: true }],
   },
   {
     id: "comms",
     name: "Comms Relay Tower",
     kind: "comms",
-    offset: [24, 18],
+    offset: [28, 12],
     footprint: [3, 3],
     height: 16.0,
     color: 0xf2f5f8,
@@ -208,10 +219,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     id: "shelter",
     name: "Radiation Storm Shelter",
     kind: "shelter",
-    offset: [-7, 7],
-    footprint: [5, 4],
-    height: 2.5,
+    offset: [-31, 7],
+    footprint: [14, 5],
+    height: 3.8,
     color: 0xc2956b,
+    model: "asset-3",
     specs: [{ key: "Regolith shielding", value: "45 g/cm^2", source: "NASA-STD-3001 Vol. 1" }],
   },
 ];
@@ -220,6 +232,8 @@ export class BaseProc {
   readonly group = new THREE.Group();
   readonly selectableMeshes: THREE.Object3D[] = [];
   readonly launcherOrigins: [number, number, number][] = [];
+  /** Models without a module card (connectors, antenna farm, display piece). Not part of `group`. */
+  readonly extras = new THREE.Group();
 
   constructor(scene: THREE.Scene, terrain: TerrainProc) {
     for (const mod of BASE_MODULES) {
@@ -239,7 +253,7 @@ export class BaseProc {
         metalness: mod.kind === "solar" ? 0.65 : 0.25,
       });
 
-      if (mod.kind === "habitat" || mod.kind === "lab" || mod.kind === "greenhouse") {
+      if (!mod.model && (mod.kind === "habitat" || mod.kind === "lab" || mod.kind === "greenhouse")) {
         mesh = new THREE.Mesh(
           new THREE.CylinderGeometry(mod.footprint[1] * 0.5, mod.footprint[1] * 0.5, mod.footprint[0], 16),
           mat,
@@ -321,8 +335,88 @@ export class BaseProc {
       mGroup.add(lbl);
 
       this.group.add(mGroup);
+      this.attachModel(mod, mGroup, mesh, localBounds.min.y, terrain);
     }
 
+    this.extras.name = "base-extras";
     scene.add(this.group);
+    scene.add(this.extras);
+    void this.buildExtras(terrain);
+  }
+
+  /** Swaps the procedural box of a module for its GLB; the box stays as click target and fallback. */
+  private attachModel(mod: BaseModuleSpec, mGroup: THREE.Group, mesh: THREE.Mesh, bottomY: number, terrain: TerrainProc): void {
+    if (mod.model) {
+      void models.attach(mod.model, mGroup, mesh, (m) => {
+        m.object.position.y = bottomY;
+        m.object.rotation.y = mod.modelYaw ?? 0;
+      });
+    }
+    if (mod.kind === "solar") void this.buildSolarField(mGroup, mesh, terrain);
+  }
+
+  /** Solar field: instanced `solar-panel` rows with a `asset-4` converter at each end, each seated on the terrain. */
+  private async buildSolarField(mGroup: THREE.Group, fallback: THREE.Mesh, terrain: TerrainProc): Promise<void> {
+    const cols = [-9.45, -3.15, 3.15, 9.45];
+    const rows = [-3.6, 3.6];
+    const local = (x: number, z: number) => ({
+      x,
+      y: terrain.heightAt(mGroup.position.x + x, mGroup.position.z + z) - mGroup.position.y,
+      z,
+    });
+    const panels = await models.instanced(
+      "solar-panel",
+      rows.flatMap((z) => cols.map((x) => ({ ...local(x, z), yaw: 0 }))),
+    );
+    const converters = await models.instanced(
+      "asset-4",
+      [-15, 15].map((x) => ({ ...local(x, 0), yaw: x < 0 ? Math.PI / 2 : -Math.PI / 2 })),
+    );
+    if (!panels && !converters) return;
+    for (const g of [panels, converters]) {
+      if (!g) continue;
+      mGroup.add(g);
+    }
+    fallback.visible = false;
+  }
+
+  /** Parts without a module card: tube connectors, antenna farm and the garage display piece. */
+  private async buildExtras(terrain: TerrainProc): Promise<void> {
+    const at = (offX: number, offZ: number) => {
+      const x = BASE_ORIGIN.x + offX;
+      const z = BASE_ORIGIN.z + offZ;
+      return new THREE.Vector3(x, terrain.heightAt(x, z), z);
+    };
+    // Connectors keep their natural 7 m length when the gap allows, otherwise they stretch along the tube axis.
+    const connectors: { off: [number, number]; yaw: number; len: number }[] = [
+      { off: [3, -16.05], yaw: Math.PI / 2, len: 7.4 },
+      { off: [19.5, -6], yaw: 0, len: 13 },
+    ];
+    for (const c of connectors) {
+      const p = at(c.off[0], c.off[1]);
+      void models.attach("building-connector", this.extras, null, (m) => {
+        m.object.scale.x = c.len / 7;
+        m.object.rotation.y = c.yaw;
+        m.object.position.copy(p);
+      });
+    }
+    const farm = [
+      { off: [46, -6], yaw: 0.5 },
+      { off: [52, 7], yaw: -0.3 },
+      { off: [52, -17], yaw: 1.1 },
+    ] as const;
+    const antennas = await models.instanced(
+      "antenna",
+      farm.map((a) => {
+        const p = at(a.off[0], a.off[1]);
+        return { x: p.x, y: p.y, z: p.z, yaw: a.yaw };
+      }),
+    );
+    if (antennas) this.extras.add(antennas);
+    const dp = at(-52, 31);
+    void models.attach("rescue-robot-astronaut", this.extras, null, (m) => {
+      m.object.position.copy(dp);
+      m.object.rotation.y = 0.9;
+    });
   }
 }

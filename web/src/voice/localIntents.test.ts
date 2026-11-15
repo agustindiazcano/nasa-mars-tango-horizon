@@ -54,6 +54,20 @@ describe("localIntents (web)", () => {
     ["ouvrir la carte", "open_map"],
     ["Karte öffnen", "open_map"],
     ["apri la mappa", "open_map"],
+    ["show me the map", "open_map"],
+    ["display the map", "open_map"],
+    ["Show the map.", "open_map"],
+    ["muéstrame el mapa", "open_map"],
+    ["abrí el mapa", "open_map"],
+    ["muestra el mapa", "open_map"],
+    ["montre la carte", "open_map"],
+    ["montre-moi la carte", "open_map"],
+    ["affiche la carte", "open_map"],
+    ["zeig die Karte", "open_map"],
+    ["zeige mir die Karte", "open_map"],
+    ["Karte anzeigen", "open_map"],
+    ["mostra la mappa", "open_map"],
+    ["mostrami la mappa", "open_map"],
 
     // close_panel (EN / ES / FR / DE / IT)
     ["close panel", "close_panel"],
@@ -63,6 +77,14 @@ describe("localIntents (web)", () => {
     ["fermer le panel", "close_panel"],
     ["Panel schließen", "close_panel"],
     ["chiudi tutto", "close_panel"],
+    ["close the map", "close_panel"],
+    ["cierra el mapa", "close_panel"],
+    ["cerrar el mapa", "close_panel"],
+    ["ferme la carte", "close_panel"],
+    ["fermer la carte", "close_panel"],
+    ["schließ die Karte", "close_panel"],
+    ["Karte schließen", "close_panel"],
+    ["chiudi la mappa", "close_panel"],
 
     // repeat (EN / ES / FR / DE / IT)
     ["repeat", "repeat"],
@@ -112,12 +134,28 @@ describe("localIntents (web)", () => {
     "Wiederholungsrate prüfen",
     "die Karte zeigen wir später nicht",
 
+    // map boundaries in all five languages
+    "the map shows the rover",
+    "map scale for the traverse",
+    "la carte de crédit est invalide",
+    "montre le rover",
+    "zeig die Daten",
+    "mostra la temperatura",
+    "muéstrame la presión",
+    "closed the map room door",
+
     // IT boundaries
     "stato emergenziale archiviato",
     "apri la porta del modulo",
     "chiudi la valvola",
     "ripetitore radio attivo",
   ];
+
+  it("answers local intents in well under 5 ms", () => {
+    const start = performance.now();
+    for (let i = 0; i < 200; i++) matchLocalIntent("zeige mir die Karte bitte");
+    expect((performance.now() - start) / 200).toBeLessThan(5);
+  });
 
   it.each(falsePositiveBoundaries)("rejects non-intent boundary phrase %j", (phrase) => {
     expect(matchLocalIntent(phrase)).toBeNull();

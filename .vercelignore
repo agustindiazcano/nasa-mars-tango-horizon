@@ -1,0 +1,20 @@
+# Exclude heavy raw data, 3D raw blends, Python envs, and standalone Next.js site/ from root Vercel upload
+/3d-mars-assets/
+/data/
+/site/
+/.venv/
+/venv/
+/infra/
+/tools/
+/scratch-voice/
+/docs/
+/.claude/
+/.git/
+node_modules/
+**/node_modules/
+**/*.blend
+**/*.blend1
+**/*.tif
+**/*.parquet
+**/*.npz
+**/*.joblib

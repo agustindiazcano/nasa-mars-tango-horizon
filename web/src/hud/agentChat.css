@@ -1,0 +1,76 @@
+/* Orchestrator agent chat for the rescue video. Stays visible when the HUD is hidden for clean takes. */
+.agent-chat {
+  position: fixed;
+  left: 22px;
+  bottom: 24px;
+  width: 360px;
+  z-index: 35;
+  pointer-events: none;
+  font-family: var(--font-ui, "Rajdhani", system-ui, sans-serif);
+  color: var(--ink, #f3ece3);
+  background: linear-gradient(180deg, rgba(16, 10, 7, 0.78), rgba(16, 10, 7, 0.6));
+  border-left: 2px solid var(--ok, #ffb36b);
+  padding: 8px 12px 6px;
+  backdrop-filter: blur(8px);
+  transition: bottom 0.25s;
+}
+
+/* HUD visible: sit above the crew roster. */
+.agent-chat.hud-on {
+  bottom: 232px;
+}
+
+.agent-chat-hdr {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  font-size: 11px;
+  color: var(--ok, #ffb36b);
+  margin-bottom: 4px;
+}
+
+.agent-chat-live {
+  color: var(--crit, #ff4d5e);
+  animation: agentChatBlink 1.2s infinite;
+}
+
+@keyframes agentChatBlink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.agent-chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.agent-chat-row {
+  animation: agentChatIn 0.35s ease-out;
+}
+
+.agent-chat-row:not(:last-child) {
+  opacity: 0.78;
+}
+
+.agent-chat-meta {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ok, #ffb36b);
+}
+
+.agent-chat-text {
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+@keyframes agentChatIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

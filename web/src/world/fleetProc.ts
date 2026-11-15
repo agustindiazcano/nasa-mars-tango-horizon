@@ -5,8 +5,10 @@ import { AIRCRAFT_GROUNDING_TAU, planRoute } from "@th/shared";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "@th/shared";
 import { ManipulatorArm, SkillRunner } from "./manipulatorArm";
 import { extractIngenuityRotorPivots, loadNormalizedNasaGlb, type RotorPivot } from "./nasaModels";
+import { models, type ModelId, type SpawnedModel } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
+import { buildRescueRobotModel, type RescuePose, type RescueRobotModel } from "./rescueRobotProc";
 
 export interface FleetTarget {
   id: string;
@@ -30,6 +32,7 @@ export const FLEET_SPECS: UnitSpec[] = [
   { id: "rover-2", kind: "rover_science", speed: 1.4, flies: false, startX: fleetStartPos("rover-2").x, startZ: fleetStartPos("rover-2").z },
   { id: "rover-3", kind: "manipulator", speed: 1.6, flies: false, startX: fleetStartPos("rover-3").x, startZ: fleetStartPos("rover-3").z },
   { id: "rescue-1", kind: "rescue", speed: 5.5, flies: false, startX: fleetStartPos("rescue-1").x, startZ: fleetStartPos("rescue-1").z },
+  { id: "rescue-bot-1", kind: "rescue_robot", speed: 2.2, flies: false, startX: fleetStartPos("rescue-bot-1").x, startZ: fleetStartPos("rescue-bot-1").z },
   { id: "drone-1", kind: "drone", speed: 11.0, flies: true, altitude: 14, startX: fleetStartPos("drone-1").x, startZ: fleetStartPos("drone-1").z },
   { id: "drone-2", kind: "drone", speed: 11.0, flies: true, altitude: 16, startX: fleetStartPos("drone-2").x, startZ: fleetStartPos("drone-2").z },
 ];
@@ -64,8 +67,21 @@ export class FleetUnit {
   mastPivot?: THREE.Group;
   grounded = false;
   manualGrounded = false;
+  /** Scripted vertical offset above the terrain (pit ramp, bay ramp) and optional pitch override (rad). */
+  scriptYOffset = 0;
+  scriptPitch: number | undefined;
   targetAltitude?: number;
   onArrive?: () => void;
+  /** `rescue-1`: hinged rear ramp of the robot bay (rotation.x 1.45 = closed/up, 0 = open/flat). */
+  bayRamp?: THREE.Group;
+  /** `rescue-bot-1`: procedural model with winch arm and stretcher. */
+  rescueModel?: RescueRobotModel;
+  /** `rescue-1`: procedural bay parts (floor, rails, ramp) that stay visible when the rescue-rover GLB replaces the body. */
+  bayParts: THREE.Object3D[] = [];
+  /** Rear tow point in unit-local coordinates when a GLB body is in use (null: use the procedural hook). */
+  towLocal: THREE.Vector3 | null = null;
+  /** Where the stowed rescue robot sits, in `rescue-1` local coordinates. */
+  stowOffset = new THREE.Vector3(0, 0.5, -1.9);
 
   constructor(
     readonly spec: UnitSpec,
@@ -135,7 +151,9 @@ export class FleetUnit {
       }
     } else {
       this.alignToTerrain();
+      if (this.scriptPitch !== undefined) o.rotation.x = this.scriptPitch;
       this.placeOnGround();
+      o.position.y += this.scriptYOffset;
       const wheelSpin = distMoved / 0.32;
       for (const w of this.wheels) w.rotation.x += wheelSpin;
     }
@@ -203,6 +221,8 @@ export class FleetProc {
   private renderTarget = new THREE.WebGLRenderTarget(512, 384);
   private pendingSkill: { skill: ArmSkillId; targetId: string; item?: string } | null = null;
   private handedItemMesh: THREE.Mesh;
+  /** While true, `rescue-bot-1` rides in the rear bay of `rescue-1`. */
+  private rescueBotStowed = true;
 
   constructor(
     private scene: THREE.Scene,
@@ -512,9 +532,71 @@ export class FleetProc {
     for (const u of this.units.values()) {
       u.update(dt, tau);
     }
+    this.updateRescueBotStow();
     this.updateOrbiter(dt);
     this.manipRunner.update(dt);
     void this.pendingSkill;
+  }
+
+  /** Teleports a ground or flying unit to (x, z) with an optional heading; used by scripted scenarios. */
+  placeUnit(
+    unitId: string,
+    x: number,
+    z: number,
+    yaw?: number,
+    opts: { yOffset?: number; pitch?: number } = {},
+  ): void {
+    const unit = this.units.get(unitId);
+    if (!unit) return;
+    unit.path = [];
+    unit.object.position.x = x;
+    unit.object.position.z = z;
+    if (yaw !== undefined) unit.object.rotation.y = yaw;
+    if (!unit.spec.flies) {
+      // A scripted pitch (pit ramp, bay ramp) replaces the terrain-derived one; yOffset lifts or sinks the unit.
+      unit.scriptYOffset = opts.yOffset ?? 0;
+      unit.scriptPitch = opts.pitch;
+      unit.alignToTerrain();
+      if (opts.pitch !== undefined) unit.object.rotation.x = opts.pitch;
+      unit.placeOnGround();
+      unit.object.position.y += unit.scriptYOffset;
+    }
+  }
+
+  setRescueBotStowed(stowed: boolean): void {
+    this.rescueBotStowed = stowed;
+  }
+
+  /** Opens the rear ramp of `rescue-1` (0 closed, 1 fully open). */
+  setRescueRamp(open01: number): void {
+    const ramp = this.units.get("rescue-1")?.bayRamp;
+    if (ramp) ramp.rotation.x = (1 - THREE.MathUtils.clamp(open01, 0, 1)) * 1.45;
+  }
+
+  applyRescueBotPose(pose: RescuePose): void {
+    this.units.get("rescue-bot-1")?.rescueModel?.applyPose(pose);
+  }
+
+  /** World position of the rescue robot tow hook (GLB rear tow point, or the procedural winch hook). */
+  towPointWorld(): [number, number, number] | null {
+    const robot = this.units.get("rescue-bot-1");
+    if (!robot) return null;
+    robot.object.updateMatrixWorld(true);
+    const v = new THREE.Vector3();
+    if (robot.towLocal) v.copy(robot.towLocal).applyMatrix4(robot.object.matrixWorld);
+    else if (robot.rescueModel) robot.rescueModel.hook.getWorldPosition(v);
+    else return null;
+    return [v.x, v.y, v.z];
+  }
+
+  private updateRescueBotStow(): void {
+    if (!this.rescueBotStowed) return;
+    const robot = this.units.get("rescue-bot-1");
+    const rescue = this.units.get("rescue-1");
+    if (!robot || !rescue) return;
+    rescue.object.updateMatrixWorld(true);
+    robot.object.position.copy(rescue.stowOffset).applyMatrix4(rescue.object.matrixWorld);
+    robot.object.quaternion.copy(rescue.object.quaternion);
   }
 
   private updateOrbiter(dt: number): void {
@@ -532,32 +614,12 @@ export class FleetProc {
   }
 
   private async attachNasaGlbModels(): Promise<void> {
-    const rover2 = this.units.get("rover-2");
-    if (rover2) {
-      try {
-        const { group, size } = await loadNormalizedNasaGlb("/models/rover.glb", {
-          targetMaxSpanM: 3.1,
-          anchor: "bottom",
-        });
-        group.name = "glb:rover-2";
-        if (rover2.proceduralGroup) rover2.proceduralGroup.visible = false;
-        rover2.object.add(group);
-
-        const halfW = Math.max(0.55, size.x * 0.42);
-        const halfL = Math.max(0.75, size.z * 0.38);
-        rover2.contactPoints = [-halfL, 0, halfL].flatMap((z) =>
-          [-halfW, halfW].map((x) => ({ x, y: 0, z })),
-        );
-        if (rover2.mastPivot && rover2.mastCamera) {
-          rover2.mastPivot.position.set(0, size.y * 0.72, size.z * 0.16);
-          rover2.mastCamera.position.set(0, 0.25, 0.22);
-        }
-        rover2.alignToTerrain();
-        rover2.placeOnGround();
-      } catch (err) {
-        console.warn("Failed to load /models/rover.glb; keeping procedural mesh", err);
-      }
-    }
+    await Promise.all([
+      this.swapVehicle("rover-1", "rover-1"),
+      this.swapVehicle("rover-2", "rover-2"),
+      this.swapVehicle("rescue-1", "rescue-rover", { forwardShiftM: 1.3 }),
+      this.swapVehicle("rescue-bot-1", "rescue-robot-without-astronaut"),
+    ]);
 
     for (const droneId of ["drone-1", "drone-2"]) {
       const drone = this.units.get(droneId);
@@ -613,6 +675,53 @@ export class FleetProc {
     }
   }
 
+  /**
+   * Replaces the procedural body of a ground unit with an optimized GLB (docs/impl/24). Contact points and the mast camera are
+   * derived from the measured model box. The procedural body stays when the model fails to load.
+   * `forwardShiftM` moves the model forward of the unit origin (rescue-1 keeps its rear bay at the origin side).
+   */
+  private async swapVehicle(unitId: string, modelId: ModelId, opts: { forwardShiftM?: number } = {}): Promise<void> {
+    const unit = this.units.get(unitId);
+    if (!unit) return;
+    const m: SpawnedModel | null = await models.spawn(modelId);
+    if (!m) return;
+    m.object.name = `glb:${unitId}`;
+    const shift = opts.forwardShiftM ?? 0;
+    m.object.position.z = shift;
+    unit.object.add(m.object);
+    const proc = unit.proceduralGroup;
+    if (proc) {
+      for (const c of proc.children) if (!unit.bayParts.includes(c)) c.visible = false;
+    }
+    unit.wheels = [];
+    const halfW = Math.max(0.3, m.size.x * 0.42);
+    const halfL = Math.max(0.4, m.size.z * 0.38);
+    if (unitId === "rescue-bot-1") {
+      unit.contactPoints = [-halfL, 0, halfL].flatMap((z) => [-halfW, halfW].map((x) => ({ x, y: 0, z })));
+      // The winch tether rig stays procedural; the GLB provides the body and its own boom.
+      unit.rescueModel?.hideBody();
+      unit.towLocal = new THREE.Vector3(0, m.size.y * 0.45, -m.size.z / 2 - 0.05);
+      if (unit.mastPivot) unit.mastPivot.position.set(0, m.size.y * 0.95, m.size.z * 0.3);
+    } else {
+      unit.contactPoints = [-halfL, 0, halfL].flatMap((z) => [-halfW, halfW].map((x) => ({ x, y: 0, z: z + shift })));
+      if (unit.mastPivot) unit.mastPivot.position.set(0, m.size.y * 0.9, shift + m.size.z * 0.3);
+    }
+    if (unitId === "rescue-1") {
+      // Bay behind the cab: floor, rails and ramp keep the scenario geometry (bay centre 1.9 m behind the origin).
+      const [floor, ...rest] = unit.bayParts;
+      floor.scale.set(1.27, 1, 1.54);
+      for (const r of rest) {
+        if (r === unit.bayRamp) r.scale.set(1.4, 1, 1);
+        else {
+          r.scale.set(1, 1, 1.54);
+          r.position.x = Math.sign(r.position.x) * 0.95;
+        }
+      }
+    }
+    unit.alignToTerrain();
+    unit.placeOnGround();
+  }
+
   private createUnit(spec: UnitSpec): FleetUnit {
     const g = new THREE.Group();
     g.name = `unit:${spec.id}`;
@@ -639,6 +748,28 @@ export class FleetProc {
     const chassisMat = new THREE.MeshStandardMaterial({ color: 0xd6dce2, roughness: 0.45, metalness: 0.4 });
     const accentMat = new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.4, metalness: 0.3 });
     const wheelMat = new THREE.MeshStandardMaterial({ color: 0x252a30, roughness: 0.85, metalness: 0.2 });
+
+    if (spec.kind === "rescue_robot") {
+      const model = buildRescueRobotModel();
+      procGroup.add(model.group);
+      unit.rescueModel = model;
+      unit.contactPoints = model.contactPoints;
+      const camMount = new THREE.Group();
+      camMount.position.set(0, 1.12, 0.45);
+      const cam = new THREE.PerspectiveCamera(60, 512 / 384, 0.2, 1200);
+      cam.rotation.set(-0.2, Math.PI, 0);
+      camMount.add(cam);
+      g.add(camMount);
+      unit.mastPivot = camMount;
+      unit.mastCamera = cam;
+      const botLabel = makeSpriteLabel(`${spec.id} (${Math.round(unit.battery * 100)}%)`, "#ffb800");
+      botLabel.position.y = 2.0;
+      botLabel.scale.set(6.5, 1.25, 1);
+      g.add(botLabel);
+      unit.alignToTerrain();
+      unit.placeOnGround();
+      return unit;
+    }
 
     if (spec.kind === "drone") {
       const hull = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.35, 0.28, 10), accentMat);
@@ -742,6 +873,28 @@ export class FleetProc {
         o2Tank.rotation.x = Math.PI / 2;
         o2Tank.position.set(0, 0.95, 0.2);
         procGroup.add(o2Tank);
+
+        // Rear bay for the rescue robot: floor, side rails and a hinged ramp.
+        const bayFloor = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.12, 1.3), chassisMat);
+        bayFloor.position.set(0, 0.38, -1.95);
+        bayFloor.castShadow = true;
+        procGroup.add(bayFloor);
+        unit.bayParts.push(bayFloor);
+        for (const side of [-1, 1]) {
+          const rail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 1.3), accentMat);
+          rail.position.set(side * 0.7, 0.62, -1.95);
+          procGroup.add(rail);
+          unit.bayParts.push(rail);
+        }
+        const ramp = new THREE.Group();
+        ramp.position.set(0, 0.38, -2.6);
+        const rampPlate = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.06, 1.4), chassisMat);
+        rampPlate.position.z = -0.7;
+        ramp.add(rampPlate);
+        procGroup.add(ramp);
+        ramp.rotation.x = 1.45;
+        unit.bayRamp = ramp;
+        unit.bayParts.push(ramp);
       }
 
       // Mount mast camera on root Group (g) for all ground rovers (rover-1..3, rescue-1) so cameras survive GLB swaps

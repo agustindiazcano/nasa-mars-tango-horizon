@@ -47,6 +47,20 @@ describe("parseProvenanceManifest", () => {
     expect(parsed["terrain/hydration_meta.json"].datasets).toHaveLength(1);
   });
 
+  it("keeps the optional license text", () => {
+    const parsed = parseProvenanceManifest({
+      "models/rover-1.glb": {
+        source: "Project owner (original 3D model)",
+        product_id: "rover-1",
+        datasets: [{ id: "owner-created" }],
+        license: "Created by the project owner; all rights held by the owner; personal use",
+        transform: "Simplified",
+        retrieved: "2026-11-15",
+      },
+    });
+    expect(parsed["models/rover-1.glb"].license).toMatch(/project owner/);
+  });
+
   it("rejects non-object, empty manifests, or incomplete entries", () => {
     expect(() => parseProvenanceManifest(null)).toThrow(/JSON object/);
     expect(() => parseProvenanceManifest({})).toThrow(/not be empty/);
