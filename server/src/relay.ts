@@ -49,6 +49,9 @@ export function registerRelay(app: FastifyInstance): void {
     if (role === "screen") {
       room.screen?.close(1000, "replaced");
       room.screen = socket;
+      if (room.remotes.size > 0) {
+        sendIfOpen(room.screen, JSON.stringify({ t: "remote_joined" }));
+      }
     } else {
       if (room.remotes.size >= 2) {
         socket.close(1008, "room full");
