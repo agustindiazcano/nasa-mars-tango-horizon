@@ -1,7 +1,7 @@
 # Pending frontend tasks (`web/`)
 
 > Priority: 🔴 blocking/urgent · 🟡 next · 🟢 later · ⚪ backlog
-> All target frontend code is tracked for `web/` (consuming `@th/shared`). The active runtime code lives in `web/` (the former `web-test-3d/`, migrated under `B22`); `B23` in `PENDING.md` reconciles `F1`–`F15` against it.
+> All target frontend code is tracked for `web/` (consuming `@th/shared`). The active runtime code lives in `web/` (the former `web-test-3d/`, migrated under `B22`); `F1`–`F15` were reconciled against it on 2026-11-15 (see below).
 > When a frontend task is completed, remove it from the table and mention it in `LASTCONTEXT.md`.
 
 ## Frontend reference plans
@@ -21,25 +21,33 @@
 | `docs/impl/13_STORM_NOWCASTER.md` | HUD 3-sol storm forecast fan chart (observed series + median + 80% band `q10..q90` + Go/No-Go verdict) |
 | `docs/impl/15_VEIN_DETECTOR.md` | HUD overlay for real Curiosity Mastcam/MAHLI photos with `256×256` DINOv2 patch heatmap (`*_heat.png`), peak `(u, v)` marker, probability readout, and one-page human label review tool |
 
+## Reconciliation of F1–F15 against `web/` (2026-11-15)
+
+Status from a code audit of `web/src`. "Done" means the code exists; live visual checks stay under `B37`.
+
+| Task | Status | Evidence / gap |
+|---|---|---|
+| F1 | Done | `web/package.json`, `vite.config.ts` with `index.html` and `remote.html`, `VITE_API_URL` helper in `src/api.ts`, `three`, `qrcode` |
+| F2 | Done | `terrainProc.ts`, `terrainLoader.ts`, `terrainRasters.ts`, `astronautProc.ts`, `state.ts`, `skyDust.ts` |
+| F3 | Done | `hud.ts`, `hud.css` (flat amber redesign replaced the curved CSS 3D panels), minimap, layer switcher, provenance modal |
+| F4 | Done | `setLang` wired across the HUD; EN/ES/FR/DE/IT dictionaries (PR #28) |
+| F5 | Done | `remote.html`, `phoneClient.ts`, `screenRelay.ts` (QR, haptics, `invx`) |
+| F9 | Done | Hydration layers, DAN points and legend in `terrainRasters.ts`, `hud.ts` |
+| F10 | Done | `manipulatorArm.ts` (IK, `SkillRunner`), offscreen camera in `fleetProc.ts` |
+| F12 | Done | Trace/swarm panel, `ask_human` confirmation, `GUARDIAN` verdicts in `hud.ts`, `state.ts` |
+| F15 | Done | FR/DE/IT dictionaries and `ASR_LOCALE`/`TTS_LOCALE` used in `listen.ts`, `speak.ts` |
+| F6, F7, F8, F11, F13, F14 | Partial | Remaining work in the table below |
+
 ## Pending tasks
 
 | # | Priority | Step | Task | Guides | Depends on |
 |---|---|---|---|---|---|
-| F1 | 🔴 | Step 1 | Scaffold `web/` workspace (`web/package.json`, `web/vite.config.ts` with `index.html` and `remote.html` entries, `VITE_API_URL` helper for Vercel → Cloud Run `/api` and `/ws/remote`, `three`, `@types/three`, `qrcode`) | `01_SCAFFOLD.md`, `10_DEPLOY_SUBMISSION.md` | — |
-| F2 | 🔴 | Step 5 | Build core Three.js viewer in `web/src/`: `Terrain` (`height_2048.u16`, `ortho_4096.webp`, `2048²` normal map, bilinear `heightAt`/`slopeAt`), Martian sky shader (`uTau`), `Astronaut` WASD controller, `#visor` helmet frame, global `state.ts` store | `04_TERRAIN_HELMET_HUD.md`, `3D_AND_VISUAL_PLAN.md` §2–4 | F1, Step 3 data, Step 4 physics |
-| F3 | 🔴 | Step 5 | Build curved CSS 3D HUD (`hud.css`, `thresholds.ts`): Left life-support panel, Top mission/coordinates panel, Right environment panel, Bottom pointable menu, 2D minimap canvas, terrain layer switcher (`slope`, `svf`, `thermal_class`), `HudPointer`, and `data-src` provenance cards | `04_TERRAIN_HELMET_HUD.md`, `3D_AND_VISUAL_PLAN.md` §7 | F2 |
-| F4 | 🔴 | Step 6 | Wire `t()` and `setLang` across all `web/` UI elements and add Language menu item (EN/ES live switch without reload) | `14_I18N.md` | F3 |
-| F5 | 🔴 | Step 7 | Implement phone pointer UI (`web/remote.html`, `web/src/remote/remote.ts`) and screen QR receiver (`web/src/remote/screen.ts`) with trackpad fallback, recenter, haptics, and `?invx=1&invy=1` | `06_PHONE_REMOTE.md` | F3, Step 2 relay |
-| F6 | 🔴 | Step 8 | Implement `web/src/voice/`: `Listener` (Spacebar/phone PTT + wake word), `localIntents.ts`, live HUD transcript, Web Audio TTS player with optional radio filter/Quindar tones, and FFT visualizer | `07_VOICE.md`, `3D_AND_VISUAL_PLAN.md` §7.1 | F3, F4, Step 2 |
-| F7 | 🔴 | Step 10 | Implement `SimClock`, `Scenario` runner, `leak` emergency sequence (pulsing red HUD, hypoxia/Armstrong countdowns, RK4 ballistic O2 pod trajectory line & flight animation, `rescue-1` dispatch), and `demoDeck.ts` (`1`–`0`, `H` hide) | `09_SCENARIOS_WORLD.md`, `3D_AND_VISUAL_PLAN.md` §5.4, §6.2 | F3, Step 9 agents |
-| F8 | 🟡 | Step 12 | Add GPU dust storm particle system (`createDust` in `storm.ts`), `storm` 60 s replay driving `uTau`, and 3-sol Storm Forecast fan chart in the Right HUD panel | `13_STORM_NOWCASTER.md`, `09_SCENARIOS_WORLD.md` | F7, Step 12 data |
-| F9 | 🟡 | Step 13 | Add Hydration Prospector layer (`hydration_1024.png`), uncertainty layer (`hydration_unc_1024.png`), real DAN measurement circles on terrain/minimap, and layer legend with validation metrics | `11_HYDRATION_PROSPECTOR.md` | F3, Step 13 data |
-| F10 | 🟡 | Step 14 | Build Manipulator Rover `manip-1` (`web/src/world/manipulator/arm.ts`, `skills.ts`): standalone IK test page, 4-wheel chassis + mast camera, 4-DOF arm IK, `drill`/`sample`/`photograph`/`handover` animations, and `512×384` offscreen camera target with projected `T1..Tn` markers | `12_MANIPULATOR_ROBOT.md`, `3D_AND_VISUAL_PLAN.md` §5.3 | F3, Step 9 agents |
-| F11 | 🟡 | Step 14b | Build Vein Detector HUD photo/heatmap overlay (`*_heat.png`, peak target marker, probability + validation metrics) and one-page human label review tool | `15_VEIN_DETECTOR.md` | F3, F10 |
-| F12 | 🟡 | Step 15 | Add HUD Agent Tree / Swarm Stream panel (delegations, tool calls, `GUARDIAN` green/red/amber verdicts, `ask_human` Confirm/Cancel prompt), `RVR-2 CAM` viewport, and 3D prompt-injection sign on terrain | `08_AGENTS_TOOLS_MCP_GUARDIAN.md`, `09_SCENARIOS_WORLD.md` | F3, Step 9 agents |
-| F13 | 🟡 | Step 16 | Build 20 Mars `BASE` 3D primitive modules on `<5°` slope with selectable technical cards, fission keep-out ring, Base Resource Balance panel, full 9-unit `FLEET` (Curiosity/Ingenuity/MRO GLBs + procedural units + floating labels), `sep2017` radiation scenario, Earth-link light-time counter, Curiosity traverse + photo waypoints, and route polylines with algorithm badges | `09_SCENARIOS_WORLD.md`, `3D_AND_VISUAL_PLAN.md` §5.2, §5.5, §5.6 | F7 |
-| F14 | 🟢 | Step 17 | Add extras if time permits before code freeze: science stations `S1`–`S4`, LIBS purple laser pulse + emission spectrum, Sky-Crane Kevlar tether pendulum + green 532 nm LiDAR cone, 5 cinematic cameras (`CAM-1`..`CAM-5`), hypercapnic vignette + bloom post-processing, Casson bio-twin panel | `09_SCENARIOS_WORLD.md`, `12_MANIPULATOR_ROBOT.md`, `3D_AND_VISUAL_PLAN.md` §2.3, §4.2, §5.4 | F10, F13 |
-| F15 | 🟢 | Step 18 | Wire French, German, and Italian dictionaries into the HUD Language menu and voice selector | `14_I18N.md`, `07_VOICE.md` | F4, F6 |
+| F6 | 🟡 | Step 8 | Add the 32-band FFT canvas visualizer to the voice HUD (listener, local intents, Quindar tones and TTS player already exist) | `07_VOICE.md`, `3D_AND_VISUAL_PLAN.md` §7.1 | — |
+| F7 | 🟡 | Step 10 | Check the `leak` sequence against §5.4/§6.2 (hypoxia/Armstrong countdowns, RK4 pod trajectory, `rescue-1` dispatch); no `SimClock` class exists, scenario time lives in `state.ts` and `main.ts` | `09_SCENARIOS_WORLD.md`, `3D_AND_VISUAL_PLAN.md` §5.4, §6.2 | — |
+| F8 | 🟡 | Step 12 | Add the 3-sol Storm Forecast fan chart (observed series, median, 80% band, Go/No-Go verdict) to the Right HUD panel; dust particles and `uTau` already exist | `13_STORM_NOWCASTER.md` | — |
+| F11 | 🟡 | Step 14b | Build the Vein Detector HUD overlay (`*_heat.png`, peak marker, probability and validation metrics) and the one-page human label review tool; `public/data/veins/` exists | `15_VEIN_DETECTOR.md` | — |
+| F13 | 🟡 | Step 16 | Reach the full 9-unit fleet (6 `FLEET_SPECS` units plus the MRO orbiter today) and confirm the Base Resource Balance panel and route algorithm badges | `09_SCENARIOS_WORLD.md`, `3D_AND_VISUAL_PLAN.md` §5.2, §5.5, §5.6 | — |
+| F14 | 🟢 | Step 17 | Remaining extras: 5 cinematic cameras (`CAM-1`..`CAM-5`), Casson bio-twin panel, Sky-Crane Kevlar tether and 532 nm LiDAR cone (science stations, LIBS and post-processing already exist) | `09_SCENARIOS_WORLD.md`, `12_MANIPULATOR_ROBOT.md`, `3D_AND_VISUAL_PLAN.md` §2.3, §4.2, §5.4 | F13 |
 
 ## NASA data audit priority
 
