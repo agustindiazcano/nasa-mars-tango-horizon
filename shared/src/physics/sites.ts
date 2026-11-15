@@ -94,6 +94,12 @@ export const LAUNCHER_PRIMARY_COORD: Readonly<Coord2D> = {
   z: BASE_ORIGIN.z + LAUNCHER_PRIMARY_OFFSET.z,
 };
 
+/**
+ * Starship-class launch complex center (world m). About 1.1 km east-south-east of `BASE_ORIGIN`, chosen on the
+ * real HiRISE DEM as a <7 deg, <7 m relief area within a 70 m radius with line of sight to the base.
+ */
+export const LAUNCH_SITE_COORD: Readonly<Coord2D> = { x: 1202, z: -1022 };
+
 /** Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` for all 16 base modules. */
 export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
   { id: "hab-1", offsetX: 0, offsetZ: 0, widthM: 12, depthM: 9 },
