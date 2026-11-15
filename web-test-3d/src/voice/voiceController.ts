@@ -104,6 +104,18 @@ function parseOfflineTarget(
     const z = Number(coords[2]);
     return { x, z, label: `(${x}, ${z})`, isAstronaut: false };
   }
+  if (
+    /(?<![\p{L}\d])(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|aqu[ií]|ac[aá]|ven[ií]?|ac[eé]rcate|acercate|come|approach|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?![\p{L}\d])/iu.test(
+      low,
+    )
+  ) {
+    return {
+      x: Math.round(ax),
+      z: Math.round(az),
+      label: `(${Math.round(ax)}, ${Math.round(az)})`,
+      isAstronaut: true,
+    };
+  }
   if (/\b(base|hab|habitat|refugio|shelter)\b/i.test(low)) {
     return { x: 0, z: 0, label: "Base", isAstronaut: false };
   }
