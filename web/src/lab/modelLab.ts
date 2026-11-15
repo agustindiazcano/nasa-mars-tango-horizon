@@ -5,6 +5,7 @@
 import * as THREE from "three";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { getGltfLoader } from "../world/nasaModels";
+import { attachShoulderPatches } from "../world/shoulderPatches";
 import { Viewer, type CameraPreset } from "./viewer";
 
 export interface ManifestModel {
@@ -117,6 +118,7 @@ async function main(): Promise<void> {
     holder.position.set(-c.x, -box.min.y, -c.z);
     viewer.scene.add(root);
     root.updateMatrixWorld(true);
+    if (name === "astronaut-animated") attachShoulderPatches(model);
     const framed = new THREE.Box3().setFromObject(root);
     viewer.frame(framed, preset);
 
