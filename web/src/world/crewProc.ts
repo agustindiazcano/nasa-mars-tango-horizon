@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { BASE_ORIGIN, type CrewSnapshot, type CrewStatus } from "@th/shared";
+import { CREW4_START, type CrewSnapshot, type CrewStatus } from "@th/shared";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
 /** Crew ids: `crew-1` is the player astronaut (`AstronautProc`); the others are scripted entities of this module. */
@@ -30,9 +30,6 @@ const ACCENT: Record<Exclude<CrewId, "crew-1">, number> = {
   "crew-4": 0x34c759,
 };
 
-/** `crew-4` idles beside the habitat (`hab-1`), outside its footprint. */
-export const CREW4_POS = { x: BASE_ORIGIN.x + 8, z: BASE_ORIGIN.z + 7 } as const;
-
 /**
  * Procedural crew entities `crew-2`, `crew-3` (traverse) and `crew-4` (base). Each wears the same suit as the player
  * astronaut with a distinct accent color and a name label. GLB models replace the body later (plan 22, section 2).
@@ -54,7 +51,7 @@ export class CrewProc {
     // crew-2/3 only exist during the traverse; crew-4 stands by the habitat.
     this.place("crew-2", 0, 0, 0, "idle", "active", { visible: false });
     this.place("crew-3", 0, 0, 0, "idle", "active", { visible: false });
-    this.place("crew-4", CREW4_POS.x, CREW4_POS.z, Math.PI * 0.75, "idle", "idle");
+    this.place("crew-4", CREW4_START.x, CREW4_START.z, Math.PI * 0.75, "idle", "idle");
     scene.add(this.group);
   }
 

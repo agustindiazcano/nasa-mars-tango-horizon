@@ -87,6 +87,9 @@ export const FISSION_COORD: Readonly<Coord2D> = {
   z: BASE_ORIGIN.z + FISSION_OFFSET.z,
 };
 
+/** Idle position of the second base astronaut (`crew-4`) beside `hab-1`. */
+export const CREW4_START: Readonly<Coord2D> = { x: BASE_ORIGIN.x + 8, z: BASE_ORIGIN.z + 7 };
+
 export const LAUNCHER_PRIMARY_OFFSET: Readonly<Coord2D> = { x: 55, z: 24 };
 
 export const LAUNCHER_PRIMARY_COORD: Readonly<Coord2D> = {
