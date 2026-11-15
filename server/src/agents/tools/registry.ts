@@ -170,7 +170,7 @@ export const TOOLS: ToolDef[] = [
     server: "terrain",
     effect: false,
     schema: z.object(xz),
-    description: "Predicted near-surface bound mineral hydration (WEH wt%) and uncertainty at a point.",
+    description: "Estimated hydration index (dimensionless passive neutron ratio) and uncertainty at a point; not calibrated water abundance.",
     run: (a) => hydrationAt(a.x, a.z),
   }),
   def({
