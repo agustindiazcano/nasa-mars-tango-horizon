@@ -126,7 +126,7 @@ export interface Verdict {
   reason: string;
   reasonKey?: string;
   reasonParams?: Record<string, string | number>;
-  by: "rules" | "judge";
+  by: "rules" | "judge" | "voting";
 }
 
 /** Effect action proposed by an agent; applied by the browser only if GUARDIAN approves. */
@@ -149,9 +149,50 @@ export interface ToolDef<S extends z.ZodTypeAny = z.ZodTypeAny> {
   run(args: z.infer<S>, ctx: MissionContext, caller: string): Promise<unknown> | unknown;
 }
 
+export type VoteDecision = "allow" | "deny" | "ask_human";
+
+export interface VoterResult {
+  voter: string;
+  model: string;
+  provider: "vertex" | "gemini" | "meta";
+  vote: VoteDecision | null;
+  confidence: number | null;
+  rationale: string;
+  latency_ms: number;
+  status: "ok" | "timeout" | "error";
+  error?: string;
+}
+
+export interface VotingTally {
+  allow: number;
+  deny: number;
+  ask_human: number;
+  valid: number;
+}
+
+export type VotingConsensus =
+  | "unanimous"
+  | "majority"
+  | "asymmetric_safety_override"
+  | "split"
+  | "degraded_unanimous"
+  | "degraded_split"
+  | "quorum_failed";
+
+export interface VotingTraceDetail {
+  actionType: string;
+  triggers: string[];
+  voters: VoterResult[];
+  tally: VotingTally;
+  consensus: VotingConsensus;
+  finalDecision: VoteDecision;
+  reason: string;
+  latency_ms: number;
+}
+
 export interface TraceEvent {
   t: number;
   agent: string;
-  kind: "delegate" | "tool" | "verdict" | "say";
+  kind: "delegate" | "tool" | "verdict" | "voting" | "say";
   detail: unknown;
 }
