@@ -19,6 +19,7 @@ import { getAgentSpec, handleVoice } from "./hierarchy.js";
 import { offlineReply } from "./offline.js";
 import { runAgent } from "./runAgent.js";
 import { plainSpeech } from "./speech.js";
+import { normalizeAudioBase64, transcribeAudioDetailed, transcribeAudioWithLLM } from "./stt.js";
 import { startMcpServers } from "./tools/mcp.js";
 import {
   normalizeLang,
@@ -36,12 +37,50 @@ const ConversationTurnSchema = z.object({
   content: z.string().trim().min(1).max(400),
 });
 
-const VoiceBody = z.object({
-  text: z.string().trim().min(1).max(400),
+const VoiceBody = z
+  .object({
+    text: z.string().trim().max(400).optional(),
+    audio_base64: z.string().trim().min(8).max(2_500_000).optional(),
+    audio_format: z.enum(["wav", "mp3", "webm"]).default("wav"),
+    raw_text: z.string().trim().max(400).optional(),
+    lang: LangInput,
+    context: z.any(),
+    history: z.array(ConversationTurnSchema).max(6).optional(),
+  })
+  .refine(
+    (d) =>
+      Boolean(
+        (d.text && d.text.length > 0 && d.text !== "(voice audio)") ||
+          d.audio_base64 ||
+          (d.raw_text && d.raw_text.length > 0),
+      ),
+    {
+      message: "text or audio_base64 required",
+    },
+  );
+
+const SttBody = z.object({
+  audio_base64: z.string().trim().min(8).max(2_500_000),
+  format: z.enum(["wav", "mp3", "webm"]).default("wav"),
   lang: LangInput,
-  context: z.any(),
-  history: z.array(ConversationTurnSchema).max(6).optional(),
+  raw_text: z.string().trim().max(400).optional(),
+  fleet_ids: z.array(z.string().trim().min(1).max(40)).max(32).optional(),
 });
+
+function audioUnavailableMsg(lang: Lang): string {
+  switch (lang) {
+    case "es":
+      return "No se pudo transcribir el audio. Repite la orden.";
+    case "fr":
+      return "Audio non transcrit. Répétez l'ordre.";
+    case "de":
+      return "Audio nicht transkribiert. Bitte Befehl wiederholen.";
+    case "it":
+      return "Audio non trascritto. Ripeti il comando.";
+    default:
+      return "Audio transcription failed. Please repeat the order.";
+  }
+}
 
 const RunBody = z.object({
   agent: z.string().min(1).max(60),
@@ -422,9 +461,45 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
 
   const limit = { config: { rateLimit: { max: config.rateLimit, timeWindow: "1 minute" } } };
 
+  app.post("/api/stt", limit, async (req, reply) => {
+    const b = SttBody.safeParse(req.body);
+    if (!b.success) return reply.code(400).send({ error: "bad request" });
+    const cleanB64 = normalizeAudioBase64(b.data.audio_base64);
+    if (!cleanB64) return reply.code(400).send({ error: "invalid audio_base64" });
+
+    const t0 = Date.now();
+    const hint = b.data.raw_text?.trim() ?? "";
+    if (!llmAvailable()) {
+      const latency_ms = Date.now() - t0;
+      if (hint) {
+        return { transcript: hint, source: "raw_hint", fallback: true, offline: true, latency_ms };
+      }
+      return reply.code(503).send({ error: "stt_unavailable", transcript: "", offline: true, latency_ms });
+    }
+
+    const res = await transcribeAudioDetailed(
+      cleanB64,
+      b.data.format,
+      b.data.lang,
+      { lang: b.data.lang, fleet_ids: b.data.fleet_ids },
+      hint,
+    );
+    const latency_ms = Date.now() - t0;
+    req.log.info({ latency_ms, source: res.source, fallback: res.fallback }, "/api/stt");
+    if (!res.transcript) {
+      return reply.code(502).send({ error: "stt_failed", transcript: "", offline: false, latency_ms });
+    }
+    return { ...res, offline: false, latency_ms };
+  });
+
   app.post("/api/agent/voice", limit, async (req, reply) => {
     const b = VoiceBody.safeParse(req.body);
     if (!b.success) return reply.code(400).send({ error: "bad request" });
+
+    const cleanAudioB64 = b.data.audio_base64 ? normalizeAudioBase64(b.data.audio_base64) : undefined;
+    if (b.data.audio_base64 && !cleanAudioB64) {
+      return reply.code(400).send({ error: "invalid audio_base64" });
+    }
 
     const t0 = Date.now();
     const ctx = buildContext(b.data.context, b.data.lang);
@@ -432,26 +507,87 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(409).send({ error: "terrain_mismatch", speech: "Terrain unavailable or incompatible. Reload the client and verify server assets.", actions: [], terrain: terrainIdentity });
     }
 
-
+    const textInput = b.data.text && b.data.text !== "(voice audio)" ? b.data.text : "";
+    const rawHint = b.data.raw_text?.trim() || textInput || "";
 
     if (!llmAvailable()) {
-      const res = await offlineReply(b.data.text, ctx, b.data.history);
       const latency_ms = Date.now() - t0;
+      if (!rawHint) {
+        return {
+          terrain: terrainIdentity,
+          transcript: "",
+          speech: audioUnavailableMsg(ctx.lang),
+          actions: [],
+          trace: [],
+          route: ["SUIT.VOICE-EXEC"],
+          offline: true,
+          latency_ms,
+        };
+      }
+      const res = await offlineReply(rawHint, ctx, b.data.history);
       req.log.info({ latency_ms, route: res.route, offline: true }, "/api/agent/voice");
-      return { terrain: terrainIdentity, ...res, offline: true, latency_ms };
+      return { terrain: terrainIdentity, ...res, transcript: rawHint, offline: true, latency_ms };
     }
 
+    let orderText = textInput || rawHint;
+    let transcribedFromAudio = false;
     try {
-      const r = await handleVoice(b.data.text, ctx, b.data.history);
+      if (cleanAudioB64) {
+        orderText = await transcribeAudioWithLLM(
+          cleanAudioB64,
+          b.data.audio_format,
+          b.data.lang,
+          ctx,
+          rawHint || undefined,
+        );
+        transcribedFromAudio = true;
+        if (!orderText) {
+          const latency_ms = Date.now() - t0;
+          return {
+            terrain: terrainIdentity,
+            transcript: "",
+            speech: audioUnavailableMsg(ctx.lang),
+            actions: [],
+            trace: [],
+            route: ["SUIT.VOICE-EXEC"],
+            offline: false,
+            latency_ms,
+          };
+        }
+      }
+
+      const r = await handleVoice(orderText, ctx, b.data.history, { skipNormalize: transcribedFromAudio });
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, route: r.route, offline: false }, "/api/agent/voice");
-      return { terrain: terrainIdentity, speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, route: r.route, offline: false, latency_ms };
+      return {
+        terrain: terrainIdentity,
+        transcript: r.transcript ?? orderText,
+        speech: plainSpeech(r.text),
+        actions: r.actions,
+        trace: r.trace,
+        route: r.route,
+        offline: false,
+        latency_ms,
+      };
     } catch (err) {
       req.log.error(err);
-      const res = await offlineReply(b.data.text, ctx, b.data.history);
+      const fallbackOrder = orderText || rawHint || textInput;
       const latency_ms = Date.now() - t0;
+      if (!fallbackOrder) {
+        return {
+          terrain: terrainIdentity,
+          transcript: "",
+          speech: audioUnavailableMsg(ctx.lang),
+          actions: [],
+          trace: [],
+          route: ["SUIT.VOICE-EXEC"],
+          offline: true,
+          latency_ms,
+        };
+      }
+      const res = await offlineReply(fallbackOrder, ctx, b.data.history);
       req.log.warn({ latency_ms, route: res.route, offline: true }, "/api/agent/voice fell back to offline rules");
-      return { terrain: terrainIdentity, ...res, offline: true, latency_ms };
+      return { terrain: terrainIdentity, ...res, transcript: fallbackOrder, offline: true, latency_ms };
     }
   });
 

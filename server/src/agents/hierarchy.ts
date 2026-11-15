@@ -1,3 +1,4 @@
+import { config } from "../config.js";
 import { offlineReply } from "./offline.js";
 import {
   claimsMissingTelemetry,
@@ -6,6 +7,7 @@ import {
   type AgentResult,
   type AgentSpec,
 } from "./runAgent.js";
+import { needsTranscriptNormalization, normalizeVoiceTranscript } from "./stt.js";
 import type { ConversationTurn, MissionContext } from "./types.js";
 import { capabilityPrompt } from "./unitCapabilities.js";
 
@@ -228,19 +230,29 @@ export async function handleVoice(
   text: string,
   ctx: MissionContext,
   history: ConversationTurn[] = [],
-): Promise<AgentResult & { route: string[] }> {
+  opts?: { skipNormalize?: boolean },
+): Promise<AgentResult & { route: string[]; transcript?: string }> {
   const cleanHistory = history
     .filter((t) => (t.role === "user" || t.role === "assistant") && t.content.trim().length > 0)
     .filter((t) => !(t.role === "assistant" && /^ESCALATE$/i.test(t.content.trim())))
     .slice(-6);
 
+  const normalizedText =
+    !opts?.skipNormalize &&
+    !config.offline &&
+    process.env.AGENTS_OFFLINE !== "1" &&
+    needsTranscriptNormalization(text)
+      ? await normalizeVoiceTranscript(text, ctx.lang, ctx)
+      : text.trim();
+  const orderText = normalizedText || text.trim();
+
   let fast: AgentResult;
-  let needsEscalation = shouldEscalateFast(text, ctx);
+  let needsEscalation = shouldEscalateFast(orderText, ctx);
 
   if (needsEscalation) {
     fast = { text: "", actions: [], trace: [] };
   } else {
-    fast = await runAgent(AGENTS["SUIT.VOICE-EXEC"], text, ctx, text, 6, 0, cleanHistory);
+    fast = await runAgent(AGENTS["SUIT.VOICE-EXEC"], orderText, ctx, orderText, 6, 0, cleanHistory);
     needsEscalation =
       /ESCALATE/i.test(fast.text) ||
       (!fast.text.trim() && fast.actions.length === 0) ||
@@ -249,23 +261,30 @@ export async function handleVoice(
   }
 
   if (!needsEscalation && needsLeakSafetyNet(ctx, fast.actions)) {
-    const det = await offlineReply(`${text} emergency`, ctx, cleanHistory);
-    return { text: stripEscalate(det.speech), actions: [...fast.actions, ...det.actions], trace: [...fast.trace, ...det.trace], route: det.route };
+    const det = await offlineReply(`${orderText} emergency`, ctx, cleanHistory);
+    return {
+      text: stripEscalate(det.speech),
+      actions: [...fast.actions, ...det.actions],
+      trace: [...fast.trace, ...det.trace],
+      route: det.route,
+      transcript: orderText,
+    };
   }
   if (!needsEscalation) {
-    return { ...fast, text: stripEscalate(fast.text), route: ["SUIT.VOICE-EXEC"] };
+    return { ...fast, text: stripEscalate(fast.text), route: ["SUIT.VOICE-EXEC"], transcript: orderText };
   }
 
-  const base = await runAgent(AGENTS.BASE, formatBaseInput(text, ctx), ctx, text, 6, 0, cleanHistory);
+  const base = await runAgent(AGENTS.BASE, formatBaseInput(orderText, ctx), ctx, orderText, 6, 0, cleanHistory);
 
   // Life-support safety net: a suit leak must never depend on the LLM choosing to act.
   if (needsLeakSafetyNet(ctx, base.actions)) {
-    const det = await offlineReply(`${text} emergency`, ctx, cleanHistory);
+    const det = await offlineReply(`${orderText} emergency`, ctx, cleanHistory);
     return {
       text: stripEscalate(det.speech),
       actions: [...fast.actions, ...det.actions],
       trace: [...fast.trace, ...base.trace, ...det.trace],
       route: det.route,
+      transcript: orderText,
     };
   }
   const delegatedAgents = base.trace
@@ -287,5 +306,6 @@ export async function handleVoice(
       ...base.trace,
     ],
     route: ["SUIT.VOICE-EXEC", "BASE", ...delegatedAgents],
+    transcript: orderText,
   };
 }
