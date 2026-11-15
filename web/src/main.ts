@@ -25,6 +25,8 @@ import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
 import { PitProc } from "./world/pitProc";
 import { RescueScenario, type RescueView } from "./world/rescueScenario";
+import { ScenePanel } from "./hud/scenePanel";
+import { SceneDirector } from "./world/sceneDirector";
 import { PodBallistics } from "./world/podBallistics";
 import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
@@ -443,6 +445,21 @@ const rescue = new RescueScenario({
 });
 store.rescue = rescue;
 
+// Scene director: recorded takes of the rescue (plan 22, section 3.1). It seeks the scenario, drives the camera
+// and hands the clock to the normal simulation step by marking the rescue scenario as active.
+const sceneDirector = new SceneDirector(rescue, {
+  onStart: () => {
+    store.activeScenario = "rescue";
+    store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
+    store.simScale = 1;
+    if (store.povMode !== "3rd") {
+      astronaut.setPovMode("3rd");
+      store.povMode = "3rd";
+    }
+  },
+});
+const scenePanel = new ScenePanel(sceneDirector, { setHudVisible: (v) => store.setHudVisible(v) });
+
 /** Applies the scripted rescue state to the fleet, crew, rescue robot and environment. */
 function applyRescueView(v: RescueView): void {
   store.env.tau = v.tau;
@@ -740,6 +757,15 @@ function animate(now: number): void {
       astronaut: astronaut.pos,
     });
   }
+  const shot = sceneDirector.update(realDt, {
+    getPos: (id) => rescue.getEntityPosition(id),
+    heightAt: (x, z) => terrain.heightAt(x, z),
+  });
+  if (shot) {
+    camera.position.set(shot.pos.x, shot.pos.y, shot.pos.z);
+    camera.lookAt(shot.target.x, shot.target.y, shot.target.z);
+  }
+  scenePanel.update();
   launchSite.update(now / 1000);
   skyCrane.update(realDt, store.env.tau);
 

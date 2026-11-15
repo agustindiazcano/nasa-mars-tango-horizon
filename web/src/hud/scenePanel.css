@@ -1,10 +1,11 @@
 /* Scene panel: pick a recorded scene and play it. Standalone from the HUD so takes can hide the HUD. */
 .scene-panel {
   position: fixed;
-  left: 22px;
-  bottom: 20px;
+  top: 46px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 40;
-  width: 248px;
+  width: 300px;
   font-family: var(--font-ui, "Rajdhani", system-ui, sans-serif);
   font-size: 12px;
   color: var(--ink, #f3ece3);
