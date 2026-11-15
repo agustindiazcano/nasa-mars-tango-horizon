@@ -120,7 +120,7 @@ export class MissionStore {
   terrain?: TerrainIdentity;
   metS = 1420; // 00:23:40 into EVA
   simScale = 1;
-  povMode: "1st" | "3rd" = "1st";
+  povMode: "1st" | "3rd" | "iso" = "1st";
   layer: LayerId = "optical";
   panel: PanelId = "none";
   leakDiameterM = 0;

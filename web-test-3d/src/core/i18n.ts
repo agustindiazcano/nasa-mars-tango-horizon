@@ -57,6 +57,9 @@ const en = {
   "hud.dist_base": "Base Dist",
   "hud.pov_1st": "POV: HELMET",
   "hud.pov_3rd": "POV: 3RD PERSON",
+  "hud.pov_iso": "POV: AERIAL ISO",
+  "hud.btn_iso": "Aerial Base (V)",
+  "hud.iso_hint": "WASD: Pan · Wheel: Zoom · Left-drag: Rotate · Right-drag: Move",
   "hud.layers": "TERRAIN LAYERS",
   "hud.layer.optical": "Optical",
   "hud.layer.slope": "Slope",
@@ -189,6 +192,9 @@ const es: Dict = {
   "hud.dist_base": "Dist Base",
   "hud.pov_1st": "CAM: CASCO 1P",
   "hud.pov_3rd": "CAM: 3RA PERSONA",
+  "hud.pov_iso": "CAM: AEREA BASE",
+  "hud.btn_iso": "Vista Base (V)",
+  "hud.iso_hint": "WASD: Mover · Rueda: Zoom · Click izq: Rotar · Click der: Desplazar",
   "hud.layers": "CAPAS TERRENO",
   "hud.layer.optical": "Optica",
   "hud.layer.slope": "Pendiente",
@@ -288,6 +294,9 @@ const es: Dict = {
 
 const fr: Dict = {
   ...en,
+  "hud.pov_iso": "VUE: BASE AERIENNE",
+  "hud.btn_iso": "Vue Base (V)",
+  "hud.iso_hint": "WASD: Deplacer · Molette: Zoom · Clic gauche: Pivoter · Clic droit: Glisser",
   "hud.layer.hydration": "Indice d'hydratation",
   "hud.layer.hydration_unc": "Incert. (q90-q10)",
   "hud.hydration_index": "Indice d'hydratation",
@@ -357,6 +366,9 @@ const fr: Dict = {
 
 const de: Dict = {
   ...en,
+  "hud.pov_iso": "KAM: BASIS LUFTBILD",
+  "hud.btn_iso": "Basis-Ansicht (V)",
+  "hud.iso_hint": "WASD: Bewegen · Mausrad: Zoom · Linksziehen: Drehen · Rechtsziehen: Verschieben",
   "hud.layer.hydration": "Hydratationsindex",
   "hud.layer.hydration_unc": "Unsich. (q90-q10)",
   "hud.hydration_index": "Hydratationsindex",
@@ -426,6 +438,9 @@ const de: Dict = {
 
 const it: Dict = {
   ...en,
+  "hud.pov_iso": "CAM: AEREA BASE",
+  "hud.btn_iso": "Vista Base (V)",
+  "hud.iso_hint": "WASD: Muovi · Rotella: Zoom · Tasto sx: Ruota · Tasto dx: Sposta",
   "hud.layer.hydration": "Indice idratazione",
   "hud.layer.hydration_unc": "Incert. (q90-q10)",
   "hud.hydration_index": "Indice di idratazione",

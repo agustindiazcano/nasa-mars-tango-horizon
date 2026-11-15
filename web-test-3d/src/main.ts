@@ -33,7 +33,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.1, 30000);
+const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 30000);
 
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -458,6 +458,10 @@ const hud: TacticalHud = new TacticalHud(store, terrain, voice, deck, {
     store.povMode = astronaut.togglePov();
     store.notify();
   },
+  toggleIso: () => {
+    store.povMode = astronaut.toggleIso();
+    store.notify();
+  },
   setLayer: (l) => store.setLayer(l),
   runManipSkill: (skill, tgt) => {
     void voice.handle(`Hands, ${skill} ${tgt}`);
@@ -502,7 +506,7 @@ canvas.addEventListener("click", (e) => {
   void voice.radio.unlock();
   if (store.povMode === "1st" && document.pointerLockElement !== canvas) {
     canvas.requestPointerLock();
-  } else {
+  } else if (!astronaut.consumeWasDragged()) {
     handleCanvasPick(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
   }
 });
@@ -513,6 +517,9 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "Tab") {
     e.preventDefault();
     store.povMode = astronaut.togglePov();
+    store.notify();
+  } else if (e.code === "KeyV") {
+    store.povMode = astronaut.toggleIso();
     store.notify();
   } else if (e.code === "KeyH") {
     hud.toggleDeck();
@@ -576,8 +583,7 @@ function stepSimulation(dt: number): void {
     store.env.dose_rate_ugy_h += (9.8 - store.env.dose_rate_ugy_h) * dt * 0.5;
   }
 
-  const { metabolicW, svf } = astronaut.update(
-    dt,
+  const { metabolicW, svf } = astronaut.computeBioMetrics(
     store.astronaut.body_kg,
     store.astronaut.load_kg,
     store.leakDiameterM > 0,
@@ -620,6 +626,8 @@ function animate(now: number): void {
     stepSimulation(SIM_DT);
     acc -= SIM_DT;
   }
+
+  astronaut.updateMovement(realDt);
 
   skyDust.update(
     now / 1000,

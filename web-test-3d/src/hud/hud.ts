@@ -25,6 +25,7 @@ import type { DeckButton } from "./demoDeck";
 
 export interface HudActions {
   togglePov(): void;
+  toggleIso(): void;
   setLayer(layer: LayerId): void;
   runManipSkill(skill: ArmSkillId, targetId: string): void;
   captureRoverVision(unitId: string, question: string): void;
@@ -224,7 +225,8 @@ export class TacticalHud {
           ${menuHtml}
           <button class="hud-btn" data-pointable id="btn-rover-cam">${t("menu.rover_cam")}</button>
           <button class="hud-btn" data-pointable id="btn-qr">${t("menu.remote")}</button>
-          <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : t("hud.pov_3rd")}</button>
+          <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : this.store.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso")}</button>
+          <button class="hud-btn ${this.store.povMode === "iso" ? "active" : ""}" data-pointable id="btn-iso" title="${t("hud.iso_hint")}">${t("hud.btn_iso")}</button>
         </div>
         <div class="btn-row">
           <span style="opacity:0.75; font-size:10px;">${t("hud.layers")}:</span>
@@ -284,6 +286,7 @@ export class TacticalHud {
     });
 
     document.getElementById("btn-pov")!.addEventListener("click", () => this.actions.togglePov());
+    document.getElementById("btn-iso")!.addEventListener("click", () => this.actions.toggleIso());
     document.getElementById("btn-qr")!.addEventListener("click", () => this.toggleQrModal());
     document.getElementById("btn-rover-cam")!.addEventListener("click", () => {
       this.roverModalOpen = true;
@@ -497,7 +500,14 @@ export class TacticalHud {
       b.classList.toggle("active", b.dataset.panel === s.panel);
     });
     const povBtn = document.getElementById("btn-pov");
-    if (povBtn) povBtn.textContent = s.povMode === "1st" ? t("hud.pov_1st") : t("hud.pov_3rd");
+    if (povBtn) {
+      povBtn.textContent =
+        s.povMode === "1st" ? t("hud.pov_1st") : s.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso");
+    }
+    const isoBtn = document.getElementById("btn-iso");
+    if (isoBtn) isoBtn.classList.toggle("active", s.povMode === "iso");
+    const visorEl = document.getElementById("visor-vignette");
+    if (visorEl) visorEl.style.display = s.povMode === "1st" ? "block" : "none";
     const pttBtn = document.getElementById("btn-ptt");
     if (pttBtn) pttBtn.classList.toggle("listening", s.micListening);
     const procBadge = document.getElementById("base-proc-badge");
