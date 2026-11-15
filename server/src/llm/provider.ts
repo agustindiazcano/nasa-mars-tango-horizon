@@ -88,12 +88,14 @@ export async function chat(
           tools: opts.tools?.length ? opts.tools : undefined,
           response_format: opts.json ? { type: "json_object" } : undefined,
           max_tokens: opts.maxTokens ?? config.maxTokens,
-        },
+          // Keep Gemini reasoning bounded on Vertex/AI Studio so tool turns stay fast and never burn all tokens on thought.
+          ...(provider !== "meta" ? { reasoning_effort: "low" as const } : {}),
+        } as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
         { timeout }
       );
       const message = res.choices[0]?.message;
-      if (!message) {
-        throw new Error(`Empty completion choice from provider ${provider}`);
+      if (!message || (!message.content?.trim() && !message.tool_calls?.length)) {
+        throw new Error(`Empty completion from provider ${provider}`);
       }
       return message;
     } catch (err) {
