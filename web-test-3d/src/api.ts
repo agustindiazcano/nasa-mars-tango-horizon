@@ -1,5 +1,5 @@
 import type { TerrainIdentity } from "@th/shared";
-import type { Action, ConversationTurn, MissionContext, TraceEvent } from "./core/types";
+import type { Action, ConversationTurn, MissionContext, TraceEvent } from "@th/shared";
 
 const API_BASE = (import.meta.env?.VITE_API_URL ?? "").replace(/\/+$/, "");
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ASTRONAUT_START, READY_TERRAIN } from "@th/shared";
-import { setLang } from "../core/i18n";
-import type { Action, RouteDisplay } from "../core/types";
+import { setLang } from "@th/shared";
+import type { Action, RouteDisplay } from "@th/shared";
 import { MissionStore, type WorldHooks } from "../state";
 
 describe("MissionStore (web-test-3d)", () => {

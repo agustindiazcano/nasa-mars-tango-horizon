@@ -26,7 +26,7 @@ import {
   normalizeVoiceTranscript,
   transcribeAudioDetailed,
 } from "../stt.js";
-import { setLang } from "../../../../web-test-3d/src/core/i18n";
+import { setLang } from "@th/shared";
 import { MissionStore } from "../../../../web-test-3d/src/state";
 import { encodeWav16kMono } from "../../../../web-test-3d/src/voice/listen";
 import { VoiceController } from "../../../../web-test-3d/src/voice/voiceController";

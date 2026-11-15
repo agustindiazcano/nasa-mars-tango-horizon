@@ -1,8 +1,8 @@
 import { fleetStartPos, MANIP_TARGETS } from "@th/shared";
 import { footprintContacts, groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
-import { AIRCRAFT_GROUNDING_TAU, planRoute } from "../core/physics";
-import type { ArmSkillId, UnitKind, UnitSnapshot } from "../core/types";
+import { AIRCRAFT_GROUNDING_TAU, planRoute } from "@th/shared";
+import type { ArmSkillId, UnitKind, UnitSnapshot } from "@th/shared";
 import { ManipulatorArm, SkillRunner } from "./manipulatorArm";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 

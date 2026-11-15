@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 import { wsUrl } from "../api";
-import { getLang, onLangChange } from "../core/i18n";
+import { getLang, onLangChange } from "@th/shared";
 
 export interface ScreenRelayHooks {
   onPtt(on: boolean): void;

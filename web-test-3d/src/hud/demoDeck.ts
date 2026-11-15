@@ -1,4 +1,4 @@
-import { t } from "../core/i18n";
+import { t } from "@th/shared";
 
 export interface DeckButton {
   key: string;
