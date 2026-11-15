@@ -28,7 +28,7 @@ const RALEWAY_FONT = "var(--font-raleway), 'Raleway', sans-serif";
 
 const HOME_COPY = {
   topSimulatorLabel: {
-    en: 'Launch 3D Simulator',
+    en: '3D Simulator',
     es: 'Simulador 3D',
   },
   topSimulatorAria: {
@@ -101,8 +101,8 @@ const HOME_COPY = {
 function MarsPlanetIcon() {
   return (
     <svg
-      width="30"
-      height="30"
+      width="32"
+      height="32"
       viewBox="0 0 64 64"
       aria-hidden="true"
       style={{ display: 'block', flexShrink: 0 }}
@@ -112,14 +112,14 @@ function MarsPlanetIcon() {
           <circle cx="32" cy="32" r="28" />
         </clipPath>
         <radialGradient id="th-btn-mars-sphere" cx="35%" cy="30%" r="72%">
-          <stop offset="0%" stopColor="#ec7a4b" />
-          <stop offset="56%" stopColor="#c94923" />
-          <stop offset="100%" stopColor="#7e220c" />
+          <stop offset="0%" stopColor="#f59e0b" />
+          <stop offset="48%" stopColor="#ea580c" />
+          <stop offset="100%" stopColor="#7c2d12" />
         </radialGradient>
         <linearGradient id="th-btn-mars-dust" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#f3a96b" stopOpacity="0.58" />
-          <stop offset="55%" stopColor="#ec8f4e" stopOpacity="0.42" />
-          <stop offset="100%" stopColor="#a83b18" stopOpacity="0.22" />
+          <stop offset="0%" stopColor="#fdba74" stopOpacity="0.62" />
+          <stop offset="55%" stopColor="#fb923c" stopOpacity="0.44" />
+          <stop offset="100%" stopColor="#9a3412" stopOpacity="0.24" />
         </linearGradient>
       </defs>
       <g clipPath="url(#th-btn-mars-disc)">
@@ -128,8 +128,16 @@ function MarsPlanetIcon() {
           d="M 2 41 Q 20 36, 36 40 T 62 38 L 62 47 Q 42 51, 24 47 T 2 49 Z"
           fill="url(#th-btn-mars-dust)"
         />
-        <ellipse cx="32" cy="6.5" rx="13.5" ry="4.8" fill="#fae2d4" opacity="0.92" />
+        <ellipse cx="32" cy="6.5" rx="13.5" ry="4.8" fill="#fff1e6" opacity="0.92" />
       </g>
+      <circle
+        cx="32"
+        cy="32"
+        r="28"
+        fill="none"
+        stroke="rgba(255, 248, 241, 0.45)"
+        strokeWidth="1.4"
+      />
     </svg>
   );
 }
@@ -138,7 +146,6 @@ export default function HomePage() {
   const { lang } = useLanguage();
   const heroCopy = getProjectHeroCopy(lang);
   const aiUsage = getAiUsageData(lang);
-  const teamNames = TEAM_ROSTER_SUMMARY.map((member) => member.name);
 
   return (
     <section
@@ -148,13 +155,24 @@ export default function HomePage() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '1.75rem',
+        gap: '1.5rem',
         width: '100%',
         paddingBottom: '2.75rem',
         fontFamily: RALEWAY_FONT,
       }}
     >
-      {/* 1. TOP OF PAGE: Prominent Square 3D Simulator CTA with Mars Planet SVG on the Right */}
+      {/* 1. VERY TOP OF HOME: Institutional Sponsors Card */}
+      <div
+        className="th-partner-strip-wrap th-home-panel"
+        style={{
+          width: '80vw',
+          margin: '0 auto',
+        }}
+      >
+        <PartnerLogosStrip variant="hero" />
+      </div>
+
+      {/* 2. Prominent Centered 3D Simulator CTA with Mars Planet SVG on the Right */}
       <div
         className="th-home-panel"
         style={{
@@ -164,7 +182,7 @@ export default function HomePage() {
           justifyContent: 'center',
         }}
       >
-        <ElectricBorder color="#f97316" speed={1.15} chaos={0.35} borderRadius={2}>
+        <ElectricBorder color="#f97316" speed={1.15} chaos={0.32} borderRadius={12}>
           <a
             href={SIMULATOR_URL}
             target="_blank"
@@ -175,27 +193,28 @@ export default function HomePage() {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.95rem',
-              padding: '1.15rem 2.6rem',
+              gap: '1rem',
+              padding: '1.05rem 2.5rem',
               minHeight: '58px',
-              borderRadius: '2px',
+              borderRadius: '12px',
               textDecoration: 'none',
               fontFamily: RALEWAY_FONT,
-              fontSize: 'clamp(1.1rem, 1.8vw, 1.38rem)',
+              fontSize: 'clamp(1.12rem, 1.8vw, 1.38rem)',
               fontWeight: 800,
-              letterSpacing: '0.02em',
+              letterSpacing: '0.01em',
               color: '#fff8f1',
               background:
-                'linear-gradient(135deg, rgba(249, 115, 22, 0.44) 0%, rgba(251, 146, 60, 0.34) 50%, rgba(251, 113, 133, 0.32) 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.68)',
+                'linear-gradient(135deg, rgba(249, 115, 22, 0.42) 0%, rgba(234, 88, 12, 0.32) 52%, rgba(244, 63, 94, 0.28) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.46)',
               boxShadow:
-                '0 0 0 1px rgba(249, 115, 22, 0.42), 0 16px 40px rgba(249, 115, 22, 0.28)',
+                '0 14px 36px rgba(249, 115, 22, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28)',
+              backdropFilter: 'blur(16px)',
               whiteSpace: 'nowrap',
             }}
           >
             <span>{pickLang(HOME_COPY.topSimulatorLabel, lang)}</span>
             <MarsPlanetIcon />
-            <ExternalLink size={18} style={{ color: '#fbbf24' }} aria-hidden="true" />
+            <ExternalLink size={18} style={{ color: '#fde68a' }} aria-hidden="true" />
           </a>
         </ElectricBorder>
       </div>
@@ -206,11 +225,11 @@ export default function HomePage() {
         style={{
           width: '80vw',
           margin: '0 auto',
-          borderTop: '1px solid rgba(255, 255, 255, 0.24)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.22)',
         }}
       />
 
-      {/* 2. Hero Horizontal Showcase Block */}
+      {/* 3. Hero Horizontal Showcase Block */}
       <div
         className="th-home__hero th-home-panel"
         style={{
@@ -222,11 +241,11 @@ export default function HomePage() {
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={2}
+          borderRadius={18}
           borderWidth={0.08}
           brightness={48}
           opacity={0.94}
-          blur={14}
+          blur={18}
           displace={0.55}
           backgroundOpacity={0.14}
           saturation={1.24}
@@ -237,19 +256,21 @@ export default function HomePage() {
           style={{
             position: 'relative',
             zIndex: 2,
-            background: 'rgba(26, 12, 17, 0.78)',
-            border: '1px solid rgba(255, 255, 255, 0.24)',
+            borderRadius: '18px',
+            background:
+              'linear-gradient(145deg, rgba(30, 13, 19, 0.86) 0%, rgba(16, 7, 11, 0.92) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
             boxShadow:
-              '0 24px 64px rgba(10, 4, 6, 0.72), inset 0 1px 0 rgba(253, 186, 116, 0.14)',
+              '0 28px 68px rgba(8, 3, 5, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
           }}
         >
           <div
             style={{
               width: '100%',
-              padding: 'clamp(1.6rem, 3.6vw, 2.75rem) clamp(1.25rem, 3.6vw, 2.75rem)',
+              padding: 'clamp(1.75rem, 3.6vw, 2.85rem) clamp(1.35rem, 3.6vw, 2.85rem)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '1.6rem',
+              gap: '1.65rem',
             }}
           >
             {/* Horizontal 2-column grid: Left (Text + Team + Buttons) / Right (Clean Logo) */}
@@ -257,9 +278,9 @@ export default function HomePage() {
               className="th-home-hero-grid"
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0, 1.35fr) auto',
+                gridTemplateColumns: 'minmax(0, 1.38fr) auto',
                 alignItems: 'center',
-                gap: '2.25rem',
+                gap: '2.4rem',
                 width: '100%',
               }}
             >
@@ -270,7 +291,7 @@ export default function HomePage() {
                   flexDirection: 'column',
                   alignItems: 'flex-start',
                   textAlign: 'left',
-                  gap: '1.05rem',
+                  gap: '1.1rem',
                 }}
               >
                 <span
@@ -278,17 +299,17 @@ export default function HomePage() {
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    padding: '0.36rem 0.85rem',
-                    borderRadius: '2px',
-                    background: 'rgba(249, 115, 22, 0.16)',
-                    border: '1px solid rgba(251, 146, 60, 0.5)',
+                    padding: '0.38rem 0.9rem',
+                    borderRadius: '8px',
+                    background:
+                      'linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(251, 191, 36, 0.12) 100%)',
+                    border: '1px solid rgba(251, 146, 60, 0.45)',
                     color: '#fdba74',
                     fontFamily: RALEWAY_FONT,
                     fontVariantNumeric: 'tabular-nums',
                     fontSize: '0.76rem',
                     fontWeight: 700,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
                   }}
                 >
                   {heroCopy.badge}
@@ -301,51 +322,76 @@ export default function HomePage() {
                     margin: 0,
                     maxWidth: '820px',
                     fontFamily: RALEWAY_FONT,
-                    fontSize: 'clamp(2rem, 3.7vw, 3.25rem)',
+                    fontSize: 'clamp(2.05rem, 3.7vw, 3.25rem)',
                     fontWeight: 800,
-                    letterSpacing: '-0.02em',
+                    letterSpacing: '-0.025em',
                     wordSpacing: 'normal',
                     lineHeight: 1.08,
                     color: '#fff8f1',
-                    textShadow: '0 2px 24px rgba(249, 115, 22, 0.3)',
+                    textShadow: '0 4px 28px rgba(249, 115, 22, 0.26)',
                     textAlign: 'left',
                   }}
                 >
                   {heroCopy.title}
                 </h1>
 
-                {/* Team Text Block */}
+                {/* Team Roster Block */}
                 <div
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '0.25rem',
-                    paddingLeft: '0.85rem',
-                    borderLeft: '2px solid #f97316',
+                    gap: '0.5rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '12px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderLeft: '3px solid #f97316',
+                    width: '100%',
+                    maxWidth: '720px',
                   }}
                 >
                   <span
                     style={{
                       fontFamily: RALEWAY_FONT,
-                      fontSize: '0.8rem',
+                      fontSize: '0.78rem',
                       fontWeight: 700,
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
                       color: '#fbbf24',
                     }}
                   >
                     {pickLang(HOME_COPY.teamBlockLabel, lang)}
                   </span>
-                  <span
+                  <div
                     style={{
-                      fontFamily: RALEWAY_FONT,
-                      fontSize: '0.96rem',
-                      fontWeight: 600,
-                      color: '#f3dfd1',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.45rem',
                     }}
                   >
-                    {teamNames.join(' · ')}
-                  </span>
+                    {TEAM_ROSTER_SUMMARY.map((member) => (
+                      <span
+                        key={member.name}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          padding: '0.26rem 0.68rem',
+                          borderRadius: '8px',
+                          background: 'rgba(24, 10, 15, 0.78)',
+                          border: '1px solid rgba(253, 186, 116, 0.25)',
+                          fontFamily: RALEWAY_FONT,
+                          fontSize: '0.84rem',
+                          fontWeight: 600,
+                          color: '#fff8f1',
+                        }}
+                      >
+                        <span>{member.name}</span>
+                        <span style={{ color: '#fb923c', fontSize: '0.74rem', fontWeight: 500 }}>
+                          · {pickLang(member.role, lang)}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
                 <p
@@ -354,7 +400,7 @@ export default function HomePage() {
                     maxWidth: '720px',
                     margin: 0,
                     fontFamily: RALEWAY_FONT,
-                    fontSize: 'clamp(1rem, 1.35vw, 1.15rem)',
+                    fontSize: 'clamp(1rem, 1.32vw, 1.14rem)',
                     fontWeight: 500,
                     lineHeight: 1.62,
                     color: '#f3dfd1',
@@ -370,15 +416,15 @@ export default function HomePage() {
                     margin: 0,
                     fontFamily: RALEWAY_FONT,
                     fontSize: '0.92rem',
-                    lineHeight: 1.6,
-                    color: '#c4a99a',
+                    lineHeight: 1.62,
+                    color: '#d1b7a9',
                     textAlign: 'left',
                   }}
                 >
                   {heroCopy.summary}
                 </p>
 
-                {/* Crisp Square 2px Action Buttons */}
+                {/* Modern Slightly-Rounded Action Buttons (10px) */}
                 <div
                   className="th-home__actions"
                   style={{
@@ -398,22 +444,24 @@ export default function HomePage() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '0.5rem',
-                      minHeight: '42px',
-                      padding: '0.55rem 1.2rem',
-                      borderRadius: '2px',
+                      gap: '0.55rem',
+                      minHeight: '44px',
+                      padding: '0.6rem 1.35rem',
+                      borderRadius: '10px',
                       textDecoration: 'none',
                       fontFamily: RALEWAY_FONT,
                       fontWeight: 700,
                       fontSize: '0.92rem',
-                      color: '#fbbf24',
-                      background: 'rgba(251, 146, 60, 0.16)',
-                      border: '1px solid rgba(251, 191, 36, 0.5)',
-                      boxShadow: '0 6px 18px rgba(10, 4, 6, 0.35)',
+                      color: '#fff8f1',
+                      background:
+                        'linear-gradient(135deg, rgba(249, 115, 22, 0.34) 0%, rgba(251, 191, 36, 0.22) 100%)',
+                      border: '1px solid rgba(251, 191, 36, 0.55)',
+                      boxShadow:
+                        '0 8px 24px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    <Cpu size={16} aria-hidden="true" />
+                    <Cpu size={16} style={{ color: '#fbbf24' }} aria-hidden="true" />
                     <span>{pickLang(HOME_COPY.projectBtn, lang)}</span>
                   </Link>
 
@@ -424,22 +472,24 @@ export default function HomePage() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '0.5rem',
-                      minHeight: '42px',
-                      padding: '0.55rem 1.2rem',
-                      borderRadius: '2px',
+                      gap: '0.55rem',
+                      minHeight: '44px',
+                      padding: '0.6rem 1.35rem',
+                      borderRadius: '10px',
                       textDecoration: 'none',
                       fontFamily: RALEWAY_FONT,
                       fontWeight: 700,
                       fontSize: '0.92rem',
-                      color: '#fda4af',
-                      background: 'rgba(251, 113, 133, 0.16)',
-                      border: '1px solid rgba(251, 113, 133, 0.5)',
-                      boxShadow: '0 6px 18px rgba(10, 4, 6, 0.35)',
+                      color: '#fff8f1',
+                      background:
+                        'linear-gradient(135deg, rgba(251, 113, 133, 0.26) 0%, rgba(249, 115, 22, 0.16) 100%)',
+                      border: '1px solid rgba(251, 113, 133, 0.52)',
+                      boxShadow:
+                        '0 8px 24px rgba(10, 4, 6, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.16)',
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    <Presentation size={16} aria-hidden="true" />
+                    <Presentation size={16} style={{ color: '#fda4af' }} aria-hidden="true" />
                     <span>{pickLang(HOME_COPY.slidesBtn, lang)}</span>
                   </Link>
 
@@ -450,18 +500,19 @@ export default function HomePage() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '0.5rem',
-                      minHeight: '42px',
-                      padding: '0.55rem 1.2rem',
-                      borderRadius: '2px',
+                      gap: '0.55rem',
+                      minHeight: '44px',
+                      padding: '0.6rem 1.35rem',
+                      borderRadius: '10px',
                       textDecoration: 'none',
                       fontFamily: RALEWAY_FONT,
                       fontWeight: 700,
                       fontSize: '0.92rem',
                       color: '#fdba74',
-                      background: '#1c0e13',
-                      border: '1px solid rgba(253, 186, 116, 0.45)',
-                      boxShadow: '0 6px 18px rgba(10, 4, 6, 0.35)',
+                      background: 'rgba(28, 12, 18, 0.85)',
+                      border: '1px solid rgba(255, 255, 255, 0.24)',
+                      boxShadow:
+                        '0 8px 24px rgba(10, 4, 6, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
                       whiteSpace: 'nowrap',
                     }}
                   >
@@ -471,7 +522,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Right Column: Clean Logo with NO circular glow / radial gradient / boxShadow halo */}
+              {/* Right Column: Clean Logo with NO circular glow / halo */}
               <div
                 className="th-home-hero-logo-col"
                 style={{
@@ -492,7 +543,9 @@ export default function HomePage() {
                     height: 'auto',
                     objectFit: 'contain',
                     background: 'transparent',
-                    borderRadius: '2px',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                    boxShadow: 'none',
                     display: 'block',
                   }}
                 />
@@ -504,7 +557,7 @@ export default function HomePage() {
               style={{
                 width: '100%',
                 paddingTop: '1rem',
-                borderTop: '1px solid rgba(255, 255, 255, 0.26)',
+                borderTop: '1px solid rgba(255, 255, 255, 0.22)',
                 display: 'flex',
                 flexWrap: 'wrap',
                 alignItems: 'center',
@@ -517,8 +570,8 @@ export default function HomePage() {
                   fontFamily: RALEWAY_FONT,
                   fontSize: '0.82rem',
                   fontWeight: 600,
-                  letterSpacing: '0.03em',
-                  color: '#f3dfd1',
+                  letterSpacing: '0.02em',
+                  color: '#e5cfc2',
                 }}
               >
                 {pickLang(HOME_COPY.heroBottomStrip, lang)}
@@ -528,16 +581,16 @@ export default function HomePage() {
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.35rem',
+                  gap: '0.38rem',
                   fontFamily: RALEWAY_FONT,
                   fontSize: '0.82rem',
                   fontWeight: 700,
-                  color: '#fb923c',
+                  color: '#fdba74',
                   textDecoration: 'none',
-                  borderRadius: '2px',
-                  padding: '0.25rem 0.65rem',
+                  borderRadius: '8px',
+                  padding: '0.32rem 0.78rem',
                   border: '1px solid rgba(251, 146, 60, 0.42)',
-                  background: 'rgba(249, 115, 22, 0.12)',
+                  background: 'rgba(249, 115, 22, 0.14)',
                 }}
               >
                 <Users size={13} aria-hidden="true" />
@@ -554,11 +607,11 @@ export default function HomePage() {
         style={{
           width: '80vw',
           margin: '0 auto',
-          borderTop: '1px solid rgba(255, 255, 255, 0.24)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.22)',
         }}
       />
 
-      {/* 3. Tech Stack Section (Moved BELOW the Hero/logo block) */}
+      {/* 4. Tech Stack Section (Directly BELOW the Hero/logo block) */}
       <div
         className="th-stack-strip th-home-panel"
         aria-label={pickLang(HOME_COPY.stackAriaLabel, lang)}
@@ -568,12 +621,15 @@ export default function HomePage() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '0.75rem',
-          padding: '1.1rem 1.35rem',
-          borderRadius: '2px',
-          background: 'rgba(26, 12, 17, 0.78)',
-          border: '1px solid rgba(255, 255, 255, 0.24)',
-          backdropFilter: 'blur(12px)',
+          gap: '0.9rem',
+          padding: '1.35rem 1.65rem',
+          borderRadius: '16px',
+          background:
+            'linear-gradient(135deg, rgba(28, 12, 18, 0.84) 0%, rgba(18, 8, 12, 0.9) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow:
+            '0 18px 44px rgba(8, 3, 5, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(16px)',
         }}
       >
         <div
@@ -581,16 +637,19 @@ export default function HomePage() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.45rem',
+            gap: '0.5rem',
+            padding: '0.3rem 0.85rem',
+            borderRadius: '8px',
+            background: 'rgba(249, 115, 22, 0.14)',
+            border: '1px solid rgba(251, 191, 36, 0.35)',
             fontFamily: RALEWAY_FONT,
-            fontSize: '0.78rem',
+            fontSize: '0.84rem',
             fontWeight: 800,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
             color: '#fbbf24',
           }}
         >
-          <Layers size={14} aria-hidden="true" />
+          <Layers size={15} aria-hidden="true" />
           <span>{pickLang(HOME_COPY.stackHeader, lang)}</span>
         </div>
 
@@ -603,7 +662,7 @@ export default function HomePage() {
             display: 'flex',
             flexWrap: 'wrap',
             justifyContent: 'center',
-            gap: '0.45rem',
+            gap: '0.55rem',
           }}
         >
           {TECH_STACK_HIGHLIGHT.map((chip) => (
@@ -611,15 +670,16 @@ export default function HomePage() {
               key={chip}
               className="th-stack-chip"
               style={{
-                padding: '0.32rem 0.72rem',
-                borderRadius: '2px',
+                padding: '0.4rem 0.85rem',
+                borderRadius: '8px',
                 fontFamily: RALEWAY_FONT,
                 fontVariantNumeric: 'tabular-nums',
-                fontSize: '0.76rem',
+                fontSize: '0.8rem',
                 fontWeight: 600,
-                color: '#f3dfd1',
-                background: '#1c0e13',
-                border: '1px solid rgba(251, 146, 60, 0.34)',
+                color: '#fff8f1',
+                background: 'rgba(20, 9, 14, 0.82)',
+                border: '1px solid rgba(255, 255, 255, 0.16)',
+                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.06)',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -635,11 +695,11 @@ export default function HomePage() {
         style={{
           width: '80vw',
           margin: '0 auto',
-          borderTop: '1px solid rgba(255, 255, 255, 0.24)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.22)',
         }}
       />
 
-      {/* 4. Dedicated AI Usage Section on Home */}
+      {/* 5. Dedicated AI Usage Section on Home */}
       <section
         className="th-ai-usage th-home-panel"
         aria-labelledby="ai-usage-title"
@@ -647,7 +707,7 @@ export default function HomePage() {
           width: '80vw',
           margin: '0 auto',
           padding: 0,
-          borderRadius: '2px',
+          borderRadius: '18px',
           background: 'transparent',
           border: 'none',
           boxShadow: 'none',
@@ -656,11 +716,11 @@ export default function HomePage() {
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={2}
+          borderRadius={18}
           borderWidth={0.07}
           brightness={48}
           opacity={0.94}
-          blur={12}
+          blur={16}
           displace={0.45}
           backgroundOpacity={0.12}
           saturation={1.2}
@@ -669,18 +729,21 @@ export default function HomePage() {
           greenOffset={5}
           blueOffset={0}
           style={{
-            background: 'rgba(26, 12, 17, 0.78)',
-            border: '1px solid rgba(255, 255, 255, 0.24)',
-            boxShadow: '0 18px 48px rgba(10, 4, 6, 0.6)',
+            borderRadius: '18px',
+            background:
+              'linear-gradient(145deg, rgba(28, 12, 18, 0.84) 0%, rgba(16, 7, 11, 0.92) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow:
+              '0 22px 54px rgba(8, 3, 5, 0.64), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
           }}
         >
           <div
             style={{
               width: '100%',
-              padding: 'clamp(1.5rem, 3.2vw, 2.35rem)',
+              padding: 'clamp(1.6rem, 3.2vw, 2.45rem)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '1.25rem',
+              gap: '1.35rem',
             }}
           >
             <div
@@ -691,18 +754,17 @@ export default function HomePage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.85rem',
-                paddingBottom: '0.9rem',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.24)',
+                paddingBottom: '0.95rem',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
               }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.32rem' }}>
                 <span
                   style={{
                     fontFamily: RALEWAY_FONT,
-                    fontSize: '0.76rem',
+                    fontSize: '0.78rem',
                     fontWeight: 700,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
                     color: '#fb923c',
                   }}
                 >
@@ -714,7 +776,7 @@ export default function HomePage() {
                   style={{
                     margin: 0,
                     fontFamily: RALEWAY_FONT,
-                    fontSize: 'clamp(1.35rem, 2.4vw, 1.8rem)',
+                    fontSize: 'clamp(1.4rem, 2.4vw, 1.85rem)',
                     fontWeight: 800,
                     letterSpacing: '-0.02em',
                     color: '#fff8f1',
@@ -729,7 +791,7 @@ export default function HomePage() {
               style={{
                 margin: 0,
                 fontFamily: RALEWAY_FONT,
-                fontSize: '0.94rem',
+                fontSize: '0.95rem',
                 lineHeight: 1.65,
                 color: '#f3dfd1',
               }}
@@ -741,51 +803,66 @@ export default function HomePage() {
               className="th-ai-usage__grid"
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-                gap: '1rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: '1.05rem',
               }}
             >
               {/* Coding Agents */}
               <article
                 className="th-ai-usage__card"
                 style={{
-                  padding: '1.15rem',
-                  borderRadius: '2px',
-                  background: '#1c0e13',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderTop: '3px solid #f97316',
+                  padding: '1.25rem',
+                  borderRadius: '14px',
+                  background:
+                    'linear-gradient(160deg, rgba(36, 15, 22, 0.85) 0%, rgba(20, 9, 14, 0.92) 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.16)',
+                  boxShadow:
+                    '0 12px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(251, 146, 60, 0.2)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.65rem',
+                  gap: '0.75rem',
                 }}
               >
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
+                    gap: '0.55rem',
                     fontFamily: RALEWAY_FONT,
                     fontWeight: 700,
-                    fontSize: '0.95rem',
+                    fontSize: '0.96rem',
                     color: '#fb923c',
                   }}
                 >
-                  <Bot size={18} aria-hidden="true" />
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '8px',
+                      background: 'rgba(249, 115, 22, 0.18)',
+                      border: '1px solid rgba(249, 115, 22, 0.4)',
+                    }}
+                  >
+                    <Bot size={16} aria-hidden="true" />
+                  </span>
                   <span>{pickLang(HOME_COPY.codingAgentsTitle, lang)}</span>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
                   {aiUsage.codingAgents.map((agent) => (
                     <span
                       key={agent}
                       className="th-ai-usage__pill"
                       style={{
-                        padding: '0.28rem 0.65rem',
-                        borderRadius: '2px',
+                        padding: '0.32rem 0.72rem',
+                        borderRadius: '8px',
                         fontFamily: RALEWAY_FONT,
-                        fontSize: '0.78rem',
+                        fontSize: '0.79rem',
                         fontWeight: 600,
                         color: '#fff8f1',
-                        background: '#140a0e',
+                        background: 'rgba(18, 8, 12, 0.86)',
                         border: '1px solid rgba(249, 115, 22, 0.36)',
                       }}
                     >
@@ -799,28 +876,43 @@ export default function HomePage() {
               <article
                 className="th-ai-usage__card"
                 style={{
-                  padding: '1.15rem',
-                  borderRadius: '2px',
-                  background: '#1c0e13',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderTop: '3px solid #fbbf24',
+                  padding: '1.25rem',
+                  borderRadius: '14px',
+                  background:
+                    'linear-gradient(160deg, rgba(36, 15, 22, 0.85) 0%, rgba(20, 9, 14, 0.92) 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.16)',
+                  boxShadow:
+                    '0 12px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(251, 191, 36, 0.2)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.65rem',
+                  gap: '0.75rem',
                 }}
               >
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
+                    gap: '0.55rem',
                     fontFamily: RALEWAY_FONT,
                     fontWeight: 700,
-                    fontSize: '0.95rem',
+                    fontSize: '0.96rem',
                     color: '#fbbf24',
                   }}
                 >
-                  <GitBranch size={18} aria-hidden="true" />
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '8px',
+                      background: 'rgba(251, 191, 36, 0.16)',
+                      border: '1px solid rgba(251, 191, 36, 0.4)',
+                    }}
+                  >
+                    <GitBranch size={16} aria-hidden="true" />
+                  </span>
                   <span>{pickLang(HOME_COPY.orchestrationTitle, lang)}</span>
                 </div>
                 <p
@@ -834,19 +926,19 @@ export default function HomePage() {
                 >
                   {aiUsage.orchestrationNote}
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
                   {aiUsage.workflowAi.map((tool) => (
                     <span
                       key={tool}
                       className="th-ai-usage__pill"
                       style={{
-                        padding: '0.28rem 0.65rem',
-                        borderRadius: '2px',
+                        padding: '0.32rem 0.72rem',
+                        borderRadius: '8px',
                         fontFamily: RALEWAY_FONT,
-                        fontSize: '0.78rem',
+                        fontSize: '0.79rem',
                         fontWeight: 600,
                         color: '#fdba74',
-                        background: '#140a0e',
+                        background: 'rgba(18, 8, 12, 0.86)',
                         border: '1px solid rgba(251, 191, 36, 0.36)',
                       }}
                     >
@@ -860,28 +952,43 @@ export default function HomePage() {
               <article
                 className="th-ai-usage__card"
                 style={{
-                  padding: '1.15rem',
-                  borderRadius: '2px',
-                  background: '#1c0e13',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderTop: '3px solid #fb7185',
+                  padding: '1.25rem',
+                  borderRadius: '14px',
+                  background:
+                    'linear-gradient(160deg, rgba(36, 15, 22, 0.85) 0%, rgba(20, 9, 14, 0.92) 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.16)',
+                  boxShadow:
+                    '0 12px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(251, 113, 133, 0.2)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.65rem',
+                  gap: '0.75rem',
                 }}
               >
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
+                    gap: '0.55rem',
                     fontFamily: RALEWAY_FONT,
                     fontWeight: 700,
-                    fontSize: '0.95rem',
+                    fontSize: '0.96rem',
                     color: '#fda4af',
                   }}
                 >
-                  <Layers size={18} aria-hidden="true" />
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '8px',
+                      background: 'rgba(251, 113, 133, 0.16)',
+                      border: '1px solid rgba(251, 113, 133, 0.4)',
+                    }}
+                  >
+                    <Layers size={16} aria-hidden="true" />
+                  </span>
                   <span>{pickLang(HOME_COPY.contractsTitle, lang)}</span>
                 </div>
                 <p
@@ -895,7 +1002,7 @@ export default function HomePage() {
                 >
                   {pickLang(HOME_COPY.contractsDesc, lang)}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.42rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                   {aiUsage.contractFiles.map((entry) => (
                     <div
                       key={entry.file}
@@ -909,14 +1016,14 @@ export default function HomePage() {
                       <code
                         className="th-ai-usage__contract"
                         style={{
-                          padding: '0.2rem 0.52rem',
-                          borderRadius: '2px',
+                          padding: '0.22rem 0.56rem',
+                          borderRadius: '6px',
                           fontFamily: RALEWAY_FONT,
                           fontVariantNumeric: 'tabular-nums',
                           fontWeight: 700,
                           fontSize: '0.76rem',
                           color: '#fdba74',
-                          background: '#140a0e',
+                          background: 'rgba(18, 8, 12, 0.86)',
                           border: '1px solid rgba(251, 113, 133, 0.36)',
                         }}
                       >
@@ -940,28 +1047,43 @@ export default function HomePage() {
               <article
                 className="th-ai-usage__card"
                 style={{
-                  padding: '1.15rem',
-                  borderRadius: '2px',
-                  background: '#1c0e13',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderTop: '3px solid #fdba74',
+                  padding: '1.25rem',
+                  borderRadius: '14px',
+                  background:
+                    'linear-gradient(160deg, rgba(36, 15, 22, 0.85) 0%, rgba(20, 9, 14, 0.92) 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.16)',
+                  boxShadow:
+                    '0 12px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(253, 186, 116, 0.2)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.65rem',
+                  gap: '0.75rem',
                 }}
               >
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
+                    gap: '0.55rem',
                     fontFamily: RALEWAY_FONT,
                     fontWeight: 700,
-                    fontSize: '0.95rem',
+                    fontSize: '0.96rem',
                     color: '#fdba74',
                   }}
                 >
-                  <ShieldCheck size={18} aria-hidden="true" />
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '8px',
+                      background: 'rgba(253, 186, 116, 0.16)',
+                      border: '1px solid rgba(253, 186, 116, 0.4)',
+                    }}
+                  >
+                    <ShieldCheck size={16} aria-hidden="true" />
+                  </span>
                   <span>{pickLang(HOME_COPY.humanTitle, lang)}</span>
                 </div>
                 <p
@@ -981,27 +1103,6 @@ export default function HomePage() {
         </GlassSurface>
       </section>
 
-      {/* White horizontal separation line */}
-      <div
-        aria-hidden="true"
-        style={{
-          width: '80vw',
-          margin: '0 auto',
-          borderTop: '1px solid rgba(255, 255, 255, 0.24)',
-        }}
-      />
-
-      {/* 5. Bottom of Home — Compact Institutional Logos */}
-      <div
-        className="th-partner-strip-wrap th-home-panel"
-        style={{
-          width: '80vw',
-          margin: '0 auto',
-        }}
-      >
-        <PartnerLogosStrip variant="hero" />
-      </div>
-
       <style>{`
         .th-home,
         .th-home * {
@@ -1012,23 +1113,37 @@ export default function HomePage() {
           font-family: var(--font-raleway), 'Raleway', sans-serif;
           font-variant-numeric: tabular-nums;
         }
+        .th-home .th-stack-chip {
+          transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
         .th-home .th-stack-chip:hover {
+          transform: translateY(-1px);
           border-color: rgba(249, 115, 22, 0.72) !important;
-          color: #fff8f1 !important;
+          background: rgba(36, 15, 22, 0.92) !important;
+        }
+        .th-home .th-ai-usage__card {
+          transition: transform 0.22s ease, border-color 0.22s ease;
+        }
+        .th-home .th-ai-usage__card:hover {
+          transform: translateY(-2px);
+          border-color: rgba(251, 146, 60, 0.48) !important;
         }
         .th-home-top-sim-btn,
         .th-home-action-btn {
-          transition: transform 0.2s ease, border-color 0.2s ease, filter 0.2s ease;
+          transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, filter 0.22s ease, box-shadow 0.22s ease;
         }
         .th-home-top-sim-btn:hover,
         .th-home-top-sim-btn:focus-visible,
         .th-home-action-btn:hover,
         .th-home-action-btn:focus-visible {
           transform: translateY(-2px);
-          filter: brightness(1.1);
+          filter: brightness(1.08);
           outline: none;
         }
         @media (max-width: 900px) {
+          .th-home-panel {
+            width: 92vw !important;
+          }
           .th-home-hero-grid {
             grid-template-columns: 1fr !important;
             gap: 1.5rem !important;

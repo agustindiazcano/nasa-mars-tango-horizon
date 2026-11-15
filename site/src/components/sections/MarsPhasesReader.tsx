@@ -68,12 +68,12 @@ export function MarsPhasesReader() {
           <Link
             href="/tesis-marte"
             className="ac-readmore-wrap"
-            style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
+            style={{ textDecoration: 'none', borderRadius: '10px', minHeight: '40px' }}
           >
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={12}
               borderWidth={0.12}
               brightness={58}
               opacity={0.95}
@@ -95,11 +95,11 @@ export function MarsPhasesReader() {
             color={currentAccent}
             speed={1.15}
             chaos={0.48}
-            borderRadius={2}
+            borderRadius={12}
           >
             <div
               className="era-detail-period-pill"
-              style={{ color: currentAccent, borderRadius: '2px', minHeight: '40px' }}
+              style={{ color: currentAccent, borderRadius: '10px', minHeight: '40px' }}
             >
               {currentPhase.title}
             </div>
@@ -119,7 +119,7 @@ export function MarsPhasesReader() {
               color: currentAccent,
               borderColor: 'rgba(251, 146, 60, 0.42)',
               background: 'rgba(251, 146, 60, 0.12)',
-              borderRadius: '2px',
+              borderRadius: '10px',
             }}
           >
             {currentPhase.kicker}
@@ -159,7 +159,7 @@ export function MarsPhasesReader() {
                     ? 'rgba(20, 10, 14, 0.92)'
                     : 'rgba(20, 10, 14, 0.65)',
                   color: isSelected ? tabAccent : '#f3dfd1',
-                  borderRadius: '2px',
+                  borderRadius: '10px',
                   minHeight: '40px',
                 }}
               >
@@ -174,7 +174,7 @@ export function MarsPhasesReader() {
                 color={tabAccent}
                 speed={1.15}
                 chaos={0.42}
-                borderRadius={2}
+                borderRadius={12}
               >
                 {tabButton}
               </ElectricBorder>
@@ -279,7 +279,7 @@ export function MarsPhasesReader() {
                             color: currentAccent,
                             borderColor: 'rgba(251, 146, 60, 0.42)',
                             background: 'rgba(251, 146, 60, 0.14)',
-                            borderRadius: '2px',
+                            borderRadius: '10px',
                           }}
                         >
                           {isEs ? 'Módulo' : 'Module'} 0{sIdx + 1}
@@ -348,7 +348,7 @@ export function MarsPhasesReader() {
                           color: '#fbbf24',
                           borderColor: 'rgba(251, 191, 36, 0.45)',
                           background: 'rgba(249, 115, 22, 0.16)',
-                          borderRadius: '2px',
+                          borderRadius: '10px',
                         }}
                       >
                         {isEs
@@ -370,12 +370,12 @@ export function MarsPhasesReader() {
                         <Link
                           href="/compendio"
                           className="ac-readmore-wrap"
-                          style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
+                          style={{ textDecoration: 'none', borderRadius: '10px', minHeight: '40px' }}
                         >
                           <GlassSurface
                             width="auto"
                             height={48}
-                            borderRadius={2}
+                            borderRadius={12}
                             borderWidth={0.12}
                             brightness={58}
                             opacity={0.95}
@@ -398,18 +398,18 @@ export function MarsPhasesReader() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="ac-readmore-wrap"
-                          style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
+                          style={{ textDecoration: 'none', borderRadius: '10px', minHeight: '40px' }}
                         >
                           <ElectricBorder
                             color="#f97316"
                             speed={1.25}
                             chaos={0.48}
-                            borderRadius={2}
+                            borderRadius={12}
                           >
                             <GlassSurface
                               width="auto"
                               height={48}
-                              borderRadius={2}
+                              borderRadius={12}
                               borderWidth={0.12}
                               brightness={60}
                               opacity={0.96}
@@ -445,12 +445,12 @@ export function MarsPhasesReader() {
               type="button"
               onClick={() => selectPhase(activeIndex - 1)}
               className="ac-readmore-wrap th-nav-button-reset"
-              style={{ borderRadius: '2px', minHeight: '40px' }}
+              style={{ borderRadius: '10px', minHeight: '40px' }}
             >
               <GlassSurface
                 width="auto"
                 height={48}
-                borderRadius={2}
+                borderRadius={12}
                 borderWidth={0.12}
                 brightness={56}
                 opacity={0.94}
@@ -469,12 +469,12 @@ export function MarsPhasesReader() {
             <Link
               href="/tesis-marte"
               className="ac-readmore-wrap"
-              style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
+              style={{ textDecoration: 'none', borderRadius: '10px', minHeight: '40px' }}
             >
               <GlassSurface
                 width="auto"
                 height={48}
-                borderRadius={2}
+                borderRadius={12}
                 borderWidth={0.12}
                 brightness={56}
                 opacity={0.94}
@@ -496,18 +496,18 @@ export function MarsPhasesReader() {
               type="button"
               onClick={() => selectPhase(activeIndex + 1)}
               className="ac-readmore-wrap th-nav-button-reset"
-              style={{ borderRadius: '2px', minHeight: '40px' }}
+              style={{ borderRadius: '10px', minHeight: '40px' }}
             >
               <ElectricBorder
                 color={nextAccent}
                 speed={1.2}
                 chaos={0.45}
-                borderRadius={2}
+                borderRadius={12}
               >
                 <GlassSurface
                   width="auto"
                   height={48}
-                  borderRadius={2}
+                  borderRadius={12}
                   borderWidth={0.12}
                   brightness={58}
                   opacity={0.95}
@@ -529,18 +529,18 @@ export function MarsPhasesReader() {
             <Link
               href="/compendio"
               className="ac-readmore-wrap"
-              style={{ textDecoration: 'none', borderRadius: '2px', minHeight: '40px' }}
+              style={{ textDecoration: 'none', borderRadius: '10px', minHeight: '40px' }}
             >
               <ElectricBorder
                 color="#fb7185"
                 speed={1.2}
                 chaos={0.45}
-                borderRadius={2}
+                borderRadius={12}
               >
                 <GlassSurface
                   width="auto"
                   height={48}
-                  borderRadius={2}
+                  borderRadius={12}
                   borderWidth={0.12}
                   brightness={58}
                   opacity={0.95}
@@ -581,7 +581,7 @@ export function MarsPhasesReader() {
           gap: 0.6rem;
           min-height: 40px;
           padding: 0.55rem 1.35rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(253, 186, 116, 0.28);
           font-family: var(--font-raleway), 'Raleway', sans-serif;
           cursor: pointer;
@@ -607,7 +607,7 @@ export function MarsPhasesReader() {
         }
         .th-phase-tag-chip {
           padding: 0.3rem 0.78rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(251, 146, 60, 0.12);
           border: 1px solid rgba(251, 146, 60, 0.3);
           color: #fdba74;
@@ -625,7 +625,7 @@ export function MarsPhasesReader() {
         }
         .th-highlight-chip {
           padding: 0.28rem 0.72rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.78);
           border: 1px solid rgba(251, 191, 36, 0.3);
           color: #fdba74;
@@ -656,7 +656,7 @@ export function MarsPhasesReader() {
         .th-nav-button-reset {
           background: transparent;
           border: none;
-          border-radius: 2px;
+          border-radius: 10px;
           min-height: 40px;
           padding: 0;
           cursor: pointer;

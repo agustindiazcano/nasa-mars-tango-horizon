@@ -305,7 +305,7 @@ export function ProjectLandingView() {
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={12}
               borderWidth={0.12}
               brightness={52}
               opacity={0.95}
@@ -326,7 +326,7 @@ export function ProjectLandingView() {
             </GlassSurface>
           </Link>
 
-          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.35} borderRadius={2}>
+          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.35} borderRadius={12}>
             <div className="era-detail-period-pill" style={{ color: '#fdba74' }}>
               NASA Space Apps Challenge 2026 · 2026-11-15
             </div>
@@ -338,7 +338,7 @@ export function ProjectLandingView() {
           <GlassSurface
             width="100%"
             height="auto"
-            borderRadius={2}
+            borderRadius={12}
             borderWidth={0.08}
             brightness={48}
             opacity={0.95}
@@ -399,7 +399,7 @@ export function ProjectLandingView() {
               </ul>
 
               <div className="th-project-hero-actions">
-                <ElectricBorder color="#f97316" speed={1.2} chaos={0.35} borderRadius={2}>
+                <ElectricBorder color="#f97316" speed={1.2} chaos={0.35} borderRadius={12}>
                   <a
                     href={SIMULATOR_URL}
                     target="_blank"
@@ -410,7 +410,7 @@ export function ProjectLandingView() {
                     <GlassSurface
                       width="auto"
                       height={44}
-                      borderRadius={2}
+                      borderRadius={12}
                       borderWidth={0.12}
                       brightness={54}
                       opacity={0.96}
@@ -437,7 +437,7 @@ export function ProjectLandingView() {
                   <GlassSurface
                     width="auto"
                     height={44}
-                    borderRadius={2}
+                    borderRadius={12}
                     borderWidth={0.12}
                     brightness={52}
                     opacity={0.95}
@@ -467,7 +467,7 @@ export function ProjectLandingView() {
                   <GlassSurface
                     width="auto"
                     height={44}
-                    borderRadius={2}
+                    borderRadius={12}
                     borderWidth={0.1}
                     brightness={50}
                     opacity={0.94}
@@ -697,7 +697,7 @@ export function ProjectLandingView() {
           <GlassSurface
             width="100%"
             height="auto"
-            borderRadius={2}
+            borderRadius={12}
             borderWidth={0.07}
             brightness={48}
             opacity={0.94}
@@ -859,11 +859,11 @@ export function ProjectLandingView() {
 
         {/* 7. TEAM TANGO HORIZON CARD */}
         <section className="th-project-section" aria-labelledby="team-summary-heading">
-          <ElectricBorder color="#f97316" speed={1.1} chaos={0.35} borderRadius={2}>
+          <ElectricBorder color="#f97316" speed={1.1} chaos={0.35} borderRadius={12}>
             <GlassSurface
               width="100%"
               height="auto"
-              borderRadius={2}
+              borderRadius={12}
               borderWidth={0.08}
               brightness={48}
               opacity={0.95}
@@ -900,7 +900,7 @@ export function ProjectLandingView() {
                     <GlassSurface
                       width="auto"
                       height={44}
-                      borderRadius={2}
+                      borderRadius={12}
                       borderWidth={0.12}
                       brightness={54}
                       opacity={0.96}
@@ -988,7 +988,7 @@ export function ProjectLandingView() {
                     <GlassSurface
                       width="auto"
                       height={44}
-                      borderRadius={2}
+                      borderRadius={12}
                       borderWidth={0.1}
                       brightness={52}
                       opacity={0.94}
@@ -1017,7 +1017,7 @@ export function ProjectLandingView() {
                     <GlassSurface
                       width="auto"
                       height={44}
-                      borderRadius={2}
+                      borderRadius={12}
                       borderWidth={0.12}
                       brightness={52}
                       opacity={0.95}
@@ -1048,7 +1048,7 @@ export function ProjectLandingView() {
                     <GlassSurface
                       width="auto"
                       height={44}
-                      borderRadius={2}
+                      borderRadius={12}
                       borderWidth={0.12}
                       brightness={54}
                       opacity={0.96}
@@ -1088,13 +1088,13 @@ export function ProjectLandingView() {
         }
         .th-project-page .ac-timeline-badge,
         .th-project-page .th-eyebrow {
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(249, 115, 22, 0.16);
           border: 1px solid rgba(251, 146, 60, 0.48);
           color: #fdba74;
         }
         .th-project-page .era-detail-period-pill {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           color: #fdba74;
         }
@@ -1107,7 +1107,7 @@ export function ProjectLandingView() {
           color: #f3dfd1;
         }
         .th-project-page .th-stack-chip {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(251, 146, 60, 0.34);
           color: #f3dfd1;
@@ -1120,7 +1120,7 @@ export function ProjectLandingView() {
         }
         .th-project-page .th-project__card,
         .th-project-page .th-project__step {
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(26, 12, 17, 0.78);
           border: 1px solid rgba(255, 255, 255, 0.22);
         }
@@ -1128,7 +1128,7 @@ export function ProjectLandingView() {
           border-color: rgba(251, 146, 60, 0.56);
         }
         .th-project-page .th-home__team-chip {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #140a0e;
           border: 1px solid rgba(251, 146, 60, 0.34);
           color: #f3dfd1;
@@ -1140,7 +1140,7 @@ export function ProjectLandingView() {
           color: #fff8f1;
         }
         .th-project-page .ac-glass-btn-surface {
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(251, 146, 60, 0.45);
           background: rgba(26, 12, 17, 0.84);
           box-shadow: 0 6px 18px rgba(10, 4, 6, 0.45);
@@ -1212,7 +1212,7 @@ export function ProjectLandingView() {
           width: 100%;
           height: 100%;
           object-fit: contain;
-          border-radius: 2px;
+          border-radius: 10px;
           background: transparent;
           display: block;
         }
@@ -1221,7 +1221,7 @@ export function ProjectLandingView() {
           letter-spacing: 0.1em;
           color: #fdba74;
           padding: 0.28rem 0.8rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(251, 146, 60, 0.38);
         }
@@ -1298,7 +1298,7 @@ export function ProjectLandingView() {
           font-size: 0.74rem;
           color: #fdba74;
           padding: 0.22rem 0.65rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #140a0e;
           border: 1px solid rgba(251, 146, 60, 0.34);
         }
@@ -1320,7 +1320,7 @@ export function ProjectLandingView() {
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 0.9rem;
           padding: 1.1rem 1.3rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(255, 255, 255, 0.24);
         }
@@ -1395,7 +1395,7 @@ export function ProjectLandingView() {
           align-items: center;
           gap: 0.35rem;
           padding: 0.25rem 0.65rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #140a0e;
           border: 1px solid rgba(251, 146, 60, 0.34);
           font-size: 0.74rem;
@@ -1405,7 +1405,7 @@ export function ProjectLandingView() {
         .th-project-model-matrix {
           margin: 0.4rem 0 0 0;
           padding: 0.85rem 1rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #140a0e;
           border: 1px solid rgba(255, 255, 255, 0.18);
           display: flex;
@@ -1450,7 +1450,7 @@ export function ProjectLandingView() {
         }
         .th-project-subpanel {
           padding: 1.25rem 1.35rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;
@@ -1493,7 +1493,7 @@ export function ProjectLandingView() {
           font-size: 0.76rem;
           color: #fdba74;
           padding: 0.45rem 0.7rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #140a0e;
           border: 1px solid rgba(251, 146, 60, 0.34);
         }
@@ -1520,7 +1520,7 @@ export function ProjectLandingView() {
         }
         .th-project-member-card {
           padding: 1.3rem 1.4rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;
@@ -1536,7 +1536,7 @@ export function ProjectLandingView() {
         .th-project-member-monogram {
           width: 54px;
           height: 54px;
-          border-radius: 2px;
+          border-radius: 10px;
           object-fit: cover;
           object-position: center top;
           flex-shrink: 0;
@@ -1573,7 +1573,7 @@ export function ProjectLandingView() {
           gap: 0.35rem;
           align-self: flex-start;
           padding: 0.22rem 0.7rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(249, 115, 22, 0.14);
           border: 1px solid rgba(251, 146, 60, 0.36);
           color: #fbbf24;

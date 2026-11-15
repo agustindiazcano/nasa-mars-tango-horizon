@@ -77,7 +77,7 @@ export function TeamView() {
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={10}
               borderWidth={0.12}
               brightness={52}
               opacity={0.95}
@@ -98,7 +98,7 @@ export function TeamView() {
             </GlassSurface>
           </Link>
 
-          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.35} borderRadius={2}>
+          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.35} borderRadius={8}>
             <div className="era-detail-period-pill" style={{ color: '#fdba74' }}>
               {metadata.event} · {isEs ? 'Publicación' : 'Release'} {metadata.releaseDate}
             </div>
@@ -136,7 +136,7 @@ export function TeamView() {
           <GlassSurface
             width="100%"
             height="auto"
-            borderRadius={2}
+            borderRadius={16}
             borderWidth={0.07}
             brightness={48}
             opacity={0.94}
@@ -224,7 +224,7 @@ export function TeamView() {
           <GlassSurface
             width="100%"
             height="auto"
-            borderRadius={2}
+            borderRadius={16}
             borderWidth={0.07}
             brightness={48}
             opacity={0.94}
@@ -283,7 +283,7 @@ export function TeamView() {
 
               {/* OFFICIAL PROJECT LINKS */}
               <div className="team-actions-row">
-                <ElectricBorder color="#f97316" speed={1.2} chaos={0.35} borderRadius={2}>
+                <ElectricBorder color="#f97316" speed={1.2} chaos={0.35} borderRadius={10}>
                   <a
                     href={metadata.simulatorUrl}
                     target="_blank"
@@ -294,7 +294,7 @@ export function TeamView() {
                     <GlassSurface
                       width="auto"
                       height={44}
-                      borderRadius={2}
+                      borderRadius={10}
                       borderWidth={0.12}
                       brightness={54}
                       opacity={0.96}
@@ -327,7 +327,7 @@ export function TeamView() {
                   <GlassSurface
                     width="auto"
                     height={44}
-                    borderRadius={2}
+                    borderRadius={10}
                     borderWidth={0.12}
                     brightness={52}
                     opacity={0.95}
@@ -359,7 +359,7 @@ export function TeamView() {
                   <GlassSurface
                     width="auto"
                     height={44}
-                    borderRadius={2}
+                    borderRadius={10}
                     borderWidth={0.12}
                     brightness={52}
                     opacity={0.95}
@@ -395,7 +395,7 @@ export function TeamView() {
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={10}
               borderWidth={0.1}
               brightness={52}
               opacity={0.94}
@@ -420,7 +420,7 @@ export function TeamView() {
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={10}
               borderWidth={0.1}
               brightness={52}
               opacity={0.94}
@@ -453,13 +453,13 @@ export function TeamView() {
           font-variant-numeric: tabular-nums;
         }
         .th-team-page .ac-timeline-badge {
-          border-radius: 2px;
+          border-radius: 8px;
           background: rgba(249, 115, 22, 0.16);
           border: 1px solid rgba(251, 146, 60, 0.48);
           color: #fdba74;
         }
         .th-team-page .era-detail-period-pill {
-          border-radius: 2px;
+          border-radius: 8px;
           background: #1c0e13;
           color: #fdba74;
         }
@@ -478,7 +478,7 @@ export function TeamView() {
           letter-spacing: -0.02em;
         }
         .th-team-page .ac-glass-btn-surface {
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(251, 146, 60, 0.45);
           background: rgba(26, 12, 17, 0.84);
           box-shadow: 0 6px 18px rgba(10, 4, 6, 0.45);
@@ -531,13 +531,14 @@ export function TeamView() {
         }
         .team-pillar-card {
           padding: 1.2rem 1.3rem;
-          border-radius: 2px;
+          border-radius: 16px;
           background: #1c0e13;
           border: 1px solid rgba(255, 255, 255, 0.2);
           border-top: 2px solid #f97316;
           display: flex;
           flex-direction: column;
           gap: 0.55rem;
+          box-shadow: 0 8px 24px rgba(9, 4, 6, 0.35);
         }
         .team-pillar-head {
           display: flex;
@@ -547,7 +548,7 @@ export function TeamView() {
         .team-pillar-icon {
           width: 30px;
           height: 30px;
-          border-radius: 2px;
+          border-radius: 8px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -585,12 +586,13 @@ export function TeamView() {
         }
         .team-arch-card {
           padding: 1.55rem 1.7rem;
-          border-radius: 2px;
+          border-radius: 16px;
           background: #1c0e13;
           border: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;
           flex-direction: column;
           gap: 0.65rem;
+          box-shadow: 0 8px 24px rgba(9, 4, 6, 0.35);
         }
         .team-arch-top {
           display: flex;
@@ -609,7 +611,7 @@ export function TeamView() {
           font-size: 0.76rem;
           color: #fdba74;
           padding: 0.22rem 0.65rem;
-          border-radius: 2px;
+          border-radius: 8px;
           background: #140a0e;
           border: 1px solid rgba(251, 146, 60, 0.34);
         }

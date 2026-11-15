@@ -194,7 +194,7 @@ export function SlidesDeckView() {
                   type="button"
                   className="th-slide-focus-btn"
                   onClick={() => jumpToSlide(slide.number - 1)}
-                  style={{ borderColor: `${slide.accent}4d`, color: slide.accent, borderRadius: '2px' }}
+                  style={{ borderColor: `${slide.accent}4d`, color: slide.accent, borderRadius: '10px' }}
                 >
                   <span>{pickLang(lang, DECK_UI_COPY.focusSlide)}</span>
                   <ArrowRight size={14} aria-hidden="true" />
@@ -491,12 +491,12 @@ export function SlidesDeckView() {
             <Link
               href="/"
               className="ac-readmore-wrap"
-              style={{ textDecoration: 'none', borderRadius: '2px' }}
+              style={{ textDecoration: 'none', borderRadius: '10px' }}
             >
               <GlassSurface
                 width="auto"
                 height={40}
-                borderRadius={2}
+                borderRadius={12}
                 borderWidth={0.12}
                 brightness={58}
                 opacity={0.95}
@@ -518,12 +518,12 @@ export function SlidesDeckView() {
             <Link
               href="/proyecto"
               className="ac-readmore-wrap"
-              style={{ textDecoration: 'none', borderRadius: '2px' }}
+              style={{ textDecoration: 'none', borderRadius: '10px' }}
             >
               <GlassSurface
                 width="auto"
                 height={40}
-                borderRadius={2}
+                borderRadius={12}
                 borderWidth={0.1}
                 brightness={56}
                 opacity={0.94}
@@ -543,12 +543,12 @@ export function SlidesDeckView() {
             <Link
               href="/equipo"
               className="ac-readmore-wrap"
-              style={{ textDecoration: 'none', borderRadius: '2px' }}
+              style={{ textDecoration: 'none', borderRadius: '10px' }}
             >
               <GlassSurface
                 width="auto"
                 height={40}
-                borderRadius={2}
+                borderRadius={12}
                 borderWidth={0.1}
                 brightness={56}
                 opacity={0.94}
@@ -567,12 +567,12 @@ export function SlidesDeckView() {
             </Link>
           </nav>
 
-          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.45} borderRadius={2}>
+          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.45} borderRadius={12}>
             <div
               className="era-detail-period-pill th-mono"
               style={{
                 color: '#fbbf24',
-                borderRadius: '2px',
+                borderRadius: '10px',
                 fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
                 fontVariantNumeric: 'tabular-nums',
               }}
@@ -589,18 +589,18 @@ export function SlidesDeckView() {
           <p className="th-slides-page-subtitle">{pickLang(lang, DECK_UI_COPY.pageSubtitle)}</p>
 
           <div className="th-slides-cta-row">
-            <ElectricBorder color="#f97316" speed={1.15} chaos={0.4} borderRadius={2}>
+            <ElectricBorder color="#f97316" speed={1.15} chaos={0.4} borderRadius={12}>
               <a
                 href={SIMULATOR_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ac-readmore-wrap"
-                style={{ textDecoration: 'none', borderRadius: '2px' }}
+                style={{ textDecoration: 'none', borderRadius: '10px' }}
               >
                 <GlassSurface
                   width="auto"
                   height={42}
-                  borderRadius={2}
+                  borderRadius={12}
                   borderWidth={0.12}
                   brightness={60}
                   opacity={0.96}
@@ -625,12 +625,12 @@ export function SlidesDeckView() {
               target="_blank"
               rel="noopener noreferrer"
               className="ac-readmore-wrap"
-              style={{ textDecoration: 'none', borderRadius: '2px' }}
+              style={{ textDecoration: 'none', borderRadius: '10px' }}
             >
               <GlassSurface
                 width="auto"
                 height={42}
-                borderRadius={2}
+                borderRadius={12}
                 borderWidth={0.1}
                 brightness={56}
                 opacity={0.94}
@@ -660,7 +660,7 @@ export function SlidesDeckView() {
                 className={`th-slides-mode-btn${viewMode === 'single' ? ' is-active' : ''}`}
                 onClick={() => setViewMode('single')}
                 aria-pressed={viewMode === 'single'}
-                style={{ borderRadius: '2px' }}
+                style={{ borderRadius: '10px' }}
               >
                 <Presentation size={15} aria-hidden="true" />
                 <span>{pickLang(lang, DECK_UI_COPY.singleMode)}</span>
@@ -670,7 +670,7 @@ export function SlidesDeckView() {
                 className={`th-slides-mode-btn${viewMode === 'grid' ? ' is-active' : ''}`}
                 onClick={() => setViewMode('grid')}
                 aria-pressed={viewMode === 'grid'}
-                style={{ borderRadius: '2px' }}
+                style={{ borderRadius: '10px' }}
               >
                 <LayoutGrid size={15} aria-hidden="true" />
                 <span>{pickLang(lang, DECK_UI_COPY.gridMode)}</span>
@@ -687,7 +687,7 @@ export function SlidesDeckView() {
                   className="th-slides-nav-btn"
                   onClick={goPrev}
                   disabled={currentIndex === 0}
-                  style={{ borderRadius: '2px' }}
+                  style={{ borderRadius: '10px' }}
                 >
                   <ChevronLeft size={16} aria-hidden="true" />
                   <span>{pickLang(lang, DECK_UI_COPY.prevBtn)}</span>
@@ -706,7 +706,7 @@ export function SlidesDeckView() {
                   className="th-slides-nav-btn"
                   onClick={goNext}
                   disabled={currentIndex === totalSlides - 1}
-                  style={{ borderRadius: '2px' }}
+                  style={{ borderRadius: '10px' }}
                 >
                   <span>{pickLang(lang, DECK_UI_COPY.nextBtn)}</span>
                   <ChevronRight size={16} aria-hidden="true" />
@@ -725,7 +725,7 @@ export function SlidesDeckView() {
                   type="button"
                   className={`th-slides-strip-pill th-mono${isActive ? ' is-active' : ''}`}
                   style={{
-                    borderRadius: '2px',
+                    borderRadius: '10px',
                     fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
                     fontVariantNumeric: 'tabular-nums',
                     ...(isActive
@@ -770,7 +770,7 @@ export function SlidesDeckView() {
                 className="th-slides-nav-btn th-slides-nav-btn--lg"
                 onClick={goPrev}
                 disabled={currentIndex === 0}
-                style={{ borderRadius: '2px' }}
+                style={{ borderRadius: '10px' }}
               >
                 <ChevronLeft size={17} aria-hidden="true" />
                 <span>{pickLang(lang, DECK_UI_COPY.prevBtn)}</span>
@@ -791,7 +791,7 @@ export function SlidesDeckView() {
                 className="th-slides-nav-btn th-slides-nav-btn--lg"
                 onClick={goNext}
                 disabled={currentIndex === totalSlides - 1}
-                style={{ borderRadius: '2px' }}
+                style={{ borderRadius: '10px' }}
               >
                 <span>{pickLang(lang, DECK_UI_COPY.nextBtn)}</span>
                 <ChevronRight size={17} aria-hidden="true" />
@@ -851,13 +851,13 @@ export function SlidesDeckView() {
           font-family: var(--font-raleway), 'Raleway', sans-serif;
         }
         .th-slides-container .th-eyebrow {
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(249, 115, 22, 0.14);
           border: 1px solid rgba(251, 191, 36, 0.36);
           color: #fbbf24;
         }
         .th-slides-container .era-detail-period-pill {
-          border-radius: 2px;
+          border-radius: 10px;
           min-height: 40px;
           display: inline-flex;
           align-items: center;
@@ -866,13 +866,13 @@ export function SlidesDeckView() {
           font-variant-numeric: tabular-nums;
         }
         .th-slides-container .ac-readmore-wrap {
-          border-radius: 2px;
+          border-radius: 10px;
         }
         .th-slides-container .ac-readmore-wrap:hover {
           filter: drop-shadow(0 0 18px rgba(249, 115, 22, 0.45));
         }
         .th-slides-container .ac-glass-btn-surface {
-          border-radius: 2px !important;
+          border-radius: 10px !important;
           border: 1px solid rgba(251, 146, 60, 0.4);
           box-shadow:
             0 0 18px rgba(249, 115, 22, 0.18),
@@ -949,7 +949,7 @@ export function SlidesDeckView() {
         .th-slides-view-toggle {
           display: inline-flex;
           padding: 0.22rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.86);
           border: 1px solid rgba(255, 255, 255, 0.24);
           gap: 0.25rem;
@@ -960,7 +960,7 @@ export function SlidesDeckView() {
           gap: 0.45rem;
           min-height: 38px;
           padding: 0.42rem 0.95rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: none;
           background: transparent;
           color: #b89b8c;
@@ -992,7 +992,7 @@ export function SlidesDeckView() {
           gap: 0.38rem;
           min-height: 40px;
           padding: 0.45rem 0.95rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(251, 146, 60, 0.36);
           background: rgba(28, 14, 19, 0.88);
           color: #fff8f1;
@@ -1033,7 +1033,7 @@ export function SlidesDeckView() {
           min-height: 38px;
           height: 38px;
           padding: 0 0.65rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.24);
           background: rgba(20, 10, 14, 0.84);
           color: #b89b8c;
@@ -1094,7 +1094,7 @@ export function SlidesDeckView() {
           display: inline-flex;
           align-items: center;
           padding: 0.28rem 0.75rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid;
           font-size: 0.75rem;
           font-weight: 800;
@@ -1112,7 +1112,7 @@ export function SlidesDeckView() {
           gap: 0.35rem;
           min-height: 38px;
           padding: 0.35rem 0.85rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid;
           background: rgba(20, 10, 14, 0.84);
           font-family: inherit;
@@ -1164,7 +1164,7 @@ export function SlidesDeckView() {
         }
         .th-slide-metric-pill {
           padding: 0.65rem 0.85rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.82);
           border: 1px solid;
           display: flex;
@@ -1291,7 +1291,7 @@ export function SlidesDeckView() {
         }
         .th-slide-chart-card {
           padding: 0.65rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(251, 146, 60, 0.28);
           background: rgba(26, 12, 17, 0.86);
           color: inherit;
@@ -1311,7 +1311,7 @@ export function SlidesDeckView() {
           position: relative;
           width: 100%;
           aspect-ratio: 16 / 10;
-          border-radius: 2px;
+          border-radius: 10px;
           overflow: hidden;
           background: #140a0e;
         }
@@ -1327,7 +1327,7 @@ export function SlidesDeckView() {
           bottom: 0.4rem;
           width: 26px;
           height: 26px;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.84);
           border: 1px solid rgba(251, 191, 36, 0.45);
           color: #fbbf24;
@@ -1365,7 +1365,7 @@ export function SlidesDeckView() {
           line-height: 1.45;
           color: #f3dfd1;
           padding: 0.42rem 0.6rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(28, 14, 19, 0.76);
           border: 1px solid rgba(255, 255, 255, 0.24);
         }
@@ -1393,7 +1393,7 @@ export function SlidesDeckView() {
           gap: 0.75rem;
           min-height: 42px;
           padding: 0.6rem 0.85rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(28, 14, 19, 0.84);
           border: 1px solid rgba(255, 255, 255, 0.24);
           text-decoration: none;
@@ -1427,7 +1427,7 @@ export function SlidesDeckView() {
           gap: 0.38rem;
           min-height: 38px;
           padding: 0.34rem 0.75rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(28, 14, 19, 0.86);
           border: 1px solid rgba(253, 186, 116, 0.36);
           font-size: 0.8rem;
@@ -1435,7 +1435,7 @@ export function SlidesDeckView() {
           color: #fff8f1;
         }
         .th-slide-cue-box {
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(20, 10, 14, 0.82);
           border: 1px solid rgba(255, 255, 255, 0.24);
           overflow: hidden;
@@ -1472,7 +1472,7 @@ export function SlidesDeckView() {
           font-size: 0.74rem;
           font-variant-numeric: tabular-nums;
           padding: 0.18rem 0.55rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(249, 115, 22, 0.14);
           border: 1px solid rgba(251, 191, 36, 0.32);
           color: #fbbf24;
@@ -1554,7 +1554,7 @@ export function SlidesDeckView() {
         .th-slides-modal__close {
           width: 40px;
           height: 40px;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.24);
           background: rgba(28, 14, 19, 0.9);
           color: #fff8f1;
@@ -1570,7 +1570,7 @@ export function SlidesDeckView() {
         .th-slides-modal__img {
           width: 100%;
           height: auto;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #140a0e;
           display: block;
         }

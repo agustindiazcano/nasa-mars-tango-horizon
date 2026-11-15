@@ -91,7 +91,7 @@ const PLANET_BANNER_STYLES = `
     align-items: center;
     gap: 0.38rem;
     padding: 0.28rem 0.72rem;
-    border-radius: 2px;
+    border-radius: 10px;
     font-family: var(--font-raleway), 'Raleway', sans-serif;
     font-variant-numeric: tabular-nums;
     font-size: 0.72rem;

@@ -49,17 +49,10 @@ const INTERNAL_LINKS: FooterLinkItem[] = [
     },
   },
   {
-    href: '/tesis-lunar',
+    href: '/tesis',
     label: {
-      en: 'Thesis I · The Conquest of the Moon',
-      es: 'Tesis I · La Conquista de la Luna',
-    },
-  },
-  {
-    href: '/tesis-marte',
-    label: {
-      en: 'Thesis II · The Conquest of Mars',
-      es: 'Tesis II · La Conquista de Marte',
+      en: 'Theoretical Theses · Moon & Mars',
+      es: 'Tesis Teóricas · Luna y Marte',
     },
   },
   {
@@ -105,8 +98,8 @@ const TEAM_FOOTER_MEMBERS: TeamFooterMember[] = [
   {
     name: 'Milagros Sotelo',
     role: {
-      en: 'Systems Engineering Student (UTN FRBA)',
-      es: 'Estudiante de Ingeniería en Sistemas (UTN FRBA)',
+      en: 'Full Stack & 3D · Systems Engineering Student (UTN FRBA)',
+      es: 'Full Stack & 3D · Estudiante de Ingeniería en Sistemas (UTN FRBA)',
     },
     links: [
       { label: 'UTN FRBA', url: 'https://frba.utn.edu.ar/' },
@@ -189,7 +182,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noopener noreferrer"
               className="site-footer__cta"
-              style={{ borderRadius: '2px' }}
+              style={{ borderRadius: '10px' }}
             >
               <Rocket size={15} aria-hidden="true" />
               <span>
@@ -210,7 +203,7 @@ export function SiteFooter() {
                 background: 'rgba(28, 12, 18, 0.84)',
                 borderColor: 'rgba(255, 255, 255, 0.24)',
                 color: '#fff8f1',
-                borderRadius: '2px',
+                borderRadius: '10px',
               }}
             >
               <Github size={15} aria-hidden="true" />
@@ -225,7 +218,7 @@ export function SiteFooter() {
                 background: 'rgba(249, 115, 22, 0.14)',
                 borderColor: 'rgba(255, 255, 255, 0.24)',
                 color: '#fdba74',
-                borderRadius: '2px',
+                borderRadius: '10px',
               }}
             >
               <Database size={15} aria-hidden="true" />
@@ -292,7 +285,7 @@ export function SiteFooter() {
                 key={member.name}
                 style={{
                   padding: '0.55rem 0.7rem',
-                  borderRadius: '2px',
+                  borderRadius: '10px',
                   background: 'rgba(28, 12, 18, 0.62)',
                   border: '1px solid rgba(255, 255, 255, 0.24)',
                 }}
@@ -339,7 +332,7 @@ export function SiteFooter() {
             style={{
               marginTop: '0.75rem',
               padding: '0.72rem 0.85rem',
-              borderRadius: '2px',
+              borderRadius: '10px',
               background: 'rgba(249, 115, 22, 0.08)',
               border: '1px solid rgba(255, 255, 255, 0.24)',
               fontSize: '0.77rem',

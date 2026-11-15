@@ -72,7 +72,7 @@ export function CompendiumView() {
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={12}
               borderWidth={0.12}
               brightness={52}
               opacity={0.95}
@@ -93,7 +93,7 @@ export function CompendiumView() {
             </GlassSurface>
           </Link>
 
-          <ElectricBorder color="#fb7185" speed={1.2} chaos={0.35} borderRadius={2}>
+          <ElectricBorder color="#fb7185" speed={1.2} chaos={0.35} borderRadius={12}>
             <div className="era-detail-period-pill" style={{ color: '#fda4af' }}>
               {isEs ? 'Compendio Final' : 'Final Compendium'} · {metadata.releaseDate}
             </div>
@@ -208,7 +208,7 @@ export function CompendiumView() {
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={2}
+          borderRadius={12}
           borderWidth={0.07}
           brightness={48}
           opacity={0.94}
@@ -445,7 +445,7 @@ export function CompendiumView() {
                   speed={0.5}
                   cardSize="md"
                   gap={24}
-                  borderRadius={2}
+                  borderRadius={12}
                 />
               </div>
             </section>
@@ -499,7 +499,7 @@ export function CompendiumView() {
           className="compendio-cta-banner"
           aria-label={isEs ? 'Acciones finales del compendio' : 'Final compendium actions'}
         >
-          <ElectricBorder color="#f97316" speed={1.2} chaos={0.35} borderRadius={2}>
+          <ElectricBorder color="#f97316" speed={1.2} chaos={0.35} borderRadius={12}>
             <a
               href={metadata.simulatorUrl}
               target="_blank"
@@ -510,7 +510,7 @@ export function CompendiumView() {
               <GlassSurface
                 width="auto"
                 height={44}
-                borderRadius={2}
+                borderRadius={12}
                 borderWidth={0.12}
                 brightness={54}
                 opacity={0.96}
@@ -534,11 +534,11 @@ export function CompendiumView() {
           </ElectricBorder>
 
           <Link href="/equipo" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
-            <ElectricBorder color="#fb923c" speed={1.15} chaos={0.35} borderRadius={2}>
+            <ElectricBorder color="#fb923c" speed={1.15} chaos={0.35} borderRadius={12}>
               <GlassSurface
                 width="auto"
                 height={44}
-                borderRadius={2}
+                borderRadius={12}
                 borderWidth={0.12}
                 brightness={52}
                 opacity={0.95}
@@ -575,7 +575,7 @@ export function CompendiumView() {
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={12}
               borderWidth={0.1}
               brightness={52}
               opacity={0.94}
@@ -600,7 +600,7 @@ export function CompendiumView() {
             <GlassSurface
               width="auto"
               height={44}
-              borderRadius={2}
+              borderRadius={12}
               borderWidth={0.1}
               brightness={52}
               opacity={0.94}
@@ -634,13 +634,13 @@ export function CompendiumView() {
           font-variant-numeric: tabular-nums;
         }
         .th-compendio-page .ac-timeline-badge {
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(249, 115, 22, 0.16);
           border: 1px solid rgba(251, 146, 60, 0.48);
           color: #fdba74;
         }
         .th-compendio-page .era-detail-period-pill {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           color: #fda4af;
         }
@@ -662,7 +662,7 @@ export function CompendiumView() {
           color: #f3dfd1;
         }
         .th-compendio-page .thesis-abstract-box {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(251, 113, 133, 0.42);
         }
@@ -670,19 +670,19 @@ export function CompendiumView() {
           color: #fff8f1;
         }
         .th-compendio-page .thesis-formula-bar {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #140a0e;
           color: #fbbf24;
           font-family: var(--font-raleway), 'Raleway', sans-serif;
           font-variant-numeric: tabular-nums;
         }
         .th-compendio-page .synthesis-module-card {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .th-compendio-page .synthesis-module-sphere {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #140a0e;
           border: 1px solid rgba(251, 146, 60, 0.34);
           color: #c4a99a;
@@ -691,13 +691,13 @@ export function CompendiumView() {
           color: #fff8f1;
         }
         .th-compendio-page .synthesis-concept-chip {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #140a0e;
           border: 1px solid rgba(251, 146, 60, 0.36);
           color: #fdba74;
         }
         .th-compendio-page .synthesis-table-wrapper {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(255, 255, 255, 0.24);
         }
@@ -722,12 +722,12 @@ export function CompendiumView() {
           color: #f3dfd1;
         }
         .th-compendio-page .synthesis-carousel-section {
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(255, 255, 255, 0.24);
         }
         .th-compendio-page .synthesis-filter-pill {
-          border-radius: 2px;
+          border-radius: 10px;
           min-height: 40px;
           background: #140a0e;
           border: 1px solid rgba(251, 146, 60, 0.36);
@@ -741,7 +741,7 @@ export function CompendiumView() {
           box-shadow: 0 0 14px rgba(249, 115, 22, 0.35);
         }
         .th-compendio-page .ac-glass-btn-surface {
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(251, 146, 60, 0.45);
           background: rgba(26, 12, 17, 0.84);
           box-shadow: 0 6px 18px rgba(10, 4, 6, 0.45);
@@ -794,7 +794,7 @@ export function CompendiumView() {
           align-items: center;
           gap: 0.25rem;
           padding: 1rem 1.45rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: linear-gradient(145deg, rgba(249, 115, 22, 0.18), #1c0e13);
           border: 1px solid rgba(251, 146, 60, 0.48);
           box-shadow: 0 12px 32px rgba(10, 4, 6, 0.52), 0 0 24px rgba(251, 113, 133, 0.16);
@@ -823,7 +823,7 @@ export function CompendiumView() {
         }
         .compendio-arc-card {
           padding: 1.35rem 1.4rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: #1c0e13;
           border: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;
@@ -860,7 +860,7 @@ export function CompendiumView() {
         }
         .compendio-reflection-card {
           padding: 1.75rem 1.9rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: linear-gradient(145deg, #1c0e13, #140a0e);
           border: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;

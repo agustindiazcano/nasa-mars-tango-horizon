@@ -433,7 +433,7 @@ export function FlexCarousel({
           position: relative;
           width: 100%;
           overflow: hidden;
-          border-radius: 2px;
+          border-radius: 10px;
           background: radial-gradient(circle at 50% 45%, rgba(44, 18, 24, 0.46) 0%, rgba(9, 4, 6, 0.8) 100%);
           border: 1px solid rgba(255, 255, 255, 0.24);
           cursor: grab;
@@ -497,7 +497,7 @@ export function FlexCarousel({
         }
         :where(.fc-slide-year) {
           padding: 0.2rem 0.65rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(17, 8, 12, 0.86);
           border: 1px solid rgba(255, 255, 255, 0.24);
           color: #fbbf24;
@@ -508,7 +508,7 @@ export function FlexCarousel({
         :where(.fc-zoom-btn) {
           width: 32px;
           height: 32px;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.24);
           background: rgba(17, 8, 12, 0.85);
           color: #fff8f1;
@@ -541,7 +541,7 @@ export function FlexCarousel({
           z-index: 140;
           width: 42px;
           height: 42px;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.24);
           background: rgba(17, 8, 12, 0.85);
           backdrop-filter: blur(10px);
@@ -576,7 +576,7 @@ export function FlexCarousel({
           width: 8px;
           height: 8px;
           padding: 0;
-          border-radius: 2px;
+          border-radius: 10px;
           border: none;
           background: rgba(184, 155, 140, 0.4);
           cursor: pointer;
@@ -592,7 +592,7 @@ export function FlexCarousel({
           align-items: center;
           gap: 0.4rem;
           padding: 0.35rem 0.8rem;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.24);
           background: rgba(28, 12, 18, 0.82);
           color: #f3dfd1;
@@ -602,7 +602,7 @@ export function FlexCarousel({
         }
         :where(.fc-caption-card) {
           padding: 1.25rem 1.45rem;
-          border-radius: 2px;
+          border-radius: 10px;
           background: linear-gradient(135deg, rgba(26, 12, 18, 0.86) 0%, rgba(17, 8, 12, 0.94) 100%);
           border: 1px solid rgba(255, 255, 255, 0.24);
           backdrop-filter: blur(12px);
@@ -658,7 +658,7 @@ export function FlexCarousel({
           width: 100%;
           max-width: 920px;
           max-height: 90vh;
-          border-radius: 2px;
+          border-radius: 10px;
           background: rgba(17, 8, 12, 0.96);
           border: 1px solid rgba(255, 255, 255, 0.24);
           box-shadow: 0 32px 80px rgba(0, 0, 0, 0.85);
@@ -687,7 +687,7 @@ export function FlexCarousel({
           z-index: 10;
           width: 38px;
           height: 38px;
-          border-radius: 2px;
+          border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.24);
           background: rgba(17, 8, 12, 0.88);
           color: #fff8f1;
