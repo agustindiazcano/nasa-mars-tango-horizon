@@ -73,3 +73,5 @@ Browser inventory retried through CUA: `apps: []`, `browsers: []`; native pipe c
 Source identity does not certify 256-sample client geometry against 2048-sample server queries and processed layers. Contact tests prove no penetration only at supplied supports. Browser residuals, broader crew/pod/camera checks, flat base selection, CTX vertical-reference disposition and P4-P7 gates remain open. No merge or deployment performed.
 
 Portability correction: the first Linux CI rejected raw Windows CRLF metadata hashes. Identity now normalizes CRLF to LF before hashing metadata, with an explicit cross-platform regression test. DEM bytes remain exact. The final local lifecycle run passed 15 tests in 34.58 s; frontend and server TypeScript passed. PR: https://github.com/agustindiazcano/nasa-mars-tango-horizon/pull/16 .
+
+Parallel CI passed for final source revision `71d6acd`: `test-shared` 46/46 (4 files), `test-server` 76/76 (8 files, including lifecycle 15/15), and workspace `build`. Run: https://github.com/agustindiazcano/nasa-mars-tango-horizon/actions/runs/43665099358 . Subsequent commits update documentation/status only and receive their own automatic checks.
