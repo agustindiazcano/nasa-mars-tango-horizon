@@ -313,7 +313,7 @@ export class BaseProc {
       mGroup.position.y = placement.y;
       mGroup.userData.contactClearanceM = placement.clearanceM;
       if (mod.kind === "launcher") this.launcherOrigins.push([wx, wz, placement.y + 5.5]);
-      this.selectableMeshes.push(mesh, plinth);
+      this.selectableMeshes.push(mesh);
 
       const lbl = makeSpriteLabel(mod.id.toUpperCase(), mod.kind === "fission" ? "#ffb800" : "#35e0ff");
       lbl.position.y = mod.height + 2.2;
