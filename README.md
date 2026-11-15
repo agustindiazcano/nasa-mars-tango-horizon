@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/tango-horizon-banner.png" alt="Tango Horizon: AI Systems for EVA and Mars Exploration" width="100%" /></p>
+
 [![Leer en español](https://img.shields.io/badge/Leer%20en-espa%C3%B1ol-0ea5e9?style=for-the-badge)](README_ES.md)
 
 <sub>This effort is supported by [NASA](https://www.nasa.gov/), [NASA Space Apps Challenge](https://www.spaceappschallenge.org/), [CONAE](https://www.argentina.gob.ar/ciencia/conae), [Universidad de Palermo](https://www.palermo.edu/) & [IBM Argentina](https://www.ibm.com/ar-es).</sub><br/>
@@ -9,7 +11,7 @@
 
 To drive decision-making without physical hallucinations, the system pairs a hierarchical Multi-Agent AI runtime (`SUIT.VOICE-EXEC` fast suit executor escalating to the `BASE` large orchestrator, which delegates to `SUIT.HEALTH`, `EVA-PLANNER`, `SCIENCE`, `WEATHER-RAD`, `MAINTENANCE`, and per-unit `ROBOT.<id>` planners) with a three-provider LLM failover stack: **Google Cloud Vertex AI** and **Google AI Studio** (`google/gemini-4-carbon` large, `google/gemini-4-argon` medium/vision/judge, `google/gemini-4-hydrogen` fast/audio STT), **Meta Muse** backup (`muse-wonder-1.0`, `muse-spark-1.3`), and a deterministic offline engine (`offline.ts`)—architected so that in an actual Mars surface mission, open-weight models execute locally on the habitat's `compute` module and onboard vehicle processors. Spoken orders combine `<5 ms` local critical intents, 16 kHz PCM + Web Speech API capture, domain-glossary multimodal STT, and **Google Cloud Neural Text-to-Speech (`Journey` voices)** with Apollo Quindar tones ($2525/2475\text{ Hz}$) and a 32-band live FFT spectrum analyzer. Six in-process MCP servers (`InMemoryTransport`) and a `<2 ms` in-memory BM25 RAG engine (`1,002` chunks across 15 NASA standards including `NASA-STD-3001` Vol. 1 & 2, `OCHMO`, `AMCL`, `MEDPRAT`, `Mars-GRAM`, `MCD`, and `MOXIE`) power predictive biomedical alerts (personal baselines + Casson blood rheology bio-twin), predictive hardware fault isolation (`FDIR` and Remaining Useful Life `RUL`), and dust/radiation maneuvers, alongside three custom-trained ML models validated on real NASA PDS data (`Hydration Prospector` on MSL DAN neutrons + CRISM/THEMIS, `Storm Nowcaster` on 3,953 sols of MSL REMS barometric tides, and `Mineral Vein Detector` using frozen Meta `DINOv2-small` on Curiosity Mastcam/MAHLI frames), all gated by three-layer `GUARDIAN` Run-Time Assurance and three-model escalated consensus voting.
 
-**Live Demo:** [https://tangohorizon.vercel.app](https://tangohorizon.vercel.app)
+**Live Demo (3D Simulator):** [https://tangohorizon.vercel.app](https://tangohorizon.vercel.app) · **Showcase & Editorial Portal (`site/`):** [https://tangohorizon-site.vercel.app](https://tangohorizon-site.vercel.app)
 
 ## Gallery
 
@@ -421,6 +423,7 @@ python tools/generate_readme.py --check   # Verifies auto-generated README table
 
 ## License
 
-Copyright (c) 2026 Agustin Diaz-Cano, Baltazar Salerno, Milagros Sotelo and Federico Yaconis.
+Copyright (c) 2026 Agustin Diaz-Cano, Baltazar Salerno, Milagros Sotelo and Federico Yaconis (Team Tango Horizon).
 
-This project is licensed under the [MIT License](LICENSE).
+- **Software Code:** Licensed under the [MIT License](LICENSE).
+- **3D Models (`web/public/models/*.glb` created by Team Tango Horizon):** All original 3D models created by Team Tango Horizon are **free to use** for **personal, educational, commercial, and illustration** purposes under the [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE-3D-ASSETS-CC-BY-4.0.md) license (`https://creativecommons.org/licenses/by/4.0/`). Third-party models from [NASA 3D Resources](https://github.com/nasa/NASA-3D-Resources) (`ingenuity.glb`, `mro.glb`, `rover.glb`) remain governed by NASA media guidelines.

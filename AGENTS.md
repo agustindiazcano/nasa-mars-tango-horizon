@@ -103,6 +103,7 @@ Several people and several agents work on this project at the same time.
    - **Infrastructure-as-Code (`infra/terraform/`):** Provisions all Google Cloud APIs (`aiplatform`, `texttospeech`, `run`, `cloudbuild`, `artifactregistry`, `secretmanager`, `iam`), dedicated Service Account (`tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com` with `roles/aiplatform.user`), Artifact Registry (`us-central1-docker.pkg.dev/nasa-tango-horizon/tango-horizon`), Secret Manager secrets (`meta-api-key`, `gemini-api-key`), and Cloud Run service configuration.
    - **Backend (`server/`):** Deployed as a Docker container on **Google Cloud Run** (`nasa-tango-horizon`, `us-central1`, `--service-account tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com`, `--min-instances 1 --max-instances 1 --session-affinity` for WebSocket rooms). Cloud Run serves the API only (decision of 2026-11-15): Vercel serves the frontend, so the Dockerfile builds no frontend and the `web/dist` static mirror in `server/src/index.ts` stays inactive.
    - **Frontend (`web/`):** Deployed on **Vercel** (global Edge CDN for fast 3D asset/texture loading) configured with `VITE_API_URL=https://<cloud-run-service>.run.app` for `/api/*` and `/ws/remote`, with the Vercel domain whitelisted in Cloud Run's `ALLOWED_ORIGINS`.
+   - **Showcase Site (`site/`):** Standalone **Next.js App Router** editorial site deployed separately on **Vercel** from `site/`, presenting Proyecto Tango Horizon, the cosmic timeline (`Cronología`), Moon/Mars theses, Mars I–III exploration phases, NASA archive compendium, Team Tango Horizon profile cards, and direct launch links to `https://tangohorizon.vercel.app`.
 
 ### Project files
 
@@ -111,6 +112,7 @@ Several people and several agents work on this project at the same time.
 | `BLUEPRINT.md` | Title: "Tango Horizon: Master Technical Architecture Blueprint". The plan for the whole project. Read it before planning or starting a task. |
 | `NASA_APIS.md` | Title: "NASA APIs". NASA and USGS data sources: endpoints, auth, fields used, and the API validation report. Update it when a source is added or changed. |
 | `PENDING_FRONT.md` | Title: "Pending frontend tasks (`web/`)". Frontend reference plans and prioritized pending tasks for the `web/` workspace. |
+| `site/` | Standalone Next.js App Router showcase site `@th/site` (`src/app/` routes `/`, `/cronologia`, `/tesis-lunar`, `/tesis-marte`, `/marte`, `/compendio`, `/equipo`), space-glass WebGL design system, custom navbar/footer, NASA/Team showcase, and direct launcher to `https://tangohorizon.vercel.app`. Deployed separately on Vercel. |
 | `web/` | Frontend workspace `@th/web` (Vite + TypeScript + Three.js procedural 3D viewer, HUD, phone pointer, voice/agents integration, `index.html`, `remote.html`, and static processed datasets in `web/public/data/`). Serves `tangohorizon.vercel.app` via `vercel.json`. Formerly `web-test-3d/`. |
 | `server/` | Backend workspace (Fastify server, LLM/MCP agents, TTS proxy, WebSocket relay). |
 | `shared/` | Shared workspace (`@th/shared`: physics core, types, i18n). |
