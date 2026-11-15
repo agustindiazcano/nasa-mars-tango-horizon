@@ -77,6 +77,7 @@ export async function chat(
 
   const timeout = tier === "fast" ? config.fastTimeoutMs : config.defaultTimeoutMs;
   let lastErr: unknown;
+  let emptyMessage: OpenAI.Chat.Completions.ChatCompletionMessage | undefined;
 
   for (const provider of order) {
     try {
@@ -94,8 +95,13 @@ export async function chat(
         { timeout }
       );
       const message = res.choices[0]?.message;
-      if (!message || (!message.content?.trim() && !message.tool_calls?.length)) {
-        throw new Error(`Empty completion from provider ${provider}`);
+      if (!message) {
+        throw new Error(`Empty completion choice from provider ${provider}`);
+      }
+      if (!message.content?.trim() && !message.tool_calls?.length) {
+        // Empty reply: try the next provider, but keep it so the caller can run its own empty-reply path.
+        emptyMessage = message;
+        continue;
       }
       return message;
     } catch (err) {
@@ -103,5 +109,7 @@ export async function chat(
     }
   }
 
+  // Every provider answered empty or failed: an empty reply is not an outage, so return it instead of throwing.
+  if (emptyMessage) return emptyMessage;
   throw lastErr;
 }

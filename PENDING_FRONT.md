@@ -43,4 +43,4 @@
 
 ## NASA data audit priority
 
-- 🔴 F16: Execute frontend remediation in `docs/NASA_DATA_REMEDIATION_PLAN.md`, starting with P1–P3: event attribution/replay, explicit DEM loading, and post-DEM placements. Then complete layers, shared sites, hydration units, hemispheres, and provenance. Coordinate with B32; use the active runtime without waiting for B22. Reconcile overlapping frontend tasks after validation.
+- 🔴 F16: Execute frontend remediation in `docs/NASA_DATA_REMEDIATION_PLAN.md`, starting with P1–P3: event attribution/replay, explicit DEM loading, and post-DEM placements. Then complete layers, shared sites, hydration units, hemispheres, and provenance. Coordinate with B32–B36 and B27; use the active runtime without waiting for B22. Reconcile overlapping frontend tasks after validation.

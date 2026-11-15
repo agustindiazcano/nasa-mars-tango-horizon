@@ -73,4 +73,18 @@ describe("stormDecision chance-constrained planner", () => {
     expect(res.maneuvers).toContain("recall_aircraft");
     expect(res.maneuvers).toContain("switch_to_fission");
   });
+
+  it("returns no_go when the measured opacity is already past the visibility limit", () => {
+    const clear = [
+      { horizonSol: 1, q10: 0.3, q50: 0.4, q90: 0.55 },
+      { horizonSol: 2, q10: 0.3, q50: 0.45, q90: 0.65 },
+    ];
+    const plan = { durationS: 7200, returnToShelterS: 1500 };
+    const stormy = decide(clear, plan, DEFAULT_STORM_LIMITS, powerAt, 1200, undefined, 3.0);
+    expect(stormy.verdict).toBe("no_go");
+    expect(stormy.maneuvers).toContain("postpone");
+    expect(stormy.maneuvers).toContain("recall_aircraft");
+    // Same forecast with a clear measured opacity keeps the forecast-only result.
+    expect(decide(clear, plan, DEFAULT_STORM_LIMITS, powerAt, 1200, undefined, 0.4).verdict).toBe("go");
+  });
 });

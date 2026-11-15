@@ -37,7 +37,7 @@ export function setDelegateHandler(fn: DelegateHandler): void {
 const MAX_DELEGATION_DEPTH = 2;
 
 /** Max calls per run for probing tools. */
-const TOOL_CAPS: Record<string, number> = { get_terrain_at: 3 };
+const TOOL_CAPS: Record<string, number> = { get_terrain_at: 3, search_docs: 2 };
 
 const DelegateSchema = z.object({
   agent: z
@@ -128,7 +128,7 @@ export async function runAgent(
   const messages: any[] = [
     {
       role: "system",
-      content: `${spec.system}\nReply language: ${ctx.lang}. Numbers must come from tools; never estimate them.`,
+      content: `${spec.system}\nReply language: ${ctx.lang}. Numbers must come from tools; never estimate them. The reply is spoken aloud: plain text only, no Markdown and no LaTeX.`,
     },
     { role: "user", content: input },
   ];

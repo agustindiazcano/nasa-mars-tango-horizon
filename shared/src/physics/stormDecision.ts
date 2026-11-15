@@ -55,6 +55,8 @@ export const DEFAULT_STORM_LIMITS: Limits = {
  * @param powerAt Base solar output callback (W) as a function of opacity tau (e.g. from solar.ts).
  * @param demandW Current base electrical load (W).
  * @param solSeconds Duration of one Martian sol in seconds (default 88775 s).
+ * @param currentTau Dust opacity measured now. When given it replaces the forecast median as the starting
+ *   point and counts toward the worst case, so an opacity already past a limit is never reported as "go".
  */
 export function decide(
   fc: StormForecast[],
@@ -63,6 +65,7 @@ export function decide(
   powerAt: (tau: number) => number,
   demandW: number,
   solSeconds: number = C.mars_sol_s.value,
+  currentTau?: number,
 ): Decision {
   const reasons: string[] = [];
   const maneuvers: Maneuver[] = [];
@@ -71,12 +74,15 @@ export function decide(
   }
 
   const today = fc.find((f) => f.horizonSol === 1) ?? fc[0];
-  const worst = Math.max(...fc.map((f) => f.q90));
+  const observed = currentTau !== undefined && Number.isFinite(currentTau) ? currentTau : undefined;
+  const worst = Math.max(...fc.map((f) => f.q90), observed ?? -Infinity);
 
   // Time until pessimistic opacity reaches visibility limit, assuming linear rise across the sol.
-  const now = fc[0].q50;
+  const now = observed ?? fc[0].q50;
   const timeToLimitS =
-    today.q90 <= lim.tauVisibility
+    now >= lim.tauVisibility
+      ? 0
+      : today.q90 <= lim.tauVisibility
       ? Infinity
       : Math.max(
           0,

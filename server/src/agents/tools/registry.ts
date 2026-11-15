@@ -280,7 +280,7 @@ export const TOOLS: ToolDef[] = [
       duration_min: z.number().min(5).max(600).default(120).describe("Planned remaining EVA duration in minutes"),
       return_to_shelter_min: z.number().min(1).max(240).default(25).describe("Estimated return-to-shelter transit time in minutes"),
     }),
-    description: "Evaluates EVA go/no-go against the 90th-percentile dust forecast, visibility threshold, aircraft grounding, and base solar margin.",
+    description: "Evaluates EVA go/no-go against the current dust opacity and the 90th-percentile forecast: visibility threshold, aircraft grounding, and base solar margin.",
     run: (a, ctx) => {
       const fc: StormForecast[] = ctx.storm_forecast?.length
         ? ctx.storm_forecast
@@ -292,9 +292,10 @@ export const TOOLS: ToolDef[] = [
       const peakSolarW = (ctx.env.solar_area_m2 ?? 400) * 590 * (ctx.env.solar_efficiency ?? 0.22);
       const demandW = ctx.env.solar_demand_w ?? 18000;
       const powerAt = (tau: number) => peakSolarW * directTransmission(tau, 0.7);
-      const decision = decide(fc, plan, STORM_LIMITS, powerAt, demandW);
+      const decision = decide(fc, plan, STORM_LIMITS, powerAt, demandW, undefined, ctx.env.tau);
       return {
         ...decision,
+        current_tau: ctx.env.tau,
         worst_q90_tau: Math.max(...fc.map((f) => f.q90)),
         limits: STORM_LIMITS,
         limits_source: "design_assumption",
@@ -513,7 +514,7 @@ export const TOOLS: ToolDef[] = [
     server: "knowledge",
     effect: false,
     schema: z.object({
-      query: z.string().describe("Search query for NASA standards and medical/operations documents"),
+      query: z.string().describe("Search query in English (the corpus is English; translate the crew's words first)"),
       k: z.number().int().min(1).max(5).default(3),
     }),
     description: "Searches the NASA corpus (NASA-STD-3001, OCHMO, AMCL, MEDPRAT, SUITS) and returns chunks with document and page.",
