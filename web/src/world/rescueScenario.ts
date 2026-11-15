@@ -86,6 +86,8 @@ export interface RescueView {
   crew: Record<"crew-2" | "crew-3", RescueCrewView>;
   robot: { stowed: boolean; pose: RescuePose; skill: RescueSkillId | null; progress01: number };
   rampOpen01: number;
+  /** Litter and tow cable: attached from the moment the robot secures the harness until the casualty is loaded. */
+  litter: { active: boolean };
 }
 
 // --- timeline (scenario seconds) ---------------------------------------------------------------------------------
@@ -416,6 +418,7 @@ function computeView(t: number): RescueView {
     crew: { "crew-2": crew2, "crew-3": crew3 },
     robot: { stowed, pose, skill, progress01 },
     rampOpen01,
+    litter: { active: t >= T_SECURE && crew3.visible },
   };
 }
 

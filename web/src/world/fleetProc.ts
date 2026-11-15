@@ -78,6 +78,8 @@ export class FleetUnit {
   rescueModel?: RescueRobotModel;
   /** `rescue-1`: procedural bay parts (floor, rails, ramp) that stay visible when the rescue-rover GLB replaces the body. */
   bayParts: THREE.Object3D[] = [];
+  /** Rear tow point in unit-local coordinates when a GLB body is in use (null: use the procedural hook). */
+  towLocal: THREE.Vector3 | null = null;
   /** Where the stowed rescue robot sits, in `rescue-1` local coordinates. */
   stowOffset = new THREE.Vector3(0, 0.5, -1.9);
 
@@ -575,6 +577,18 @@ export class FleetProc {
     this.units.get("rescue-bot-1")?.rescueModel?.applyPose(pose);
   }
 
+  /** World position of the rescue robot tow hook (GLB rear tow point, or the procedural winch hook). */
+  towPointWorld(): [number, number, number] | null {
+    const robot = this.units.get("rescue-bot-1");
+    if (!robot) return null;
+    robot.object.updateMatrixWorld(true);
+    const v = new THREE.Vector3();
+    if (robot.towLocal) v.copy(robot.towLocal).applyMatrix4(robot.object.matrixWorld);
+    else if (robot.rescueModel) robot.rescueModel.hook.getWorldPosition(v);
+    else return null;
+    return [v.x, v.y, v.z];
+  }
+
   private updateRescueBotStow(): void {
     if (!this.rescueBotStowed) return;
     const robot = this.units.get("rescue-bot-1");
@@ -686,6 +700,7 @@ export class FleetProc {
       unit.contactPoints = [-halfL, 0, halfL].flatMap((z) => [-halfW, halfW].map((x) => ({ x, y: 0, z })));
       // The winch tether rig stays procedural; the GLB provides the body and its own boom.
       unit.rescueModel?.hideBody();
+      unit.towLocal = new THREE.Vector3(0, m.size.y * 0.45, -m.size.z / 2 - 0.05);
       if (unit.mastPivot) unit.mastPivot.position.set(0, m.size.y * 0.95, m.size.z * 0.3);
     } else {
       unit.contactPoints = [-halfL, 0, halfL].flatMap((z) => [-halfW, halfW].map((x) => ({ x, y: 0, z: z + shift })));

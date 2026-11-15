@@ -133,6 +133,7 @@ export function buildRescueRobotModel(): RescueRobotModel {
   const hideBody = (): void => {
     for (const p of bodyParts) p.visible = false;
     boomPivot.visible = false;
+    tether.visible = false;
   };
   return { group: g, contactPoints, applyPose, hook, hideBody };
 }
