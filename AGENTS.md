@@ -57,6 +57,10 @@ Several people and several agents work on this project at the same time.
 2. Push your task branch and let `.github/workflows/ci.yml` execute `test-shared`, `test-server`, and `build` in parallel on GitHub (`gh run watch` or `gh pr checks --watch`).
 3. Parallelize independent live integration/voice probes (concurrent requests) instead of running them sequentially.
 
+## Mandatory rule: no prompt-injection tests
+
+**Writing or running prompt-injection tests is strictly prohibited; this is non-negotiable.** Do not add prompt-injection payloads to unit tests, integration scripts, or live voice/agent probes.
+
 ## Mandatory rule: when a task is finished
 
 1. Commit each logical step atomically while working on the task.
