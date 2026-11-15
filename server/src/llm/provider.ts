@@ -55,11 +55,41 @@ export const llmAvailable = (): boolean =>
 export type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 export type ChatTool = OpenAI.Chat.Completions.ChatCompletionTool;
 
+export interface ChatCallMeta {
+  provider: ProviderName;
+  model: string;
+  ms: number;
+  finishReason?: string | null;
+  usage?: unknown;
+}
+
 export interface ChatOptions {
   tools?: ChatTool[];
   json?: boolean;
   maxTokens?: number;
   provider?: ProviderName;
+  providers?: ProviderName[];
+  onMeta?: (meta: ChatCallMeta) => void;
+}
+
+/** Strips Google-specific extension fields from assistant/tool_call history when sending to non-Google providers. */
+export function sanitizeMessagesForProvider(messages: ChatMessage[], provider: ProviderName): ChatMessage[] {
+  if (provider !== "meta") return messages;
+  return messages.map((m) => {
+    if (m.role !== "assistant") return m;
+    const raw = m as unknown as Record<string, unknown>;
+    const toolCalls = Array.isArray(raw.tool_calls)
+      ? raw.tool_calls.map((tc: unknown) => {
+          const t = tc as { id?: string; type?: string; function?: unknown };
+          return { id: t.id, type: t.type ?? "function", function: t.function };
+        })
+      : undefined;
+    return {
+      role: "assistant",
+      content: (raw.content as string | null | undefined) ?? null,
+      ...(toolCalls?.length ? { tool_calls: toolCalls } : {}),
+    } as ChatMessage;
+  });
 }
 
 export async function chat(
@@ -69,7 +99,7 @@ export async function chat(
 ) {
   const order: ProviderName[] = opts.provider
     ? [opts.provider]
-    : config.providerOrder.filter(providerAvailable);
+    : (opts.providers?.length ? opts.providers : config.providerOrder).filter(providerAvailable);
 
   if (!order.length) {
     throw new Error("No LLM provider enabled");
@@ -80,12 +110,14 @@ export async function chat(
   let emptyMessage: OpenAI.Chat.Completions.ChatCompletionMessage | undefined;
 
   for (const provider of order) {
+    const model = modelFor(tier, provider);
+    const started = Date.now();
     try {
       const client = await getClient(provider);
       const res = await client.chat.completions.create(
         {
-          model: modelFor(tier, provider),
-          messages,
+          model,
+          messages: sanitizeMessagesForProvider(messages, provider),
           tools: opts.tools?.length ? opts.tools : undefined,
           response_format: opts.json ? { type: "json_object" } : undefined,
           max_tokens: opts.maxTokens ?? config.maxTokens,
@@ -94,17 +126,56 @@ export async function chat(
         } as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
         { timeout }
       );
-      const message = res.choices[0]?.message;
+      const ms = Date.now() - started;
+      const choice = res.choices[0];
+      const message = choice?.message;
+      opts.onMeta?.({
+        provider,
+        model,
+        ms,
+        finishReason: choice?.finish_reason ?? null,
+        usage: res.usage,
+      });
       if (!message) {
         throw new Error(`Empty completion choice from provider ${provider}`);
       }
       if (!message.content?.trim() && !message.tool_calls?.length) {
+        console.warn(
+          JSON.stringify({
+            event: "llm_empty_completion",
+            provider,
+            tier,
+            model,
+            ms,
+            finish_reason: choice?.finish_reason ?? null,
+            usage: res.usage ?? null,
+          })
+        );
         // Empty reply: try the next provider, but keep it so the caller can run its own empty-reply path.
         emptyMessage = message;
         continue;
       }
       return message;
     } catch (err) {
+      const ms = Date.now() - started;
+      const status =
+        typeof err === "object" && err !== null && "status" in err
+          ? (err as { status?: unknown }).status
+          : undefined;
+      const name = err instanceof Error ? err.constructor.name : "Error";
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(
+        JSON.stringify({
+          event: "llm_provider_error",
+          provider,
+          tier,
+          model,
+          ms,
+          ...(status !== undefined ? { status } : {}),
+          err: name,
+          message: msg.slice(0, 200),
+        })
+      );
       lastErr = err;
     }
   }

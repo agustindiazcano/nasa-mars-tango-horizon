@@ -25,10 +25,13 @@ interface SpeechResultEvent {
   };
 }
 
+export type ListenErrorCode = "unsupported" | "not-allowed" | "audio-capture" | "network" | "other";
+
 export interface ListenHooks {
   onInterim(text: string): void;
   onFinal(text: string): void;
   onState(listening: boolean): void;
+  onError?(code: ListenErrorCode, detail?: string): void;
 }
 
 export class Listener {
@@ -67,7 +70,10 @@ export class Listener {
   }
 
   private start(continuous: boolean): void {
-    if (!Listener.supported()) return;
+    if (!Listener.supported()) {
+      this.hooks.onError?.("unsupported");
+      return;
+    }
     try {
       this.rec?.abort();
     } catch {
@@ -78,7 +84,10 @@ export class Listener {
       webkitSpeechRecognition?: new () => SpeechRec;
     };
     const Ctor = win.SpeechRecognition ?? win.webkitSpeechRecognition;
-    if (!Ctor) return;
+    if (!Ctor) {
+      this.hooks.onError?.("unsupported");
+      return;
+    }
 
     const rec = new Ctor();
     rec.lang = this.lang;
@@ -111,15 +120,25 @@ export class Listener {
       }
     };
     rec.onerror = (e) => {
-      if (e.error === "not-allowed") {
+      if (e.error === "no-speech" || e.error === "aborted") return;
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
         this.wake = false;
+        this.hooks.onState(false);
+        this.hooks.onError?.("not-allowed", e.error);
+        return;
       }
+      if (e.error === "audio-capture" || e.error === "network") {
+        this.hooks.onError?.(e.error, e.error);
+        return;
+      }
+      this.hooks.onError?.("other", e.error);
     };
     this.rec = rec;
     try {
       rec.start();
     } catch {
       this.hooks.onState(false);
+      this.hooks.onError?.("other");
     }
   }
 

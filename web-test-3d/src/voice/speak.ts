@@ -5,6 +5,7 @@ export class RadioSpeaker {
   private ctx: AudioContext | null = null;
   private queue: Promise<void> = Promise.resolve();
   private current: AudioBufferSourceNode | null = null;
+  private bufferCache = new Map<string, AudioBuffer>();
   lang: Lang = getLang();
   radioEffect = true; // Quindar 2525 Hz / 2475 Hz + 300-3200 Hz bandpass
 
@@ -55,19 +56,28 @@ export class RadioSpeaker {
       await ctx.resume().catch(() => {});
     }
 
-    let buffer: AudioBuffer | null = null;
-    try {
-      const res = await fetch(apiUrl("/api/tts"), {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text: text.slice(0, 400), lang: TTS_LOCALE[this.lang] }),
-        signal: AbortSignal.timeout(2500),
-      });
-      if (res.ok) {
-        buffer = await ctx.decodeAudioData(await res.arrayBuffer());
+    const clipped = text.slice(0, 400);
+    const cacheKey = `${TTS_LOCALE[this.lang]}|${clipped}`;
+    let buffer: AudioBuffer | null = this.bufferCache.get(cacheKey) ?? null;
+    if (!buffer) {
+      try {
+        const res = await fetch(apiUrl("/api/tts"), {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ text: clipped, lang: TTS_LOCALE[this.lang] }),
+          signal: AbortSignal.timeout(6000),
+        });
+        if (res.ok) {
+          buffer = await ctx.decodeAudioData(await res.arrayBuffer());
+          if (this.bufferCache.size >= 100) {
+            const oldest = this.bufferCache.keys().next().value;
+            if (oldest !== undefined) this.bufferCache.delete(oldest);
+          }
+          this.bufferCache.set(cacheKey, buffer);
+        }
+      } catch {
+        // fallback to browser speechSynthesis
       }
-    } catch {
-      // fallback to browser speechSynthesis
     }
 
     if (this.radioEffect && ctx.state === "running") {

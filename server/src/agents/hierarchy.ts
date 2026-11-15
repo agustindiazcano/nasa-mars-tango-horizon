@@ -1,5 +1,11 @@
 import { offlineReply } from "./offline.js";
-import { runAgent, setDelegateHandler, type AgentResult, type AgentSpec } from "./runAgent.js";
+import {
+  claimsMissingTelemetry,
+  runAgent,
+  setDelegateHandler,
+  type AgentResult,
+  type AgentSpec,
+} from "./runAgent.js";
 import type { MissionContext } from "./types.js";
 import { capabilityPrompt } from "./unitCapabilities.js";
 
@@ -45,7 +51,7 @@ Priority order: crew integrity (weather, radiation, consumables, equipment), the
 Mars has no GPS: use get_localization_and_lidar (HiRISE 1 m/px Map-Relative Localization + 6.5 GHz UWB ToF mesh + VIO + 3D LiDAR) to read the exact coordinates of the astronaut and all fleet units, plus 360-deg LiDAR terrain hazards.
 When the astronaut asks to send a robot to "my position" / "mi posición" / "donde estoy", read get_localization_and_lidar and dispatch that unit to the astronaut's exact (x, z) coordinates.
 Read state with tools before deciding. Delegate domain tasks to SUIT.HEALTH, EVA-PLANNER, SCIENCE, WEATHER-RAD, MAINTENANCE, or ROBOT.<id> when helpful.
-For a single-unit order (go there, take off, land, photograph, follow me, return to base, hold, relay, bring supplies) call dispatch or unit_action yourself for that unit: no delegation hop, answer right after the tool result. Never confirm or claim a unit movement, return, takeoff, photo, or action unless you called dispatch, unit_action, or arm_skill and received status allow in this turn. Use unit_action actions: takeoff, land, photograph_area, hover_overwatch, follow_astronaut, return_to_base, survey_area, hold_position, relay_comms, deliver_supplies; GUARDIAN rejects ones the unit kind cannot do. Delegate to ROBOT.<id> only for multi-step jobs (arm skills on manip-1). Never both delegate to ROBOT.<id> and call dispatch for that same unit: delegate to ROBOT.<id> (it dispatches itself) or call dispatch directly, never both. Issue independent read-only tool calls together in a single turn. Use get_terrain_at at most 3 times; if GUARDIAN denies an action, report the reason to the crew and stop instead of searching for alternatives.
+For a single-unit order (go there, take off, land, photograph, follow me, return to base, hold, relay, bring supplies) call unit_action (or dispatch for explicit coordinates) on your FIRST turn using the unit_id from [Mission snapshot]; do NOT call list_units just to look up an ID. Never confirm or claim a unit movement, return, takeoff, photo, or action unless you called dispatch, unit_action, or arm_skill and received status allow in this turn. Use unit_action actions: takeoff, land, photograph_area, hover_overwatch, follow_astronaut, return_to_base, survey_area, hold_position, relay_comms, deliver_supplies; GUARDIAN rejects ones the unit kind cannot do (report GUARDIAN's exact reason and stop). Delegate to ROBOT.manip-1 directly on your first turn for arm skills (sample, drill, photograph, handover). Never both delegate to ROBOT.<id> and call dispatch for that same unit: delegate to ROBOT.<id> (it dispatches itself) or call dispatch directly, never both. Issue independent read-only tool calls together in a single turn. Use get_terrain_at at most 3 times.
 In a suit leak emergency: check time_to_hypoxia, launch an 8 kg O2 pod at least 15 m from the astronaut, deploy UWB/LED beacons, dispatch rescue-1, and show a crit alert.
 Spoken replies: 25 words or fewer, stating the key number and its SI unit.`,
   },
@@ -164,6 +170,29 @@ setDelegateHandler(async (agentName, objective, ctx, userRequest, depth) => {
   return runAgent(target, objective, ctx, userRequest, 4, depth);
 });
 
+const ESCALATE_FAST_RE =
+  /(?<![\p{L}])(rover|rvr|rescue|rescate|drone|dron|glider|scout|manip(?:ulador|ulator)?|hands|despeg[aáe]?r?|take\s*off|aterriz[aáe]?r?|segu[ií](?:me)?|follow|volv[eé]r?|regres[aáe]?r?|return|relev[aáe]?r?|survey|vigil[aáe]?r?|hover|agarr[aáe]?r?|grab|drill|perfor[aáe]?r?|martill|hammer|entreg[aáe]?r?|handover|fotograf|photograph|env[ií]a|mand[aá]|send|dispatch|despach|repetidor|relay|ruta|route|planif|navigate|naveg|lidar|ubicaci[oó]n|coordenada|clima|weather|tormenta|storm|pron[oó]st|forecast|radiaci[oó]n|radiation|dosis|dose|eva|puedo salir|can i go out|m[eé]t[eé]o|wetter|hidrat|hydrat|muestra|sample|veta|vein|prospector|sitio|site|ciencia|science|ventilador|fan|mantenim|maintenance|falla|failure|tendencia|trend|baliza|beacon|bengala|flare|fuga|leak|emergencia|emergency|mayday|socorro|cartel|sign|airlock|ignore)(?![\p{L}])/iu;
+
+/** Deterministic pre-router so obvious BASE orders skip the SUIT.VOICE-EXEC LLM round-trip. */
+export function shouldEscalateFast(text: string, ctx: MissionContext): boolean {
+  if (ctx.leak_diameter_m > 0 && !ctx.emergency_response_active) return true;
+  if (/(?<![\p{L}])(?:capa|layer)(?![\p{L}])/iu.test(text) && !/(?<![\p{L}])(?:tormenta|storm|pron[oó]st|forecast|ruta|route)(?![\p{L}])/iu.test(text)) {
+    return false;
+  }
+  return ESCALATE_FAST_RE.test(text);
+}
+
+/** Appends compact unit IDs, target IDs, and key environment values so BASE skips redundant discovery calls. */
+export function formatBaseInput(text: string, ctx: MissionContext): string {
+  const fleet = ctx.fleet.length
+    ? ctx.fleet.map((u) => `${u.id}(${u.kind},bat=${Math.round(u.battery * 100)}%)`).join(", ")
+    : "none";
+  const targets = ctx.targets?.length
+    ? ctx.targets.map((t) => `${t.id}(${t.kind},${t.distance_m}m)`).join(", ")
+    : "none";
+  return `${text}\n[Mission snapshot: fleet=${fleet}; targets=${targets}; env tau=${ctx.env.tau}, wind_ms=${ctx.env.wind_ms}]`;
+}
+
 /** True when a leak is active, no pod is on the way yet and the agent reply has no launch_pod: run the deterministic protocol. */
 export function needsLeakSafetyNet(ctx: MissionContext, actions: { type: string }[]): boolean {
   return ctx.leak_diameter_m > 0 && !ctx.emergency_response_active && !actions.some((a) => a.type === "launch_pod");
@@ -174,9 +203,20 @@ export async function handleVoice(
   text: string,
   ctx: MissionContext,
 ): Promise<AgentResult & { route: string[] }> {
-  const fast = await runAgent(AGENTS["SUIT.VOICE-EXEC"], text, ctx);
-  const needsEscalation =
-    /ESCALATE/i.test(fast.text) || (!fast.text.trim() && fast.actions.length === 0);
+  let fast: AgentResult;
+  let needsEscalation = shouldEscalateFast(text, ctx);
+
+  if (needsEscalation) {
+    fast = { text: "ESCALATE", actions: [], trace: [] };
+  } else {
+    fast = await runAgent(AGENTS["SUIT.VOICE-EXEC"], text, ctx);
+    needsEscalation =
+      /ESCALATE/i.test(fast.text) ||
+      (!fast.text.trim() && fast.actions.length === 0) ||
+      /^No action taken\.?$/i.test(fast.text.trim()) ||
+      (fast.actions.length === 0 && claimsMissingTelemetry(fast.text));
+  }
+
   if (!needsEscalation && needsLeakSafetyNet(ctx, fast.actions)) {
     const det = await offlineReply(`${text} emergency`, ctx);
     return { text: det.speech, actions: [...fast.actions, ...det.actions], trace: [...fast.trace, ...det.trace], route: det.route };
@@ -185,7 +225,7 @@ export async function handleVoice(
     return { ...fast, route: ["SUIT.VOICE-EXEC"] };
   }
 
-  const base = await runAgent(AGENTS.BASE, text, ctx);
+  const base = await runAgent(AGENTS.BASE, formatBaseInput(text, ctx), ctx, text);
 
   // Life-support safety net: a suit leak must never depend on the LLM choosing to act.
   if (needsLeakSafetyNet(ctx, base.actions)) {

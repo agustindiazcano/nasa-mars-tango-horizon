@@ -19,6 +19,19 @@ const cache = new Map<string, Buffer>();
 const MAX_CACHE = 300;
 
 export function registerTtsRoute(app: FastifyInstance): void {
+  // Pre-warm the Cloud TTS gRPC channel + ADC token in the background so the first spoken reply does not stall.
+  if (!config.offline && !process.env.VITEST) {
+    void (async () => {
+      await tts.initialize();
+      const voiceName = process.env.TTS_VOICE_ES || undefined;
+      await tts.synthesizeSpeech({
+        input: { text: "OK" },
+        voice: { languageCode: "es-US", name: voiceName },
+        audioConfig: { audioEncoding: "MP3", speakingRate: 1.05 },
+      });
+    })().catch(() => {});
+  }
+
   app.post(
     "/api/tts",
     {
