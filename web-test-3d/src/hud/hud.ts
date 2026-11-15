@@ -14,14 +14,6 @@ import { BASE_MODULES } from "../world/baseProc";
 import type { TerrainProc } from "../world/terrainProc";
 import type { DeckButton } from "./demoDeck";
 
-function escapeHtml(raw: string): string {
-  return raw
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 export interface HudActions {
   togglePov(): void;
   setLayer(layer: LayerId): void;
