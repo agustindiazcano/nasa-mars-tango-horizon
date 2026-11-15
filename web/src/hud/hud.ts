@@ -31,6 +31,7 @@ import {
   type StormForecastData,
 } from "./stormForecast";
 import { barHeight } from "../voice/spectrum";
+import { VeinDetector } from "./veinDetector";
 
 export interface HudActions {
   togglePov(): void;
@@ -108,6 +109,7 @@ export class TacticalHud {
   private provenanceState: "idle" | "loading" | "ready" | "error" = "idle";
   private provenanceData: ProvenanceManifest | null = null;
   private provenanceError = "";
+  private veinDetector = new VeinDetector();
   private stormData: StormForecastData | null = null;
   private stormState: "loading" | "ready" | "error" = "loading";
 
@@ -265,6 +267,7 @@ export class TacticalHud {
       { panel: "provenance", key: "menu.provenance" },
       { panel: "sessions", key: "menu.sessions" },
       { panel: "casson", key: "menu.casson" },
+      { panel: "veins", key: "veins.title" },
     ];
     const menuHtml = menuItems
       .map(
@@ -837,6 +840,12 @@ export class TacticalHud {
         <button class="hud-btn" data-pointable id="modal-close">X</button>
       </div>
     `;
+
+    if (s.panel === "veins") {
+      this.veinDetector.show(this.modalEl, () => s.setPanel("none"));
+      this.lastModalPanel = s.panel;
+      return;
+    }
 
     if (s.panel === "agents") {
       const pendingHtml = s.pendingActions

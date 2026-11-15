@@ -13,6 +13,7 @@ export type PanelId =
   | "base"
   | "sessions"
   | "casson"
+  | "veins"
   | "menu"
   | "none";
 
