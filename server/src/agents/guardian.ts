@@ -1,4 +1,4 @@
-import { evaluateComponentHealth } from "@th/shared";
+import { computeEnvGradients, ENV_LIMITS, evaluateComponentHealth, surfaceDensity } from "@th/shared";
 import { z } from "zod";
 import { chat, llmAvailable } from "../llm/provider.js";
 import { slopeAt } from "./tools/terrainData.js";
@@ -15,7 +15,6 @@ export const MAX_SLOPE: Record<string, number> = {
 };
 
 const POD_KEEPOUT_M = 15; // design assumption: exclusion radius around crew for pod landing
-const AIRCRAFT_GROUNDING_TAU = 1.8; // dust opacity at or above which drones and gliders are grounded
 const AIRCRAFT_MIN_BATTERY = 0.15;
 const ARM_CREW_KEEPOUT_M = 2; // design assumption: minimum clearance around crew for non-handover arm skills
 const JUDGE_SKIP_TYPES = new Set(["dispatch", "arm_skill", "unit_action"]); // low risk once hard limits pass; launch_pod/deploy_beacons stay judged
@@ -41,8 +40,15 @@ function isAircraft(kind: string): boolean {
 function aircraftDeny(unit: { id: string; kind: string; battery: number }, what: string, ctx: MissionContext): string | null {
   if (!isAircraft(unit.kind)) return null;
   if (unit.battery < AIRCRAFT_MIN_BATTERY) return `Battery of ${unit.id} is too low for ${what}`;
-  if (ctx.env.tau >= AIRCRAFT_GROUNDING_TAU) {
-    return `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${AIRCRAFT_GROUNDING_TAU} aircraft grounding limit`;
+  if (ctx.env.tau >= ENV_LIMITS.tauDroneGrounding) {
+    return `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${ENV_LIMITS.tauDroneGrounding} aircraft grounding limit`;
+  }
+  if (ctx.env.wind_ms >= ENV_LIMITS.maxFlightWindMs) {
+    return `Wind speed ${ctx.env.wind_ms.toFixed(1)} m/s exceeds ${ENV_LIMITS.maxFlightWindMs} m/s aircraft flight limit`;
+  }
+  const rho = surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k);
+  if (rho < ENV_LIMITS.minFlightDensityKgM3) {
+    return `Air density ${rho.toFixed(4)} kg/m^3 is below ${ENV_LIMITS.minFlightDensityKgM3} kg/m^3 minimum flight density`;
   }
   return null;
 }
@@ -132,6 +138,30 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
         );
       }
     }
+    const task = (a.args as { task?: string }).task;
+    const isOutward = Math.hypot(x, z) > Math.hypot(unit.x, unit.z);
+    if (task !== "rescue" && isOutward) {
+      const radSlope = ctx.env_window?.length
+        ? computeEnvGradients(ctx.env_window, ctx.env).ddose_dt_ugy_h2
+        : 0;
+      if (ctx.env.dose_rate_ugy_h >= ENV_LIMITS.sepDoseAbortUgyH) {
+        return deny(
+          `SEP absorbed dose rate ${ctx.env.dose_rate_ugy_h.toFixed(1)} uGy/h exceeds ${ENV_LIMITS.sepDoseAbortUgyH} uGy/h abort limit for outward dispatch`,
+        );
+      }
+      if (ctx.donki_alert?.active_sep && radSlope > 0) {
+        return deny(
+          `Active DONKI SEP alert with rising RAD dose slope (+${radSlope.toFixed(1)} uGy/h^2) blocks outward dispatch`,
+        );
+      }
+      if (ctx.env.dose_rate_ugy_h >= ENV_LIMITS.sepDoseWarnUgyH || ctx.donki_alert?.active_sep) {
+        return {
+          decision: "ask_human",
+          reason: `Elevated SEP radiation (${ctx.env.dose_rate_ugy_h.toFixed(1)} uGy/h${ctx.donki_alert?.active_sep ? ", active DONKI SEP alert" : ""}) for outward dispatch`,
+          by: "rules",
+        };
+      }
+    }
   }
 
   if (a.type === "unit_action") {
@@ -194,9 +224,20 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       );
     }
     if (mode === "drone_drop") {
-      if (ctx.env.tau >= AIRCRAFT_GROUNDING_TAU) {
+      if (ctx.env.tau >= ENV_LIMITS.tauDroneGrounding) {
         return deny(
-          `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${AIRCRAFT_GROUNDING_TAU} aircraft grounding limit; use ballistic_canister mode`,
+          `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${ENV_LIMITS.tauDroneGrounding} aircraft grounding limit; use ballistic_canister mode`,
+        );
+      }
+      if (ctx.env.wind_ms >= ENV_LIMITS.maxFlightWindMs) {
+        return deny(
+          `Wind speed ${ctx.env.wind_ms.toFixed(1)} m/s exceeds ${ENV_LIMITS.maxFlightWindMs} m/s aircraft flight limit; use ballistic_canister mode`,
+        );
+      }
+      const rho = surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k);
+      if (rho < ENV_LIMITS.minFlightDensityKgM3) {
+        return deny(
+          `Air density ${rho.toFixed(4)} kg/m^3 is below ${ENV_LIMITS.minFlightDensityKgM3} kg/m^3 minimum flight density; use ballistic_canister mode`,
         );
       }
       if (unit_id) {

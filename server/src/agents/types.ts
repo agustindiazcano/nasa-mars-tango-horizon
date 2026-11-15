@@ -1,5 +1,7 @@
 import type {
   CrewProfile,
+  DonkiAlert,
+  EnvTelemetrySample,
   FleetUnitHealth,
   FleetWindowSample,
   PowerIsruWindowSample,
@@ -77,15 +79,28 @@ export interface MissionContext {
   };
   suit: Record<string, number>;
   env: {
+    data_category?: "design" | "observation" | "derived";
+    radiation_quantity?: "absorbed_dose_silicon";
+    storm_source?: string;
+    rad_source?: string;
     pressure_pa: number;
     air_temp_k: number;
+    ground_temp_k?: number;
     tau: number;
     wind_ms: number;
+    wind_dir_deg?: number;
     dose_rate_ugy_h: number;
+    cumulative_dose_ugy?: number;
+    sol?: number;
+    lst_h?: number;
+    sun_elev_deg?: number;
     solar_demand_w?: number;
     solar_area_m2?: number;
     solar_efficiency?: number;
   };
+  env_window?: EnvTelemetrySample[];
+  base_battery_wh?: number;
+  donki_alert?: DonkiAlert;
   fleet: FleetUnitSnapshot[];
   hud: {
     layer: string;

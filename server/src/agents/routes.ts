@@ -2,6 +2,8 @@ import {
   MAX_FDIR_WINDOW_SAMPLES,
   terrainMatches,
   type CrewProfile,
+  type DonkiAlert,
+  type EnvTelemetrySample,
   type FleetUnitHealth,
   type FleetWindowSample,
   type PowerIsruWindowSample,
@@ -59,6 +61,7 @@ const MAX_FLEET = 32;
 const MAX_LIST = 64;
 const MAX_VITALS_WINDOW = 120;
 const MAX_FAULT_CODES = 16;
+const MAX_ENV_WINDOW = 48;
 
 const CREW_PROFILE_NUMERIC_KEYS = [
   "resting_hr_bpm",
@@ -163,7 +166,6 @@ function sanitizeStormForecast(raw: unknown): StormForecastPoint[] {
   return out;
 }
 
-<<<<<<< HEAD
 /** Strips all unexpected/PII/EMR fields from crew_profile; keeps only privacy_mode and finite numeric baselines. */
 function sanitizeCrewProfile(raw: unknown): CrewProfile | undefined {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
@@ -256,6 +258,65 @@ function sanitizeFleetWindows(raw: unknown): Record<string, FleetWindowSample[]>
   return out;
 }
 
+function sanitizeEnvWindow(raw: unknown): EnvTelemetrySample[] {
+  if (!Array.isArray(raw)) return [];
+  const out: EnvTelemetrySample[] = [];
+  for (const s of raw) {
+    if (!s || typeof s !== "object") continue;
+    const r = s as Record<string, unknown>;
+    const t_s = toNum(r.t_s);
+    const pressure_pa = toNum(r.pressure_pa);
+    const air_temp_k = toNum(r.air_temp_k);
+    const tau = toNum(r.tau);
+    const wind_ms = toNum(r.wind_ms);
+    const dose_rate_ugy_h = toNum(r.dose_rate_ugy_h);
+    if (
+      t_s === undefined ||
+      pressure_pa === undefined ||
+      air_temp_k === undefined ||
+      air_temp_k <= 0 ||
+      tau === undefined ||
+      wind_ms === undefined ||
+      dose_rate_ugy_h === undefined
+    ) {
+      continue;
+    }
+    const sol = toNum(r.sol);
+    const lst_h = toNum(r.lst_h);
+    const ground_temp_k = toNum(r.ground_temp_k);
+    const sun_elev_deg = toNum(r.sun_elev_deg);
+    out.push({
+      t_s,
+      pressure_pa,
+      air_temp_k,
+      tau,
+      wind_ms,
+      dose_rate_ugy_h,
+      ...(sol !== undefined ? { sol } : {}),
+      ...(lst_h !== undefined ? { lst_h } : {}),
+      ...(ground_temp_k !== undefined ? { ground_temp_k } : {}),
+      ...(sun_elev_deg !== undefined ? { sun_elev_deg } : {}),
+    });
+  }
+  return out.length > MAX_ENV_WINDOW ? out.slice(-MAX_ENV_WINDOW) : out;
+}
+
+function sanitizeDonkiAlert(raw: unknown): DonkiAlert | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.active_sep !== "boolean") return undefined;
+  const arrival = toNum(r.wsa_enlil_mars_arrival_h);
+  const sourceId =
+    typeof r.source_id === "string" && r.source_id.trim()
+      ? r.source_id.trim().slice(0, 120)
+      : undefined;
+  return {
+    active_sep: r.active_sep,
+    ...(arrival !== undefined ? { wsa_enlil_mars_arrival_h: arrival } : {}),
+    ...(sourceId !== undefined ? { source_id: sourceId } : {}),
+  };
+}
+
 /** Builds a MissionContext from an untrusted client snapshot: malformed values fall back to defaults or are dropped. */
 export function buildContext(raw: any, lang: Lang): MissionContext {
   const c = raw && typeof raw === "object" ? raw : {};
@@ -263,12 +324,39 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     c.suit && typeof c.suit === "object" && !Array.isArray(c.suit)
       ? Object.entries(c.suit).filter(([, v]) => isNum(v))
       : [];
-  const solar = (key: "solar_demand_w" | "solar_area_m2" | "solar_efficiency") => {
+  const optEnvNum = (
+    key:
+      | "ground_temp_k"
+      | "cumulative_dose_ugy"
+      | "sol"
+      | "lst_h"
+      | "sun_elev_deg"
+      | "wind_dir_deg"
+      | "solar_demand_w"
+      | "solar_area_m2"
+      | "solar_efficiency",
+  ) => {
     const n = toNum(c.env?.[key]);
     return n === undefined ? {} : { [key]: n };
   };
   const crewProfile = sanitizeCrewProfile(c.crew_profile);
   const vitalsWindow = sanitizeVitalsWindow(c.vitals_window);
+  const dataCategory =
+    c.env?.data_category === "design" ||
+    c.env?.data_category === "observation" ||
+    c.env?.data_category === "derived"
+      ? { data_category: c.env.data_category }
+      : {};
+  const stormSource =
+    typeof c.env?.storm_source === "string" && c.env.storm_source.trim()
+      ? { storm_source: c.env.storm_source.trim().slice(0, 160) }
+      : {};
+  const radSource =
+    typeof c.env?.rad_source === "string" && c.env.rad_source.trim()
+      ? { rad_source: c.env.rad_source.trim().slice(0, 160) }
+      : {};
+  const baseBatteryWh = toNum(c.base_battery_wh);
+  const donkiAlert = sanitizeDonkiAlert(c.donki_alert);
   return {
     terrain: terrainMatches(c.terrain) ? c.terrain : undefined,
     lang,
@@ -282,15 +370,27 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     },
     suit: suitEntries.length ? (Object.fromEntries(suitEntries) as Record<string, number>) : { suit_pressure_pa: 29600, o2_primary_kg: 1.2 },
     env: {
+      ...dataCategory,
+      ...stormSource,
+      ...radSource,
       pressure_pa: num(c.env?.pressure_pa, 750),
       air_temp_k: num(c.env?.air_temp_k, 220),
       tau: num(c.env?.tau, 0.5),
       wind_ms: num(c.env?.wind_ms, 6),
       dose_rate_ugy_h: num(c.env?.dose_rate_ugy_h, 10),
-      ...solar("solar_demand_w"),
-      ...solar("solar_area_m2"),
-      ...solar("solar_efficiency"),
+      ...optEnvNum("ground_temp_k"),
+      ...optEnvNum("cumulative_dose_ugy"),
+      ...optEnvNum("sol"),
+      ...optEnvNum("lst_h"),
+      ...optEnvNum("sun_elev_deg"),
+      ...optEnvNum("wind_dir_deg"),
+      ...optEnvNum("solar_demand_w"),
+      ...optEnvNum("solar_area_m2"),
+      ...optEnvNum("solar_efficiency"),
     },
+    ...(Array.isArray(c.env_window) ? { env_window: sanitizeEnvWindow(c.env_window) } : {}),
+    ...(baseBatteryWh !== undefined && baseBatteryWh >= 0 ? { base_battery_wh: baseBatteryWh } : {}),
+    ...(donkiAlert ? { donki_alert: donkiAlert } : {}),
     fleet: sanitizeFleet(c.fleet),
     hud: {
       layer: String(c.hud?.layer ?? "optical"),

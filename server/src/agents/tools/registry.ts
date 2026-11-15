@@ -4,14 +4,15 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   decide,
   directTransmission,
+  ENV_LIMITS,
   evaluateComponentHealth,
   evaluateCrewBiomed,
   leakTimeline,
   metabolicRateW,
   o2KgPerHour,
+  predictEnvironmentalRisk,
   surfaceDensity,
   type EvaPlan,
-  type Limits,
   type StormForecast,
 } from "@th/shared";
 import type { MissionContext, ToolDef } from "../types.js";
@@ -63,12 +64,6 @@ export async function safeSearchDocs(query: string, k = 3, faultCodes?: string[]
   }
   return cachedSearchDocs(query, k, faultCodes);
 }
-
-const STORM_LIMITS: Limits = {
-  tauVisibility: 2.5,     // design assumption: optical opacity threshold for safe EVA navigation
-  tauDroneGrounding: 1.8, // design assumption: opacity threshold grounding drones and glider
-  minPowerMarginW: 500,   // design assumption: minimum solar generation margin above base demand
-};
 
 const xz = {
   x: z.number().describe("Metres east of the scene center"),
@@ -325,15 +320,40 @@ export const TOOLS: ToolDef[] = [
       const peakSolarW = (ctx.env.solar_area_m2 ?? 400) * 590 * (ctx.env.solar_efficiency ?? 0.22);
       const demandW = ctx.env.solar_demand_w ?? 18000;
       const powerAt = (tau: number) => peakSolarW * directTransmission(tau, 0.7);
-      const decision = decide(fc, plan, STORM_LIMITS, powerAt, demandW, undefined, ctx.env.tau);
+      const decision = decide(fc, plan, ENV_LIMITS, powerAt, demandW, undefined, ctx.env.tau);
       return {
         ...decision,
         current_tau: ctx.env.tau,
         worst_q90_tau: Math.max(...fc.map((f) => f.q90)),
-        limits: STORM_LIMITS,
+        limits: ENV_LIMITS,
         limits_source: "design_assumption",
       };
     },
+  }),
+  def({
+    name: "evaluate_environmental_risk",
+    server: "environment",
+    effect: false,
+    schema: z.object({
+      duration_min: z.number().min(5).max(600).default(120).describe("Planned remaining EVA duration in minutes"),
+      return_to_shelter_min: z.number().min(1).max(240).default(25).describe("Estimated return-to-shelter transit time in minutes"),
+      svf: z.number().min(0).max(1).default(1).describe("Local sky-view factor (0..1) for terrain radiation shielding"),
+    }),
+    description:
+      "Computes predictive environmental gradients (dp/dt, dtau/dt, dwind/dt, d(dose)/dt), storm onset and visibility abort ETAs, solar margin/battery autonomy, projected EVA radiation dose, aircraft flight envelope, and recommended maneuvers.",
+    run: (a, ctx) =>
+      predictEnvironmentalRisk({
+        env: ctx.env,
+        env_window: ctx.env_window,
+        storm_forecast: ctx.storm_forecast?.length ? ctx.storm_forecast : getStormForecastData().forecast,
+        base_battery_wh: ctx.base_battery_wh,
+        donki_alert: ctx.donki_alert,
+        plan: {
+          durationS: a.duration_min * 60,
+          returnToShelterS: a.return_to_shelter_min * 60,
+        },
+        svf: a.svf,
+      }),
   }),
 
   // --- mcp-fleet ---------------------------------------------------------
@@ -396,7 +416,7 @@ export const TOOLS: ToolDef[] = [
       mode: z
         .enum(["auto", "drone_drop", "ballistic_canister"])
         .default("auto")
-        .describe("Deployment mode: drone_drop when tau < 1.8, or ballistic_canister when dust/wind grounds aircraft"),
+        .describe(`Deployment mode: drone_drop when tau < ${ENV_LIMITS.tauDroneGrounding}, or ballistic_canister when dust/wind grounds aircraft`),
       spacing_m: z.number().min(25).max(100).default(50).describe("Spacing in metres between breadcrumb beacons"),
     }),
     description:
@@ -441,7 +461,10 @@ export const TOOLS: ToolDef[] = [
       const drone = ctx.fleet.find((u) => u.kind === "drone" && u.battery >= 0.2);
       const resolvedMode =
         a.mode === "auto"
-          ? ctx.env.tau < 1.8 && drone
+          ? ctx.env.tau < ENV_LIMITS.tauDroneGrounding &&
+            ctx.env.wind_ms < ENV_LIMITS.maxFlightWindMs &&
+            surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k) >= ENV_LIMITS.minFlightDensityKgM3 &&
+            drone
             ? "drone_drop"
             : "ballistic_canister"
           : a.mode;
