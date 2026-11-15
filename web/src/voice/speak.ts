@@ -9,6 +9,27 @@ export class RadioSpeaker {
   lang: Lang = getLang();
   radioEffect = true; // Quindar 2525 Hz / 2475 Hz + 300-3200 Hz bandpass
 
+  private analyser: AnalyserNode | null = null;
+
+  /** Shared 32-bin analyser; all playback routes through it before the destination. */
+  private output(ctx: AudioContext): AudioNode {
+    if (!this.analyser) {
+      const a = ctx.createAnalyser();
+      a.fftSize = 64;
+      a.smoothingTimeConstant = 0.7;
+      a.connect(ctx.destination);
+      this.analyser = a;
+    }
+    return this.analyser;
+  }
+
+  /** Fills `out` (length 32) with the byte spectrum; false when no analyser exists yet. */
+  getSpectrum(out: Uint8Array<ArrayBuffer>): boolean {
+    if (!this.analyser) return false;
+    this.analyser.getByteFrequencyData(out);
+    return true;
+  }
+
   private ensureCtx(): AudioContext {
     if (!this.ctx) {
       this.ctx = new AudioContext();
@@ -108,7 +129,7 @@ export class RadioSpeaker {
         lp.frequency.value = 3200;
         node = src.connect(hp).connect(lp);
       }
-      node.connect(ctx.destination);
+      node.connect(this.output(ctx));
       src.onended = () => {
         if (this.current === src) this.current = null;
         resolve();
@@ -146,7 +167,7 @@ export class RadioSpeaker {
     g.gain.linearRampToValueAtTime(0.08, t + 0.008);
     g.gain.setValueAtTime(0.08, t + Math.max(0.01, dur - 0.008));
     g.gain.linearRampToValueAtTime(0, t + dur);
-    osc.connect(g).connect(ctx.destination);
+    osc.connect(g).connect(this.output(ctx));
     osc.start(t);
     osc.stop(t + dur);
     return new Promise((r) => setTimeout(r, dur * 1000));
