@@ -51,7 +51,7 @@ export const en = {
   "layer.slope": "Slope (°)",
   "layer.thermal": "Thermal class (THEMIS)",
   "layer.radiation": "Radiation shielding (SVF)",
-  "layer.hydration": "Soil hydration (WEH %)",
+  "layer.hydration": "Soil hydration index",
 
   // Phone remote UI
   "remote.tap_to_connect": "Tap to connect",
@@ -90,8 +90,8 @@ export const en = {
   "alert.emergency_local": "Emergency protocol activated locally",
   "alert.eva_aborted": "EVA aborted. Returning to base.",
   "alert.all_stop": "All units halted",
-  "scenario.storm_source": "Data: REMS, MSL, 2018 global dust storm",
-  "scenario.sep2017_source": "Real event measured by RAD, September 2017",
+  "scenario.storm_source": "Design dust storm (synthetic curve; REMS 2018 data in archive)",
+  "scenario.sep2017_source": "Design SEP radiation event (synthetic curve; RAD Sep 2017 data in archive)",
 
   // GUARDIAN rule & judge reasons
   "guard.slope": "{slope}° slope exceeds the {max}° limit of {unit}",
@@ -147,7 +147,7 @@ export const en = {
   // Science & ML disclaimers
   "science.take_sample": "Take sample",
   "science.vein_disclaimer": "Visual vein signature only; mineral composition requires spectrometer confirmation",
-  "science.hydration_disclaimer": "Predicts near-surface mineral-bound hydration (WEH), not liquid water or ice",
+  "science.hydration_disclaimer": "Predicts near-surface mineral-bound hydrogen index (dimensionless DAN ratio), not liquid water, ice, or wt% H2O",
   "storm.nowcast_disclaimer": "Short-range statistical nowcast at one site; does not model global storm physics",
 
   // Demo deck

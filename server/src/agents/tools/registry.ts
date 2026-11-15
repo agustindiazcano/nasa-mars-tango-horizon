@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { UNIT_ACTION_IDS } from "../unitCapabilities.js";
+import { MAX_SLOPE, UNIT_ACTION_IDS } from "../unitCapabilities.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
+  BASE_ORIGIN,
   decide,
   directTransmission,
   ENV_LIMITS,
@@ -23,6 +24,7 @@ import {
   hydrationAt,
   lidarScanAt,
   meta as terrainMeta,
+  nearestSafePoint,
   rankSampleSites,
   routeBetween,
   slopeAt,
@@ -104,6 +106,12 @@ export const TOOLS: ToolDef[] = [
       const unit = a.unit_id ? ctx.fleet.find((u) => u.id === a.unit_id) : undefined;
       const scanX = unit ? unit.x : ctx.astronaut.x;
       const scanZ = unit ? unit.z : ctx.astronaut.z;
+      const astroSlope = slopeAt(ctx.astronaut.x, ctx.astronaut.z);
+      const unitMaxSlope = unit ? MAX_SLOPE[unit.kind] : 20;
+      const safeRendezvous =
+        unitMaxSlope !== undefined && astroSlope > unitMaxSlope
+          ? nearestSafePoint(ctx.astronaut.x, ctx.astronaut.z, unitMaxSlope)
+          : undefined;
       return {
         localization_mode:
           "Mars GNSS-Denied Stack: USGS HiRISE 1 m/px Map-Relative Localization (MRL) + IEEE 802.15.4z UWB 6.5 GHz ToF Mesh + Visual-Inertial Odometry (VIO) + 3D Flash LiDAR (532/905 nm)",
@@ -112,10 +120,11 @@ export const TOOLS: ToolDef[] = [
           x: Number(ctx.astronaut.x.toFixed(1)),
           z: Number(ctx.astronaut.z.toFixed(1)),
           elevation_m: heightAt(ctx.astronaut.x, ctx.astronaut.z),
-          slope_deg: slopeAt(ctx.astronaut.x, ctx.astronaut.z),
+          slope_deg: astroSlope,
           sky_view_factor: svfAt(ctx.astronaut.x, ctx.astronaut.z),
           thermal_class: thermalClassAt(ctx.astronaut.x, ctx.astronaut.z),
           ...worldToPlanetocentric(ctx.astronaut.x, ctx.astronaut.z),
+          ...(safeRendezvous ? { safe_rendezvous: safeRendezvous } : {}),
         },
         fleet: ctx.fleet.map((u) => {
           const dx = ctx.astronaut.x - u.x;
@@ -160,7 +169,38 @@ export const TOOLS: ToolDef[] = [
         x: a.from_x ?? (unit ? unit.x : ctx.astronaut.x),
         z: a.from_z ?? (unit ? unit.z : ctx.astronaut.z),
       };
-      return routeBetween(from, { x: a.to_x, z: a.to_z }, a.speed_ms, ctx);
+      if (unit && (unit.kind === "drone" || unit.kind === "glider")) {
+        const distM = Number(Math.hypot(a.to_x - from.x, a.to_z - from.z).toFixed(1));
+        const airSpeed = 11.0;
+        return {
+          reachable: true,
+          aerial: true,
+          altitude_m: 14,
+          distance_m: distM,
+          time_min: Number((distM / airSpeed / 60).toFixed(2)),
+          points: [
+            { x: Number(from.x.toFixed(1)), z: Number(from.z.toFixed(1)) },
+            { x: Number(a.to_x.toFixed(1)), z: Number(a.to_z.toFixed(1)) },
+          ],
+        };
+      }
+      const maxSlope = unit ? (MAX_SLOPE[unit.kind] ?? 25) : 25;
+      const res = routeBetween(from, { x: a.to_x, z: a.to_z }, a.speed_ms, ctx, maxSlope);
+      const goalSlope = slopeAt(a.to_x, a.to_z);
+      if (!res.reachable || goalSlope > maxSlope) {
+        const safe = nearestSafePoint(a.to_x, a.to_z, maxSlope);
+        if (safe.adjusted && safe.slope_deg <= maxSlope) {
+          const safeRoute = routeBetween(from, { x: safe.x, z: safe.z }, a.speed_ms, ctx, maxSlope);
+          return {
+            ...res,
+            goal_slope_deg: goalSlope,
+            max_slope_deg: maxSlope,
+            safe_destination: safe,
+            ...(safeRoute.reachable ? { safe_route: safeRoute } : {}),
+          };
+        }
+      }
+      return res;
     },
   }),
   def({
@@ -374,8 +414,28 @@ export const TOOLS: ToolDef[] = [
       ...xz,
       task: z.enum(["goto", "rescue", "survey", "relay", "sample"]),
     }),
-    description: "Proposes sending a fleet unit to a target coordinate with a task.",
-    run: (a, _c, caller) => ({ type: "dispatch", args: a, proposedBy: caller }),
+    description:
+      "Proposes sending a fleet unit to a target coordinate with a task. When dispatching a ground unit to the astronaut's position on a steep slope, automatically resolves the nearest slope-safe rendezvous point within 25 m if available.",
+    run: (a, ctx, caller) => {
+      const unit = ctx.fleet.find((u) => u.id === a.unit_id);
+      const maxSlope = unit ? MAX_SLOPE[unit.kind] : undefined;
+      let targetX = a.x;
+      let targetZ = a.z;
+      const nearAstronaut = Math.hypot(a.x - ctx.astronaut.x, a.z - ctx.astronaut.z) <= 5;
+      if (maxSlope !== undefined && nearAstronaut && slopeAt(a.x, a.z) > maxSlope) {
+        const safe = nearestSafePoint(ctx.astronaut.x, ctx.astronaut.z, maxSlope);
+        const offsetM = Math.hypot(safe.x - ctx.astronaut.x, safe.z - ctx.astronaut.z);
+        if (safe.slope_deg <= maxSlope && offsetM <= 25) {
+          targetX = safe.x;
+          targetZ = safe.z;
+        }
+      }
+      return {
+        type: "dispatch",
+        args: { ...a, x: targetX, z: targetZ },
+        proposedBy: caller,
+      };
+    },
   }),
   def({
     name: "launch_pod",
@@ -411,8 +471,8 @@ export const TOOLS: ToolDef[] = [
     server: "fleet",
     effect: true,
     schema: z.object({
-      to_x: z.number().default(0).describe("Shelter or rover destination X coordinate in metres east"),
-      to_z: z.number().default(0).describe("Shelter or rover destination Z coordinate in metres south"),
+      to_x: z.number().default(BASE_ORIGIN.x).describe("Shelter or rover destination X coordinate in metres east"),
+      to_z: z.number().default(BASE_ORIGIN.z).describe("Shelter or rover destination Z coordinate in metres south"),
       mode: z
         .enum(["auto", "drone_drop", "ballistic_canister"])
         .default("auto")

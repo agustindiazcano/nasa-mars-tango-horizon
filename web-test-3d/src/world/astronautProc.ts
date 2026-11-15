@@ -1,10 +1,11 @@
+import { ASTRONAUT_START } from "@th/shared";
 import * as THREE from "three";
 import { metabolicRateW, terrainFromThermalClass } from "../core/physics";
 import type { TerrainProc } from "./terrainProc";
 
 export class AstronautProc {
   readonly group = new THREE.Group();
-  readonly pos = new THREE.Vector3(28, 0, 36);
+  readonly pos = new THREE.Vector3(ASTRONAUT_START.x, 0, ASTRONAUT_START.z);
   yaw = 0.4;
   pitch = -0.05;
   speed = 0;

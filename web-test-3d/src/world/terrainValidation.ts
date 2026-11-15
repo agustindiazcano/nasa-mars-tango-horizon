@@ -8,5 +8,8 @@ export function validateTerrain(meta: { height_px: number; size_m: number; produ
 }
 
 export function formatCoordinates(lat: number, lon: number): string {
-  return `${Math.abs(lat).toFixed(4)}${lat < 0 ? "S" : "N"}, ${(((lon % 360) + 360) % 360).toFixed(4)}E`;
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return "--";
+  const ns = Object.is(lat, -0) || lat >= 0 ? "N" : "S";
+  const lonE = ((lon % 360) + 360) % 360;
+  return `${Math.abs(lat).toFixed(4)}${ns}, ${lonE.toFixed(4)}E`;
 }

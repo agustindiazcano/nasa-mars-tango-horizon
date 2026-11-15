@@ -174,7 +174,7 @@ export interface SampleRecord {
   z: number;
   met_s: number;
   mass_kg: number;
-  hydration_pct: number;
+  hydration_index: number;
 }
 
 export interface RouteDisplay {

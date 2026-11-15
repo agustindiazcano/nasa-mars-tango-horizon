@@ -43,10 +43,4 @@
 
 ## NASA data audit priority
 
-- 🔴 F16: Execute frontend remediation in `docs/NASA_DATA_REMEDIATION_PLAN.md`, starting with P1–P3: event attribution/replay, explicit DEM loading, and post-DEM placements. Then complete layers, shared sites, hydration units, hemispheres, and provenance. Coordinate with B32–B36 and B27; use the active runtime without waiting for B22. Reconcile overlapping frontend tasks after validation.
-
-F16 remains open. PR #14 implements explicit DEM startup/retries, post-DEM actor construction, design labels, exact-sample historical inspection and HiRISE imagery. Remaining acceptance is listed in `docs/NASA_DATA_REMEDIATION_EVIDENCE.md`; browser validation is blocked by unavailable CUA/browser surfaces.
-
-F16 follow-up: historical archive now has validated adapters, play/pause/seek/reset, sample-rate controls and per-variable attribution. TypeScript and 17 targeted tests passed. Visual playback/reset validation remains blocked by unavailable browser surfaces.
-
-P2/P3 follow-up on `fix/nasa-terrain-lifecycle` (PR #16): implemented cancellation, stale-load protection, pinned LF-normalized metadata/exact DEM identity, voice/run mismatch rejection, idempotent terrain commit and base/rover contact placement. Local lifecycle 15/15, metadata/coordinate 12/12 and frontend/server TypeScript passed. B33/F16 remain open for browser slow/error/retry/reset and contact residual acceptance: CUA has no apps/browsers and native pipe error 2. Client 256-sample geometry versus server 2048-sample queries, full model contacts, flat base selection, CTX and P4-P7 gates remain unresolved. No merge/deploy performed.
+- 🟢 F16: Runtime remediation in `web-test-3d/` (`B32`–`B36`, `B25`) is code-complete and verified under Node/Vitest (explicit DEM startup/lifecycle, flat `BASE_ORIGIN` and `@th/shared` `MISSION_SITES`, `8x8` adaptive LOD mesh over `height_2048.u16`, real `1024px` terrain rasters + 377 `in_scene` DAN points, `hydration_index` units, `N`/`S` coordinates, CTX/HiRISE datum audit, and dynamic Provenance modal). Remaining work is live browser DOM/WebGL visual verification (tracked under `B37`) and future consolidation into `web/` (`B22`).

@@ -53,7 +53,7 @@ export const es: Record<Key, string> = {
   "layer.slope": "Pendiente (°)",
   "layer.thermal": "Clase térmica (THEMIS)",
   "layer.radiation": "Blindaje por radiación (SVF)",
-  "layer.hydration": "Hidratación del suelo (WEH %)",
+  "layer.hydration": "Índice de hidratación del suelo",
 
   // Phone remote UI
   "remote.tap_to_connect": "Tocar para conectar",
@@ -92,8 +92,8 @@ export const es: Record<Key, string> = {
   "alert.emergency_local": "Protocolo de emergencia activado localmente",
   "alert.eva_aborted": "EVA abortada. Regresando a la base.",
   "alert.all_stop": "Todas las unidades detenidas",
-  "scenario.storm_source": "Datos: REMS, MSL, tormenta global de polvo 2018",
-  "scenario.sep2017_source": "Evento real medido por RAD, septiembre de 2017",
+  "scenario.storm_source": "Tormenta de diseño (curva sintética; datos REMS 2018 en el archivo)",
+  "scenario.sep2017_source": "Evento SEP de diseño (curva sintética; datos RAD sep 2017 en el archivo)",
 
   // GUARDIAN rule & judge reasons
   "guard.slope": "Pendiente de {slope}° supera el máximo de {max}° de {unit}",
@@ -149,7 +149,7 @@ export const es: Record<Key, string> = {
   // Science & ML disclaimers
   "science.take_sample": "Tomar muestra",
   "science.vein_disclaimer": "Solo firma visual de vetas; la composición mineral requiere confirmación por espectrómetro",
-  "science.hydration_disclaimer": "Predice hidratación superficial ligada a minerales (WEH), no agua líquida ni hielo",
+  "science.hydration_disclaimer": "Predice el índice de hidrógeno superficial ligado a minerales (razón DAN adimensional), no agua líquida, hielo ni % H2O",
   "storm.nowcast_disclaimer": "Pronóstico estadístico de corto alcance en un sitio; no modela física global de tormentas",
 
   // Demo deck

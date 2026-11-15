@@ -2,18 +2,11 @@ import { computeEnvGradients, ENV_LIMITS, evaluateComponentHealth, surfaceDensit
 import { z } from "zod";
 import { chat, llmAvailable } from "../llm/provider.js";
 import { slopeAt } from "./tools/terrainData.js";
-import { UNIT_ACTIONS, type UnitActionId } from "./unitCapabilities.js";
+import { MAX_SLOPE, UNIT_ACTIONS, type UnitActionId } from "./unitCapabilities.js";
 import { runEscalatedVoting } from "./voting.js";
 import type { Action, MissionContext, TraceEvent, Verdict } from "./types.js";
 
-export const MAX_SLOPE: Record<string, number> = {
-  rover_crew: 20,
-  rover_science: 25,
-  rover_cargo: 18,
-  scout: 28,
-  rescue: 25,
-  manipulator: 22,
-};
+export { MAX_SLOPE };
 
 const POD_KEEPOUT_M = 15; // design assumption: exclusion radius around crew for pod landing
 const AIRCRAFT_MIN_BATTERY = 0.15;

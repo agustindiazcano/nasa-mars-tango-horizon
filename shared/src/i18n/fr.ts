@@ -53,7 +53,7 @@ export const fr: Record<Key, string> = {
   "layer.slope": "Pente (°)",
   "layer.thermal": "Classe thermique (THEMIS)",
   "layer.radiation": "Blindage radiatif (SVF)",
-  "layer.hydration": "Hydratation du sol (WEH %)",
+  "layer.hydration": "Indice d'hydratation du sol",
 
   // Phone remote UI
   "remote.tap_to_connect": "Toucher pour connecter",
@@ -92,8 +92,8 @@ export const fr: Record<Key, string> = {
   "alert.emergency_local": "Protocole d'urgence activé localement",
   "alert.eva_aborted": "EVA annulée. Retour à la base.",
   "alert.all_stop": "Toutes les unités arrêtées",
-  "scenario.storm_source": "Données : REMS, MSL, tempête globale de 2018",
-  "scenario.sep2017_source": "Événement réel mesuré par RAD, septembre 2017",
+  "scenario.storm_source": "Tempête de conception (courbe synthétique ; données REMS 2018 dans l'archive)",
+  "scenario.sep2017_source": "Événement SEP de conception (courbe synthétique ; données RAD sept 2017 dans l'archive)",
 
   // GUARDIAN rule & judge reasons
   "guard.slope": "Pente de {slope}° supérieure à la limite de {max}° de {unit}",
@@ -149,7 +149,7 @@ export const fr: Record<Key, string> = {
   // Science & ML disclaimers
   "science.take_sample": "Prélever un échantillon",
   "science.vein_disclaimer": "Signature visuelle de veine uniquement ; la composition minérale exige une confirmation spectrométrique",
-  "science.hydration_disclaimer": "Prédit l'hydratation minérale proche de la surface (WEH), pas l'eau liquide ni la glace",
+  "science.hydration_disclaimer": "Prédit l'indice d'hydrogène minéral proche de la surface (rapport DAN sans dimension), pas l'eau liquide, la glace ni % H2O",
   "storm.nowcast_disclaimer": "Prévision statistique locale à court terme ; ne modélise pas la physique globale des tempêtes",
 
   // Demo deck

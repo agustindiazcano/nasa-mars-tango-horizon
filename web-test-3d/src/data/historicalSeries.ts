@@ -49,22 +49,41 @@ export function parseHistoricalSeries(id: ArchiveId, input: unknown): Historical
     ascending(entries.map(r => numeric(r.jdtdb)));
     const values = entries.map(r => numeric(r.light_time_s));
     if (values.some(v => v < 0)) throw new Error("Negative light time");
-    return { source, epochs: entries.map(r => `${label(r.tdb)} TDB`), variables: [
+    const variables: ArchiveVariable[] = [
       { key: "Earth one-way light time", unit: "s", category: "derived", processing: "Horizons light-time calculation", values },
       { key: "Earth round-trip light time", unit: "s", category: "derived", processing: "2 × one-way; symmetric light-time approximation", values: values.map(v => 2 * v) },
-    ], limitations: "Ephemeris epochs are independent of REMS and RAD records. No solar geometry or mission defaults are combined with these samples." };
+    ];
+    if (entries.every(r => r.range_km !== undefined)) {
+      const ranges = entries.map(r => numeric(r.range_km));
+      if (ranges.some(v => v <= 0)) throw new Error("Invalid Earth-Mars range");
+      variables.push({ key: "Earth-Mars range", unit: "km", category: "derived", processing: "Horizons astrometric range", values: ranges });
+    }
+    return {
+      source,
+      epochs: entries.map(r => `${label(r.tdb)} TDB`),
+      variables,
+      limitations: "Ephemeris epochs are independent of REMS and RAD records. No solar geometry or mission defaults are combined with these samples.",
+    };
   }
   const hours = rows(data.hours).map(numeric);
   ascending(hours);
   if (id.startsWith("rad_")) {
     if (data.unit !== "uGy/h" || data.quality_factor_applied !== null) throw new Error("Unsupported dose quantity");
+    const detector = typeof data.detector === "string" && data.detector.trim() ? data.detector.trim() : "RAD detector B";
     const observations = rows(data.observations).map(record);
     if (observations.length !== hours.length) throw new Error("Observation count mismatch");
     const values = numbers(data.dose_rate_ugy_h, hours.length);
     if (values.some(v => v !== null && v < 0)) throw new Error("Negative absorbed dose");
-    return { source, epochs: observations.map(r => `${label(r.utc)} UTC (year/day-of-year); sol ${numeric(r.sol)}; observation ${numeric(r.obs_id)}`),
-      variables: [{ key: "RAD detector B absorbed dose rate", unit: "uGy/h", category: "observation", processing: "Processed silicon detector B dose series; no quality factor applied", values }],
-      limitations: "Absorbed dose in silicon is not human equivalent dose. Source gaps are skipped explicitly in sample playback; no interpolation or extrapolation." };
+    return {
+      source,
+      epochs: observations.map(r => {
+        const lmst = typeof r.mars_time === "string" && r.mars_time.trim() ? `; LMST ${r.mars_time.trim()}` : "";
+        const qc = typeof r.qc === "string" && r.qc.trim() ? `; qc ${r.qc.trim()}` : "";
+        return `${label(r.utc)} UTC (year/day-of-year)${lmst}; sol ${numeric(r.sol)}; observation ${numeric(r.obs_id)}${qc}`;
+      }),
+      variables: [{ key: "RAD detector B absorbed dose rate", unit: "uGy/h", category: "observation", processing: `Processed silicon ${detector} dose series; no quality factor applied`, values }],
+      limitations: "Absorbed dose in silicon is not human equivalent dose. Source gaps are skipped explicitly in sample playback; no interpolation or extrapolation.",
+    };
   }
   const sols = rows(data.sols).map(numeric);
   const bySol = record(data.by_sol);
@@ -78,7 +97,12 @@ export function parseHistoricalSeries(id: ArchiveId, input: unknown): Historical
   const variables: ArchiveVariable[] = [
     ["pressure_pa", "Pa"], ["air_temp_k", "K"], ["ground_temp_k", "K"], ["uv_w_m2", "W/m²"],
   ].map(([key, unit]) => ({ key, unit, category: "derived", processing: clear ? "Hourly aggregate across selected clear sols" : "Processed hourly REMS bins", values: numbers(data[key], hours.length) }));
-  if (data.wind_ms !== undefined) variables.push({ key: "wind_ms", unit: "m/s", category: "observation", processing: "Unavailable entries retained as null", values: numbers(data.wind_ms, hours.length) });
+  if (data.wind_ms !== undefined) {
+    variables.push({ key: "wind_ms", unit: "m/s", category: "observation", processing: "Unavailable entries retained as null", values: numbers(data.wind_ms, hours.length) });
+  } else if (!clear && sols.every(sol => Array.isArray(record(bySol[String(sol)]).wind_ms))) {
+    const windValues = sols.flatMap(sol => numbers(record(bySol[String(sol)]).wind_ms, 24));
+    variables.push({ key: "wind_ms", unit: "m/s", category: "observation", processing: "Unavailable entries retained as null", values: windValues });
+  }
   variables.push({ key: "tau", unit: "dimensionless", category: clear ? "design" : "derived", processing: clear ? "Assumed clear reference 0.5" : label(data.tau_note), values: numbers(data.tau, hours.length) });
   return { source, epochs, variables, limitations: "Local-hour bins are not UTC timestamps. Nonconsecutive sols are adjacent only in the file sequence. Opacity is a UV proxy relative to an assumed clear reference, not measured Mastcam tau. Missing wind is unavailable." };
 }

@@ -1,0 +1,152 @@
+{
+  "hirise_product_id": "DTEEC_009149_1750_009294_1750_U01",
+  "ctx_product_id": "T01_000815_1749_XN_05S222W__P21_009149_1752_XI_04S222W",
+  "datum_explanation": "tools/hydration/build_dataset.py sampled the un-geoid-adjusted USGS CTX DEM (-DEM.tif), whose heights are relative to the IAU Mars (2015) Sphere (R=3396190 m) prior to ASP dem_geoid --geoid MOLA adjustment. Both the companion USGS CTX geoid-adjusted product (-DEM-geoid-adj.tif) and the HiRISE SOCET DTM (DTEEC_009149_1750_009294_1750_U01) are referenced to the MOLA areoid, which lies ~562-564 m below the 3396190 m sphere at Gale Crater (-4.745N, 137.400E). The remaining ~25-28 m between HiRISE and CTX -DEM-geoid-adj.tif reflects independent bundle/MOLA-control registration and 1 m vs 20 m posting differences.",
+  "top_candidates_hirise_minus_ctx_dem": {
+    "n": 10,
+    "mean_m": 589.929,
+    "median_m": 588.646,
+    "std_m": 3.354,
+    "min_m": 586.493,
+    "max_m": 597.405
+  },
+  "top_candidates_samples": [
+    {
+      "rank": 1,
+      "x": -600.0,
+      "z": -900.0,
+      "ctx_elev_m": -4708.12,
+      "hirise_elev_m": -4120.0,
+      "hirise_minus_ctx_m": 588.12
+    },
+    {
+      "rank": 2,
+      "x": 0.0,
+      "z": -1260.0,
+      "ctx_elev_m": -4729.04,
+      "hirise_elev_m": -4141.357,
+      "hirise_minus_ctx_m": 587.683
+    },
+    {
+      "rank": 3,
+      "x": 0.0,
+      "z": -1020.0,
+      "ctx_elev_m": -4703.63,
+      "hirise_elev_m": -4111.506,
+      "hirise_minus_ctx_m": 592.124
+    },
+    {
+      "rank": 4,
+      "x": -240.0,
+      "z": -1140.0,
+      "ctx_elev_m": -4719.57,
+      "hirise_elev_m": -4132.506,
+      "hirise_minus_ctx_m": 587.064
+    },
+    {
+      "rank": 5,
+      "x": -180.0,
+      "z": -900.0,
+      "ctx_elev_m": -4694.61,
+      "hirise_elev_m": -4108.043,
+      "hirise_minus_ctx_m": 586.567
+    },
+    {
+      "rank": 6,
+      "x": 240.0,
+      "z": -1260.0,
+      "ctx_elev_m": -4726.56,
+      "hirise_elev_m": -4134.429,
+      "hirise_minus_ctx_m": 592.131
+    },
+    {
+      "rank": 7,
+      "x": -1080.0,
+      "z": -960.0,
+      "ctx_elev_m": -4726.97,
+      "hirise_elev_m": -4140.477,
+      "hirise_minus_ctx_m": 586.493
+    },
+    {
+      "rank": 8,
+      "x": 60.0,
+      "z": -840.0,
+      "ctx_elev_m": -4686.66,
+      "hirise_elev_m": -4094.133,
+      "hirise_minus_ctx_m": 592.527
+    },
+    {
+      "rank": 9,
+      "x": 540.0,
+      "z": -780.0,
+      "ctx_elev_m": -4679.72,
+      "hirise_elev_m": -4082.315,
+      "hirise_minus_ctx_m": 597.405
+    },
+    {
+      "rank": 10,
+      "x": 300.0,
+      "z": -900.0,
+      "ctx_elev_m": -4690.51,
+      "hirise_elev_m": -4101.338,
+      "hirise_minus_ctx_m": 589.172
+    }
+  ],
+  "dan_in_scene_count": 377,
+  "dan_in_scene_hirise_elev_summary": {
+    "n": 377,
+    "mean_m": -4142.95,
+    "median_m": -4143.85,
+    "std_m": 34.314,
+    "min_m": -4237.982,
+    "max_m": -4083.475
+  },
+  "dan_in_scene_hirise_minus_ctx_dem": {
+    "n": 377,
+    "mean_m": 587.602,
+    "median_m": 587.538,
+    "std_m": 2.956,
+    "min_m": 577.426,
+    "max_m": 593.703
+  },
+  "dan_in_scene_ctx_geoid_minus_ctx_dem": {
+    "n": 377,
+    "mean_m": 562.245,
+    "median_m": 562.205,
+    "std_m": 0.317,
+    "min_m": 561.565,
+    "max_m": 562.789
+  },
+  "dan_in_scene_hirise_minus_ctx_geoid": {
+    "n": 377,
+    "mean_m": 25.356,
+    "median_m": 25.365,
+    "std_m": 2.991,
+    "min_m": 15.861,
+    "max_m": 31.589
+  },
+  "scene_grid_hirise_minus_ctx_dem": {
+    "n": 4194304,
+    "mean_m": 591.791,
+    "median_m": 591.069,
+    "std_m": 7.965,
+    "min_m": 563.958,
+    "max_m": 647.439
+  },
+  "scene_grid_ctx_geoid_minus_ctx_dem": {
+    "n": 4194304,
+    "mean_m": 563.586,
+    "median_m": 563.584,
+    "std_m": 1.292,
+    "min_m": 560.882,
+    "max_m": 566.34
+  },
+  "scene_grid_hirise_minus_ctx_geoid": {
+    "n": 4194304,
+    "mean_m": 28.205,
+    "median_m": 27.577,
+    "std_m": 7.957,
+    "min_m": -1.374,
+    "max_m": 84.621
+  }
+}

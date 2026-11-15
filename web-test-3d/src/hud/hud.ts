@@ -1,7 +1,16 @@
+import { BASE_ORIGIN, MISSION_SITES } from "@th/shared";
 import { formatCoordinates } from "../world/terrainValidation";
+import { hydrationRgb } from "../world/terrainRasters";
 import { ASR_LOCALE, fmt, getLang, LANG_NAME, LANGS, onLangChange, setLang, t } from "../core/i18n";
 import { C, leakTimeline } from "../core/physics";
 import type { AlertLevel, ArmSkillId, LayerId, PanelId, TraceEvent, VotingTraceDetail } from "../core/types";
+import {
+  categorizeProvenanceKey,
+  fetchProvenanceManifest,
+  formatProvenanceUrl,
+  type ProvenanceCategory,
+  type ProvenanceManifest,
+} from "../data/provenance";
 import {
   exportSessionJson,
   exportSessionMarkdown,
@@ -66,6 +75,10 @@ export class TacticalHud {
   private invY = false;
   private lastModalPanel: PanelId = "none";
   private sessionsRenderKey = "";
+  private provenanceRenderKey = "";
+  private provenanceState: "idle" | "loading" | "ready" | "error" = "idle";
+  private provenanceData: ProvenanceManifest | null = null;
+  private provenanceError = "";
 
   constructor(
     private store: MissionStore,
@@ -105,6 +118,7 @@ export class TacticalHud {
     });
     onLangChange(() => {
       this.sessionsRenderKey = "";
+      this.provenanceRenderKey = "";
       this.buildBottomStatic();
       this.renderDynamic();
     });
@@ -215,6 +229,7 @@ export class TacticalHud {
         <div class="btn-row">
           <span style="opacity:0.75; font-size:10px;">${t("hud.layers")}:</span>
           ${layerHtml}
+          <button class="hud-btn ${this.terrain.hydrationUncMode ? "active" : ""}" data-pointable id="btn-hyd-unc" style="display:${this.store.layer === "hydration" ? "inline-block" : "none"};">${t("hud.layer.hydration_unc")}</button>
           <span style="margin-left:4px;">${langBtns}</span>
         </div>
       </div>
@@ -256,6 +271,10 @@ export class TacticalHud {
     });
     this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-layer]").forEach((b) => {
       b.addEventListener("click", () => this.actions.setLayer(b.dataset.layer as LayerId));
+    });
+    document.getElementById("btn-hyd-unc")?.addEventListener("click", () => {
+      this.terrain.setHydrationUncMode(!this.terrain.hydrationUncMode);
+      this.store.notify();
     });
     this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-deck]").forEach((b) => {
       b.addEventListener("click", () => {
@@ -351,7 +370,7 @@ export class TacticalHud {
     const s = this.store;
     const suit = s.suit;
     const ll = this.terrain.toLonLat(s.astronaut.x, s.astronaut.z);
-    const baseDist = Math.hypot(s.astronaut.x, s.astronaut.z);
+    const baseDist = Math.hypot(s.astronaut.x - BASE_ORIGIN.x, s.astronaut.z - BASE_ORIGIN.z);
     const metH = String(Math.floor(s.metS / 3600)).padStart(2, "0");
     const metM = String(Math.floor((s.metS % 3600) / 60)).padStart(2, "0");
     const metSec = String(Math.floor(s.metS % 60)).padStart(2, "0");
@@ -428,6 +447,27 @@ export class TacticalHud {
       )
       .join("");
 
+    const hydVal = this.terrain.hydrationAt(s.astronaut.x, s.astronaut.z);
+    const hydUnc = this.terrain.hydrationUncAt(s.astronaut.x, s.astronaut.z);
+    const hydMeta = this.terrain.hydrationMeta;
+    const hydValBlock =
+      s.layer === "hydration"
+        ? `
+          <div class="kv-row" style="margin-top:4px; border-top:1px solid rgba(255,255,255,0.12); padding-top:4px;">
+            <span>${t("hud.hydration_index")}</span>
+            <span class="val">${fmt(hydVal, 2)} ± ${fmt(hydUnc, 2)}</span>
+          </div>
+          <div style="font-size:10px; opacity:0.8;">
+            ${this.terrain.hydrationUncMode ? `${t("hud.hydration_unc")}: 0.00–${fmt(hydMeta.interval_width_max, 2)}` : `Range: ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}`} · ${t("hud.dan_stations")}: ${this.terrain.danPoints.length}
+            ${hydMeta.validation?.r2_blocked_cv !== undefined && hydMeta.validation?.spearman_blocked_cv !== undefined ? `<br>CV: R²=${fmt(hydMeta.validation.r2_blocked_cv, 2)}, ρ=${fmt(hydMeta.validation.spearman_blocked_cv, 2)} (n=${hydMeta.validation.n_points ?? 0})` : ""}
+            <br>${escapeHtml(t("hud.hydration_note"))}
+          </div>
+        `
+        : "";
+    const terrainProvenanceLine = this.terrain.realRastersLoaded
+      ? `Terrain: ${escapeHtml(this.terrain.meta.product_id)} · Layers: HiRISE/THEMIS/DAN (${this.terrain.danPoints.length} DAN pts)`
+      : `Terrain: ${escapeHtml(this.terrain.meta.product_id)}; derived display layers are design approximations.`;
+
     this.rightEl.innerHTML = `
       <div class="panel-hdr"><span>${t("hud.environment")}</span><span>${s.activeScenario.toUpperCase()}</span></div>
       <div class="kv-row"><span>${t("hud.atm_pressure")}</span><span class="val">${fmt(s.env.pressure_pa, 0)} Pa</span></div>
@@ -439,7 +479,8 @@ export class TacticalHud {
       <div class="kv-row"><span>${t("hud.wind")}</span><span class="val">${fmt(s.env.wind_ms, 1)} m/s</span></div>
       <div class="kv-row"><span>${t("hud.dose_rate")}</span><span class="val">${fmt(s.env.dose_rate_ugy_h, 1)} uGy/h</span></div>
       <div class="kv-row"><span>${t("hud.cum_dose")}</span><span class="val">${fmt(suit.cumulative_dose_ugy, 2)} uGy</span></div>
-      <div style="font-size:10px; opacity:0.75; margin-top:4px;">${s.env.storm_source}<br>${s.env.rad_source}<br>Terrain: ${this.terrain.meta.product_id}; derived display layers are design approximations.</div>
+      ${hydValBlock}
+      <div style="font-size:10px; opacity:0.75; margin-top:4px;">[${escapeHtml(s.env.data_category ?? "design")}] ${escapeHtml(s.env.storm_source)}<br>${escapeHtml(s.env.rad_source)} (${escapeHtml(s.env.radiation_quantity ?? "absorbed_dose_silicon")})<br>${terrainProvenanceLine} (${this.terrain.heightGridN} DEM)</div>
       ${latestAlerts}
     `;
 
@@ -447,6 +488,11 @@ export class TacticalHud {
     this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-layer]").forEach((b) => {
       b.classList.toggle("active", b.dataset.layer === s.layer);
     });
+    const uncBtn = document.getElementById("btn-hyd-unc");
+    if (uncBtn) {
+      uncBtn.style.display = s.layer === "hydration" ? "inline-block" : "none";
+      uncBtn.classList.toggle("active", this.terrain.hydrationUncMode);
+    }
     this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-panel]").forEach((b) => {
       b.classList.toggle("active", b.dataset.panel === s.panel);
     });
@@ -688,20 +734,29 @@ export class TacticalHud {
         ),
       );
     } else if (s.panel === "map") {
+      const hydMeta = this.terrain.hydrationMeta;
+      const hydHere = this.terrain.hydrationAt(s.astronaut.x, s.astronaut.z);
+      const uncHere = this.terrain.hydrationUncAt(s.astronaut.x, s.astronaut.z);
       this.modalEl.innerHTML = `
         ${closeHdr("GALE CRATER TACTICAL MAP")}
         <div style="display:flex; gap:12px; align-items:flex-start;">
           <canvas id="minimap-canvas" width="260" height="260" style="border:1px solid var(--border); border-radius:6px;"></canvas>
           <div style="font-size:11px;">
-            <div>Layer: <b>${s.layer}</b></div>
-            <div>Grid: 4000×4000 m</div>
+            <div>Layer: <b>${s.layer}${s.layer === "hydration" && this.terrain.hydrationUncMode ? " (uncertainty)" : ""}</b></div>
+            <div>Grid: 4000×4000 m (${this.terrain.realRastersLoaded ? "1024 px real" : "256 px fallback"})</div>
             <div>Cyan dot: Astronaut</div>
             <div>Amber dots: Fleet units</div>
+            <div>Circles (${this.terrain.danPoints.length}): ${escapeHtml(t("hud.dan_stations"))}</div>
             <div>Red ring: 15 m Pod Keep-out</div>
+            ${s.layer === "hydration" ? `<div style="margin-top:6px;"><b>${escapeHtml(t("hud.hydration_index"))}:</b> ${fmt(hydHere, 2)} ± ${fmt(uncHere, 2)}<br/><span style="opacity:0.8;">${escapeHtml(t("hud.hydration_note"))}</span><br/><span style="opacity:0.8;">Range ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}</span><div style="margin-top:4px;"><button class="hud-btn ${this.terrain.hydrationUncMode ? "active" : ""}" data-pointable id="map-hyd-unc">${escapeHtml(t("hud.layer.hydration_unc"))}</button></div></div>` : ""}
             ${s.activeRoute ? `<div style="margin-top:8px;"><b>Active Route (${s.activeRoute.algorithm})</b><br/>Dist: ${fmt(s.activeRoute.distanceM, 0)} m<br/>Time: ${fmt(s.activeRoute.timeS / 60, 1)} min<br/>O2: ${fmt(s.activeRoute.o2Kg * 1000, 0)} g</div>` : ""}
           </div>
         </div>
       `;
+      this.modalEl.querySelector("#map-hyd-unc")?.addEventListener("click", () => {
+        this.terrain.setHydrationUncMode(!this.terrain.hydrationUncMode);
+        this.store.notify();
+      });
       this.drawMinimap(document.getElementById("minimap-canvas") as HTMLCanvasElement);
     } else if (s.panel === "base") {
       const mod = BASE_MODULES.find((m) => m.id === s.selectedBaseModuleId) ?? BASE_MODULES[0];
@@ -745,20 +800,49 @@ export class TacticalHud {
         </table>
       `;
     } else if (s.panel === "provenance") {
-      const rows = Object.entries(C)
+      this.ensureProvenanceLoaded();
+      const datasetCount = this.provenanceData ? Object.keys(this.provenanceData).length : 0;
+      const provRenderKey = [
+        getLang(),
+        this.provenanceState,
+        this.provenanceError,
+        this.terrain.meta.product_id,
+        datasetCount,
+      ].join("|");
+      if (this.lastModalPanel === "provenance" && this.provenanceRenderKey === provRenderKey) {
+        return;
+      }
+      this.provenanceRenderKey = provRenderKey;
+      this.lastModalPanel = "provenance";
+
+      const constRows = Object.entries(C)
         .map(
           ([k, c]) =>
-            `<tr><td>${k}</td><td>${c.value} ${c.unit}</td><td>${c.source}${("assumption" in c && c.assumption) ? " [Design assumption]" : ""}</td></tr>`,
+            `<tr><td>${escapeHtml(k)}</td><td>${escapeHtml(String(c.value))} ${escapeHtml(c.unit)}</td><td>${escapeHtml(c.source)}${("assumption" in c && c.assumption) ? ` [${escapeHtml(t("prov.assumption"))}]` : ""}</td></tr>`,
         )
         .join("");
+
       this.modalEl.innerHTML = `
-        ${closeHdr("DATA & PHYSICS PROVENANCE")}
-        <div style="margin-bottom:6px;">Terrain DEM: <b>${this.terrain.meta.product_id}</b></div>
-        <table class="prov-tbl">
-          <thead><tr><th>Constant</th><th>Value</th><th>${t("prov.source")}</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
+        ${closeHdr(t("prov.title"))}
+        <div style="margin-bottom:6px;">Terrain DEM: <b>${escapeHtml(this.terrain.meta.product_id)}</b> (${this.terrain.heightGridN}×${this.terrain.heightGridN} height samples)</div>
+        <div style="margin-bottom:6px; font-size:11px; opacity:0.85;">
+          Mission env [${escapeHtml(s.env.data_category ?? "design")}]: ${escapeHtml(s.env.storm_source)}; ${escapeHtml(s.env.rad_source)}; Earth link ${escapeHtml(String(s.env.earth_light_time_s))} s one-way [design].
+          Recorded NASA/JPL series (REMS 2018, RAD Sep 2017, Horizons 2026-Nov-14 TDB = 660.9 s) live in the independent Historical Data Archive.
+        </div>
+        ${this.buildProvenanceManifestHtml(datasetCount)}
+        <div class="prov-section">
+          <div class="panel-hdr"><span>${escapeHtml(t("prov.constants"))}</span></div>
+          <table class="prov-tbl">
+            <thead><tr><th>Constant</th><th>Value</th><th>${escapeHtml(t("prov.source"))}</th></tr></thead>
+            <tbody>${constRows}</tbody>
+          </table>
+        </div>
       `;
+
+      this.modalEl.querySelector("#prov-retry")?.addEventListener("click", () => {
+        this.ensureProvenanceLoaded(true);
+        this.renderDynamic();
+      });
     } else if (s.panel === "sessions") {
       const mgr = this.actions.sessions;
       const active = mgr?.getActiveSession() ?? this.buildFallbackSessionSnapshot();
@@ -874,7 +958,7 @@ export class TacticalHud {
       });
     }
 
-    if (s.panel !== "sessions") {
+    if (s.panel !== "sessions" && s.panel !== "provenance") {
       this.lastModalPanel = s.panel;
     }
 
@@ -886,21 +970,63 @@ export class TacticalHud {
     if (!ctx) return;
     const w = canvas.width;
     const h = canvas.height;
-    const tex = this.terrain.getLayerTexture(this.store.layer);
-    const data = tex.image.data as Uint8Array;
-    const n = this.terrain.gridN;
-    const img = ctx.createImageData(n, n);
-    img.data.set(data);
-    const tmp = document.createElement("canvas");
-    tmp.width = n;
-    tmp.height = n;
-    tmp.getContext("2d")!.putImageData(img, 0, 0);
-    ctx.drawImage(tmp, 0, 0, w, h);
+    const opticalImg = this.store.layer === "optical" ? this.terrain.getOpticalImage() : null;
+    if (opticalImg) {
+      ctx.drawImage(opticalImg, 0, 0, w, h);
+    } else {
+      const tex = this.terrain.getLayerTexture(this.store.layer);
+      const data = tex.image.data as Uint8Array;
+      const tw = tex.image.width || this.terrain.gridN;
+      const th = tex.image.height || this.terrain.gridN;
+      const img = ctx.createImageData(tw, th);
+      img.data.set(data);
+      const tmp = document.createElement("canvas");
+      tmp.width = tw;
+      tmp.height = th;
+      tmp.getContext("2d")!.putImageData(img, 0, 0);
+      ctx.drawImage(tmp, 0, 0, w, h);
+    }
 
     const toPx = (wx: number, wz: number) => ({
       x: ((wx / this.terrain.sizeM) + 0.5) * w,
       y: ((wz / this.terrain.sizeM) + 0.5) * h,
     });
+
+    // Real MSL DAN passive neutron measurement stations (377 in-scene circles)
+    if (this.terrain.danPoints.length > 0) {
+      const minIdx = this.terrain.hydrationMeta.weh_min;
+      const maxIdx = this.terrain.hydrationMeta.weh_max;
+      ctx.lineWidth = 0.8;
+      for (const d of this.terrain.danPoints) {
+        const pt = toPx(d.x, d.z);
+        const [r, g, b] = hydrationRgb(d.hydration_index, minIdx, maxIdx);
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.strokeStyle = "rgba(230,250,255,0.85)";
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 2.1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    // Base origin and canonical S1-S4 science stations
+    const bp = toPx(BASE_ORIGIN.x, BASE_ORIGIN.z);
+    ctx.fillStyle = "#e6edf2";
+    ctx.fillRect(bp.x - 3, bp.y - 3, 6, 6);
+    ctx.fillStyle = "#9aa6b2";
+    ctx.font = "9px monospace";
+    ctx.fillText("BASE", bp.x + 5, bp.y + 3);
+
+    for (const site of MISSION_SITES) {
+      const sp = toPx(site.x, site.z);
+      ctx.strokeStyle = "#35e0ff";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, 3, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = "#35e0ff";
+      ctx.fillText(site.id, sp.x + 5, sp.y + 3);
+    }
 
     // Active route
     if (this.store.activeRoute && this.store.activeRoute.points.length > 1) {
@@ -928,5 +1054,111 @@ export class TacticalHud {
     ctx.beginPath();
     ctx.arc(ap.x, ap.y, 4, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  private ensureProvenanceLoaded(force = false): void {
+    if (!force && (this.provenanceState === "loading" || this.provenanceState === "ready")) {
+      return;
+    }
+    this.provenanceState = "loading";
+    this.provenanceError = "";
+    fetchProvenanceManifest()
+      .then((manifest) => {
+        this.provenanceData = manifest;
+        this.provenanceState = "ready";
+        if (this.store.panel === "provenance") {
+          this.renderDynamic();
+        }
+      })
+      .catch((err: unknown) => {
+        this.provenanceState = "error";
+        this.provenanceError = err instanceof Error ? err.message : String(err);
+        if (this.store.panel === "provenance") {
+          this.renderDynamic();
+        }
+      });
+  }
+
+  private buildProvenanceManifestHtml(datasetCount: number): string {
+    const hdr = `<div class="panel-hdr"><span>${escapeHtml(t("prov.datasets", { n: datasetCount }))}</span></div>`;
+    if (this.provenanceState === "loading" || this.provenanceState === "idle") {
+      return `<div class="prov-section">${hdr}<div class="prov-detail">${escapeHtml(t("prov.loading"))}</div></div>`;
+    }
+    if (this.provenanceState === "error" || !this.provenanceData) {
+      return `
+        <div class="prov-section">
+          ${hdr}
+          <div class="alert-banner" style="border-color:var(--warn); background:rgba(255,184,0,0.14); margin:6px 0;">
+            ${escapeHtml(t("prov.unavailable", { msg: this.provenanceError || "unknown error" }))}
+          </div>
+          <button class="hud-btn" data-pointable id="prov-retry">${escapeHtml(t("prov.retry"))}</button>
+        </div>
+      `;
+    }
+
+    const catOrder: Record<ProvenanceCategory, number> = {
+      terrain: 0,
+      env: 1,
+      veins: 2,
+      models: 3,
+      other: 4,
+    };
+    const entries = Object.entries(this.provenanceData).sort(([ka], [kb]) => {
+      const ca = catOrder[categorizeProvenanceKey(ka)];
+      const cb = catOrder[categorizeProvenanceKey(kb)];
+      return ca !== cb ? ca - cb : ka.localeCompare(kb);
+    });
+
+    const rows = entries
+      .map(([key, entry]) => {
+        const cat = categorizeProvenanceKey(key);
+        const safeUrl = formatProvenanceUrl(entry.url);
+        const linkHtml = safeUrl
+          ? `<div class="prov-detail"><a class="prov-link" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(safeUrl)}</a></div>`
+          : "";
+        const notesHtml = entry.notes
+          ? `<div class="prov-detail">${escapeHtml(entry.notes)}</div>`
+          : "";
+        const offset = entry.vertical_datum_offset;
+        const offsetHtml = offset?.summary
+          ? `<div class="prov-offset-note">${escapeHtml(offset.summary)}</div>`
+          : "";
+        return `
+          <tr>
+            <td>
+              <span class="prov-cat">${escapeHtml(cat)}</span>
+              <div><b>${escapeHtml(key)}</b></div>
+              <div class="prov-detail">${escapeHtml(entry.retrieved)}</div>
+            </td>
+            <td>
+              <div><b>${escapeHtml(entry.product_id)}</b></div>
+              <div class="prov-detail">${escapeHtml(entry.transform)}</div>
+              ${notesHtml}
+              ${offsetHtml}
+            </td>
+            <td>
+              <div>${escapeHtml(entry.source)}</div>
+              ${linkHtml}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    return `
+      <div class="prov-section">
+        ${hdr}
+        <table class="prov-tbl">
+          <thead>
+            <tr>
+              <th>${escapeHtml(t("prov.asset"))}</th>
+              <th>${escapeHtml(t("prov.details"))}</th>
+              <th>${escapeHtml(t("prov.source"))}</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
   }
 }

@@ -53,7 +53,7 @@ export const it: Record<Key, string> = {
   "layer.slope": "Pendenza (°)",
   "layer.thermal": "Classe termica (THEMIS)",
   "layer.radiation": "Schermatura radiazioni (SVF)",
-  "layer.hydration": "Idratazione del suolo (WEH %)",
+  "layer.hydration": "Indice di idratazione del suolo",
 
   // Phone remote UI
   "remote.tap_to_connect": "Tocca per connettere",
@@ -92,8 +92,8 @@ export const it: Record<Key, string> = {
   "alert.emergency_local": "Protocollo di emergenza attivato localmente",
   "alert.eva_aborted": "EVA interrotta. Rientro alla base.",
   "alert.all_stop": "Tutte le unità arrestate",
-  "scenario.storm_source": "Dati: REMS, MSL, tempesta globale del 2018",
-  "scenario.sep2017_source": "Evento reale misurato da RAD, settembre 2017",
+  "scenario.storm_source": "Tempesta di progetto (curva sintetica; dati REMS 2018 nell'archivio)",
+  "scenario.sep2017_source": "Evento SEP di progetto (curva sintetica; dati RAD set 2017 nell'archivio)",
 
   // GUARDIAN rule & judge reasons
   "guard.slope": "Pendenza di {slope}° supera il limite di {max}° di {unit}",
@@ -149,7 +149,7 @@ export const it: Record<Key, string> = {
   // Science & ML disclaimers
   "science.take_sample": "Preleva campione",
   "science.vein_disclaimer": "Solo firma visiva di vena; la composizione minerale richiede conferma spettrometrica",
-  "science.hydration_disclaimer": "Predice l'idratazione minerale vicino alla superficie (WEH), non acqua liquida o ghiaccio",
+  "science.hydration_disclaimer": "Predice l'indice di idrogeno minerale vicino alla superficie (rapporto DAN adimensionale), non acqua liquida, ghiaccio o % H2O",
   "storm.nowcast_disclaimer": "Previsione statistica locale a breve termine; non modella la fisica globale delle tempeste",
 
   // Demo deck

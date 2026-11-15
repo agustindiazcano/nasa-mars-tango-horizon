@@ -1,4 +1,4 @@
-import { READY_TERRAIN } from "@th/shared";
+import { BASE_ORIGIN, LAUNCHER_PRIMARY_COORD, READY_TERRAIN } from "@th/shared";
 import "./hud/hud.css";
 import { installHistoricalArchive } from "./hud/historicalArchive";
 import { inject } from "@vercel/analytics";
@@ -76,7 +76,16 @@ loading.textContent = "Loading HiRISE orthoimage";
 try { await terrain.loadOptical(); }
 catch { store.pushAlert("warn", "Orthoimage unavailable; optical colors are a design approximation"); }
 if (leaving) return;
-store.pushAlert("info", `Terrain ready: ${READY_TERRAIN.version}. HiRISE source verified; mesh uses 256 samples.`);
+loading.textContent = "Loading scientific rasters & MSL DAN stations";
+const rasterStatus = await terrain.loadRealRasters("/data/terrain");
+if (leaving) return;
+if (!rasterStatus.rastersOk) {
+  store.pushAlert("warn", "Scientific rasters unavailable; using DEM-derived fallback layers");
+}
+if (rasterStatus.danCount > 0) {
+  store.pushAlert("info", `Loaded ${rasterStatus.danCount} in-scene MSL DAN hydration stations`);
+}
+store.pushAlert("info", `Terrain ready: ${READY_TERRAIN.version}. HiRISE 2048x2048 DEM verified; adaptive chunked LOD active.`);
 terrain.mesh.visible = true;
 terrain.markersGroup.visible = true;
 loading.remove();
@@ -87,7 +96,7 @@ const astronaut = new AstronautProc(terrain, camera, canvas);
 scene.add(astronaut.group);
 
 const baseProc = new BaseProc(scene, terrain);
-const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [55, 24, 6];
+const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [LAUNCHER_PRIMARY_COORD.x, LAUNCHER_PRIMARY_COORD.z, 6];
 const podBallistics = new PodBallistics(scene, terrain, podLauncherOrigin);
 
 const fleet = new FleetProc(scene, terrain, (ev, skill) => {
@@ -99,7 +108,7 @@ const fleet = new FleetProc(scene, terrain, (ev, skill) => {
       z: astronaut.pos.z,
       met_s: store.metS,
       mass_kg: 0.45,
-      hydration_pct: terrain.hydrationAt(astronaut.pos.x, astronaut.pos.z),
+      hydration_index: terrain.hydrationAt(astronaut.pos.x, astronaut.pos.z),
     });
     store.astronaut.load_kg += 0.45;
     store.lastDrillDepthCm = skill === "drill" ? 5.2 : store.lastDrillDepthCm;
@@ -191,6 +200,7 @@ async function captureAndInspectVision(
 
 const voice = new VoiceController(store, {
   onVisionRequest: captureAndInspectVision,
+  slopeAt: (x, z) => terrain.slopeAt(x, z),
 });
 const sessionStore = new SessionStore();
 const sessionManager = new ChatSessionManager(store, sessionStore, voice);
@@ -238,11 +248,34 @@ store.setHooks({
   onLayerChange: (layer: LayerId) => terrain.setLayer(layer),
   onShowRoute: (toX, toZ) => planAndDrawRoute(toX, toZ),
   onDispatch: (unitId, x, z, task) => {
-    fleet.dispatchTo(unitId, x, z, task, () => {
-      if (task === "rescue" && store.leakDiameterM > 0) {
-        sealSuitLeak(`${unitId} arrived`);
-      }
-    });
+    let plannedMsg = "";
+    let arrivalCoords = { x: Math.round(x), z: Math.round(z) };
+    const ok = fleet.dispatchTo(
+      unitId,
+      x,
+      z,
+      task,
+      () => {
+        if (task === "rescue" && store.leakDiameterM > 0) {
+          sealSuitLeak(`${unitId} arrived`);
+        } else {
+          store.pushAlert("info", `${unitId}: arrived (${task}) at (${arrivalCoords.x}, ${arrivalCoords.z})`);
+        }
+      },
+      {
+        astronautPos: { x: astronaut.pos.x, z: astronaut.pos.z },
+        drawRoute: !store.activeRoute,
+        onPlanned: (info) => {
+          arrivalCoords = { x: Math.round(info.x), z: Math.round(info.z) };
+          const dist = Math.round(info.distanceM);
+          const eta = Math.max(1, Math.round(info.etaS));
+          plannedMsg = `${unitId}: dispatched (${task}) -> (${arrivalCoords.x}, ${arrivalCoords.z}), ${dist} m, ETA ${eta} s`;
+        },
+      },
+    );
+    if (ok && plannedMsg) {
+      store.pushAlert("info", plannedMsg);
+    }
   },
   onLaunchPod: (tx, tz, payload) => {
     if (store.leakDiameterM > 0) store.emergencyResponseActive = true;
@@ -276,10 +309,10 @@ store.setHooks({
       beacons.length > 0
         ? beacons
         : [
-            { id: "BCN-1", x: Math.round(astronaut.pos.x * 0.75), z: Math.round(astronaut.pos.z * 0.75) },
-            { id: "BCN-2", x: Math.round(astronaut.pos.x * 0.5), z: Math.round(astronaut.pos.z * 0.5) },
-            { id: "BCN-3", x: Math.round(astronaut.pos.x * 0.25), z: Math.round(astronaut.pos.z * 0.25) },
-            { id: "BCN-4", x: 0, z: 0 },
+            { id: "BCN-1", x: Math.round(BASE_ORIGIN.x + (astronaut.pos.x - BASE_ORIGIN.x) * 0.75), z: Math.round(BASE_ORIGIN.z + (astronaut.pos.z - BASE_ORIGIN.z) * 0.75) },
+            { id: "BCN-2", x: Math.round(BASE_ORIGIN.x + (astronaut.pos.x - BASE_ORIGIN.x) * 0.5), z: Math.round(BASE_ORIGIN.z + (astronaut.pos.z - BASE_ORIGIN.z) * 0.5) },
+            { id: "BCN-3", x: Math.round(BASE_ORIGIN.x + (astronaut.pos.x - BASE_ORIGIN.x) * 0.25), z: Math.round(BASE_ORIGIN.z + (astronaut.pos.z - BASE_ORIGIN.z) * 0.25) },
+            { id: "BCN-4", x: BASE_ORIGIN.x, z: BASE_ORIGIN.z },
           ];
     terrain.setBeacons(pts);
     terrain.setRoute([{ x: astronaut.pos.x, z: astronaut.pos.z }, ...pts.map((b) => ({ x: b.x, z: b.z }))]);
@@ -303,10 +336,24 @@ store.setHooks({
       return { x: me.x + ((here.x - me.x) / d) * 5, z: me.z + ((here.z - me.z) / d) * 5 };
     };
     const note = (text: string) => store.pushAlert("info", `${unitId}: ${text}`);
-    const go = (p: { x: number; z: number }, task: string, done?: string) =>
-      fleet.dispatchTo(unitId, p.x, p.z, task, done ? () => note(done) : undefined);
+    const go = (p: { x: number; z: number }, task: string, done?: string) => {
+      let plannedMsg = "";
+      fleet.dispatchTo(unitId, p.x, p.z, task, done ? () => note(done) : undefined, {
+        astronautPos: me,
+        drawRoute: !store.activeRoute,
+        onPlanned: (info) => {
+          if (info.distanceM > 1) {
+            const dist = Math.round(info.distanceM);
+            const eta = Math.max(1, Math.round(info.etaS));
+            plannedMsg = `dispatched (${task}) -> (${Math.round(info.x)}, ${Math.round(info.z)}), ${dist} m, ETA ${eta} s`;
+          }
+        },
+      });
+      if (plannedMsg) note(plannedMsg);
+    };
     switch (action) {
       case "takeoff":
+        if (typeof args.altitude_m === "number") unit.targetAltitude = args.altitude_m;
         go(here, "takeoff");
         note(`airborne, climbing to ${args.altitude_m ?? 14} m`);
         break;
@@ -329,7 +376,7 @@ store.setHooks({
         go(standOff(), "deliver", "supplies delivered at 5 m");
         break;
       case "return_to_base":
-        go({ x: 0, z: 0 }, "return", "back at base");
+        go({ x: BASE_ORIGIN.x, z: BASE_ORIGIN.z }, "return", "back at base");
         break;
       case "survey_area":
         go(target ?? me, "survey", "survey complete");
@@ -352,11 +399,13 @@ store.setHooks({
 function startScenario(id: "storm" | "sep2017" | "leak"): void {
   store.activeScenario = id;
   store.scenarioElapsedS = 0;
+  store.env.data_category = "design";
+  store.env.radiation_quantity = "absorbed_dose_silicon";
   if (id === "storm") {
-    store.env.storm_source = "Design dust storm (synthetic opacity curve)";
+    store.env.storm_source = "Design dust storm (synthetic opacity curve; REMS 2018 archive peak tau = 4.243)";
     store.pushAlert("warn", `Dust storm approaching: tau rising, drones grounding at tau >= ${AIRCRAFT_GROUNDING_TAU}`, "WEATHER-RAD");
   } else if (id === "sep2017") {
-    store.env.rad_source = "Design radiation event (synthetic absorbed dose)";
+    store.env.rad_source = "Design radiation event (synthetic absorbed dose; RAD Sep 2017 archive peak = 25.89 uGy/h)";
     store.setLayer("radiation");
     // Find lowest SVF sheltered ridge spot within 300 m
     let bestX = astronaut.pos.x;
@@ -584,6 +633,7 @@ function animate(now: number): void {
     scene,
   );
 
+  terrain.updateLod(camera.position.x, camera.position.z);
   renderer.render(scene, camera);
 
   hudTick += realDt;

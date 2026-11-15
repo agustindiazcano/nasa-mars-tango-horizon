@@ -21,6 +21,15 @@ export type UnitActionId = (typeof UNIT_ACTION_IDS)[number];
 const ALL = ["rover_crew", "rover_science", "rover_cargo", "scout", "rescue", "drone", "glider", "manipulator"];
 const FLYERS = ["drone", "glider"];
 
+export const MAX_SLOPE: Record<string, number> = {
+  rover_crew: 20,
+  rover_science: 25,
+  rover_cargo: 18,
+  scout: 28,
+  rescue: 25,
+  manipulator: 22,
+};
+
 export interface UnitActionSpec {
   /** Unit kinds allowed to run the action. */
   kinds: string[];

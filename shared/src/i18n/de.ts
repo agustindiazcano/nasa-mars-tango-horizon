@@ -53,7 +53,7 @@ export const de: Record<Key, string> = {
   "layer.slope": "Neigung (°)",
   "layer.thermal": "Thermalklasse (THEMIS)",
   "layer.radiation": "Strahlungsabschirmung (SVF)",
-  "layer.hydration": "Bodenhydratation (WEH %)",
+  "layer.hydration": "Bodenhydratationsindex",
 
   // Phone remote UI
   "remote.tap_to_connect": "Zum Verbinden tippen",
@@ -92,8 +92,8 @@ export const de: Record<Key, string> = {
   "alert.emergency_local": "Notfallprotokoll lokal aktiviert",
   "alert.eva_aborted": "EVA abgebrochen. Rückkehr zur Basis.",
   "alert.all_stop": "Alle Einheiten gestoppt",
-  "scenario.storm_source": "Daten: REMS, MSL, globaler Staubsturm 2018",
-  "scenario.sep2017_source": "Reales Ereignis gemessen von RAD, September 2017",
+  "scenario.storm_source": "Design-Staubsturm (synthetische Kurve; REMS-2018-Daten im Archiv)",
+  "scenario.sep2017_source": "Design-SEP-Strahlungsereignis (synthetische Kurve; RAD-Sep-2017-Daten im Archiv)",
 
   // GUARDIAN rule & judge reasons
   "guard.slope": "{slope}° Neigung überschreitet das Limit von {max}° für {unit}",
@@ -149,7 +149,7 @@ export const de: Record<Key, string> = {
   // Science & ML disclaimers
   "science.take_sample": "Probe entnehmen",
   "science.vein_disclaimer": "Nur visuelles Adersignal; Mineralzusammensetzung erfordert Spektrometer-Bestätigung",
-  "science.hydration_disclaimer": "Prognostiziert oberflächennahe mineralgebundene Hydratation (WEH), kein flüssiges Wasser oder Eis",
+  "science.hydration_disclaimer": "Prognostiziert den oberflächennahen mineralgebundenen Wasserstoffindex (dimensionsloses DAN-Verhältnis), kein flüssiges Wasser, Eis oder Gew.-% H2O",
   "storm.nowcast_disclaimer": "Statistische Kurzfrist-Vorhersage für einen Standort; modelliert keine globale Sturmphysik",
 
   // Demo deck

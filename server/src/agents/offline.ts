@@ -1,4 +1,9 @@
-import type { ComponentHealthReport } from "@th/shared";
+import {
+  BASE_ORIGIN,
+  getMissionSite,
+  MISSION_SITES_BY_ID,
+  type ComponentHealthReport,
+} from "@th/shared";
 import { MAX_SLOPE, ruleCheck } from "./guardian.js";
 import { callTool, missionScope, startMcpServers } from "./tools/mcp.js";
 import { TOOLS } from "./tools/registry.js";
@@ -12,13 +17,6 @@ export interface OfflineResult {
   trace: TraceEvent[];
   route: string[];
 }
-
-const SITE_COORDS: Record<number, { x: number; z: number; name: string }> = {
-  1: { x: 250, z: -180, name: "S1" },
-  2: { x: 480, z: 320, name: "S2" },
-  3: { x: -420, z: 390, name: "S3" },
-  4: { x: 720, z: -450, name: "S4" },
-};
 
 function toolByName(name: string): ToolDef {
   const t = TOOLS.find((x) => x.name === name);
@@ -204,7 +202,7 @@ function parseSpokenCoords(q: string): { x: number; z: number } | null {
   return null;
 }
 
-function matchExplicitSiteTarget(q: string): { x: number; z: number; label: string } | null {
+function matchExplicitSiteTarget(q: string, includeBase = true): { x: number; z: number; label: string } | null {
   const numMatch = q.match(
     /(?<![\p{L}\d])(?:sitio|site|estaci[oó]n|station|standort|sito|s)\s*[-#]?\s*(1|2|3|4|uno|un|one|eins|dos|two|deux|zwei|due|tres|three|trois|drei|tre|cuatro|four|quatre|vier|quattro)(?![\p{L}\d])/iu,
   );
@@ -216,15 +214,15 @@ function matchExplicitSiteTarget(q: string): { x: number; z: number; label: stri
       "3": 3, tres: 3, three: 3, trois: 3, drei: 3, tre: 3,
       "4": 4, cuatro: 4, four: 4, quatre: 4, vier: 4, quattro: 4,
     };
-    const site = SITE_COORDS[map[word] ?? 2];
-    return { x: site.x, z: site.z, label: site.name };
+    const site = getMissionSite(map[word] ?? 2);
+    return { x: site.x, z: site.z, label: site.id };
   }
   const coords = parseSpokenCoords(q);
   if (coords) {
     return { x: coords.x, z: coords.z, label: `(${coords.x}, ${coords.z})` };
   }
-  if (/\b(base|hab|habitat|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q)) {
-    return { x: 0, z: 0, label: "Base" };
+  if (includeBase && /\b(base|hab|habitat|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q)) {
+    return { x: BASE_ORIGIN.x, z: BASE_ORIGIN.z, label: "Base" };
   }
   return null;
 }
@@ -233,19 +231,25 @@ function parseSiteTarget(
   q: string,
   ctx?: MissionContext,
   history: ConversationTurn[] = [],
-): { x: number; z: number; label: string } {
+): { x: number; z: number; label: string; isAstronaut?: boolean } {
   const lang = ctx?.lang ?? "en";
+  // Check explicit S1-S4 or numeric coords first, but check astronaut position before "base"
+  // so vocative prefixes like "Base, manda al rover 2 a mi posicion" target the astronaut.
+  const explicitSiteOrCoords = matchExplicitSiteTarget(q, false);
   if (
     ctx &&
-    /(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?=$|\s|[.,;!?])/i.test(
+    !explicitSiteOrCoords &&
+    (/(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?=$|\s|[.,;!?])/i.test(
       q,
-    )
+    ) ||
+      /(?<![\p{L}\d])(ven[ií]?|ac[eé]rcate|come|approach)(?![\p{L}\d])/iu.test(q))
   ) {
     const ax = Math.round(ctx.astronaut.x);
     const az = Math.round(ctx.astronaut.z);
     return {
       x: ax,
       z: az,
+      isAstronaut: true,
       label: pick(lang, {
         es: `tu posición (${ax}, ${az})`,
         en: `your position (${ax}, ${az})`,
@@ -255,7 +259,7 @@ function parseSiteTarget(
       }),
     };
   }
-  const explicit = matchExplicitSiteTarget(q);
+  const explicit = explicitSiteOrCoords ?? matchExplicitSiteTarget(q, true);
   if (explicit) return explicit;
   if (/\b(there|all[ií]|ah[ií]|all[aá]|l[aà]|dort|l[iì])\b/i.test(q)) {
     for (let i = history.length - 1; i >= 0; i--) {
@@ -263,22 +267,23 @@ function parseSiteTarget(
       if (fromHistory) return fromHistory;
     }
   }
-  return { x: SITE_COORDS[2].x, z: SITE_COORDS[2].z, label: "S2" };
+  const s2 = MISSION_SITES_BY_ID.S2;
+  return { x: s2.x, z: s2.z, label: s2.id };
 }
 
 function matchExplicitUnitId(q: string): string | null {
   const direct = q.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i);
   if (direct) return direct[1].toLowerCase();
-  if (/\b(hands|manip(?:ulador|ulator)?|brazo|arm)\b/i.test(q)) return "manip-1";
+  if (/\b(hands|manip(?:ulador|ulator)?(?:\s*(?:uno|one|1))?|brazo|arm)\b/i.test(q)) return "manip-1";
   if (/\b(rescate|rescue)(?:\s*(?:uno|one|1))?\b/i.test(q)) return "rescue-1";
   if (/\b(glider|planeador|planeur|segler|aliante)\b/i.test(q)) return "glider-1";
   if (/\bscout\s*(?:dos|two|deux|zwei|due|2)\b/i.test(q)) return "scout-2";
   if (/\bscout(?:\s*(?:uno|one|un|eins|1))?\b/i.test(q)) return "scout-1";
   if (/\bdron(?:e|a)?\s*(?:dos|two|deux|zwei|due|2)\b/i.test(q)) return "drone-2";
   if (/\bdron(?:e|a)?(?:\s*(?:uno|one|un|eins|1))?\b/i.test(q)) return "drone-1";
-  if (/\b(rover\s*(?:dos|two|deux|zwei|due|2)|rvr-2)\b/i.test(q)) return "rover-2";
-  if (/\b(rover\s*(?:tres|three|trois|drei|tre|3)|rvr-3)\b/i.test(q)) return "rover-3";
-  if (/\b(rover(?:\s*(?:uno|one|un|eins|1))?|rvr-1)\b/i.test(q)) return "rover-1";
+  if (/\b(rover\s*(?:dos|two|deux|zwei|due|2)|rvr[- ]?2)\b/i.test(q)) return "rover-2";
+  if (/\b(rover\s*(?:tres|three|trois|drei|tre|3)|rvr[- ]?3)\b/i.test(q)) return "rover-3";
+  if (/\b(rover(?:\s*(?:uno|one|un|eins|1))?|rvr[- ]?1)\b/i.test(q)) return "rover-1";
   return null;
 }
 
@@ -395,7 +400,7 @@ export async function offlineReply(
 
   const isExplicitUnitOrderToRescue =
     /(?<![\p{L}\d])(rescue|rescate)(?:\s*(?:uno|one|1|-1))?(?![\p{L}\d])/iu.test(q) &&
-    /(?<![\p{L}\d])(volv[\p{L}]*|regres[\p{L}]*|return|base|trae[\p{L}]*|bring|deliver|suministr[\p{L}]*|ox[ií]geno|oxygen|segu[\p{L}]*|follow|qu[eé]date|quedate|hold|repetidor|relay)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(volv[\p{L}]*|regres[\p{L}]*|return|base|trae[\p{L}]*|bring|deliver|suministr[\p{L}]*|ox[ií]geno|oxygen|segu[\p{L}]*|follow|qu[eé]date|quedate|hold|repetidor|relay|go\s+to|ir\s+a|ven[ií]?|come|ac[eé]rcate|posici[oó]n|position|here|aqu[ií]|ac[aá]|overwatch|vigil[\p{L}]*|survey|relev[\p{L}]*)(?![\p{L}\d])/iu.test(
       q,
     ) &&
     !/(?<![\p{L}\d])(emergenc[\p{L}]*|fuga|leak|mayday|socorro|auxilio|urgence|notfall|emergenza)(?![\p{L}\d])/iu.test(q);
@@ -456,8 +461,8 @@ export async function offlineReply(
     const rescueUnit =
       ctx.fleet.find((u) => u.id === "rescue-1") ??
       ctx.fleet.find((u) => u.kind === "rescue" || u.kind.startsWith("rover"));
-    const shelterX = rescueUnit ? Math.round(rescueUnit.x) : 0;
-    const shelterZ = rescueUnit ? Math.round(rescueUnit.z) : 0;
+    const shelterX = rescueUnit ? Math.round(rescueUnit.x) : BASE_ORIGIN.x;
+    const shelterZ = rescueUnit ? Math.round(rescueUnit.z) : BASE_ORIGIN.z;
     const beaconTool = toolByName("deploy_beacons");
     const beaconProposal = (await missionScope.run({ ctx, caller }, () =>
       beaconTool.run({ to_x: shelterX, to_z: shelterZ, mode: "auto", spacing_m: 50 }, ctx, caller),
@@ -508,8 +513,8 @@ export async function offlineReply(
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
     const target = parseSiteTarget(q, ctx, history);
-    const toX = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? 0 : target.x;
-    const toZ = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? 0 : target.z;
+    const toX = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? BASE_ORIGIN.x : target.x;
+    const toZ = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? BASE_ORIGIN.z : target.z;
     const beaconTool = toolByName("deploy_beacons");
     const beaconProposal = (await missionScope.run({ ctx, caller }, () =>
       beaconTool.run({ to_x: toX, to_z: toZ, mode: "auto", spacing_m: 50 }, ctx, caller),
@@ -541,11 +546,19 @@ export async function offlineReply(
       q,
     );
 
-  // 2. Manipulator arm skills (manip-1 / "Hands")
+  // 2. Manipulator arm skills (manip-1 / "Hands") — do not hijack navigation orders for manip-1
+  const hasManipArmIntent =
+    /(?<![\p{L}\d])(martillo|hammer|perfor[\p{L}]*|drill|broca|handover|entreg[\p{L}]*|scoop|tubo|agarr[\p{L}]*|grab|recog[\p{L}]*|pick up)(?![\p{L}\d])/iu.test(
+      q,
+    ) ||
+    (/(?<![\p{L}\d])(fotograf[\p{L}]*|photograph[\p{L}]*)(?![\p{L}\d])/iu.test(q) && !mentionsMobileUnit);
+  const hasMovementOnlyVerb =
+    /(?<![\p{L}\d])(go\s+to|ir\s+a|ven[ií]?|come|ac[eé]rcate|follow|segu[\p{L}]*|return|volv[\p{L}]*|regres[\p{L}]*|hold|qu[eé]date|quedate|survey|relev[\p{L}]*|env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move)(?![\p{L}\d])/iu.test(
+      q,
+    );
   if (
     !isMaintenanceQuery &&
-    (/(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?|martillo|hammer|perfor[\p{L}]*|drill|broca|handover|entreg[\p{L}]*|scoop|tubo|agarr[\p{L}]*|grab|recog[\p{L}]*|pick up)(?![\p{L}\d])/iu.test(q) ||
-      (/(?<![\p{L}\d])(fotograf[\p{L}]*|photograph[\p{L}]*)(?![\p{L}\d])/iu.test(q) && !mentionsMobileUnit))
+    (hasManipArmIntent || (/(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?)(?![\p{L}\d])/iu.test(q) && !hasMovementOnlyVerb))
   ) {
     const caller = "ROBOT.manip-1";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
@@ -694,8 +707,11 @@ export async function offlineReply(
     };
   }
 
-  // 5. Route planning (EVA-PLANNER)
-  if (/\b(ruta|route|planif\w*|plan|camino|ir a|go to|navigate|naveg\w*|itin[eé]raire|percorso|weg)\b/i.test(q)) {
+  // 5. Route planning (EVA-PLANNER) — skip when a fleet unit is being dispatched/navigated
+  if (
+    !matchExplicitUnitId(q) &&
+    /\b(ruta|route|planif\w*|plan|camino|ir a|go to|navigate|naveg\w*|itin[eé]raire|percorso|weg)\b/i.test(q)
+  ) {
     const caller = "EVA-PLANNER";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
@@ -890,7 +906,10 @@ export async function offlineReply(
   }
 
   // 7. Science: Hydration & Vein Detector (SCIENCE)
-  if (/\b(hidrat\w*|hydrat\w*|agua|water|eau|wasser|acqua|veta|vein|veine|ader|vena|muestra|sample|échantillon|probe|campione|prospector|ciencia|science|wissenschaft|scienza|sitios|sites)\b/i.test(q)) {
+  if (
+    /\b(hidrat\w*|hydrat\w*|agua|water|eau|wasser|acqua|veta|vein|veine|ader|vena|muestra|sample|échantillon|probe|campione|prospector|ciencia|science|wissenschaft|scienza|sitios|sites)\b/i.test(q) &&
+    !(matchExplicitUnitId(q) && /\b(go\s+to|ir\s+a|send|env[ií]a\w*|m[aá]nd\w*|dispatch|despach\w*|ven[ií]?|come)\b/i.test(q))
+  ) {
     const caller = "SCIENCE";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
@@ -898,15 +917,18 @@ export async function offlineReply(
 
     const ranked = await execRead("rank_sample_sites", { k: 3 }, ctx, caller, trace);
     const top = ranked?.sites?.[0];
+    const fallbackSite = MISSION_SITES_BY_ID.S2;
+    const sx = top?.x ?? fallbackSite.x;
+    const sz = top?.z ?? fallbackSite.z;
     if (/\b(veta|vein|veine|ader|vena)\b/i.test(q)) {
       const vein = await execRead("detect_veins", { waypoint_id: "wp-1" }, ctx, caller, trace);
       return {
         speech: pick(lang, {
-          es: `Candidato a veta (p=${vein.vein_probability}); composición requiere espectrómetro. Mejor sitio hidratación (${top?.x ?? 480}, ${top?.z ?? 320}) con ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`,
-          en: `Vein candidate (p=${vein.vein_probability}); composition needs spectrometer. Top hydration site (${top?.x ?? 480}, ${top?.z ?? 320}) at ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`,
-          fr: `Veine candidate (p=${vein.vein_probability}) ; spectromètre requis. Meilleur site (${top?.x ?? 480}, ${top?.z ?? 320}) avec ${top?.hydration_index ?? 5.1} indice d'hydratation (adimensionnel).`,
-          de: `Ader-Kandidat (p=${vein.vein_probability}); Spektrometer nötig. Bester Standort (${top?.x ?? 480}, ${top?.z ?? 320}) mit ${top?.hydration_index ?? 5.1} Hydratationsindex (dimensionslos).`,
-          it: `Vena candidata (p=${vein.vein_probability}); serve spettrometro. Miglior sito (${top?.x ?? 480}, ${top?.z ?? 320}) con ${top?.hydration_index ?? 5.1} indice di idratazione (adimensionale).`,
+          es: `Candidato a veta (p=${vein.vein_probability}); composición requiere espectrómetro. Mejor sitio hidratación (${sx}, ${sz}) con ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`,
+          en: `Vein candidate (p=${vein.vein_probability}); composition needs spectrometer. Top hydration site (${sx}, ${sz}) at ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`,
+          fr: `Veine candidate (p=${vein.vein_probability}) ; spectromètre requis. Meilleur site (${sx}, ${sz}) avec ${top?.hydration_index ?? 5.1} indice d'hydratation (adimensionnel).`,
+          de: `Ader-Kandidat (p=${vein.vein_probability}); Spektrometer nötig. Bester Standort (${sx}, ${sz}) mit ${top?.hydration_index ?? 5.1} Hydratationsindex (dimensionslos).`,
+          it: `Vena candidata (p=${vein.vein_probability}); serve spettrometro. Miglior sito (${sx}, ${sz}) con ${top?.hydration_index ?? 5.1} indice di idratazione (adimensionale).`,
         }),
         actions,
         trace,
@@ -916,11 +938,11 @@ export async function offlineReply(
     proposeAction("set_layer", { layer: "hydration" }, ctx, caller, actions, trace);
     return {
       speech: pick(lang, {
-        es: `Mejor sitio (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, pendiente ${top?.slope_deg ?? 4}° (hidratación mineral).`,
-        en: `Top site (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, slope ${top?.slope_deg ?? 4}° (bound mineral hydration).`,
-        fr: `Meilleur site (${top?.x ?? 480}, ${top?.z ?? 320}) : ${top?.hydration_index ?? 5.1} indice d'hydratation (adimensionnel) ± ${top?.uncertainty_index ?? 0.6}, pente ${top?.slope_deg ?? 4}° (hydratation minérale).`,
-        de: `Bester Standort (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} Hydratationsindex (dimensionslos) ± ${top?.uncertainty_index ?? 0.6}, Neigung ${top?.slope_deg ?? 4}° (Mineralhydratation).`,
-        it: `Miglior sito (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} indice di idratazione (adimensionale) ± ${top?.uncertainty_index ?? 0.6}, pendenza ${top?.slope_deg ?? 4}° (idratazione minerale).`,
+        es: `Mejor sitio (${sx}, ${sz}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, pendiente ${top?.slope_deg ?? 4}° (hidratación mineral).`,
+        en: `Top site (${sx}, ${sz}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, slope ${top?.slope_deg ?? 4}° (bound mineral hydration).`,
+        fr: `Meilleur site (${sx}, ${sz}) : ${top?.hydration_index ?? 5.1} indice d'hydratation (adimensionnel) ± ${top?.uncertainty_index ?? 0.6}, pente ${top?.slope_deg ?? 4}° (hydratation minérale).`,
+        de: `Bester Standort (${sx}, ${sz}): ${top?.hydration_index ?? 5.1} Hydratationsindex (dimensionslos) ± ${top?.uncertainty_index ?? 0.6}, Neigung ${top?.slope_deg ?? 4}° (Mineralhydratation).`,
+        it: `Miglior sito (${sx}, ${sz}): ${top?.hydration_index ?? 5.1} indice di idratazione (adimensionale) ± ${top?.uncertainty_index ?? 0.6}, pendenza ${top?.slope_deg ?? 4}° (idratazione minerale).`,
       }),
       actions,
       trace,
@@ -1076,13 +1098,13 @@ export async function offlineReply(
 
   // 10. Fleet unit_action, dispatch & Mars MRL/UWB/LiDAR localization
   const isUnitActionPhrase =
-    /(?<![\p{L}\d])(despeg[\p{L}]*|take ?off|décoll[\p{L}]*|abheb[\p{L}]*|decoll[\p{L}]*|aterriz[\p{L}]*|land|atterr[\p{L}]*|fotograf[\p{L}]*|photograph[\p{L}]*|foto|photo|vigil[\p{L}]*|overwatch|hover|sobrevol[\p{L}]*|segu[\p{L}]*|s[ií]gueme|follow|suivre|suis[- ]moi|folg[\p{L}]*|volv[\p{L}]*|regres[\p{L}]*|return|back to base|zur[uü]ck|torna|relev[\p{L}]*|survey|inspeccion[\p{L}]*|erkund[\p{L}]*|qu[eé]date|quedate|hold position|stay there|halte|repetidor|relay|relais|ripetitore|traeme|tr[aá]eme|deliver|supplies|suministr[\p{L}]*|bring.*oxygen|apporte|portami)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(despeg[\p{L}]*|take ?off|décoll[\p{L}]*|abheb[\p{L}]*|decoll[\p{L}]*|aterriz[\p{L}]*|land|atterr[\p{L}]*|fotograf[\p{L}]*|photograph[\p{L}]*|foto|photo|vigil[\p{L}]*|overwatch|hover|sobrevol[\p{L}]*|segu[\p{L}]*|s[ií]gueme|follow|suivre|suis[- ]moi|folg[\p{L}]*|volv[\p{L}]*|regres[\p{L}]*|return|back to base|zur[uü]ck|torna|relev[\p{L}]*|survey|inspeccion[\p{L}]*|erkund[\p{L}]*|qu[eé]date|quedate|hold(?:\s+position)?|stay there|halte|repetidor|relay|relais|ripetitore|traeme|tr[aá]eme|deliver|supplies|suministr[\p{L}]*|bring.*oxygen|apporte|portami)(?![\p{L}\d])/iu.test(
       q,
     );
 
   if (
     isUnitActionPhrase ||
-    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move|rover|drone?|scout|glider|ven[ií]|come|localiza[\p{L}]*|lidar|ubicaci[oó]n|coordenada[\p{L}]*|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move|rover|drone?|scout|glider|manip(?:ulador|ulator)?|hands|rescue|rescate|ven[ií]?|come|ac[eé]rcate|go\s+to|ir\s+a|here|aqu[ií]|ac[aá]|posici[oó]n|position|localiza[\p{L}]*|lidar|ubicaci[oó]n|coordenada[\p{L}]*|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
       q,
     )
   ) {
@@ -1148,7 +1170,7 @@ export async function offlineReply(
       if (/(?<![\p{L}\d])(segu[\p{L}]*|s[ií]gueme|follow|suivre|suis[- ]moi|folg[\p{L}]*)(?![\p{L}\d])/iu.test(q)) requested.push("follow_astronaut");
       if (/(?<![\p{L}\d])(volv[\p{L}]*|regres[\p{L}]*|return|back to base|zur[uü]ck|torna)(?![\p{L}\d])/iu.test(q)) requested.push("return_to_base");
       if (/(?<![\p{L}\d])(relev[\p{L}]*|survey|inspeccion[\p{L}]*|erkund[\p{L}]*)(?![\p{L}\d])/iu.test(q)) requested.push("survey_area");
-      if (/(?<![\p{L}\d])(qu[eé]date|quedate|hold position|stay there|halte)(?![\p{L}\d])/iu.test(q)) requested.push("hold_position");
+      if (/(?<![\p{L}\d])(qu[eé]date|quedate|hold(?:\s+position)?|stay there|halte)(?![\p{L}\d])/iu.test(q)) requested.push("hold_position");
       if (/(?<![\p{L}\d])(repetidor|relay|relais|ripetitore)(?![\p{L}\d])/iu.test(q)) requested.push("relay_comms");
       if (/(?<![\p{L}\d])(traeme|tr[aá]eme|deliver|supplies|suministr[\p{L}]*|bring.*oxygen|apporte|portami|ox[ií]geno|oxygen)(?![\p{L}\d])/iu.test(q) && requested.length === 0) {
         requested.push("deliver_supplies");
@@ -1193,16 +1215,28 @@ export async function offlineReply(
 
     const target = parseSiteTarget(q, ctx, history);
     const unitObj = ctx.fleet.find((u) => u.id === unitId);
-    const maxSlope = unitObj ? (MAX_SLOPE[unitObj.kind] ?? 20) : 20;
-    const safeTarget = nearestSafePoint(target.x, target.z, maxSlope);
-    const rPlan = await execRead(
-      "plan_route",
-      { unit_id: unitId, to_x: safeTarget.x, to_z: safeTarget.z, speed_ms: 1.2 },
-      ctx,
-      robotAgent,
-      trace,
-    );
-    proposeAction("show_route", { to_x: safeTarget.x, to_z: safeTarget.z }, ctx, robotAgent, actions, trace);
+    const isFlyer = unitObj?.kind === "drone" || unitObj?.kind === "glider";
+    const maxSlope = unitObj ? MAX_SLOPE[unitObj.kind] : 20;
+    const safeTarget =
+      isFlyer || maxSlope === undefined
+        ? { x: target.x, z: target.z, slope_deg: 0, adjusted: false }
+        : nearestSafePoint(target.x, target.z, maxSlope);
+    let distM: number | undefined;
+    if (isFlyer && unitObj) {
+      distM = Math.round(Math.hypot(safeTarget.x - unitObj.x, safeTarget.z - unitObj.z));
+    } else {
+      const rPlan = await execRead(
+        "plan_route",
+        { unit_id: unitId, to_x: safeTarget.x, to_z: safeTarget.z, speed_ms: 1.2 },
+        ctx,
+        robotAgent,
+        trace,
+      );
+      distM = rPlan?.distance_m;
+      if (!target.isAstronaut && rPlan?.reachable) {
+        proposeAction("show_route", { to_x: safeTarget.x, to_z: safeTarget.z }, ctx, robotAgent, actions, trace);
+      }
+    }
     const act = proposeAction(
       "dispatch",
       { unit_id: unitId, x: safeTarget.x, z: safeTarget.z, task: "goto" },
@@ -1225,7 +1259,7 @@ export async function offlineReply(
         route,
       };
     }
-    const distInfo = rPlan?.distance_m ? ` (${rPlan.distance_m} m, LiDAR + MRL HiRISE OK)` : "";
+    const distInfo = distM ? ` (${distM} m, ${isFlyer ? "aerial 14 m, MRL HiRISE OK" : "LiDAR + MRL HiRISE OK"})` : "";
     return {
       speech: pick(lang, {
         es: `Despachando ${unitId} hacia ${target.label}${distInfo}.`,

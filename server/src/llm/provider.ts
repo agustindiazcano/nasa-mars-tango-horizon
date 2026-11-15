@@ -109,6 +109,26 @@ export function sanitizeMessagesForProvider(messages: ChatMessage[], provider: P
   });
 }
 
+/** Bounds Vertex gemini-4-carbon single-turn tail wait when a failover provider is available (B37). */
+export function timeoutForAttempt(
+  tier: Tier,
+  provider: ProviderName,
+  model: string,
+  hasFallback: boolean,
+  explicitTimeoutMs?: number,
+): number {
+  const base = explicitTimeoutMs ?? (tier === "fast" ? config.fastTimeoutMs : config.defaultTimeoutMs);
+  if (
+    explicitTimeoutMs === undefined &&
+    hasFallback &&
+    provider === "vertex" &&
+    (tier === "large" || model.includes("gemini-4-carbon"))
+  ) {
+    return Math.min(base, config.vertexCarbonTimeoutMs);
+  }
+  return base;
+}
+
 export async function chat(
   tier: Tier,
   messages: ChatMessage[],
@@ -122,15 +142,16 @@ export async function chat(
     throw new Error("No LLM provider enabled");
   }
 
-  const timeout = opts.timeoutMs ?? (tier === "fast" ? config.fastTimeoutMs : config.defaultTimeoutMs);
   let lastErr: unknown;
   let emptyMessage: OpenAI.Chat.Completions.ChatCompletionMessage | undefined;
 
-  for (const provider of order) {
+  for (let idx = 0; idx < order.length; idx++) {
+    const provider = order[idx];
     if (opts.signal?.aborted) {
       throw opts.signal.reason ?? new Error("LLM request aborted");
     }
     const model = modelFor(tier, provider);
+    const timeout = timeoutForAttempt(tier, provider, model, idx < order.length - 1, opts.timeoutMs);
     const started = Date.now();
     try {
       const client = await getClient(provider);

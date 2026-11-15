@@ -1,4 +1,5 @@
-import { groundPlacement } from "./groundPlacement";
+import { fleetStartPos, MANIP_TARGETS } from "@th/shared";
+import { footprintContacts, groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "../core/physics";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "../core/types";
@@ -23,13 +24,29 @@ export interface UnitSpec {
 }
 
 export const FLEET_SPECS: UnitSpec[] = [
-  { id: "rover-1", kind: "rover_crew", speed: 3.2, flies: false, startX: -22, startZ: 18 },
-  { id: "rover-2", kind: "rover_science", speed: 1.4, flies: false, startX: 62, startZ: 48 },
-  { id: "rescue-1", kind: "rescue", speed: 5.5, flies: false, startX: -18, startZ: 12 },
-  { id: "drone-1", kind: "drone", speed: 11.0, flies: true, altitude: 14, startX: 40, startZ: -30 },
-  { id: "drone-2", kind: "drone", speed: 11.0, flies: true, altitude: 16, startX: -60, startZ: 55 },
-  { id: "manip-1", kind: "manipulator", speed: 1.6, flies: false, startX: 34, startZ: 42 },
+  { id: "rover-1", kind: "rover_crew", speed: 3.2, flies: false, startX: fleetStartPos("rover-1").x, startZ: fleetStartPos("rover-1").z },
+  { id: "rover-2", kind: "rover_science", speed: 1.4, flies: false, startX: fleetStartPos("rover-2").x, startZ: fleetStartPos("rover-2").z },
+  { id: "rescue-1", kind: "rescue", speed: 5.5, flies: false, startX: fleetStartPos("rescue-1").x, startZ: fleetStartPos("rescue-1").z },
+  { id: "drone-1", kind: "drone", speed: 11.0, flies: true, altitude: 14, startX: fleetStartPos("drone-1").x, startZ: fleetStartPos("drone-1").z },
+  { id: "drone-2", kind: "drone", speed: 11.0, flies: true, altitude: 16, startX: fleetStartPos("drone-2").x, startZ: fleetStartPos("drone-2").z },
+  { id: "manip-1", kind: "manipulator", speed: 1.6, flies: false, startX: fleetStartPos("manip-1").x, startZ: fleetStartPos("manip-1").z },
 ];
+
+export interface DispatchPlannedInfo {
+  x: number;
+  z: number;
+  distanceM: number;
+  etaS: number;
+  points: { x: number; z: number }[];
+  adjusted: boolean;
+}
+
+export interface DispatchOptions {
+  astronautPos?: { x: number; z: number };
+  standOffM?: number;
+  drawRoute?: boolean;
+  onPlanned?: (info: DispatchPlannedInfo) => void;
+}
 
 export class FleetUnit {
   path: THREE.Vector3[] = [];
@@ -41,6 +58,8 @@ export class FleetUnit {
   mastCamera?: THREE.PerspectiveCamera;
   mastPivot?: THREE.Group;
   grounded = false;
+  manualGrounded = false;
+  targetAltitude?: number;
   onArrive?: () => void;
 
   constructor(
@@ -62,7 +81,7 @@ export class FleetUnit {
   update(dt: number, tau: number): void {
     const o = this.object;
     if (this.spec.flies) {
-      this.grounded = tau >= AIRCRAFT_GROUNDING_TAU;
+      this.grounded = this.manualGrounded || tau >= AIRCRAFT_GROUNDING_TAU;
     }
     const target = this.path[0];
     let distMoved = 0;
@@ -94,7 +113,8 @@ export class FleetUnit {
 
     const ground = this.terrain.heightAt(o.position.x, o.position.z);
     if (this.spec.flies) {
-      const targetY = this.grounded ? ground + 0.35 : ground + (this.spec.altitude ?? 14);
+      const alt = this.targetAltitude ?? this.spec.altitude ?? 14;
+      const targetY = this.grounded ? ground + 0.35 : ground + alt;
       o.position.y += (targetY - o.position.y) * Math.min(1, dt * 3);
       for (let i = 0; i < this.rotors.length; i++) {
         const spin = this.grounded ? 0.5 : i % 2 === 0 ? 28 : -28;
@@ -104,18 +124,28 @@ export class FleetUnit {
         this.lidarCone.visible = !this.grounded;
       }
     } else {
-
-      // Pitch gently with terrain gradient
-      const fwdX = Math.sin(o.rotation.y);
-      const fwdZ = Math.cos(o.rotation.y);
-      const hAhead = this.terrain.heightAt(o.position.x + fwdX * 1.2, o.position.z + fwdZ * 1.2);
-      const hBehind = this.terrain.heightAt(o.position.x - fwdX * 1.2, o.position.z - fwdZ * 1.2);
-      o.rotation.x = Math.atan2(hBehind - hAhead, 2.4) * 0.65;
-
+      this.alignToTerrain();
       this.placeOnGround();
       const wheelSpin = distMoved / 0.32;
       for (const w of this.wheels) w.rotation.x += wheelSpin;
     }
+  }
+
+  alignToTerrain(): void {
+    const o = this.object;
+    o.rotation.order = "YXZ";
+    const yaw = o.rotation.y;
+    const fwdX = Math.sin(yaw);
+    const fwdZ = Math.cos(yaw);
+    const rightX = Math.cos(yaw);
+    const rightZ = -Math.sin(yaw);
+    const hAhead = this.terrain.heightAt(o.position.x + fwdX * 1.0, o.position.z + fwdZ * 1.0);
+    const hBehind = this.terrain.heightAt(o.position.x - fwdX * 1.0, o.position.z - fwdZ * 1.0);
+    const pitch = Math.atan2(hBehind - hAhead, 2.0);
+    o.rotation.x = pitch;
+    const hRight = this.terrain.heightAt(o.position.x + rightX * 0.9, o.position.z + rightZ * 0.9);
+    const hLeft = this.terrain.heightAt(o.position.x - rightX * 0.9, o.position.z - rightZ * 0.9);
+    o.rotation.z = Math.atan2(hRight - hLeft, 1.8 * Math.max(0.4, Math.cos(pitch)));
   }
 
   placeOnGround(): void {
@@ -145,11 +175,12 @@ export class FleetProc {
   readonly units = new Map<string, FleetUnit>();
   readonly manipArm = new ManipulatorArm();
   readonly manipRunner: SkillRunner;
-  readonly targets: FleetTarget[] = [
-    { id: "T1", kind: "sulfate_vein", x: 37.5, z: 45.0 },
-    { id: "T2", kind: "basalt_rock", x: 32.0, z: 46.5 },
-    { id: "T3", kind: "regolith_patch", x: 36.2, z: 39.2 },
-  ];
+  readonly targets: FleetTarget[] = MANIP_TARGETS.map((t) => ({
+    id: t.id,
+    kind: t.kind,
+    x: t.x,
+    z: t.z,
+  }));
 
   private group = new THREE.Group();
   private renderTarget = new THREE.WebGLRenderTarget(512, 384);
@@ -192,31 +223,123 @@ export class FleetProc {
     return Array.from(this.units.values()).map((u) => u.snapshot());
   }
 
-  dispatchTo(unitId: string, x: number, z: number, task: string, onArrive?: () => void): boolean {
+  dispatchTo(
+    unitId: string,
+    x: number,
+    z: number,
+    task: string,
+    onArrive?: () => void,
+    options?: DispatchOptions,
+  ): boolean {
     const unit = this.units.get(unitId);
     if (!unit) return false;
     if (unit.spec.flies) {
+      if (task === "land") {
+        unit.manualGrounded = true;
+      } else {
+        unit.manualGrounded = false;
+      }
       unit.goTo([{ x, z }], task, onArrive);
+      const distM = Math.hypot(x - unit.object.position.x, z - unit.object.position.z);
+      const pts = [
+        { x: unit.object.position.x, z: unit.object.position.z },
+        { x, z },
+      ];
+      if (options?.drawRoute && distM > 1) {
+        this.terrain.setRoute(pts);
+      }
+      options?.onPlanned?.({
+        x,
+        z,
+        distanceM: distM,
+        etaS: distM / unit.spec.speed,
+        points: pts,
+        adjusted: false,
+      });
       return true;
     }
+
+    let goalX = x;
+    let goalZ = z;
+    let adjusted = false;
+    if (options?.astronautPos && !task.startsWith("arm:")) {
+      const astro = options.astronautPos;
+      if (Math.hypot(x - astro.x, z - astro.z) < 2.5) {
+        const standOffM = options.standOffM ?? 4.5;
+        const dx = unit.object.position.x - astro.x;
+        const dz = unit.object.position.z - astro.z;
+        const d = Math.hypot(dx, dz);
+        if (d > standOffM) {
+          goalX = astro.x + (dx / d) * standOffM;
+          goalZ = astro.z + (dz / d) * standOffM;
+          adjusted = true;
+        } else if (d < 2.0) {
+          const ang = d > 0.05 ? Math.atan2(dz, dx) : 0;
+          goalX = astro.x + Math.cos(ang) * standOffM;
+          goalZ = astro.z + Math.sin(ang) * standOffM;
+          adjusted = true;
+        }
+      }
+    }
+
     const grid = this.terrain.buildRouteGrid();
     const startIdx = this.terrain.worldToCell(unit.object.position.x, unit.object.position.z);
-    const goalIdx = this.terrain.worldToCell(x, z);
     const maxSlope = unit.spec.kind === "rover_crew" ? 20 : unit.spec.kind === "manipulator" ? 22 : 25;
-    const res = planRoute(grid, startIdx, goalIdx, {
-      bodyKg: 120,
-      loadKg: 40,
-      speed: unit.spec.speed,
-      maxSlopeDeg: maxSlope,
-      doseWeight: 0,
-    });
-    if (res && res.path.length > 1) {
-      const pts = res.path.map((idx) => this.terrain.cellToWorld(idx));
-      pts[pts.length - 1] = { x, z };
-      unit.goTo(pts, task, onArrive);
-    } else {
-      unit.goTo([{ x, z }], task, onArrive);
+    const tryPlan = (tx: number, tz: number, slopeDeg: number) =>
+      planRoute(grid, startIdx, this.terrain.worldToCell(tx, tz), {
+        bodyKg: 120,
+        loadKg: 40,
+        speed: unit.spec.speed,
+        maxSlopeDeg: slopeDeg,
+        doseWeight: 0,
+      });
+
+    let res = tryPlan(goalX, goalZ, maxSlope);
+    if (!res || this.terrain.slopeAt(goalX, goalZ) > maxSlope) {
+      const half = this.terrain.sizeM / 2 - 20;
+      const radii = [5, 10, 15, 25, 40, 60, 90, 120];
+      outer: for (const r of radii) {
+        for (let k = 0; k < 16; k++) {
+          const ang = (2 * Math.PI * k) / 16;
+          const cx = THREE.MathUtils.clamp(goalX + r * Math.cos(ang), -half, half);
+          const cz = THREE.MathUtils.clamp(goalZ + r * Math.sin(ang), -half, half);
+          if (this.terrain.slopeAt(cx, cz) <= maxSlope) {
+            const candidate = tryPlan(cx, cz, maxSlope);
+            if (candidate) {
+              goalX = cx;
+              goalZ = cz;
+              res = candidate;
+              adjusted = true;
+              break outer;
+            }
+          }
+        }
+      }
     }
+
+    if (!res) {
+      res = tryPlan(goalX, goalZ, Math.min(35, maxSlope + 10)) ?? tryPlan(goalX, goalZ, 45);
+    }
+
+    const pts =
+      res && res.path.length > 1
+        ? res.path.map((idx) => this.terrain.cellToWorld(idx))
+        : [{ x: unit.object.position.x, z: unit.object.position.z }, { x: goalX, z: goalZ }];
+    pts[pts.length - 1] = { x: goalX, z: goalZ };
+
+    const distM = res ? res.distanceM : Math.hypot(goalX - unit.object.position.x, goalZ - unit.object.position.z);
+    unit.goTo(pts, task, onArrive);
+    if (options?.drawRoute && pts.length >= 2 && distM > 1) {
+      this.terrain.setRoute(pts);
+    }
+    options?.onPlanned?.({
+      x: goalX,
+      z: goalZ,
+      distanceM: distM,
+      etaS: distM / unit.spec.speed,
+      points: pts,
+      adjusted,
+    });
     return true;
   }
 
@@ -501,7 +624,10 @@ export class FleetProc {
     label.scale.set(6.5, 1.25, 1);
     g.add(label);
 
-    if (!spec.flies) unit.placeOnGround();
+    if (!spec.flies) {
+      unit.alignToTerrain();
+      unit.placeOnGround();
+    }
     return unit;
   }
 
@@ -553,18 +679,24 @@ export class FleetProc {
 
   private buildManipTargets(): void {
     for (const t of this.targets) {
-      const y = this.terrain.heightAt(t.x, t.z);
       const color = t.kind === "sulfate_vein" ? 0xf2f4f8 : t.kind === "basalt_rock" ? 0x5c636e : 0xc67848;
-      const mesh = new THREE.Mesh(
-        new THREE.DodecahedronGeometry(0.32, 0),
-        new THREE.MeshStandardMaterial({ color, roughness: 0.85 }),
+      const geo = new THREE.DodecahedronGeometry(0.32, 0);
+      geo.computeBoundingBox();
+      const minY = geo.boundingBox!.min.y;
+      const placed = groundPlacement(
+        (x, z) => this.terrain.heightAt(x, z),
+        t.x,
+        t.z,
+        footprintContacts(0.45, 0.45, minY),
       );
-      mesh.position.set(t.x, y + 0.18, t.z);
+      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: 0.85 }));
+      mesh.position.set(t.x, placed.y, t.z);
       mesh.castShadow = true;
+      mesh.name = `target:${t.id}`;
       this.group.add(mesh);
 
       const lbl = makeSpriteLabel(`${t.id} ${t.kind}`, "#ffb800");
-      lbl.position.set(t.x, y + 0.95, t.z);
+      lbl.position.set(t.x, placed.y + 0.77, t.z);
       lbl.scale.set(3.8, 0.72, 1);
       this.group.add(lbl);
     }

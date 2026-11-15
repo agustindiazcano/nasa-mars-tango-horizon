@@ -1,3 +1,4 @@
+import { config } from "../config.js";
 import { offlineReply } from "./offline.js";
 import {
   claimsMissingTelemetry,
@@ -6,6 +7,7 @@ import {
   type AgentResult,
   type AgentSpec,
 } from "./runAgent.js";
+import { needsTranscriptNormalization, normalizeVoiceTranscript } from "./stt.js";
 import type { ConversationTurn, MissionContext } from "./types.js";
 import { capabilityPrompt } from "./unitCapabilities.js";
 
@@ -52,7 +54,7 @@ Spoken replies: 25 words or fewer, concise radio style.`,
     system: `You are BASE, the mission orchestrator running on the Mars base server.
 Priority order: crew integrity (weather, radiation, consumables, equipment), then science support.
 Mars has no GPS: use get_localization_and_lidar (HiRISE 1 m/px Map-Relative Localization + 6.5 GHz UWB ToF mesh + VIO + 3D LiDAR) to read the exact coordinates of the astronaut and all fleet units, plus 360-deg LiDAR terrain hazards.
-When the astronaut asks to send a robot to "my position" / "mi posición" / "donde estoy", read get_localization_and_lidar and dispatch that unit to the astronaut's exact (x, z) coordinates.
+When the astronaut asks to send a robot to "my position" / "mi posición" / "donde estoy" / "come here" / "ven", read get_localization_and_lidar and dispatch that unit to the astronaut's coordinates (for ground rovers on steep slopes > MAX_SLOPE, use safe_rendezvous or ~5-15 m slope-safe stand-off; for drones/gliders, ground slope never blocks flight and they move directly overhead at 14 m altitude).
 Read state with tools before deciding. Delegate domain tasks to SUIT.HEALTH, EVA-PLANNER, SCIENCE, WEATHER-RAD, MAINTENANCE, or ROBOT.<id> when helpful.
 Use prior conversation turns only to resolve references (e.g. "it", "that unit", "there"); always read live coordinates and telemetry from tools and [Mission snapshot].
 For a single-unit order (go there, take off, land, photograph, follow me, return to base, hold, relay, bring supplies) call unit_action (or dispatch for explicit coordinates) on your FIRST turn using the unit_id from [Mission snapshot]; do NOT call list_units just to look up an ID. Never confirm or claim a unit movement, return, takeoff, photo, or action unless you called dispatch, unit_action, or arm_skill and received status allow in this turn. Use unit_action actions: takeoff, land, photograph_area, hover_overwatch, follow_astronaut, return_to_base, survey_area, hold_position, relay_comms, deliver_supplies; GUARDIAN rejects ones the unit kind cannot do (report GUARDIAN's exact reason and stop). Delegate to ROBOT.manip-1 directly on your first turn for arm skills (sample, drill, photograph, handover). Never both delegate to ROBOT.<id> and call dispatch for that same unit: delegate to ROBOT.<id> (it dispatches itself) or call dispatch directly, never both. Issue independent read-only tool calls together in a single turn. Use get_terrain_at at most 3 times.
@@ -173,7 +175,8 @@ Choose arm_skill (handover, sample, drill, photograph) using only visible target
 Never invent joint angles or coordinates. Never approach within 2 m of crew except for stationary handover.
 Report concisely in 30 words or fewer.` + "\n" + capabilityPrompt(unitId, "manipulator")
       : `You are the onboard autonomous planner for Mars fleet unit ${unitId}, equipped with 3D Flash LiDAR, HiRISE 1 m/px Map-Relative Localization (MRL), Visual-Inertial Odometry (VIO), and 6.5 GHz UWB ToF ranging.
-You may ONLY command unit_id "${unitId}". Use get_localization_and_lidar and plan_route to check your coordinates, the astronaut's position, and LiDAR slope hazards before dispatching.
+You may ONLY command unit_id "${unitId}". Use get_localization_and_lidar and plan_route (with unit_id "${unitId}") to check your coordinates, the astronaut's position, and LiDAR slope hazards before dispatching.
+When ordered to "my position" or a target: ground rovers must stay within slope limits (use safe_rendezvous / safe_destination within ~5-15 m stand-off if the astronaut is on steep terrain); aircraft (drone/glider) ignore ground slope and fly directly to (x, z) at 14 m altitude unless grounded by dust/wind/battery. Always execute dispatch or unit_action before replying.
 Report concisely in 30 words or fewer.` + "\n" + capabilityPrompt(unitId, unitKind),
   };
 }
@@ -191,7 +194,7 @@ setDelegateHandler(async (agentName, objective, ctx, userRequest, depth) => {
 });
 
 const ESCALATE_FAST_RE =
-  /(?<![\p{L}])(rover|rvr|rescue|rescate|drone|dron|glider|scout|manip(?:ulador|ulator)?|hands|despeg[aáe]?r?|take\s*off|aterriz[aáe]?r?|segu[ií](?:me)?|follow|volv[eé]r?|regres[aáe]?r?|return|relev[aáe]?r?|survey|vigil[aáe]?r?|hover|agarr[aáe]?r?|grab|drill|perfor[aáe]?r?|martill|hammer|entreg[aáe]?r?|handover|fotograf|photograph|env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|repetidor|relay|ruta|route|planif|navigate|naveg|lidar|ubicaci[oó]n|coordenada|clima|weather|tormenta|storm|pron[oó]st|forecast|radiaci[oó]n|radiation|dosis|dose|eva|puedo salir|can i go out|m[eé]t[eé]o|wetter|hidrat|hydrat|muestra|sample|veta|vein|prospector|sitio|site|ciencia|science|ventilador|fan|scrubber|depurador|coolant|refrigerante|moxie|soxe|compresor|compressor|slip|patinaje|stall|atasco|torque|rul|fdir|aislar|isolate|diagn[oó]stic|mantenim|maintenance|falla|failure|tendencia|trend|baliza|beacon|bengala|flare|fuga|leak|emergencia|emergency|mayday|socorro|cartel|sign|airlock|ignore|biomed[\p{L}]*|hypercapn[\p{L}]*|hipercapn[\p{L}]*|hypox[\p{L}]*|hipox[\p{L}]*|spo2|card[ií]ac[\p{L}]*|heart rate|frecuencia card[\p{L}]*|ritmo card[\p{L}]*|heat strain|estr[eé]s t[eé]rmic[\p{L}]*|estres termic[\p{L}]*|core temp[\p{L}]*|temperatura corporal|early warning|ews|triaje|triage|vitals|signos vitales|constantes vitales)(?![\p{L}])/iu;
+  /(?<![\p{L}])(rover|rvr|rescue|rescate|drone|dron|glider|scout|manip(?:ulador|ulator)?|hands|despeg[aáe]?r?|take\s*off|aterriz[aáe]?r?|segu[ií](?:me)?|follow|volv[eé]r?|regres[aáe]?r?|return|relev[aáe]?r?|survey|vigil[aáe]?r?|hover|agarr[aáe]?r?|grab|drill|perfor[aáe]?r?|martill|hammer|entreg[aáe]?r?|handover|fotograf|photograph|env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|come|ven[ií]?|ac[eé]rcate|position|posici[oó]n|location|here|aqu[ií]|ac[aá]|go\s+to|ve\s+a|and[aá]\s+a|repetidor|relay|ruta|route|planif|navigate|naveg|lidar|ubicaci[oó]n|coordenada|clima|weather|tormenta|storm|pron[oó]st|forecast|radiaci[oó]n|radiation|dosis|dose|eva|puedo salir|can i go out|m[eé]t[eé]o|wetter|hidrat|hydrat|muestra|sample|veta|vein|prospector|sitio|site|ciencia|science|ventilador|fan|scrubber|depurador|coolant|refrigerante|moxie|soxe|compresor|compressor|slip|patinaje|stall|atasco|torque|rul|fdir|aislar|isolate|diagn[oó]stic|mantenim|maintenance|falla|failure|tendencia|trend|baliza|beacon|bengala|flare|fuga|leak|emergencia|emergency|mayday|socorro|cartel|sign|airlock|ignore|biomed[\p{L}]*|hypercapn[\p{L}]*|hipercapn[\p{L}]*|hypox[\p{L}]*|hipox[\p{L}]*|spo2|card[ií]ac[\p{L}]*|heart rate|frecuencia card[\p{L}]*|ritmo card[\p{L}]*|heat strain|estr[eé]s t[eé]rmic[\p{L}]*|estres termic[\p{L}]*|core temp[\p{L}]*|temperatura corporal|early warning|ews|triaje|triage|vitals|signos vitales|constantes vitales)(?![\p{L}])/iu;
 
 /** Deterministic pre-router so obvious BASE orders skip the SUIT.VOICE-EXEC LLM round-trip. */
 export function shouldEscalateFast(text: string, ctx: MissionContext): boolean {
@@ -228,19 +231,29 @@ export async function handleVoice(
   text: string,
   ctx: MissionContext,
   history: ConversationTurn[] = [],
-): Promise<AgentResult & { route: string[] }> {
+  opts?: { skipNormalize?: boolean },
+): Promise<AgentResult & { route: string[]; transcript?: string }> {
   const cleanHistory = history
     .filter((t) => (t.role === "user" || t.role === "assistant") && t.content.trim().length > 0)
     .filter((t) => !(t.role === "assistant" && /^ESCALATE$/i.test(t.content.trim())))
     .slice(-6);
 
+  const normalizedText =
+    !opts?.skipNormalize &&
+    !config.offline &&
+    process.env.AGENTS_OFFLINE !== "1" &&
+    needsTranscriptNormalization(text)
+      ? await normalizeVoiceTranscript(text, ctx.lang, ctx)
+      : text.trim();
+  const orderText = normalizedText || text.trim();
+
   let fast: AgentResult;
-  let needsEscalation = shouldEscalateFast(text, ctx);
+  let needsEscalation = shouldEscalateFast(orderText, ctx);
 
   if (needsEscalation) {
     fast = { text: "", actions: [], trace: [] };
   } else {
-    fast = await runAgent(AGENTS["SUIT.VOICE-EXEC"], text, ctx, text, 6, 0, cleanHistory);
+    fast = await runAgent(AGENTS["SUIT.VOICE-EXEC"], orderText, ctx, orderText, 6, 0, cleanHistory);
     needsEscalation =
       /ESCALATE/i.test(fast.text) ||
       (!fast.text.trim() && fast.actions.length === 0) ||
@@ -249,23 +262,30 @@ export async function handleVoice(
   }
 
   if (!needsEscalation && needsLeakSafetyNet(ctx, fast.actions)) {
-    const det = await offlineReply(`${text} emergency`, ctx, cleanHistory);
-    return { text: stripEscalate(det.speech), actions: [...fast.actions, ...det.actions], trace: [...fast.trace, ...det.trace], route: det.route };
+    const det = await offlineReply(`${orderText} emergency`, ctx, cleanHistory);
+    return {
+      text: stripEscalate(det.speech),
+      actions: [...fast.actions, ...det.actions],
+      trace: [...fast.trace, ...det.trace],
+      route: det.route,
+      transcript: orderText,
+    };
   }
   if (!needsEscalation) {
-    return { ...fast, text: stripEscalate(fast.text), route: ["SUIT.VOICE-EXEC"] };
+    return { ...fast, text: stripEscalate(fast.text), route: ["SUIT.VOICE-EXEC"], transcript: orderText };
   }
 
-  const base = await runAgent(AGENTS.BASE, formatBaseInput(text, ctx), ctx, text, 6, 0, cleanHistory);
+  const base = await runAgent(AGENTS.BASE, formatBaseInput(orderText, ctx), ctx, orderText, 6, 0, cleanHistory);
 
   // Life-support safety net: a suit leak must never depend on the LLM choosing to act.
   if (needsLeakSafetyNet(ctx, base.actions)) {
-    const det = await offlineReply(`${text} emergency`, ctx, cleanHistory);
+    const det = await offlineReply(`${orderText} emergency`, ctx, cleanHistory);
     return {
       text: stripEscalate(det.speech),
       actions: [...fast.actions, ...det.actions],
       trace: [...fast.trace, ...base.trace, ...det.trace],
       route: det.route,
+      transcript: orderText,
     };
   }
   const delegatedAgents = base.trace
@@ -287,5 +307,6 @@ export async function handleVoice(
       ...base.trace,
     ],
     route: ["SUIT.VOICE-EXEC", "BASE", ...delegatedAgents],
+    transcript: orderText,
   };
 }

@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
-import { planRoute, terrainFromThermalClass, type Grid } from "@th/shared";
+import { BASE_ORIGIN, MISSION_SITES_BY_ID, planRoute, terrainFromThermalClass, type Grid } from "@th/shared";
 import type { MissionContext, StormForecastPoint } from "../types.js";
 
 export interface TerrainMeta {
@@ -223,8 +223,9 @@ function buildSyntheticTerrain(): LoadedTerrain {
       slopeDeg[idx] = sl;
       svf[idx] = clamp(0.96 - sl * 0.008, 0.55, 0.99);
       thermalClass[idx] = sl > 12 ? 2 : (Math.sin(x / 250) + Math.cos(z / 250)) > 0.3 ? 1 : 0;
+      const s2 = MISSION_SITES_BY_ID.S2;
       hydrationWeh[idx] = clamp(
-        3.4 + 2.1 * Math.exp(-(((x - 480) ** 2 + (z - 320) ** 2) / (450 * 450))) - sl * 0.04,
+        3.4 + 2.1 * Math.exp(-(((x - s2.x) ** 2 + (z - s2.z) ** 2) / (450 * 450))) - sl * 0.04,
         1.2,
         6.8,
       );
@@ -379,8 +380,9 @@ function loadTerrainFromDisk(): LoadedTerrain {
           const x = ((c + 0.5) / mapN - 0.5) * sizeM;
           const idx = r * mapN + c;
           const sl = slopeDeg[idx];
+          const s2 = MISSION_SITES_BY_ID.S2;
           hydrationWeh[idx] = clamp(
-            3.2 + 2.2 * Math.exp(-(((x - 480) ** 2 + (z - 320) ** 2) / (450 * 450))) - sl * 0.04,
+            3.2 + 2.2 * Math.exp(-(((x - s2.x) ** 2 + (z - s2.z) ** 2) / (450 * 450))) - sl * 0.04,
             1.2,
             6.5,
           );
@@ -495,7 +497,7 @@ export function slopeAt(x: number, z: number): number {
 
 /**
  * Returns (x, z) if its slope is within maxSlopeDeg; otherwise searches outward
- * in 15 m rings on the HiRISE DTM to find the nearest safe rover rendezvous point.
+ * in concentric rings (starting at 5 m) on the HiRISE DTM to find the nearest safe rover rendezvous point.
  */
 export function nearestSafePoint(
   x: number,
@@ -503,12 +505,16 @@ export function nearestSafePoint(
   maxSlopeDeg = 20,
 ): { x: number; z: number; slope_deg: number; adjusted: boolean } {
   const s0 = slopeAt(x, z);
-  if (s0 <= maxSlopeDeg) {
-    return { x: Math.round(x), z: Math.round(z), slope_deg: s0, adjusted: false };
+  const rx = Math.round(x);
+  const rz = Math.round(z);
+  const sr = slopeAt(rx, rz);
+  if (s0 <= maxSlopeDeg && sr <= maxSlopeDeg) {
+    return { x: rx, z: rz, slope_deg: sr, adjusted: false };
   }
   const half = state.meta.size_m / 2 - 20;
-  let best = { x: Math.round(x), z: Math.round(z), slope_deg: s0, adjusted: true };
-  for (let r = 15; r <= 600; r += 15) {
+  let best = { x: rx, z: rz, slope_deg: sr, adjusted: true };
+  const radii = [5, 10, 15, 25, 40, 60, 80, 100, 130, 160, 200, 250, 300, 400, 500, 600];
+  for (const r of radii) {
     for (let k = 0; k < 16; k++) {
       const ang = (2 * Math.PI * k) / 16;
       const cx = clamp(Math.round(x + r * Math.cos(ang)), -half, half);
@@ -627,7 +633,7 @@ export function hydrationAt(x: number, z: number) {
   };
 }
 
-export function rankSampleSites(k = 3, fromX = 0, fromZ = 0) {
+export function rankSampleSites(k = 3, fromX: number = BASE_ORIGIN.x, fromZ: number = BASE_ORIGIN.z) {
   const limit = clamp(Math.round(k), 1, 10);
   const candidates: {
     x: number;
@@ -755,6 +761,7 @@ export function routeBetween(
   to: { x: number; z: number },
   speedMs: number,
   ctx: MissionContext,
+  maxSlopeDeg = 25,
 ) {
   const start = cellOf(from.x, from.z);
   const goal = cellOf(to.x, to.z);
@@ -762,14 +769,14 @@ export function routeBetween(
     bodyKg: ctx.astronaut.body_kg,
     loadKg: ctx.astronaut.load_kg,
     speed: speedMs,
-    maxSlopeDeg: 25,
+    maxSlopeDeg,
     doseWeight: 0.5,
   });
 
   if (!res) {
     return {
       reachable: false,
-      error: "No traversable route found within the 25 deg slope limit.",
+      error: `No traversable route found within the ${maxSlopeDeg} deg slope limit.`,
     };
   }
 
