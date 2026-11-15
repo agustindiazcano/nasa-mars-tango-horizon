@@ -1,4 +1,4 @@
-import { BASE_ORIGIN, MISSION_SITES } from "@th/shared";
+import { BASE_ORIGIN, LAUNCH_SITE_COORD, MISSION_SITES } from "@th/shared";
 import { formatCoordinates } from "../world/terrainValidation";
 import { hydrationRgb } from "../world/terrainRasters";
 import { ASR_LOCALE, fmt, getLang, LANGS, onLangChange, setLang, t } from "@th/shared";
@@ -132,7 +132,7 @@ export class TacticalHud {
 
     this.qrCanvas = document.createElement("canvas");
     this.qrUrlEl = document.createElement("div");
-    this.qrUrlEl.style.cssText = "font-size:10px; word-break:break-all; margin:6px 0; color:#8fd8ef;";
+    this.qrUrlEl.style.cssText = "font-size:10px; word-break:break-all; margin:6px 0; color:#e8c9a8;";
     this.buildQrContainer();
     this.buildBottomStatic();
 
@@ -477,7 +477,7 @@ export class TacticalHud {
       .slice(0, 3)
       .map(
         (a) =>
-          `<div style="font-size:10px; margin-top:4px; color:${a.level === "crit" ? "#ff6884" : a.level === "warn" ? "#ffd166" : "#9be8ff"}">• ${a.text}</div>`,
+          `<div style="font-size:10px; margin-top:4px; color:${a.level === "crit" ? "#ff6884" : a.level === "warn" ? "#ffd166" : "#e8c9a8"}">• ${a.text}</div>`,
       )
       .join("");
 
@@ -571,7 +571,7 @@ export class TacticalHud {
         .slice(-4)
         .map(
           (tr) =>
-            `<div><b style="color:${tr.who === "you" ? "#ffb800" : "#35e0ff"}">${escapeHtml(speakerLabel(tr.who))}:</b> ${escapeHtml(tr.text)}</div>`,
+            `<div><b style="color:${tr.who === "you" ? "#f3ece3" : "#ffb36b"}">${escapeHtml(speakerLabel(tr.who))}:</b> ${escapeHtml(tr.text)}</div>`,
         )
         .join("");
       txBox.scrollTop = txBox.scrollHeight;
@@ -996,7 +996,7 @@ export class TacticalHud {
                 return `
                   <div class="session-entry-row">
                     <div>
-                      <b style="color:${e.who === "you" ? "#ffb800" : "#35e0ff"}">${escapeHtml(speakerLabel(e.who))}</b>
+                      <b style="color:${e.who === "you" ? "#f3ece3" : "#ffb36b"}">${escapeHtml(speakerLabel(e.who))}</b>
                       <span style="opacity:0.7; font-size:10px; margin-left:6px;">${badges.join(" · ")}</span>
                     </div>
                     <div>${escapeHtml(e.text)}</div>
@@ -1247,6 +1247,16 @@ export class TacticalHud {
     ctx.fillStyle = "#9aa6b2";
     ctx.font = "9px monospace";
     ctx.fillText("BASE", bp.x + 5, bp.y + 3);
+
+    const lp = toPx(LAUNCH_SITE_COORD.x, LAUNCH_SITE_COORD.z);
+    ctx.fillStyle = "#ff7a3a";
+    ctx.beginPath();
+    ctx.moveTo(lp.x, lp.y - 6);
+    ctx.lineTo(lp.x + 4, lp.y + 4);
+    ctx.lineTo(lp.x - 4, lp.y + 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillText("LAUNCH", lp.x - 36, lp.y + 3);
 
     for (const site of MISSION_SITES) {
       const sp = toPx(site.x, site.z);

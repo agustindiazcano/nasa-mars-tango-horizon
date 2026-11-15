@@ -20,7 +20,7 @@ export function createNasaInsignia(widthM: number): THREE.Mesh {
     material = sharedMaterial;
 
     // Keep model construction usable in Node tests without a DOM or network.
-    if (typeof document !== "undefined") {
+    if (typeof document !== "undefined" && typeof document.createElementNS === "function") {
       new THREE.TextureLoader().load(
         "/textures/nasa-insignia.png",
         (texture) => {

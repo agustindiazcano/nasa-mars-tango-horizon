@@ -9,6 +9,7 @@ import {
   BASE_ORIGIN,
   CURIOSITY_TRAVERSE,
   FLEET_START_OFFSETS,
+  LAUNCH_SITE_COORD,
   MANIP_TARGETS,
   MISSION_SITES,
   MISSION_SITES_BY_ID,
@@ -274,3 +275,39 @@ describe("Canonical mission sites and flat base site (B34)", () => {
     }
   });
 });
+
+describe("LAUNCH_SITE_COORD", () => {
+  it("sits 0.9-1.9 km from the base inside the 4 km scene", () => {
+    const d = Math.hypot(LAUNCH_SITE_COORD.x - BASE_ORIGIN.x, LAUNCH_SITE_COORD.z - BASE_ORIGIN.z);
+    expect(d).toBeGreaterThan(900);
+    expect(d).toBeLessThan(1900);
+    expect(Math.abs(LAUNCH_SITE_COORD.x)).toBeLessThan(1900);
+    expect(Math.abs(LAUNCH_SITE_COORD.z)).toBeLessThan(1900);
+  });
+
+  it("has under 8 m relief within 70 m on the real HiRISE DEM", () => {
+    const n = 2048;
+    const meta = JSON.parse(fs.readFileSync(path.join(TERRAIN_DIR, "meta.json"), "utf8")) as {
+      z_min_m: number;
+      z_max_m: number;
+    };
+    const buf = fs.readFileSync(path.join(TERRAIN_DIR, "height_2048.u16"));
+    const raw = new Uint16Array(buf.buffer, buf.byteOffset, n * n);
+    const span = meta.z_max_m - meta.z_min_m;
+    const ci = Math.round((LAUNCH_SITE_COORD.x / 4000 + 0.5) * (n - 1));
+    const cj = Math.round((LAUNCH_SITE_COORD.z / 4000 + 0.5) * (n - 1));
+    const r = Math.round(70 / (4000 / (n - 1)));
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (let dj = -r; dj <= r; dj++) {
+      for (let di = -r; di <= r; di++) {
+        if (di * di + dj * dj > r * r) continue;
+        const h = meta.z_min_m + (raw[(cj + dj) * n + ci + di] / 65535) * span;
+        lo = Math.min(lo, h);
+        hi = Math.max(hi, h);
+      }
+    }
+    expect(hi - lo).toBeLessThan(8);
+  });
+});
+
