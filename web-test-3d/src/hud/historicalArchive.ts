@@ -1,4 +1,4 @@
-﻿import { ARCHIVE_IDS, parseHistoricalSeries, SampleReplay, type HistoricalSeries } from "../data/historicalSeries";
+import { ARCHIVE_IDS, parseHistoricalSeries, SampleReplay, type HistoricalSeries } from "../data/historicalSeries";
 
 /** Historical playback never writes to design mission telemetry or agent context. */
 export function installHistoricalArchive(): void {
@@ -27,6 +27,9 @@ export function installHistoricalArchive(): void {
   const close = document.createElement("button"); close.textContent = "Close";
   dialog.append(title, select, slider, play, reset, rate, output, close);
   document.body.append(dialog);
+  // Archive keyboard interaction must not trigger mission shortcuts or push-to-talk.
+  dialog.addEventListener("keydown", event => event.stopPropagation());
+  dialog.addEventListener("keyup", event => event.stopPropagation());
   let request: AbortController | undefined;
   let series: HistoricalSeries | undefined;
   let replay: SampleReplay | undefined;
