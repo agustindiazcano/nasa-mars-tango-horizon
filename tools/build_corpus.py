@@ -14,15 +14,18 @@ import argparse
 import html
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Iterable
 
 import pymupdf
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 try:
     from tools.fdir_sop_chunks import FDIR_SOP_CHUNKS
 except ImportError:
     from fdir_sop_chunks import FDIR_SOP_CHUNKS
+from env_weather_chunks import ENV_WEATHER_CHUNKS
 
 CHUNK_TARGET_CHARS = 800
 CHUNK_MIN_CHARS = 160
@@ -349,8 +352,9 @@ def resolve_data_dir(explicit: str | None) -> Path:
 def build_corpus(data_dir: Path, out_path: Path) -> list[dict[str, object]]:
     chunks: list[dict[str, object]] = []
 
-    # 1. Authoritative NASA-STD-3001 Vol. 1 & 2 and OCHMO clauses.
+    # 1. Authoritative NASA-STD-3001 Vol. 1 & 2, OCHMO, and environmental/space-weather briefs.
     chunks.extend(AUTHORITATIVE_CLAUSES)
+    chunks.extend(ENV_WEATHER_CHUNKS)
 
     # 1b. Curated NASA/JPL aerospace FDIR SOP chunks tagged with canonical fault_codes.
     chunks.extend(FDIR_SOP_CHUNKS)
