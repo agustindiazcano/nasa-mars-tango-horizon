@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { RESCUE_PIT, RESCUE_SITE } from "@th/shared";
+import { RESCUE_PIT, RESCUE_PIT_AXIS, RESCUE_SITE } from "@th/shared";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
 export interface PitSpec {
@@ -42,7 +42,7 @@ export class PitProc {
 
     const rock = new THREE.MeshStandardMaterial({ color: 0x5a3a2a, roughness: 0.95, side: THREE.DoubleSide });
     const wall = new THREE.Mesh(
-      new THREE.CylinderGeometry(radiusM, radiusM * 0.9, depthM + 0.6, 28, 1, true),
+      new THREE.CylinderGeometry(radiusM, radiusM, depthM + 0.6, 36, 1, true),
       rock,
     );
     wall.position.set(x, this.floorY + (depthM + 0.6) / 2, z);
@@ -50,7 +50,7 @@ export class PitProc {
     this.group.add(wall);
 
     const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(radiusM * 0.9, 28),
+      new THREE.CircleGeometry(radiusM, 36),
       new THREE.MeshStandardMaterial({ color: 0x1a110c, roughness: 1 }),
     );
     floor.rotation.x = -Math.PI / 2;
@@ -59,7 +59,7 @@ export class PitProc {
 
     // Rim skirt: flat flange that hides the terrain-mesh seam around the opening, plus a raised lip.
     const flange = new THREE.Mesh(
-      new THREE.RingGeometry(radiusM - 0.02, radiusM + 1.0, 28),
+      new THREE.RingGeometry(radiusM - 0.02, radiusM + 1.2, 36),
       new THREE.MeshStandardMaterial({
         color: 0x7a4b33,
         roughness: 0.95,
@@ -73,14 +73,35 @@ export class PitProc {
     this.group.add(flange);
 
     const lip = new THREE.Mesh(
-      new THREE.TorusGeometry(radiusM + 0.12, 0.12, 6, 28),
+      new THREE.TorusGeometry(radiusM + 0.12, 0.12, 6, 36),
       new THREE.MeshStandardMaterial({ color: 0x8a5a40, roughness: 0.9 }),
     );
     lip.rotation.x = Math.PI / 2;
     lip.position.set(x, this.rimY + 0.1, z);
     this.group.add(lip);
 
-    const label = makeSpriteLabel("PIT 4 m (design)", "#ff4d6d");
+    // Access ramp on the side facing the base: slopes from the rim (axis +s) down to the floor.
+    const slope = (RESCUE_PIT.rampSlopeDeg * Math.PI) / 180;
+    const halfW = RESCUE_PIT.rampHalfWidthM;
+    const sTop = Math.sqrt(radiusM * radiusM - halfW * halfW);
+    const runM = depthM / Math.tan(slope);
+    const rampLen = depthM / Math.sin(slope);
+    const ramp = new THREE.Group();
+    ramp.position.set(x, 0, z);
+    ramp.rotation.y = Math.atan2(RESCUE_PIT_AXIS.x, RESCUE_PIT_AXIS.z);
+    const plate = new THREE.Mesh(
+      new THREE.BoxGeometry(halfW * 2, 0.12, rampLen),
+      new THREE.MeshStandardMaterial({ color: 0x8c6a52, roughness: 0.95 }),
+    );
+    // Box long axis is local z; rising toward +z needs a negative x rotation.
+    plate.rotation.x = -slope;
+    plate.position.set(0, rim - depthM / 2 - 0.06, sTop - runM / 2);
+    plate.castShadow = true;
+    plate.receiveShadow = true;
+    ramp.add(plate);
+    this.group.add(ramp);
+
+    const label = makeSpriteLabel("PIT 4 m + ramp (design)", "#ff4d6d");
     label.position.set(x, this.rimY + 3.2, z);
     label.scale.set(6.5, 1.25, 1);
     this.group.add(label);
