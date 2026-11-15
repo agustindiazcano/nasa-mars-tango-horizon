@@ -4,7 +4,7 @@
 
 ## 1. Current State
 
-- `MissionStore.transcripts` in `web-test-3d/src/state.ts` stores `TranscriptLine` items (`{ who, text, final, ts }`) only in browser RAM.
+- `MissionStore.transcripts` in `web/src/state.ts` stores `TranscriptLine` items (`{ who, text, final, ts }`) only in browser RAM.
 - `server/` (`POST /api/agent/voice`, `POST /api/agent/run`) is stateless; Cloud Run runs `tangohorizon-api` with `--min-instances 1 --max-instances 1` and stores no chat database.
 - Reloading the page or switching simulation scenarios clears the visible comms transcript.
 

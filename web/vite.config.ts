@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   root: __dirname,
-  publicDir: resolve(__dirname, "../web/public"),
+  publicDir: resolve(__dirname, "public"),
   server: {
     port: 5174,
     host: true,

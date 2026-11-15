@@ -5,9 +5,9 @@
 ## 1. Current State & Gap Analysis
 
 ### 1.1 What Tango Horizon Currently Has
-- **Suit Schema & Degradation (`shared/src/types/suit.ts`, `shared/src/physics/suitState.ts`, `web-test-3d/src/core/physics.ts`):**
+- **Suit Schema & Degradation (`shared/src/types/suit.ts`, `shared/src/physics/suitState.ts`, `web/src/core/physics.ts`):**
   - `SuitsRawTelemetry` and `SuitTelemetry` declare hardware health fields (`fan_pri_rpm`, `fan_sec_rpm`, `scrubber_a_co2_storage`, `scrubber_b_co2_storage`, `coolant_ml`, `coolant_gas_pressure`, `coolant_liquid_pressure`, `active_scrubber`, `active_fan`, `dcu`, `error`).
-  - `stepSuitState` advances consumables (`o2_primary_kg`, `o2_reserve_kg`, `suit_pressure_pa`, `co2_pa`, `battery_wh`, `coolant_l`) at 1 Hz; `web-test-3d` simulates fan degradation via a boolean `fanDegraded` flag.
+  - `stepSuitState` advances consumables (`o2_primary_kg`, `o2_reserve_kg`, `suit_pressure_pa`, `co2_pa`, `battery_wh`, `coolant_l`) at 1 Hz; `web` simulates fan degradation via a boolean `fanDegraded` flag.
 - **Mission Snapshot (`shared/src/types/mission.ts`):**
   - `MissionContext` carries instantaneous snapshots (`suit`, `env`, `fleet: FleetUnitSnapshot[]` with `{ id, kind, x, z, battery, busy, task }`).
 - **Agent Hierarchy & Guardrail (`server/src/agents/hierarchy.ts`, `guardian.ts`, `offline.ts`):**

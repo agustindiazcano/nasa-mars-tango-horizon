@@ -2,8 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "npm ci",
-  "buildCommand": "npm -w shared run build && npm -w web-test-3d run build",
-  "outputDirectory": "web-test-3d/dist",
+  "buildCommand": "npm -w shared run build && npm -w web run build",
+  "outputDirectory": "web/dist",
   "rewrites": [
     {
       "source": "/remote",

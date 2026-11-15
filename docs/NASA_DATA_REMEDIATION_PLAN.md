@@ -6,7 +6,7 @@ Date: 2026-11-14
 
 Make the demo distinguish observations, derived products, model predictions, and mission design assumptions. Align rendered terrain, coordinates, placements, agent tools, and provenance. Deliver both a corrected demo and a separately evidenced geospatial verification; completing the former does not prove the latter.
 
-Implement against the active `web-test-3d/` runtime and `web/public/data/`, with shared contracts in `@th/shared` and corresponding server changes. Do not wait for workspace migration B22 or expand this task into the full B23 refactor. Preserve existing voice, deterministic physics, and robot behavior.
+Implement against the active `web/` runtime and `web/public/data/`, with shared contracts in `@th/shared` and corresponding server changes. Do not wait for workspace migration B22 or expand this task into the full B23 refactor. Preserve existing voice, deterministic physics, and robot behavior.
 
 This is an implementation plan, not a report of completed corrections. Audit figures below are reported evidence to reproduce unless explicitly identified as locally inspected.
 
@@ -16,7 +16,7 @@ This is an implementation plan, not a report of completed corrections. Audit fig
 |---|---|---|
 | Server coordinates used Bradbury Landing outside the terrain window | Reported 9.54 km offset; fix `42c5e92` on `fix/ai-rag-findings` reportedly uses terrain metadata and passes 35 server tests. Verify integration and deployment independently. | P0, P4 |
 | Terrain metadata describes a 4 km square | Locally inspected metadata: HiRISE `DTEEC_009149_1750_009294_1750_U01`, center latitude -4.745, longitude 137.400 E, 2048 height pixels. Original raster was not verified. | P4 |
-| Synthetic curves carry historical REMS/RAD labels | Labels inspected in `web-test-3d/src/main.ts`; reported peaks are tau 7.88 versus file 4.24 and radiation 144.8 versus file 25.9 microgray/hour. Recompute from files. | P1 |
+| Synthetic curves carry historical REMS/RAD labels | Labels inspected in `web/src/main.ts`; reported peaks are tau 7.88 versus file 4.24 and radiation 144.8 versus file 25.9 microgray/hour. Recompute from files. | P1 |
 | DEM can silently fall back to procedural terrain | Six-second height fetch timeout inspected in `world/terrainProc.ts`. | P2 |
 | World objects are placed before terrain loads | Reported 65–100 m height errors are calculated, not browser observations. | P3 |
 | Base is on steep terrain | Reported slopes 12–19 degrees; validate footprint, not only center. | P5 |
@@ -141,7 +141,7 @@ Execute docs/NASA_DATA_REMEDIATION_PLAN.md as one authorized remediation task, i
 
 Implement the plan; do not return another proposal. Verify the current branch and actual code before relying on audit claims. Preserve unrelated work and existing voice tests. Work on task branches or isolated worktrees; never push directly to main. Check whether coordinate fix 42c5e92 is already integrated before applying any equivalent change.
 
-Start with P1-P3 in the active web-test-3d runtime. Do not wait for B22 or broaden this into a workspace migration. Continue through the remaining packages in dependency order. All packages in this plan are authorized as part of this task; ask before starting unrelated work. Do not spawn other agents unless separately authorized.
+Start with P1-P3 in the active web runtime. Do not wait for B22 or broaden this into a workspace migration. Continue through the remaining packages in dependency order. All packages in this plan are authorized as part of this task; ask before starting unrelated work. Do not spawn other agents unless separately authorized.
 
 Distinguish observations, derived products, predictions, and design assumptions throughout UI, schemas, and agent context. Do not invent scientific provenance, units, citations, test results, or a correction for the CTX/HiRISE discrepancy. If original data acquisition is blocked, record the exact blocker, keep dependent acceptance gates open, and continue independent authorized work.
 

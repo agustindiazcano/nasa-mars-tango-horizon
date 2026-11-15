@@ -4,7 +4,7 @@ import { setLang } from "@th/shared";
 import type { Action, RouteDisplay } from "@th/shared";
 import { MissionStore, type WorldHooks } from "../state";
 
-describe("MissionStore (web-test-3d)", () => {
+describe("MissionStore (web)", () => {
   beforeEach(() => {
     setLang("en");
   });

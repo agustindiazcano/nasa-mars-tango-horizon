@@ -51,7 +51,7 @@ const VoiceBody = z.object({
 
 ---
 
-## 4. Client State (`web-test-3d/src/voice/voiceController.ts` & `web/` Contract)
+## 4. Client State (`web/src/voice/voiceController.ts` & `web/` Contract)
 
 - Maintain an in-memory rolling buffer (`max 6` entries) in `VoiceController`:
   - Append `{ role: "user", content: clean }` and `{ role: "assistant", content: reply }` only when `/api/agent/voice` succeeds with HTTP 200 and non-empty `speech`.

@@ -42,7 +42,7 @@
 
 ## System Architecture & Multi-Agent Runtime
 
-Tango Horizon keeps the browser WebGL2 simulation (`web-test-3d/` / `web/`) as the single source of truth for mission telemetry, rendering the 4 km × 4 km Gale Crater HiRISE DTM with 5 overlay rasters, curved helmet CSS3D HUD, hands-free multilingual voice (`EN`/`ES`/`FR`/`DE`/`IT`), and a QR-paired mobile pointer (`remote.html` over `/ws/remote`). Each spoken or text order passes a JSON `MissionContext` snapshot to the stateless Fastify server (`server/`), which executes tool calls across six in-process MCP servers (`InMemoryTransport`), an in-memory BM25 corpus (`NASA-STD-3001` Vol. 1 & 2, `OCHMO` briefs, `AMCL`, `Mars-GRAM`, `MOXIE`), and `GUARDIAN` before returning approved actions.
+Tango Horizon keeps the browser WebGL2 simulation (`web/`) as the single source of truth for mission telemetry, rendering the 4 km × 4 km Gale Crater HiRISE DTM with 5 overlay rasters, curved helmet CSS3D HUD, hands-free multilingual voice (`EN`/`ES`/`FR`/`DE`/`IT`), and a QR-paired mobile pointer (`remote.html` over `/ws/remote`). Each spoken or text order passes a JSON `MissionContext` snapshot to the stateless Fastify server (`server/`), which executes tool calls across six in-process MCP servers (`InMemoryTransport`), an in-memory BM25 corpus (`NASA-STD-3001` Vol. 1 & 2, `OCHMO` briefs, `AMCL`, `Mars-GRAM`, `MOXIE`), and `GUARDIAN` before returning approved actions.
 
 ```mermaid
 flowchart LR
@@ -238,8 +238,8 @@ This project was built with AI-assisted development in the Software 3.0 style: A
 
 ```bash
 npm install
-npm run dev:test3d   # Starts @th/server (:8080) and @th/web-test-3d (:5174)
-npm test             # Runs shared, server (offline mode), and web-test-3d tests
+npm run dev:web   # Starts @th/server (:8080) and @th/web (:5174)
+npm test             # Runs shared, server (offline mode), and web tests
 npm run build        # Type-checks and builds all workspaces
 python tools/generate_readme.py --check   # Verifies auto-generated README tables
 ```

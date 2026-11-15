@@ -89,13 +89,13 @@ Tango Horizon es un simulador 3D en tiempo real de operaciones EVA sobre cartogr
 
 - `shared/` (`@th/shared`): núcleo de física determinista, esquemas y diccionarios i18n (`EN`/`ES`/`FR`/`DE`/`IT`).
 - `server/` (`@th/server`): API Fastify, servidores MCP en proceso, RAG BM25, `GUARDIAN`, proxy TTS y relay WebSocket (`/ws/remote`).
-- `web-test-3d/` / `web/`: visor 3D Vite + Three.js, controlador de voz y datasets NASA/USGS en `web/public/data/`.
+- `web/`: visor 3D Vite + Three.js, controlador de voz y datasets NASA/USGS en `web/public/data/`.
 - `tools/`: scripts offline en Python para ingestión de datos, terreno, corpus RAG y entrenamiento ML.
 - `infra/terraform/`: definición de infraestructura en Google Cloud para el proyecto `nasa-tango-horizon`.
 
 ```bash
 npm install
-npm run dev:test3d
+npm run dev:web
 npm test
 npm run build
 ```

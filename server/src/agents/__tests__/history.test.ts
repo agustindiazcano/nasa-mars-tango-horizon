@@ -15,8 +15,8 @@ import { handleVoice } from "../hierarchy.js";
 import { offlineReply } from "../offline.js";
 import { registerAgentRoutes } from "../routes.js";
 import { setLang } from "@th/shared";
-import { MissionStore } from "../../../../web-test-3d/src/state";
-import { VoiceController } from "../../../../web-test-3d/src/voice/voiceController";
+import { MissionStore } from "../../../../web/src/state";
+import { VoiceController } from "../../../../web/src/voice/voiceController";
 
 function makeContext(overrides: Partial<MissionContext> = {}): MissionContext {
   return {

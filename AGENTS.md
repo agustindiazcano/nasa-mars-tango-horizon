@@ -77,7 +77,7 @@ Several people and several agents work on this project at the same time.
 `nasa-mars-tango-horizon` (Tango Horizon) — Real-time 3D Mars surface mission operations simulator (Three.js WebGL2 at 60 FPS) over real NASA/USGS Gale Crater cartography, coupled with deterministic bioastronautics/physics (`@th/shared`), hands-free bilingual voice, phone-as-pointer WebSocket control, and an autonomous Multi-Agent AI System guarded by Run-Time Assurance (`GUARDIAN`).
 
 - **Commands:**
-  - App & workspaces: `npm install` (install workspaces), `npm run dev` (run `server` on `:8080` only), `npm run dev:test3d` (run `server` on `:8080` and `web-test-3d` on `:5174`), `npm run build` (build `shared`, `server`, `web-test-3d`), `npm start` (production server on `:8080`), `npm test` (run Vitest unit tests in `shared`, then in `server`; server tests run with `AGENTS_OFFLINE=1`).
+  - App & workspaces: `npm install` (install workspaces), `npm run dev` (run `server` on `:8080` only), `npm run dev:web` (run `server` on `:8080` and `web` on `:5174`), `npm run build` (build `shared`, `server`, `web`), `npm start` (production server on `:8080`), `npm test` (run Vitest unit tests in `shared`, then in `server`; server tests run with `AGENTS_OFFLINE=1`).
   - GCP & Terraform (`nasa-tango-horizon`): `gcloud config set project nasa-tango-horizon`, `cd infra/terraform && terraform init && terraform plan && terraform apply`.
 
 ### Architecture: Frontend, Backend, Agents, MCP, RAG, and Deployment
@@ -101,7 +101,7 @@ Several people and several agents work on this project at the same time.
    - **Deterministic Offline Fallback (`server/src/agents/offline.ts`):** If all cloud LLM providers are unreachable or `AGENTS_OFFLINE=1`, the backend executes deterministic rule-based tool calls and replies so the demo never breaks.
 4. **Deployment & Terraform IaC (Vercel Frontend + Google Cloud Run Backend on `nasa-tango-horizon`):**
    - **Infrastructure-as-Code (`infra/terraform/`):** Provisions all Google Cloud APIs (`aiplatform`, `texttospeech`, `run`, `cloudbuild`, `artifactregistry`, `secretmanager`, `iam`), dedicated Service Account (`tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com` with `roles/aiplatform.user`), Artifact Registry (`us-central1-docker.pkg.dev/nasa-tango-horizon/tango-horizon`), Secret Manager secrets (`meta-api-key`, `gemini-api-key`), and Cloud Run service configuration.
-   - **Backend (`server/`):** Deployed as a Docker container on **Google Cloud Run** (`nasa-tango-horizon`, `us-central1`, `--service-account tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com`, `--min-instances 1 --max-instances 1 --session-affinity` for WebSocket rooms). Cloud Run does not serve a frontend yet: the Dockerfile builds no frontend, so the `web/dist` mirror stays inactive until `B22` in `PENDING.md` consolidates the frontend.
+   - **Backend (`server/`):** Deployed as a Docker container on **Google Cloud Run** (`nasa-tango-horizon`, `us-central1`, `--service-account tango-horizon-sa@nasa-tango-horizon.iam.gserviceaccount.com`, `--min-instances 1 --max-instances 1 --session-affinity` for WebSocket rooms). Cloud Run does not serve a frontend yet: the Dockerfile builds no frontend, so the `web/dist` mirror stays inactive until the Dockerfile builds the frontend.
    - **Frontend (`web/`):** Deployed on **Vercel** (global Edge CDN for fast 3D asset/texture loading) configured with `VITE_API_URL=https://<cloud-run-service>.run.app` for `/api/*` and `/ws/remote`, with the Vercel domain whitelisted in Cloud Run's `ALLOWED_ORIGINS`.
 
 ### Project files
@@ -111,8 +111,7 @@ Several people and several agents work on this project at the same time.
 | `BLUEPRINT.md` | Title: "Tango Horizon: Master Technical Architecture Blueprint". The plan for the whole project. Read it before planning or starting a task. |
 | `NASA_APIS.md` | Title: "NASA APIs". NASA and USGS data sources: endpoints, auth, fields used, and the API validation report. Update it when a source is added or changed. |
 | `PENDING_FRONT.md` | Title: "Pending frontend tasks (`web/`)". Frontend reference plans and prioritized pending tasks for the `web/` workspace. |
-| `web/` | Frontend workspace (Vite + TypeScript + Three.js viewer, HUD, `index.html`, `remote.html`, and static processed datasets in `web/public/data/`). |
-| `web-test-3d/` | Standalone procedural 3D harness (Vite + Three.js + phone pointer + voice/agents integration, currently serving `tangohorizon.vercel.app` via `vercel.json` until `web/` merges). |
+| `web/` | Frontend workspace `@th/web` (Vite + TypeScript + Three.js procedural 3D viewer, HUD, phone pointer, voice/agents integration, `index.html`, `remote.html`, and static processed datasets in `web/public/data/`). Serves `tangohorizon.vercel.app` via `vercel.json`. Formerly `web-test-3d/`. |
 | `server/` | Backend workspace (Fastify server, LLM/MCP agents, TTS proxy, WebSocket relay). |
 | `shared/` | Shared workspace (`@th/shared`: physics core, types, i18n). |
 | `deploy.sh` | Cloud Build + Cloud Run deploy script (`tangohorizon-api` on `us-central1`, Secret Manager + `ALLOWED_ORIGINS` wiring). |
@@ -129,7 +128,7 @@ Several people and several agents work on this project at the same time.
 | `docs/3D_AND_VISUAL_PLAN.md` | 3D and Visual Implementation Plan |
 | `docs/INFRASTRUCTURE_AND_VERTEX_AI.md` | Infrastructure, Terraform & Vertex AI Guide (`nasa-tango-horizon`) |
 | `docs/LLM_CHECK.md` | LLM Provider & Voice Benchmark (`check-llm.ts`) |
-| `docs/WEB_TEST_3D_PLAN.md` | Plan: `web-test-3d/` — Standalone Procedural 3D Harness |
+| `docs/WEB_TEST_3D_PLAN.md` | Plan: `web-test-3d/` (now `web/`) — Standalone Procedural 3D Harness (historical) |
 | `docs/impl/01_SCAFFOLD.md` | 01. Project scaffold |
 | `docs/impl/02_DATA_PIPELINE.md` | 02. Data pipeline |
 | `docs/impl/03_PHYSICS_CORE.md` | 03. Physics core |

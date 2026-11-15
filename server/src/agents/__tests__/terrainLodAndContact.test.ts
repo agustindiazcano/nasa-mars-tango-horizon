@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 import * as THREE from "three";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { heightAt as serverHeightAt } from "../tools/terrainData.js";
-import { TerrainProc, SCIENCE_STATIONS } from "../../../../web-test-3d/src/world/terrainProc";
-import { BASE_MODULES, BaseProc } from "../../../../web-test-3d/src/world/baseProc";
-import { FLEET_SPECS, FleetProc } from "../../../../web-test-3d/src/world/fleetProc";
+import { TerrainProc, SCIENCE_STATIONS } from "../../../../web/src/world/terrainProc";
+import { BASE_MODULES, BaseProc } from "../../../../web/src/world/baseProc";
+import { FLEET_SPECS, FleetProc } from "../../../../web/src/world/fleetProc";
 
 const metaBytes = readFileSync(new URL("../../../../web/public/data/terrain/meta.json", import.meta.url));
 const heightBytes = readFileSync(new URL("../../../../web/public/data/terrain/height_2048.u16", import.meta.url));
