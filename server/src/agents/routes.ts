@@ -239,7 +239,7 @@ Reply in ${b.data.lang}, 35 words or fewer.`,
             ],
           },
         ],
-        { maxTokens: 400 },
+        { maxTokens: 800 },
       );
     } catch (err) {
       req.log.error(err);
