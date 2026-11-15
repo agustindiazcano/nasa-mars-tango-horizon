@@ -706,10 +706,30 @@ export const TOOLS: ToolDef[] = [
     server: "hud",
     effect: true,
     schema: z.object({
-      panel: z.enum(["map", "fleet", "agents", "health", "provenance", "none"]),
+      panel: z.enum(["map", "fleet", "agents", "health", "provenance", "base", "sessions", "menu", "none"]),
     }),
-    description: "Opens or closes a helmet HUD panel.",
+    description: "Opens or closes a helmet HUD panel or the central quick menu ('menu').",
     run: (a, _c, caller) => ({ type: "open_panel", args: a, proposedBy: caller }),
+  }),
+  def({
+    name: "set_lang",
+    server: "hud",
+    effect: true,
+    schema: z.object({
+      lang: z.enum(["es", "en", "fr", "de", "it"]).describe("Target UI/voice/TTS language code"),
+    }),
+    description: "Switches the mission UI, voice recognition (ASR), and radio TTS language.",
+    run: (a, _c, caller) => ({ type: "set_lang", args: a, proposedBy: caller }),
+  }),
+  def({
+    name: "set_hud_visible",
+    server: "hud",
+    effect: true,
+    schema: z.object({
+      visible: z.boolean().describe("True to show the VR helmet visor HUD panels, false to hide them for an unobstructed 3D view"),
+    }),
+    description: "Shows or hides the VR helmet visor HUD overlay panels.",
+    run: (a, _c, caller) => ({ type: "set_hud_visible", args: a, proposedBy: caller }),
   }),
   def({
     name: "show_route",

@@ -12,6 +12,7 @@ export type PanelId =
   | "provenance"
   | "base"
   | "sessions"
+  | "menu"
   | "none";
 
 export type AlertLevel = "ok" | "warn" | "crit";

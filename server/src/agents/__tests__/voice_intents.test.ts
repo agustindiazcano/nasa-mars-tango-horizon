@@ -155,4 +155,17 @@ describe("Frontend pure voice intent matchers (Issues 8 & 12)", () => {
       unitId: null,
     });
   });
+
+  it("matches open_menu, close_panel, hide_hud, and show_hud local intents (F18)", () => {
+    expect(matchLocalIntent("open menu")).toBe("open_menu");
+    expect(matchLocalIntent("abrir menu")).toBe("open_menu");
+    expect(matchLocalIntent("abrí el menú")).toBe("open_menu");
+    expect(matchLocalIntent("close menu")).toBe("close_panel");
+    expect(matchLocalIntent("cierra el menu")).toBe("close_panel");
+    expect(matchLocalIntent("cerrar")).toBe("close_panel");
+    expect(matchLocalIntent("ocultar hud")).toBe("hide_hud");
+    expect(matchLocalIntent("hide hud")).toBe("hide_hud");
+    expect(matchLocalIntent("mostrar hud")).toBe("show_hud");
+    expect(matchLocalIntent("show hud")).toBe("show_hud");
+  });
 });

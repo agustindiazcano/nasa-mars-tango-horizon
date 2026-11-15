@@ -491,6 +491,7 @@ const hud: TacticalHud = new TacticalHud(store, terrain, voice, deck, {
   recenterRemote: () => relay.recenter(),
   setRemoteInvert: (ix, iy) => relay.setInvert(ix, iy),
   onToggleDeck: () => hud.toggleDeck(),
+  startScenario,
   sessions: sessionManager,
 });
 
@@ -542,6 +543,10 @@ window.addEventListener("keydown", (e) => {
     store.notify();
   } else if (e.code === "KeyH") {
     hud.toggleDeck();
+  } else if (e.code === "KeyU") {
+    store.setHudVisible(!store.hudVisible);
+  } else if (e.code === "KeyM") {
+    store.setPanel(store.panel === "menu" ? "none" : "menu");
   } else if (e.code === "Space" && !spaceHeld) {
     e.preventDefault();
     spaceHeld = true;

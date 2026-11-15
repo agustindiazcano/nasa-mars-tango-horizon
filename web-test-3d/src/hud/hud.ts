@@ -34,6 +34,7 @@ export interface HudActions {
   recenterRemote(): void;
   setRemoteInvert(invX: boolean, invY: boolean): void;
   onToggleDeck(): void;
+  startScenario?(id: "storm" | "sep2017" | "leak"): void;
   sessions?: ChatSessionManager;
 }
 
@@ -93,6 +94,7 @@ export class TacticalHud {
     this.root = document.getElementById("hud-root")!;
     this.root.innerHTML = `
       <div id="visor-vignette"></div>
+      <button id="hud-restore-pill" data-pointable style="display:none">SHOW VR HUD</button>
       <div id="hud-top" class="hud-panel hud-top"></div>
       <div id="hud-confirm" class="hud-panel hud-confirm" data-level="warn" style="display:none"></div>
       <div id="hud-left" class="hud-panel hud-left"></div>
@@ -109,6 +111,9 @@ export class TacticalHud {
     this.modalEl = document.getElementById("hud-modal")!;
     this.qrContainer = document.getElementById("hud-qr")!;
     this.bottomEl = document.getElementById("hud-bottom")!;
+    document.getElementById("hud-restore-pill")?.addEventListener("click", () => {
+      this.store.setHudVisible(true);
+    });
 
     this.qrCanvas = document.createElement("canvas");
     this.qrUrlEl = document.createElement("div");
@@ -226,11 +231,13 @@ export class TacticalHud {
     this.bottomEl.innerHTML = `
       <div class="btn-row" style="justify-content:space-between;">
         <div class="btn-row">
+          <button class="hud-btn" data-pointable data-panel="menu">MENU</button>
           ${menuHtml}
           <button class="hud-btn" data-pointable id="btn-rover-cam">${t("menu.rover_cam")}</button>
           <button class="hud-btn" data-pointable id="btn-qr">${t("menu.remote")}</button>
           <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : this.store.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso")}</button>
           <button class="hud-btn ${this.store.povMode === "iso" ? "active" : ""}" data-pointable id="btn-iso" title="${t("hud.iso_hint")}">${t("hud.btn_iso")}</button>
+          <button class="hud-btn" data-pointable id="btn-hud-toggle" title="Hide/Show VR Visor HUD">HUD</button>
         </div>
         <div class="btn-row">
           <span style="opacity:0.75; font-size:10px;">${t("hud.layers")}:</span>
@@ -291,6 +298,9 @@ export class TacticalHud {
 
     document.getElementById("btn-pov")!.addEventListener("click", () => this.actions.togglePov());
     document.getElementById("btn-iso")!.addEventListener("click", () => this.actions.toggleIso());
+    document.getElementById("btn-hud-toggle")?.addEventListener("click", () => {
+      this.store.setHudVisible(!this.store.hudVisible);
+    });
     document.getElementById("btn-qr")!.addEventListener("click", () => this.toggleQrModal());
     document.getElementById("btn-rover-cam")!.addEventListener("click", () => {
       this.roverModalOpen = true;
@@ -510,8 +520,18 @@ export class TacticalHud {
     }
     const isoBtn = document.getElementById("btn-iso");
     if (isoBtn) isoBtn.classList.toggle("active", s.povMode === "iso");
+    const hudVis = s.hudVisible;
+    this.topEl.style.display = hudVis ? "flex" : "none";
+    this.leftEl.style.display = hudVis ? "block" : "none";
+    this.rightEl.style.display = hudVis ? "block" : "none";
+    this.bottomEl.style.display = hudVis ? "flex" : "none";
+    const restorePill = document.getElementById("hud-restore-pill");
+    if (restorePill) {
+      restorePill.style.display = hudVis ? "none" : "block";
+      restorePill.textContent = getLang() === "es" ? "MOSTRAR VISOR HUD [U]" : "SHOW VR HUD [U]";
+    }
     const visorEl = document.getElementById("visor-vignette");
-    if (visorEl) visorEl.style.display = s.povMode === "1st" ? "block" : "none";
+    if (visorEl) visorEl.style.display = s.povMode === "1st" && hudVis ? "block" : "none";
     const pttBtn = document.getElementById("btn-ptt");
     if (pttBtn) pttBtn.classList.toggle("listening", s.micListening);
     const procBadge = document.getElementById("base-proc-badge");
@@ -1036,6 +1056,120 @@ export class TacticalHud {
           const id = b.dataset.delSession;
           if (id) void this.actions.sessions?.deleteSession(id);
         });
+      });
+    } else if (s.panel === "menu") {
+      const es = getLang() === "es";
+      const activeLang = getLang();
+      const langNames: Record<string, string> = {
+        es: "ES · Español",
+        en: "EN · English",
+        fr: "FR · Français",
+        de: "DE · Deutsch",
+        it: "IT · Italiano",
+      };
+      this.modalEl.innerHTML = `
+        ${closeHdr(es ? "MENÚ RÁPIDO DE MISIÓN (PUNTERO / VOZ)" : "MISSION QUICK MENU (POINTER / VOICE)")}
+        <div class="quick-menu-grid">
+          <div class="quick-menu-section">
+            <div class="quick-menu-title">${es ? "Paneles del Visor" : "Visor Panels"}</div>
+            <div class="quick-menu-cards">
+              <button class="quick-card-btn" data-pointable data-qm-panel="map">${t("menu.map")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-panel="fleet">${t("menu.fleet")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-panel="agents">${t("menu.agents")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-panel="health">${t("menu.health")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-panel="base">${t("menu.base")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-panel="provenance">${t("menu.provenance")}</button>
+              <button class="quick-card-btn" data-pointable data-qm-panel="sessions">${t("menu.sessions")}</button>
+              <button class="quick-card-btn" data-pointable id="qm-remote-qr">${t("menu.remote")}</button>
+            </div>
+          </div>
+
+          <div class="quick-menu-section">
+            <div class="quick-menu-title">${es ? "Capas de Terreno 3D" : "3D Terrain Layers"}</div>
+            <div class="quick-menu-cards">
+              <button class="quick-card-btn ${s.layer === "optical" ? "active" : ""}" data-pointable data-qm-layer="optical">${t("hud.layer.optical")}</button>
+              <button class="quick-card-btn ${s.layer === "slope" ? "active" : ""}" data-pointable data-qm-layer="slope">${t("hud.layer.slope")}</button>
+              <button class="quick-card-btn ${s.layer === "thermal" ? "active" : ""}" data-pointable data-qm-layer="thermal">${t("hud.layer.thermal")}</button>
+              <button class="quick-card-btn ${s.layer === "radiation" ? "active" : ""}" data-pointable data-qm-layer="radiation">${t("hud.layer.radiation")}</button>
+              <button class="quick-card-btn ${s.layer === "hydration" ? "active" : ""}" data-pointable data-qm-layer="hydration">${t("hud.layer.hydration")}</button>
+            </div>
+          </div>
+
+          <div class="quick-menu-section">
+            <div class="quick-menu-title">${es ? "Cámaras y Visor VR" : "Cameras & VR Visor"}</div>
+            <div class="quick-menu-cards">
+              <button class="quick-card-btn" data-pointable id="qm-cam-helmet">${es ? "Visor Casco IA" : "Helmet Visor AI"}</button>
+              <button class="quick-card-btn" data-pointable id="qm-cam-rvr2">${es ? "Cámara RVR-2" : "RVR-2 Cam"}</button>
+              <button class="quick-card-btn" data-pointable id="qm-cam-rvr3">${es ? "Cámara RVR-3" : "RVR-3 Cam"}</button>
+              <button class="quick-card-btn" data-pointable id="qm-cam-drone1">${es ? "Cámara DRONE-1" : "DRONE-1 Cam"}</button>
+              <button class="quick-card-btn" data-pointable id="qm-pov-cycle">${es ? "Cambiar POV (1ª/3ª)" : "Cycle POV (1st/3rd)"}</button>
+              <button class="quick-card-btn ${s.povMode === "iso" ? "active" : ""}" data-pointable id="qm-pov-iso">${es ? "Vista Isométrica" : "Isometric View"}</button>
+              <button class="quick-card-btn ${!s.hudVisible ? "active" : ""}" data-pointable id="qm-toggle-hud" style="grid-column: span 2;">
+                ${s.hudVisible ? (es ? "Ocultar HUD VR (Vista 3D Limpia)" : "Hide VR HUD (Clean 3D View)") : (es ? "Mostrar HUD VR" : "Show VR HUD")}
+              </button>
+            </div>
+          </div>
+
+          <div class="quick-menu-section">
+            <div class="quick-menu-title">${es ? "Idioma & Escenarios" : "Language & Scenarios"}</div>
+            <div class="quick-menu-cards">
+              ${LANGS.map((l) => `<button class="quick-card-btn ${activeLang === l ? "active" : ""}" data-pointable data-qm-lang="${l}">${langNames[l] ?? l.toUpperCase()}</button>`).join("")}
+              <button class="quick-card-btn" data-pointable data-qm-scen="storm">${es ? "Tormenta Polvo" : "Dust Storm"}</button>
+              <button class="quick-card-btn" data-pointable data-qm-scen="sep2017">${es ? "Evento Solar SEP" : "SEP 2017 Rad"}</button>
+              <button class="quick-card-btn" data-pointable data-qm-scen="leak">${es ? "Fuga en Traje" : "Suit Leak"}</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      this.modalEl.querySelectorAll<HTMLButtonElement>("[data-qm-panel]").forEach((b) =>
+        b.addEventListener("click", () => s.setPanel(b.dataset.qmPanel as PanelId)),
+      );
+      this.modalEl.querySelectorAll<HTMLButtonElement>("[data-qm-layer]").forEach((b) =>
+        b.addEventListener("click", () => {
+          this.actions.setLayer(b.dataset.qmLayer as LayerId);
+          s.setPanel("none");
+        }),
+      );
+      this.modalEl.querySelectorAll<HTMLButtonElement>("[data-qm-lang]").forEach((b) =>
+        b.addEventListener("click", () => {
+          setLang(b.dataset.qmLang as (typeof LANGS)[number]);
+          this.renderModal();
+        }),
+      );
+      this.modalEl.querySelectorAll<HTMLButtonElement>("[data-qm-scen]").forEach((b) =>
+        b.addEventListener("click", () => {
+          this.actions.startScenario?.(b.dataset.qmScen as "storm" | "sep2017" | "leak");
+          s.setPanel("none");
+        }),
+      );
+      this.modalEl.querySelector("#qm-remote-qr")?.addEventListener("click", () => {
+        s.setPanel("none");
+        this.toggleQrModal(true);
+      });
+      this.modalEl.querySelector("#qm-cam-helmet")?.addEventListener("click", () =>
+        this.actions.captureRoverVision("astronaut", "Describe what I am seeing right in front of me"),
+      );
+      this.modalEl.querySelector("#qm-cam-rvr2")?.addEventListener("click", () =>
+        this.actions.captureRoverVision("rover-2", t("deck.say.8")),
+      );
+      this.modalEl.querySelector("#qm-cam-rvr3")?.addEventListener("click", () =>
+        this.actions.captureRoverVision("rover-3", "Identify numbered rock targets T1, T2, T3"),
+      );
+      this.modalEl.querySelector("#qm-cam-drone1")?.addEventListener("click", () =>
+        this.actions.captureRoverVision("drone-1", "Describe overhead Gale Crater terrain and hazards"),
+      );
+      this.modalEl.querySelector("#qm-pov-cycle")?.addEventListener("click", () => {
+        this.actions.togglePov();
+        s.setPanel("none");
+      });
+      this.modalEl.querySelector("#qm-pov-iso")?.addEventListener("click", () => {
+        this.actions.toggleIso();
+        s.setPanel("none");
+      });
+      this.modalEl.querySelector("#qm-toggle-hud")?.addEventListener("click", () => {
+        s.setHudVisible(!s.hudVisible);
+        s.setPanel("none");
       });
     }
 

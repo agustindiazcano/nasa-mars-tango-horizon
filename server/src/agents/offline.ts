@@ -78,6 +78,9 @@ const PANEL_LABELS: Record<string, Record<Lang, string>> = {
   agents: { es: "agentes", en: "agents", fr: "agents", de: "Agenten", it: "agenti" },
   health: { es: "salud", en: "health", fr: "santé", de: "Gesundheit", it: "salute" },
   provenance: { es: "procedencia", en: "provenance", fr: "provenance", de: "Herkunft", it: "provenienza" },
+  base: { es: "base", en: "base", fr: "base", de: "Basis", it: "base" },
+  sessions: { es: "sesiones", en: "sessions", fr: "sessions", de: "Sitzungen", it: "sessioni" },
+  menu: { es: "menú", en: "menu", fr: "menu", de: "Menü", it: "menu" },
 };
 
 const SPOKEN_ONES: Record<string, number> = {
@@ -747,17 +750,103 @@ export async function offlineReply(
   }
 
   // 4. HUD panel controls (fast path)
+  // 3b. VR HUD show/hide & voice language selection (B40)
+  if (
+    /(?<![\p{L}\d])((?:ocult[\p{L}]*|escond[\p{L}]*|hide|masqu[\p{L}]*|ausblend[\p{L}]*|nascond[\p{L}]*|mostr[\p{L}]*|mu[eé]str[\p{L}]*|show|affich[\p{L}]*|einblend[\p{L}]*|mostra)\s+(?:el\s+|la\s+|le\s+|das\s+|il\s+|the\s+)?(?:hud|visor|interfaz)(?:\s+vr)?)(?![\p{L}\d])/iu.test(
+      q,
+    )
+  ) {
+    const caller = "SUIT.VOICE-EXEC";
+    const visible =
+      /(?<![\p{L}\d])(mostr[\p{L}]*|mu[eé]str[\p{L}]*|show|affich[\p{L}]*|einblend[\p{L}]*|mostra)(?![\p{L}\d])/iu.test(
+        q,
+      );
+    proposeAction("set_hud_visible", { visible }, ctx, caller, actions, trace);
+    return {
+      speech: visible
+        ? pick(lang, {
+            es: "Visor HUD VR restaurado.",
+            en: "VR helmet visor HUD restored.",
+            fr: "HUD de la visière VR restauré.",
+            de: "VR-Helmvisier-HUD wiederhergestellt.",
+            it: "HUD visiera VR ripristinato.",
+          })
+        : pick(lang, {
+            es: "Visor HUD VR ocultado. Di mostrar HUD para restaurarlo.",
+            en: "VR helmet visor HUD hidden. Say show HUD to restore.",
+            fr: "HUD de la visière VR masqué.",
+            de: "VR-Helmvisier-HUD ausgeblendet.",
+            it: "HUD visiera VR nascosto.",
+          }),
+      actions,
+      trace,
+      route: [caller],
+    };
+  }
+
+  const lastAssistantMsg = [...history].reverse().find((h) => h.role === "assistant")?.content ?? "";
+  const prevAskedLanguage =
+    /(?:qu[eé]\s+idioma|which\s+language|quelle\s+langue|welche\s+sprache|quale\s+lingua|espa[ñn]ol.*english)/iu.test(
+      lastAssistantMsg,
+    );
+  const explicitTargetLang: Lang | null = /(?<![\p{L}])(espa[ñn]ol|castellano|spanish|espagnol|spanisch|spagnolo)(?![\p{L}])/iu.test(q)
+    ? "es"
+    : /(?<![\p{L}])(ingl[eé]s|english|anglais|englisch|inglese)(?![\p{L}])/iu.test(q)
+      ? "en"
+      : /(?<![\p{L}])(franc[eé]s|fran[cç]ais|french|franz[oö]sisch|francese)(?![\p{L}])/iu.test(q)
+        ? "fr"
+        : /(?<![\p{L}])(alem[aá]n|deutsch|german|allemand|tedesco)(?![\p{L}])/iu.test(q)
+          ? "de"
+          : /(?<![\p{L}])(italiano|italian|italien|italienisch)(?![\p{L}])/iu.test(q)
+            ? "it"
+            : null;
+  const isLangSwitchIntent =
+    /(?<![\p{L}])(idioma|language|langue|sprache|lingua|habl[aáe]\s+en|speak\s+in|passer\s+en|switch\s+to|cambiar?\s+a)(?![\p{L}])/iu.test(
+      q,
+    ) ||
+    (prevAskedLanguage && explicitTargetLang !== null);
+  if (isLangSwitchIntent) {
+    const caller = "SUIT.VOICE-EXEC";
+    if (explicitTargetLang) {
+      proposeAction("set_lang", { lang: explicitTargetLang }, ctx, caller, actions, trace);
+      return {
+        speech: pick(explicitTargetLang, {
+          es: "Idioma cambiado a español.",
+          en: "Language switched to English.",
+          fr: "Langue changée en français.",
+          de: "Sprache auf Deutsch umgestellt.",
+          it: "Lingua cambiata in italiano.",
+        }),
+        actions,
+        trace,
+        route: [caller],
+      };
+    }
+    return {
+      speech: pick(lang, {
+        es: "¿A qué idioma quieres cambiar? Español, inglés, francés, alemán o italiano.",
+        en: "Which language would you like to use? Spanish, English, French, German, or Italian.",
+        fr: "Quelle langue souhaitez-vous utiliser ? Espagnol, anglais, français, allemand ou italien.",
+        de: "Welche Sprache möchten Sie verwenden? Spanisch, Englisch, Französisch, Deutsch oder Italienisch.",
+        it: "Quale lingua vuoi usare? Spagnolo, inglese, francese, tedesco o italiano.",
+      }),
+      actions,
+      trace,
+      route: [caller],
+    };
+  }
+
   const isFleetOrLocQuestion =
     /(?<![\p{L}\d])(cu[aá]nt[oa]s?|how\s+many|combien|wie\s+viele|quanti|qu[eé]\s+(?:veh[ií]culos?|unidades|robots?|rovers?|drones?)|which\s+(?:vehicles?|units?|robots?|rovers?|drones?)|d[oó]nde|where|o[uù]|wo|dov'[eè]|dove|distancia|distance|bater[ií]a|battery|estado\s+de\s+la\s+flota|fleet\s+status)(?![\p{L}\d])/iu.test(
       q,
-    ) && !/\b(panel|panneau|tafel|pannello|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q);
+    ) && !/\b(panel|panneau|tafel|pannello|men[uú]|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q);
   if (
     !isFleetOrLocQuestion &&
-    /(?<![\p{L}\d])(panel|panneau|tafel|pannello|abr[aeií]r?|open|ouvr[\p{L}]*|[oö]ffn[\p{L}]*|oeffn[\p{L}]*|apr[ai][\p{L}]*|cierr[ae]?|cerrar|close|ferm[\p{L}]*|schlie[sß][\p{L}]*|chiud[\p{L}]*|procedencia|provenance|herkunft|provenienza|flota|fleet|flotte|flotta|agentes|agents|agenten|agenti|salud|health|sant[eé]|gesundheit|salute|mapa|map|carte|karte|mappa)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(panel|panneau|tafel|pannello|men[uú]|abr[aeií]r?|open|ouvr[\p{L}]*|[oö]ffn[\p{L}]*|oeffn[\p{L}]*|apr[ai][\p{L}]*|cierr[ae]?|cerrar|close|ferm[\p{L}]*|schlie[sß][\p{L}]*|chiud[\p{L}]*|procedencia|provenance|herkunft|provenienza|flota|fleet|flotte|flotta|agentes|agents|agenten|agenti|salud|health|sant[eé]|gesundheit|salute|mapa|map|carte|karte|mappa)(?![\p{L}\d])/iu.test(
       q,
     ) &&
     !/(?<![\p{L}\d])(ruta|route|env[ií]a|dispatch|send|itin[eé]raire|percorso)(?![\p{L}\d])/iu.test(q) &&
-    (/\b(panel|panneau|tafel|pannello|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q) ||
+    (/\b(panel|panneau|tafel|pannello|men[uú]|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q) ||
       !/\b(biomed\w*|hipercapn\w*|hypercapn\w*|hipox\w*|hypox\w*|spo2|heart|card[ií]ac\w*|vitals|signos|constantes|ews|psi|salud|health|sant[eé]|gesundheit|salute)\b/i.test(
         q,
       ))
@@ -766,15 +855,17 @@ export async function offlineReply(
     const panel =
       /close|cerrar|cierra|ferm|schliess|schließ|chiud/i.test(q)
         ? "none"
-        : /provenance|procedencia|herkunft|provenienza/i.test(q)
-          ? "provenance"
-          : /fleet|flota|flotte|flotta/i.test(q)
-            ? "fleet"
-            : /agents|agentes|agenten|agenti/i.test(q)
-              ? "agents"
-              : /health|salud|sant[eé]|gesundheit|salute/i.test(q)
-                ? "health"
-                : "map";
+        : /men[uú]/i.test(q)
+          ? "menu"
+          : /provenance|procedencia|herkunft|provenienza/i.test(q)
+            ? "provenance"
+            : /fleet|flota|flotte|flotta/i.test(q)
+              ? "fleet"
+              : /agents|agentes|agenten|agenti/i.test(q)
+                ? "agents"
+                : /health|salud|sant[eé]|gesundheit|salute/i.test(q)
+                  ? "health"
+                  : "map";
     proposeAction("open_panel", { panel }, ctx, caller, actions, trace);
     const pName = PANEL_LABELS[panel]?.[lang] ?? panel;
     return {

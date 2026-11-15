@@ -12,7 +12,7 @@ import type { ConversationTurn, MissionContext } from "./types.js";
 import { capabilityPrompt } from "./unitCapabilities.js";
 
 const READ_SUIT = ["get_suit_telemetry", "get_consumables_margin", "time_to_hypoxia"];
-const HUD = ["set_layer", "open_panel", "show_route", "show_alert", "capture_vision"];
+const HUD = ["set_layer", "open_panel", "show_route", "show_alert", "capture_vision", "set_lang", "set_hud_visible"];
 const READ_FAST_INTEL = [
   "list_units",
   "get_localization_and_lidar",
@@ -32,7 +32,8 @@ export const AGENTS: Record<string, AgentSpec> = {
     tools: [...HUD, ...READ_SUIT, ...READ_FAST_INTEL],
     system: `You are the suit's voice executor and conversational mission assistant for an astronaut on EVA on Mars.
 Handle directly in the crew's language:
-- HUD layer/panel changes (set_layer, open_panel, show_route, show_alert).
+- HUD layer/panel/menu/visibility/language changes (set_layer, open_panel including "menu", set_hud_visible, set_lang, show_route, show_alert).
+- When the crew asks to change language without specifying which language ("quiero cambiar de idioma", "language selection"), ask which language they want (Español, English, Français, Deutsch, Italiano) in 15 words or fewer. When they specify a language ("change language to spanish", "español"), call set_lang and reply in that new language.
 - Suit telemetry, oxygen margin, and quick biomedical readouts (get_suit_telemetry, get_consumables_margin, time_to_hypoxia, evaluate_crew_biomed).
 - Conversational questions about fleet vehicle counts, unit types, battery, status, or positions/distances (call list_units and get_localization_and_lidar; never claim a unit is moving or dispatched).
 - Conversational weather/ambient questions (call get_environment, get_storm_forecast, evaluate_eva_weather, or evaluate_environmental_risk).

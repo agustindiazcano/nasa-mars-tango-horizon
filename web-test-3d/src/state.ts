@@ -1,5 +1,5 @@
 import { ASTRONAUT_START, MISSION_SITES_BY_ID, type TerrainIdentity } from "@th/shared";
-import { ASR_LOCALE, getLang, type Lang } from "@th/shared";
+import { ASR_LOCALE, getLang, setLang, type Lang } from "@th/shared";
 import { C, directTransmission } from "@th/shared";
 import type {
   Action,
@@ -124,6 +124,7 @@ export class MissionStore {
   povMode: "1st" | "3rd" | "iso" = "1st";
   layer: LayerId = "optical";
   panel: PanelId = "none";
+  hudVisible = true;
   leakDiameterM = 0;
   /** Set when a pod is launched for the current leak; sent to the server so it does not repeat the protocol. */
   emergencyResponseActive = false;
@@ -347,6 +348,7 @@ export class MissionStore {
     this.simScale = 1;
     this.layer = "optical";
     this.panel = "none";
+    this.hudVisible = true;
     this.leakDiameterM = 0;
     this.emergencyResponseActive = false;
     this.fanDegraded = false;
@@ -386,6 +388,11 @@ export class MissionStore {
 
   setPanel(panel: PanelId): void {
     this.panel = panel;
+    this.notify();
+  }
+
+  setHudVisible(visible: boolean): void {
+    this.hudVisible = visible;
     this.notify();
   }
 
@@ -442,6 +449,18 @@ export class MissionStore {
       case "open_panel": {
         const panel = (args.panel as PanelId) ?? "none";
         this.setPanel(panel);
+        break;
+      }
+      case "set_lang": {
+        const lang = String(args.lang ?? "").toLowerCase() as Lang;
+        if (lang === "es" || lang === "en" || lang === "fr" || lang === "de" || lang === "it") {
+          setLang(lang);
+          this.notify();
+        }
+        break;
+      }
+      case "set_hud_visible": {
+        this.setHudVisible(Boolean(args.visible));
         break;
       }
       case "show_alert": {
