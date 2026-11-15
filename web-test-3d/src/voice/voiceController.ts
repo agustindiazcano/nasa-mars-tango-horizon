@@ -18,6 +18,14 @@ const OFFLINE_SITES: Record<number, { x: number; z: number; label: string }> = {
 void BASE_ORIGIN;
 
 const ALL_OFFLINE_KINDS = ["rover_crew", "rover_science", "rover_cargo", "scout", "rescue", "drone", "glider", "manipulator"];
+const OFFLINE_MAX_SLOPE: Record<string, number> = {
+  rover_crew: 20,
+  rover_science: 25,
+  rover_cargo: 18,
+  scout: 28,
+  rescue: 25,
+  manipulator: 22,
+};
 const OFFLINE_ACTION_KINDS: Record<string, string[]> = {
   takeoff: ["drone", "glider"],
   land: ["drone", "glider"],
@@ -55,6 +63,7 @@ function inferOfflineUnitKind(unitId: string, fleet: { id: string; kind: string 
   if (unitId.startsWith("rescue-")) return "rescue";
   if (unitId.startsWith("manip-")) return "manipulator";
   if (unitId === "rover-2") return "rover_science";
+  if (unitId === "rover-3") return "rover_cargo";
   if (unitId.startsWith("scout-")) return "scout";
   return "rover_crew";
 }
@@ -85,8 +94,12 @@ function parseOfflineTarget(
     const site = OFFLINE_SITES[map[siteMatch[1].toLowerCase()] ?? 2];
     return { x: site.x, z: site.z, label: site.label, isAstronaut: false };
   }
-  const coords = low.match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/);
-  if (coords && !/\b(?:rover|drone|dron|rescue|rescate|manip|scout|glider)\s*[- ]?\d\b/i.test(coords[0])) {
+  const sanitized = low.replace(
+    /\b(?:rover|drone|dron|rescue|rescate|manip(?:ulador|ulator)?|scout|glider)\s*[- ]?\s*\d+\b/gi,
+    " ",
+  );
+  const coords = sanitized.match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/);
+  if (coords) {
     const x = Number(coords[1]);
     const z = Number(coords[2]);
     return { x, z, label: `(${x}, ${z})`, isAstronaut: false };
@@ -115,6 +128,7 @@ export interface VoiceControllerHooks {
   onVisionRequest?(unitId: string, question: string): Promise<{ speech: string; injection: boolean }>;
   onLoadHistory?(turns: VoiceHistoryTurn[]): void;
   onClearHistory?(): void;
+  slopeAt?(x: number, z: number): number;
 }
 
 const MAX_BRIDGE_HISTORY_TURNS = 6;
@@ -531,8 +545,8 @@ export class VoiceController {
     }
 
     const isUnitRescueOrder =
-      /\b(rescue|rescate)(?:\s*(?:uno|one|1|-1))?\b/i.test(low) &&
-      /\b(volv|regres|return|base|trae|bring|deliver|segu|follow|quedate|qu[eé]date|hold|go\s+to|ir\s+a|ven[ií]?|come|ac[eé]rcate|posici[oó]n|position|here|aqu[ií]|ac[aá]|overwatch|vigil|survey|relev)\b/i.test(
+      /(?<![\p{L}\d])(rescue|rescate)(?:\s*(?:uno|one|un|1|-1))?(?![\p{L}\d])/iu.test(low) &&
+      /(?<![\p{L}\d])(volv[\p{L}]*|vuelv[\p{L}]*|regres[\p{L}]*|return|base|trae[\p{L}]*|tr[aá]eme|bring|deliver|suministr[\p{L}]*|ox[ií]geno|oxygen|segu[\p{L}]*|s[ií]gu[\p{L}]*|follow|qu[eé]date|quedate|hold|repetidor|relay|go\s+to|ir\s+a|ven[ií]?|come|ac[eé]rcate|acercate|approach|posici[oó]n|position|here|aqu[ií]|ac[aá]|overwatch|vigil[\p{L}]*|survey|relev[\p{L}]*)(?![\p{L}\d])/iu.test(
         low,
       );
     const isEmergencyQuery =
@@ -591,9 +605,12 @@ export class VoiceController {
       };
     }
 
-    const hasArmSkillVerb = /\b(drill|taladr|sample|muestra|hammer|martillo|handover|entreg|grab|agarr)\b/i.test(low);
+    const hasArmSkillVerb =
+      /(?<![\p{L}\d])(drill|taladr[\p{L}]*|sample|muestra|hammer|martillo|handover|entreg[\p{L}]*|grab|agarr[\p{L}]*)(?![\p{L}\d])/iu.test(
+        low,
+      );
     const hasNavVerb =
-      /\b(go\s+to|ir\s+a|come|ven[ií]?|ac[eé]rcate|a\s+mi\s+posici[oó]n|my\s+position|follow|segu[ií]?|seguime|overwatch|vigil|take\s*off|despeg|land|aterriz|return|volv|regres|hold|quedate|qu[eé]date|survey|relev|relay|repetidor|send|env[ií]a|manda|dispatch|despacha|here|aqu[ií]|ac[aá])\b/i.test(
+      /(?<![\p{L}\d])(go\s+to|ir\s+a|come|komm|vieni|ven[ií]?|ac[eé]rcate|acercate|approach|avvicinati|a\s+mi\s+posici[oó]n|my\s+position|follow|suivre|suis[- ]moi|folg[\p{L}]*|segu[\p{L}]*|s[ií]gu[\p{L}]*|overwatch|vigil[\p{L}]*|hover|sobrevol[\p{L}]*|take\s*off|despeg[\p{L}]*|d[eé]coll[\p{L}]*|abheb[\p{L}]*|decoll[\p{L}]*|land|aterriz[\p{L}]*|atterr[\p{L}]*|return|retour[\p{L}]*|zur[uü]ck|torna|volv[\p{L}]*|vuelv[\p{L}]*|regres[\p{L}]*|hold|quedate|qu[eé]date|halte|survey|relev[\p{L}]*|inspeccion[\p{L}]*|erkund[\p{L}]*|relay|repetidor|relais|ripetitore|send|env[ií][\p{L}]*|m[aá]nd[\p{L}]*|dispatch|despach[\p{L}]*|here|aqu[ií]|ac[aá]|ici|hier|qui)(?![\p{L}\d])/iu.test(
         low,
       );
 
@@ -643,16 +660,16 @@ export class VoiceController {
     const isFleetOrder = Boolean(explicitUnit) || hasNavVerb;
     if (isFleetOrder) {
       let unitAction: string | null = null;
-      if (/\b(take\s*off|despeg\w*)\b/i.test(low)) unitAction = "takeoff";
-      else if (/\b(land|aterriz\w*)\b/i.test(low)) unitAction = "land";
-      else if (/\b(overwatch|vigil\w*|hover|sobrevol\w*)\b/i.test(low)) unitAction = "hover_overwatch";
-      else if (/\b(follow(?:\s+me)?|segu[ií]?(?:me)?|s[ií]gueme)\b/i.test(low)) unitAction = "follow_astronaut";
-      else if (/\b(return(?:\s+to\s+base)?|volv[eé]?|regres[aá]?|back\s+to\s+base)\b/i.test(low)) unitAction = "return_to_base";
-      else if (/\b(hold(?:\s+position)?|stay\s+there|qu[eé]date|quedate)\b/i.test(low)) unitAction = "hold_position";
-      else if (/\b(survey|relev\w*|inspeccion\w*)\b/i.test(low)) unitAction = "survey_area";
-      else if (/\b(photograph\w*|fotograf\w*|foto|photo)\b/i.test(low)) unitAction = "photograph_area";
-      else if (/\b(relay|repetidor)\b/i.test(low)) unitAction = "relay_comms";
-      else if (/\b(deliver|supplies|suministr\w*|traeme\s+ox[ií]geno|bring\s+oxygen)\b/i.test(low)) unitAction = "deliver_supplies";
+      if (/(?<![\p{L}\d])(take\s*off|despeg[\p{L}]*|d[eé]coll[\p{L}]*|abheb[\p{L}]*|decoll[\p{L}]*)(?![\p{L}\d])/iu.test(low)) unitAction = "takeoff";
+      else if (/(?<![\p{L}\d])(land|aterriz[\p{L}]*|atterr[\p{L}]*)(?![\p{L}\d])/iu.test(low)) unitAction = "land";
+      else if (/(?<![\p{L}\d])(overwatch|vigil[\p{L}]*|hover|sobrevol[\p{L}]*)(?![\p{L}\d])/iu.test(low)) unitAction = "hover_overwatch";
+      else if (/(?<![\p{L}\d])(follow(?:\s+me)?|segu[\p{L}]*|s[ií]gu[\p{L}]*|suis[- ]moi|suivre|folg[\p{L}]*)(?![\p{L}\d])/iu.test(low)) unitAction = "follow_astronaut";
+      else if (/(?<![\p{L}\d])(return(?:\s+to\s+base)?|volv[\p{L}]*|vuelv[\p{L}]*|regres[\p{L}]*|back\s+to\s+base|retour[\p{L}]*|zur[uü]ck|torna)(?![\p{L}\d])/iu.test(low)) unitAction = "return_to_base";
+      else if (/(?<![\p{L}\d])(hold(?:\s+position)?|stay(?:\s+there)?|qu[eé]date|quedate|halte)(?![\p{L}\d])/iu.test(low)) unitAction = "hold_position";
+      else if (/(?<![\p{L}\d])(survey|relev[\p{L}]*|inspeccion[\p{L}]*|erkund[\p{L}]*)(?![\p{L}\d])/iu.test(low)) unitAction = "survey_area";
+      else if (/(?<![\p{L}\d])(photograph[\p{L}]*|fotograf[\p{L}]*|foto|photo)(?![\p{L}\d])/iu.test(low)) unitAction = "photograph_area";
+      else if (/(?<![\p{L}\d])(relay|repetidor|relais|ripetitore)(?![\p{L}\d])/iu.test(low)) unitAction = "relay_comms";
+      else if (/(?<![\p{L}\d])(deliver|supplies|suministr[\p{L}]*|tr[aá]eme(?:\s+ox[ií]geno)?|bring\s+oxygen)(?![\p{L}\d])/iu.test(low)) unitAction = "deliver_supplies";
 
       let unitId = explicitUnit;
       if (!unitId) {
@@ -747,7 +764,42 @@ export class VoiceController {
           destZ = Number((this.store.astronaut.z + (dz / dist) * 5).toFixed(1));
         }
       }
-      const verdict = checkFlightAndBattery("dispatch", false);
+      let verdict = checkFlightAndBattery("dispatch", false);
+      if (verdict.decision === "allow" && !isFlyer && this.hooks.slopeAt) {
+        const maxSlope = OFFLINE_MAX_SLOPE[unitKind] ?? 20;
+        if (this.hooks.slopeAt(destX, destZ) > maxSlope) {
+          if (target.isAstronaut) {
+            let foundSafe = false;
+            const radii = [5, 10, 15, 25];
+            outer: for (const r of radii) {
+              for (let k = 0; k < 16; k++) {
+                const ang = (2 * Math.PI * k) / 16;
+                const cx = Number((this.store.astronaut.x + r * Math.cos(ang)).toFixed(1));
+                const cz = Number((this.store.astronaut.z + r * Math.sin(ang)).toFixed(1));
+                if (this.hooks.slopeAt(cx, cz) <= maxSlope) {
+                  destX = cx;
+                  destZ = cz;
+                  foundSafe = true;
+                  break outer;
+                }
+              }
+            }
+            if (!foundSafe) {
+              verdict = {
+                decision: "deny",
+                reason: `Terrain slope at (${destX}, ${destZ}) exceeds ${maxSlope} deg limit for ${unitId}`,
+                by: "rules",
+              };
+            }
+          } else {
+            verdict = {
+              decision: "deny",
+              reason: `Target slope ${this.hooks.slopeAt(destX, destZ).toFixed(1)} deg exceeds ${maxSlope} deg limit for ${unitId}`,
+              by: "rules",
+            };
+          }
+        }
+      }
       const act: Action = {
         type: "dispatch",
         args: { unit_id: unitId, x: destX, z: destZ, task: "goto" },
