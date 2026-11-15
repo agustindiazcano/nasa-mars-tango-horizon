@@ -19,6 +19,11 @@ from typing import Iterable
 
 import pymupdf
 
+try:
+    from tools.fdir_sop_chunks import FDIR_SOP_CHUNKS
+except ImportError:
+    from fdir_sop_chunks import FDIR_SOP_CHUNKS
+
 CHUNK_TARGET_CHARS = 800
 CHUNK_MIN_CHARS = 160
 CHUNK_OVERLAP_CHARS = 100
@@ -346,6 +351,9 @@ def build_corpus(data_dir: Path, out_path: Path) -> list[dict[str, object]]:
 
     # 1. Authoritative NASA-STD-3001 Vol. 1 & 2 and OCHMO clauses.
     chunks.extend(AUTHORITATIVE_CLAUSES)
+
+    # 1b. Curated NASA/JPL aerospace FDIR SOP chunks tagged with canonical fault_codes.
+    chunks.extend(FDIR_SOP_CHUNKS)
 
     # 2. Downloaded NASA/LMD PDFs.
     pdf_targets = [
