@@ -1,10 +1,18 @@
 import type { Metadata } from 'next';
+import { Raleway } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { GalaxyBackdrop } from '@/components/ui/GalaxyBackdrop';
 import { SiteNavbar } from '@/components/layout/SiteNavbar';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+
+const raleway = Raleway({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-raleway',
+  display: 'swap',
+});
 
 const SITE_TITLE = 'Tango Horizon: AI Systems for EVA and Mars Exploration';
 const SITE_DESCRIPTION =
@@ -44,13 +52,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${raleway.variable}`}>
       <body
         style={{
           margin: 0,
           minHeight: '100dvh',
-          backgroundColor: '#050508',
-          color: '#f8fafc',
+          backgroundColor: '#090406',
+          color: '#fff8f1',
+          fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',

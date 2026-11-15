@@ -160,7 +160,7 @@ export function SlidesDeckView() {
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={isOverview ? 24 : 30}
+          borderRadius={4}
           borderWidth={0.08}
           brightness={52}
           opacity={0.95}
@@ -180,6 +180,8 @@ export function SlidesDeckView() {
                     color: slide.accent,
                     borderColor: `${slide.accent}55`,
                     background: `${slide.accent}16`,
+                    fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                    fontVariantNumeric: 'tabular-nums',
                   }}
                 >
                   SLIDE {slide.code} / 10
@@ -192,7 +194,7 @@ export function SlidesDeckView() {
                   type="button"
                   className="th-slide-focus-btn"
                   onClick={() => jumpToSlide(slide.number - 1)}
-                  style={{ borderColor: `${slide.accent}4d`, color: slide.accent }}
+                  style={{ borderColor: `${slide.accent}4d`, color: slide.accent, borderRadius: '2px' }}
                 >
                   <span>{pickLang(lang, DECK_UI_COPY.focusSlide)}</span>
                   <ArrowRight size={14} aria-hidden="true" />
@@ -229,7 +231,11 @@ export function SlidesDeckView() {
                     <span className="th-slide-metric-pill__label">{metric.label}</span>
                     <span
                       className="th-slide-metric-pill__val th-mono"
-                      style={{ color: badgeColor }}
+                      style={{
+                        color: badgeColor,
+                        fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
                     >
                       {metric.value}
                     </span>
@@ -250,9 +256,9 @@ export function SlidesDeckView() {
                   <div className="th-slide-two-col">
                     <div
                       className="th-slide-col-box"
-                      style={{ borderTop: '3px solid #7df9ff' }}
+                      style={{ borderTop: '3px solid #fbbf24' }}
                     >
-                      <h3 className="th-slide-col-title" style={{ color: '#7df9ff' }}>
+                      <h3 className="th-slide-col-title" style={{ color: '#fbbf24' }}>
                         {slide.twoColumn.leftTitle}
                       </h3>
                       <ul className="th-slide-bullets">
@@ -264,9 +270,9 @@ export function SlidesDeckView() {
 
                     <div
                       className="th-slide-col-box"
-                      style={{ borderTop: '3px solid #34d399' }}
+                      style={{ borderTop: '3px solid #fb7185' }}
                     >
-                      <h3 className="th-slide-col-title" style={{ color: '#34d399' }}>
+                      <h3 className="th-slide-col-title" style={{ color: '#fb7185' }}>
                         {slide.twoColumn.rightTitle}
                       </h3>
                       <ul className="th-slide-bullets">
@@ -412,7 +418,7 @@ export function SlidesDeckView() {
                     <div className="th-slide-team-chips">
                       {slide.teamMembers.map((member) => (
                         <span key={member} className="th-slide-team-chip">
-                          <Users size={13} style={{ color: '#fde68a' }} aria-hidden="true" />
+                          <Users size={13} style={{ color: '#fdba74' }} aria-hidden="true" />
                           <span>{member}</span>
                         </span>
                       ))}
@@ -436,7 +442,13 @@ export function SlidesDeckView() {
                   <span className="th-slide-cue-toggle__title">
                     {pickLang(lang, DECK_UI_COPY.speakerCueLabel)}
                   </span>
-                  <span className="th-slide-cue-duration th-mono">
+                  <span
+                    className="th-slide-cue-duration th-mono"
+                    style={{
+                      fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
                     {slide.speakerCue.duration}
                   </span>
                 </span>
@@ -468,16 +480,23 @@ export function SlidesDeckView() {
   };
 
   return (
-    <div className="era-detail-page">
+    <div
+      className="era-detail-page"
+      style={{ fontFamily: "var(--font-raleway), 'Raleway', sans-serif" }}
+    >
       <div className="era-detail-container th-slides-container">
         {/* TOPBAR: ← Home, Tango Horizon Project, Team + Slide XX / 10 */}
         <div className="era-detail-topbar th-slides-topbar">
           <nav className="th-slides-nav-pills" aria-label="Deck page navigation">
-            <Link href="/" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
+            <Link
+              href="/"
+              className="ac-readmore-wrap"
+              style={{ textDecoration: 'none', borderRadius: '2px' }}
+            >
               <GlassSurface
                 width="auto"
-                height={44}
-                borderRadius={999}
+                height={40}
+                borderRadius={2}
                 borderWidth={0.12}
                 brightness={58}
                 opacity={0.95}
@@ -490,17 +509,21 @@ export function SlidesDeckView() {
               >
                 <span className="ac-readmore-label" style={{ padding: '0 1.05rem', fontSize: '0.9rem' }}>
                   <ArrowLeft size={15} className="ac-readmore-arrow-left" aria-hidden="true" />
-                  <Home size={14} style={{ color: '#7df9ff' }} aria-hidden="true" />
+                  <Home size={14} style={{ color: '#fbbf24' }} aria-hidden="true" />
                   <span>{pickLang(lang, DECK_UI_COPY.homeNav)}</span>
                 </span>
               </GlassSurface>
             </Link>
 
-            <Link href="/proyecto" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
+            <Link
+              href="/proyecto"
+              className="ac-readmore-wrap"
+              style={{ textDecoration: 'none', borderRadius: '2px' }}
+            >
               <GlassSurface
                 width="auto"
-                height={44}
-                borderRadius={999}
+                height={40}
+                borderRadius={2}
                 borderWidth={0.1}
                 brightness={56}
                 opacity={0.94}
@@ -517,11 +540,15 @@ export function SlidesDeckView() {
               </GlassSurface>
             </Link>
 
-            <Link href="/equipo" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
+            <Link
+              href="/equipo"
+              className="ac-readmore-wrap"
+              style={{ textDecoration: 'none', borderRadius: '2px' }}
+            >
               <GlassSurface
                 width="auto"
-                height={44}
-                borderRadius={999}
+                height={40}
+                borderRadius={2}
                 borderWidth={0.1}
                 brightness={56}
                 opacity={0.94}
@@ -533,15 +560,23 @@ export function SlidesDeckView() {
                 className="ac-glass-btn-surface"
               >
                 <span className="ac-readmore-label" style={{ padding: '0 1.05rem', fontSize: '0.9rem' }}>
-                  <Users size={14} style={{ color: '#fde68a' }} aria-hidden="true" />
+                  <Users size={14} style={{ color: '#fdba74' }} aria-hidden="true" />
                   <span>{pickLang(lang, DECK_UI_COPY.teamNav)}</span>
                 </span>
               </GlassSurface>
             </Link>
           </nav>
 
-          <ElectricBorder color="#7df9ff" speed={1.15} chaos={0.45} borderRadius={16}>
-            <div className="era-detail-period-pill th-mono" style={{ color: '#7df9ff' }}>
+          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.45} borderRadius={2}>
+            <div
+              className="era-detail-period-pill th-mono"
+              style={{
+                color: '#fbbf24',
+                borderRadius: '2px',
+                fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
               Slide {activeSlide.code} / 10
             </div>
           </ElectricBorder>
@@ -554,18 +589,18 @@ export function SlidesDeckView() {
           <p className="th-slides-page-subtitle">{pickLang(lang, DECK_UI_COPY.pageSubtitle)}</p>
 
           <div className="th-slides-cta-row">
-            <ElectricBorder color="#7df9ff" speed={1.15} chaos={0.4} borderRadius={999}>
+            <ElectricBorder color="#f97316" speed={1.15} chaos={0.4} borderRadius={2}>
               <a
                 href={SIMULATOR_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ac-readmore-wrap"
-                style={{ textDecoration: 'none' }}
+                style={{ textDecoration: 'none', borderRadius: '2px' }}
               >
                 <GlassSurface
                   width="auto"
-                  height={50}
-                  borderRadius={999}
+                  height={42}
+                  borderRadius={2}
                   borderWidth={0.12}
                   brightness={60}
                   opacity={0.96}
@@ -577,9 +612,9 @@ export function SlidesDeckView() {
                   className="ac-glass-btn-surface"
                 >
                   <span className="ac-readmore-label" style={{ padding: '0 1.4rem' }}>
-                    <Rocket size={16} style={{ color: '#7df9ff' }} aria-hidden="true" />
+                    <Rocket size={16} style={{ color: '#fbbf24' }} aria-hidden="true" />
                     <span>{pickLang(lang, DECK_UI_COPY.launchSim)}</span>
-                    <ExternalLink size={14} style={{ color: '#7df9ff' }} aria-hidden="true" />
+                    <ExternalLink size={14} style={{ color: '#fbbf24' }} aria-hidden="true" />
                   </span>
                 </GlassSurface>
               </a>
@@ -590,12 +625,12 @@ export function SlidesDeckView() {
               target="_blank"
               rel="noopener noreferrer"
               className="ac-readmore-wrap"
-              style={{ textDecoration: 'none' }}
+              style={{ textDecoration: 'none', borderRadius: '2px' }}
             >
               <GlassSurface
                 width="auto"
-                height={50}
-                borderRadius={999}
+                height={42}
+                borderRadius={2}
                 borderWidth={0.1}
                 brightness={56}
                 opacity={0.94}
@@ -607,9 +642,9 @@ export function SlidesDeckView() {
                 className="ac-glass-btn-surface"
               >
                 <span className="ac-readmore-label" style={{ padding: '0 1.35rem' }}>
-                  <FileCode2 size={16} style={{ color: '#fde68a' }} aria-hidden="true" />
+                  <FileCode2 size={16} style={{ color: '#fdba74' }} aria-hidden="true" />
                   <span>{pickLang(lang, DECK_UI_COPY.sourceSlides)}</span>
-                  <ExternalLink size={14} style={{ color: '#fde68a' }} aria-hidden="true" />
+                  <ExternalLink size={14} style={{ color: '#fdba74' }} aria-hidden="true" />
                 </span>
               </GlassSurface>
             </a>
@@ -625,6 +660,7 @@ export function SlidesDeckView() {
                 className={`th-slides-mode-btn${viewMode === 'single' ? ' is-active' : ''}`}
                 onClick={() => setViewMode('single')}
                 aria-pressed={viewMode === 'single'}
+                style={{ borderRadius: '2px' }}
               >
                 <Presentation size={15} aria-hidden="true" />
                 <span>{pickLang(lang, DECK_UI_COPY.singleMode)}</span>
@@ -634,6 +670,7 @@ export function SlidesDeckView() {
                 className={`th-slides-mode-btn${viewMode === 'grid' ? ' is-active' : ''}`}
                 onClick={() => setViewMode('grid')}
                 aria-pressed={viewMode === 'grid'}
+                style={{ borderRadius: '2px' }}
               >
                 <LayoutGrid size={15} aria-hidden="true" />
                 <span>{pickLang(lang, DECK_UI_COPY.gridMode)}</span>
@@ -650,11 +687,18 @@ export function SlidesDeckView() {
                   className="th-slides-nav-btn"
                   onClick={goPrev}
                   disabled={currentIndex === 0}
+                  style={{ borderRadius: '2px' }}
                 >
                   <ChevronLeft size={16} aria-hidden="true" />
                   <span>{pickLang(lang, DECK_UI_COPY.prevBtn)}</span>
                 </button>
-                <span className="th-slides-counter th-mono">
+                <span
+                  className="th-slides-counter th-mono"
+                  style={{
+                    fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
                   {activeSlide.code} / 10
                 </span>
                 <button
@@ -662,6 +706,7 @@ export function SlidesDeckView() {
                   className="th-slides-nav-btn"
                   onClick={goNext}
                   disabled={currentIndex === totalSlides - 1}
+                  style={{ borderRadius: '2px' }}
                 >
                   <span>{pickLang(lang, DECK_UI_COPY.nextBtn)}</span>
                   <ChevronRight size={16} aria-hidden="true" />
@@ -679,15 +724,18 @@ export function SlidesDeckView() {
                   key={slide.code}
                   type="button"
                   className={`th-slides-strip-pill th-mono${isActive ? ' is-active' : ''}`}
-                  style={
-                    isActive
+                  style={{
+                    borderRadius: '2px',
+                    fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                    fontVariantNumeric: 'tabular-nums',
+                    ...(isActive
                       ? {
                           borderColor: slide.accent,
                           color: slide.accent,
                           background: `${slide.accent}1f`,
                         }
-                      : undefined
-                  }
+                      : undefined),
+                  }}
                   onClick={() => {
                     if (viewMode === 'single') {
                       setCurrentIndex(idx);
@@ -711,7 +759,7 @@ export function SlidesDeckView() {
         {/* DECK STAGE: SINGLE SLIDE OR OVERVIEW GRID */}
         {viewMode === 'single' ? (
           <section className="th-slides-stage" aria-live="polite">
-            <ElectricBorder color={activeSlide.accent} speed={1.05} chaos={0.35} borderRadius={30}>
+            <ElectricBorder color={activeSlide.accent} speed={1.05} chaos={0.35} borderRadius={4}>
               {renderSlideCard(activeSlide, false)}
             </ElectricBorder>
 
@@ -722,12 +770,19 @@ export function SlidesDeckView() {
                 className="th-slides-nav-btn th-slides-nav-btn--lg"
                 onClick={goPrev}
                 disabled={currentIndex === 0}
+                style={{ borderRadius: '2px' }}
               >
                 <ChevronLeft size={17} aria-hidden="true" />
                 <span>{pickLang(lang, DECK_UI_COPY.prevBtn)}</span>
               </button>
 
-              <span className="th-slides-counter th-mono">
+              <span
+                className="th-slides-counter th-mono"
+                style={{
+                  fontFamily: "var(--font-raleway), 'Raleway', sans-serif",
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
                 Slide {activeSlide.code} / 10
               </span>
 
@@ -736,6 +791,7 @@ export function SlidesDeckView() {
                 className="th-slides-nav-btn th-slides-nav-btn--lg"
                 onClick={goNext}
                 disabled={currentIndex === totalSlides - 1}
+                style={{ borderRadius: '2px' }}
               >
                 <span>{pickLang(lang, DECK_UI_COPY.nextBtn)}</span>
                 <ChevronRight size={17} aria-hidden="true" />
@@ -786,6 +842,46 @@ export function SlidesDeckView() {
       )}
 
       <style>{`
+        .th-slides-container,
+        .th-slides-modal-backdrop {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
+        .th-slides-container .th-mono,
+        .th-slides-modal-backdrop .th-mono {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
+        .th-slides-container .th-eyebrow {
+          border-radius: 2px;
+          background: rgba(249, 115, 22, 0.14);
+          border: 1px solid rgba(251, 191, 36, 0.36);
+          color: #fbbf24;
+        }
+        .th-slides-container .era-detail-period-pill {
+          border-radius: 2px;
+          min-height: 40px;
+          display: inline-flex;
+          align-items: center;
+          background: rgba(26, 12, 17, 0.82);
+          border-color: rgba(251, 146, 60, 0.38);
+          font-variant-numeric: tabular-nums;
+        }
+        .th-slides-container .ac-readmore-wrap {
+          border-radius: 2px;
+        }
+        .th-slides-container .ac-readmore-wrap:hover {
+          filter: drop-shadow(0 0 18px rgba(249, 115, 22, 0.45));
+        }
+        .th-slides-container .ac-glass-btn-surface {
+          border-radius: 2px !important;
+          border: 1px solid rgba(251, 146, 60, 0.4);
+          box-shadow:
+            0 0 18px rgba(249, 115, 22, 0.18),
+            inset 0 0 12px rgba(255, 248, 241, 0.08);
+        }
+        .th-slides-container .ac-readmore-label {
+          color: #fff8f1;
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
         .th-slides-container {
           display: flex;
           flex-direction: column;
@@ -815,15 +911,15 @@ export function SlidesDeckView() {
           font-weight: 800;
           line-height: 1.15;
           letter-spacing: -0.02em;
-          color: #ffffff;
-          text-shadow: 0 0 26px rgba(56, 189, 248, 0.3);
+          color: #fff8f1;
+          text-shadow: 0 0 26px rgba(249, 115, 22, 0.34);
         }
         .th-slides-page-subtitle {
           margin: 0;
           max-width: 820px;
           font-size: clamp(0.98rem, 1.3vw, 1.12rem);
           line-height: 1.65;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         .th-slides-cta-row {
           display: flex;
@@ -835,9 +931,9 @@ export function SlidesDeckView() {
         }
         .th-slides-controls {
           padding: 1rem 1.2rem;
-          border-radius: 20px;
-          background: rgba(9, 13, 22, 0.72);
-          border: 1px solid rgba(125, 249, 255, 0.22);
+          border-radius: 4px;
+          background: rgba(26, 12, 17, 0.82);
+          border: 1px solid rgba(251, 146, 60, 0.28);
           backdrop-filter: blur(12px);
           display: flex;
           flex-direction: column;
@@ -852,21 +948,22 @@ export function SlidesDeckView() {
         }
         .th-slides-view-toggle {
           display: inline-flex;
-          padding: 0.25rem;
-          border-radius: 999px;
-          background: rgba(5, 5, 8, 0.75);
-          border: 1px solid rgba(148, 163, 184, 0.24);
+          padding: 0.22rem;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.86);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           gap: 0.25rem;
         }
         .th-slides-mode-btn {
           display: inline-flex;
           align-items: center;
           gap: 0.45rem;
-          padding: 0.45rem 0.95rem;
-          border-radius: 999px;
+          min-height: 38px;
+          padding: 0.42rem 0.95rem;
+          border-radius: 2px;
           border: none;
           background: transparent;
-          color: #94a3b8;
+          color: #b89b8c;
           font-family: inherit;
           font-size: 0.85rem;
           font-weight: 700;
@@ -874,9 +971,9 @@ export function SlidesDeckView() {
           transition: background-color 0.2s ease, color 0.2s ease;
         }
         .th-slides-mode-btn.is-active {
-          background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(125, 249, 255, 0.18));
-          color: #f8fafc;
-          box-shadow: inset 0 0 0 1px rgba(125, 249, 255, 0.45);
+          background: linear-gradient(135deg, rgba(249, 115, 22, 0.32), rgba(251, 191, 36, 0.18));
+          color: #fff8f1;
+          box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.48);
         }
         .th-slides-stepper {
           display: flex;
@@ -886,18 +983,19 @@ export function SlidesDeckView() {
         }
         .th-slides-keyhint {
           font-size: 0.75rem;
-          color: #94a3b8;
+          color: #b89b8c;
           padding-right: 0.35rem;
         }
         .th-slides-nav-btn {
           display: inline-flex;
           align-items: center;
           gap: 0.38rem;
-          padding: 0.48rem 0.95rem;
-          border-radius: 999px;
-          border: 1px solid rgba(125, 249, 255, 0.32);
-          background: rgba(15, 23, 42, 0.82);
-          color: #f8fafc;
+          min-height: 40px;
+          padding: 0.45rem 0.95rem;
+          border-radius: 2px;
+          border: 1px solid rgba(251, 146, 60, 0.36);
+          background: rgba(28, 14, 19, 0.88);
+          color: #fff8f1;
           font-family: inherit;
           font-size: 0.86rem;
           font-weight: 700;
@@ -905,12 +1003,13 @@ export function SlidesDeckView() {
           transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
         }
         .th-slides-nav-btn--lg {
-          padding: 0.62rem 1.25rem;
+          min-height: 42px;
+          padding: 0.55rem 1.25rem;
           font-size: 0.92rem;
         }
         .th-slides-nav-btn:hover:not(:disabled) {
-          border-color: #7df9ff;
-          background: rgba(30, 41, 59, 0.95);
+          border-color: #fbbf24;
+          background: rgba(42, 19, 25, 0.96);
           transform: translateY(-1px);
         }
         .th-slides-nav-btn:disabled {
@@ -920,7 +1019,8 @@ export function SlidesDeckView() {
         .th-slides-counter {
           font-size: 0.85rem;
           font-weight: 700;
-          color: #bae6fd;
+          font-variant-numeric: tabular-nums;
+          color: #fdba74;
           padding: 0 0.45rem;
         }
         .th-slides-strip {
@@ -929,21 +1029,24 @@ export function SlidesDeckView() {
           gap: 0.42rem;
         }
         .th-slides-strip-pill {
-          min-width: 2.5rem;
-          height: 2rem;
+          min-width: 2.6rem;
+          min-height: 38px;
+          height: 38px;
           padding: 0 0.65rem;
-          border-radius: 999px;
-          border: 1px solid rgba(148, 163, 184, 0.25);
-          background: rgba(7, 11, 20, 0.78);
-          color: #94a3b8;
-          font-size: 0.78rem;
+          border-radius: 2px;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          background: rgba(20, 10, 14, 0.84);
+          color: #b89b8c;
+          font-family: inherit;
+          font-size: 0.8rem;
           font-weight: 700;
+          font-variant-numeric: tabular-nums;
           cursor: pointer;
           transition: border-color 0.2s ease, color 0.2s ease, transform 0.18s ease;
         }
         .th-slides-strip-pill:hover {
-          color: #f8fafc;
-          border-color: rgba(125, 249, 255, 0.55);
+          color: #fff8f1;
+          border-color: rgba(251, 146, 60, 0.6);
           transform: translateY(-1px);
         }
         .th-slides-stage {
@@ -991,32 +1094,34 @@ export function SlidesDeckView() {
           display: inline-flex;
           align-items: center;
           padding: 0.28rem 0.75rem;
-          border-radius: 999px;
+          border-radius: 2px;
           border: 1px solid;
           font-size: 0.75rem;
           font-weight: 800;
+          font-variant-numeric: tabular-nums;
           letter-spacing: 0.08em;
         }
         .th-slide-eyebrow {
           font-size: 0.85rem;
           font-weight: 700;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         .th-slide-focus-btn {
           display: inline-flex;
           align-items: center;
           gap: 0.35rem;
-          padding: 0.35rem 0.78rem;
-          border-radius: 999px;
+          min-height: 38px;
+          padding: 0.35rem 0.85rem;
+          border-radius: 2px;
           border: 1px solid;
-          background: rgba(5, 5, 8, 0.7);
+          background: rgba(20, 10, 14, 0.84);
           font-family: inherit;
           font-size: 0.78rem;
           font-weight: 700;
           cursor: pointer;
         }
         .th-slide-focus-btn:hover {
-          background: rgba(15, 23, 42, 0.92);
+          background: rgba(28, 14, 19, 0.96);
         }
         .th-slide-card__titles {
           display: flex;
@@ -1028,7 +1133,7 @@ export function SlidesDeckView() {
           font-size: clamp(1.45rem, 2.5vw, 2.05rem);
           font-weight: 800;
           line-height: 1.22;
-          color: #ffffff;
+          color: #fff8f1;
         }
         .th-slide-title--grid {
           font-size: clamp(1.22rem, 1.8vw, 1.48rem);
@@ -1037,17 +1142,17 @@ export function SlidesDeckView() {
           margin: 0;
           font-size: 1rem;
           line-height: 1.6;
-          color: #bae6fd;
+          color: #fdba74;
         }
         .th-slide-tagline {
           margin: 0.25rem 0 0 0;
           padding: 0.55rem 0.95rem;
           border-left: 3px solid;
-          background: rgba(15, 23, 42, 0.55);
-          border-radius: 0 12px 12px 0;
+          background: rgba(28, 14, 19, 0.72);
+          border-radius: 0 2px 2px 0;
           font-size: 0.96rem;
           font-style: italic;
-          color: #f8fafc;
+          color: #fff8f1;
         }
         .th-slide-metrics {
           display: grid;
@@ -1059,8 +1164,8 @@ export function SlidesDeckView() {
         }
         .th-slide-metric-pill {
           padding: 0.65rem 0.85rem;
-          border-radius: 14px;
-          background: rgba(7, 11, 20, 0.78);
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.82);
           border: 1px solid;
           display: flex;
           flex-direction: column;
@@ -1068,11 +1173,12 @@ export function SlidesDeckView() {
         }
         .th-slide-metric-pill__label {
           font-size: 0.74rem;
-          color: #94a3b8;
+          color: #b89b8c;
         }
         .th-slide-metric-pill__val {
           font-size: 0.92rem;
           font-weight: 800;
+          font-variant-numeric: tabular-nums;
         }
         .th-slide-body {
           display: grid;
@@ -1089,7 +1195,7 @@ export function SlidesDeckView() {
           display: flex;
           flex-direction: column;
           gap: 0.7rem;
-          color: #e2e8f0;
+          color: #f3dfd1;
           font-size: 0.96rem;
           line-height: 1.62;
         }
@@ -1100,9 +1206,9 @@ export function SlidesDeckView() {
         }
         .th-slide-col-box {
           padding: 1.05rem 1.15rem;
-          border-radius: 16px;
-          background: rgba(7, 11, 20, 0.78);
-          border: 1px solid rgba(148, 163, 184, 0.22);
+          border-radius: 4px;
+          background: rgba(20, 10, 14, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           display: flex;
           flex-direction: column;
           gap: 0.65rem;
@@ -1114,8 +1220,8 @@ export function SlidesDeckView() {
         }
         .th-slide-visual-panel {
           padding: 1.15rem 1.2rem;
-          border-radius: 20px;
-          background: rgba(5, 8, 18, 0.78);
+          border-radius: 4px;
+          background: rgba(20, 10, 14, 0.82);
           border: 1px solid;
           display: flex;
           flex-direction: column;
@@ -1135,13 +1241,13 @@ export function SlidesDeckView() {
           margin: 0;
           font-size: 1.05rem;
           font-weight: 800;
-          color: #f8fafc;
+          color: #fff8f1;
         }
         .th-slide-visual-summary {
           margin: 0;
           font-size: 0.88rem;
           line-height: 1.55;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         .th-slide-patch-showcase,
         .th-slide-mars-showcase {
@@ -1172,7 +1278,7 @@ export function SlidesDeckView() {
         .th-slide-img-caption {
           margin: 0;
           font-size: 0.74rem;
-          color: #fed7aa;
+          color: #fdba74;
           text-align: center;
         }
         .th-slide-charts-grid {
@@ -1185,9 +1291,9 @@ export function SlidesDeckView() {
         }
         .th-slide-chart-card {
           padding: 0.65rem;
-          border-radius: 14px;
-          border: 1px solid rgba(125, 249, 255, 0.24);
-          background: rgba(9, 13, 24, 0.86);
+          border-radius: 2px;
+          border: 1px solid rgba(251, 146, 60, 0.28);
+          background: rgba(26, 12, 17, 0.86);
           color: inherit;
           font-family: inherit;
           text-align: left;
@@ -1198,16 +1304,16 @@ export function SlidesDeckView() {
           transition: border-color 0.2s ease, transform 0.2s ease;
         }
         .th-slide-chart-card:hover {
-          border-color: #7df9ff;
+          border-color: #fbbf24;
           transform: translateY(-2px);
         }
         .th-slide-chart-frame {
           position: relative;
           width: 100%;
           aspect-ratio: 16 / 10;
-          border-radius: 10px;
+          border-radius: 2px;
           overflow: hidden;
-          background: #0b1120;
+          background: #140a0e;
         }
         .th-slide-chart-img {
           width: 100%;
@@ -1221,10 +1327,10 @@ export function SlidesDeckView() {
           bottom: 0.4rem;
           width: 26px;
           height: 26px;
-          border-radius: 8px;
-          background: rgba(5, 5, 8, 0.76);
-          border: 1px solid rgba(125, 249, 255, 0.4);
-          color: #7df9ff;
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.84);
+          border: 1px solid rgba(251, 191, 36, 0.45);
+          color: #fbbf24;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -1236,12 +1342,12 @@ export function SlidesDeckView() {
         }
         .th-slide-chart-title {
           font-size: 0.84rem;
-          color: #f8fafc;
+          color: #fff8f1;
         }
         .th-slide-chart-cap {
           font-size: 0.72rem;
           line-height: 1.4;
-          color: #94a3b8;
+          color: #b89b8c;
         }
         .th-slide-specs-list {
           list-style: none;
@@ -1257,11 +1363,11 @@ export function SlidesDeckView() {
           gap: 0.45rem;
           font-size: 0.78rem;
           line-height: 1.45;
-          color: #cbd5e1;
+          color: #f3dfd1;
           padding: 0.42rem 0.6rem;
-          border-radius: 10px;
-          background: rgba(15, 23, 42, 0.65);
-          border: 1px solid rgba(148, 163, 184, 0.16);
+          border-radius: 2px;
+          background: rgba(28, 14, 19, 0.76);
+          border: 1px solid rgba(255, 255, 255, 0.24);
         }
         .th-slide-closing-block {
           display: flex;
@@ -1273,7 +1379,7 @@ export function SlidesDeckView() {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #7df9ff;
+          color: #fbbf24;
         }
         .th-slide-closing-links {
           display: flex;
@@ -1285,20 +1391,21 @@ export function SlidesDeckView() {
           align-items: center;
           justify-content: space-between;
           gap: 0.75rem;
-          padding: 0.65rem 0.85rem;
-          border-radius: 12px;
-          background: rgba(15, 23, 42, 0.75);
-          border: 1px solid rgba(148, 163, 184, 0.25);
+          min-height: 42px;
+          padding: 0.6rem 0.85rem;
+          border-radius: 2px;
+          background: rgba(28, 14, 19, 0.84);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           text-decoration: none;
-          color: #f8fafc;
+          color: #fff8f1;
           transition: border-color 0.2s ease, transform 0.2s ease;
         }
         .th-slide-closing-link--primary {
-          border-color: rgba(125, 249, 255, 0.52);
-          background: rgba(14, 116, 144, 0.22);
+          border-color: rgba(251, 146, 60, 0.55);
+          background: rgba(234, 88, 12, 0.22);
         }
         .th-slide-closing-link:hover {
-          border-color: #7df9ff;
+          border-color: #fbbf24;
           transform: translateY(-1px);
         }
         .th-slide-closing-link__label {
@@ -1307,7 +1414,7 @@ export function SlidesDeckView() {
         }
         .th-slide-closing-link__hint {
           font-size: 0.72rem;
-          color: #94a3b8;
+          color: #b89b8c;
         }
         .th-slide-team-chips {
           display: flex;
@@ -1318,26 +1425,28 @@ export function SlidesDeckView() {
           display: inline-flex;
           align-items: center;
           gap: 0.38rem;
-          padding: 0.34rem 0.72rem;
-          border-radius: 999px;
-          background: rgba(15, 23, 42, 0.82);
-          border: 1px solid rgba(253, 230, 138, 0.34);
+          min-height: 38px;
+          padding: 0.34rem 0.75rem;
+          border-radius: 2px;
+          background: rgba(28, 14, 19, 0.86);
+          border: 1px solid rgba(253, 186, 116, 0.36);
           font-size: 0.8rem;
           font-weight: 600;
-          color: #f8fafc;
+          color: #fff8f1;
         }
         .th-slide-cue-box {
-          border-radius: 16px;
-          background: rgba(5, 8, 18, 0.74);
-          border: 1px solid rgba(148, 163, 184, 0.24);
+          border-radius: 2px;
+          background: rgba(20, 10, 14, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.24);
           overflow: hidden;
         }
         .th-slide-cue-toggle {
           width: 100%;
-          padding: 0.72rem 1rem;
+          min-height: 42px;
+          padding: 0.65rem 1rem;
           border: none;
           background: transparent;
-          color: #f8fafc;
+          color: #fff8f1;
           font-family: inherit;
           cursor: pointer;
           display: flex;
@@ -1347,7 +1456,7 @@ export function SlidesDeckView() {
           gap: 0.65rem;
         }
         .th-slide-cue-toggle:hover {
-          background: rgba(15, 23, 42, 0.55);
+          background: rgba(28, 14, 19, 0.72);
         }
         .th-slide-cue-toggle__left {
           display: inline-flex;
@@ -1361,11 +1470,12 @@ export function SlidesDeckView() {
         }
         .th-slide-cue-duration {
           font-size: 0.74rem;
-          padding: 0.16rem 0.55rem;
-          border-radius: 999px;
-          background: rgba(56, 189, 248, 0.14);
-          border: 1px solid rgba(125, 249, 255, 0.28);
-          color: #7df9ff;
+          font-variant-numeric: tabular-nums;
+          padding: 0.18rem 0.55rem;
+          border-radius: 2px;
+          background: rgba(249, 115, 22, 0.14);
+          border: 1px solid rgba(251, 191, 36, 0.32);
+          color: #fbbf24;
         }
         .th-slide-cue-toggle__right {
           display: inline-flex;
@@ -1373,11 +1483,11 @@ export function SlidesDeckView() {
           gap: 0.35rem;
           font-size: 0.8rem;
           font-weight: 600;
-          color: #94a3b8;
+          color: #b89b8c;
         }
         .th-slide-cue-body {
           padding: 0 1rem 0.95rem 1rem;
-          border-top: 1px solid rgba(148, 163, 184, 0.15);
+          border-top: 1px solid rgba(255, 255, 255, 0.24);
           display: flex;
           flex-direction: column;
           gap: 0.42rem;
@@ -1385,13 +1495,13 @@ export function SlidesDeckView() {
         .th-slide-cue-scene {
           margin-top: 0.65rem;
           font-size: 0.75rem;
-          color: #fde68a;
+          color: #fbbf24;
         }
         .th-slide-cue-script {
           margin: 0;
           font-size: 0.92rem;
           line-height: 1.65;
-          color: #e2e8f0;
+          color: #f3dfd1;
         }
         .th-slides-bottom-nav {
           display: flex;
@@ -1403,7 +1513,7 @@ export function SlidesDeckView() {
           position: fixed;
           inset: 0;
           z-index: 120;
-          background: rgba(3, 6, 14, 0.86);
+          background: rgba(14, 7, 10, 0.86);
           backdrop-filter: blur(8px);
           display: flex;
           align-items: center;
@@ -1416,9 +1526,9 @@ export function SlidesDeckView() {
           max-height: 90vh;
           overflow: auto;
           padding: 1.25rem;
-          border-radius: 22px;
-          background: #080d1a;
-          border: 1px solid rgba(125, 249, 255, 0.42);
+          border-radius: 4px;
+          background: #140a0e;
+          border: 1px solid rgba(251, 146, 60, 0.45);
           box-shadow: 0 24px 64px rgba(0, 0, 0, 0.72);
           display: flex;
           flex-direction: column;
@@ -1434,31 +1544,34 @@ export function SlidesDeckView() {
           margin: 0;
           font-size: 1.15rem;
           font-weight: 800;
-          color: #f8fafc;
+          color: #fff8f1;
         }
         .th-slides-modal__cap {
           margin: 0.25rem 0 0 0;
           font-size: 0.8rem;
-          color: #7df9ff;
+          color: #fbbf24;
         }
         .th-slides-modal__close {
-          width: 36px;
-          height: 36px;
-          border-radius: 999px;
-          border: 1px solid rgba(148, 163, 184, 0.35);
-          background: rgba(15, 23, 42, 0.88);
-          color: #f8fafc;
+          width: 40px;
+          height: 40px;
+          border-radius: 2px;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          background: rgba(28, 14, 19, 0.9);
+          color: #fff8f1;
           cursor: pointer;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
         }
+        .th-slides-modal__close:hover {
+          border-color: #fbbf24;
+        }
         .th-slides-modal__img {
           width: 100%;
           height: auto;
-          border-radius: 14px;
-          background: #0b1120;
+          border-radius: 2px;
+          background: #140a0e;
           display: block;
         }
         @media (max-width: 900px) {

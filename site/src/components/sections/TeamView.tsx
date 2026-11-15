@@ -23,6 +23,28 @@ import {
   getTeamPhilosophy,
 } from '@/data/compendiumAndTeam';
 
+const RALEWAY_FONT = "var(--font-raleway), 'Raleway', sans-serif";
+
+const SUNSET_ACCENT_MAP: Record<string, string> = {
+  '#7df9ff': '#f97316',
+  '#38bdf8': '#fb923c',
+  '#0ea5e9': '#f97316',
+  '#0284c7': '#f97316',
+  '#7dd3fc': '#fdba74',
+  '#60a5fa': '#fb923c',
+  '#3b82f6': '#f97316',
+  '#5227ff': '#fb7185',
+  '#a78bfa': '#fb7185',
+  '#c4b5fd': '#fda4af',
+  '#fde68a': '#fbbf24',
+  '#34d399': '#fbbf24',
+  '#6ee7b7': '#fdba74',
+};
+
+function toSunsetAccent(color: string): string {
+  return SUNSET_ACCENT_MAP[color.toLowerCase()] ?? color;
+}
+
 const PILLAR_ICONS = [ShieldCheck, Compass, Cpu];
 
 export function TeamView() {
@@ -31,27 +53,42 @@ export function TeamView() {
 
   const metadata = useMemo(() => getProjectMetadata(lang), [lang]);
   const philosophy = useMemo(() => getTeamPhilosophy(lang), [lang]);
-  const members = useMemo(() => getTeamMembers(lang), [lang]);
+  const members = useMemo(
+    () =>
+      getTeamMembers(lang).map((member) =>
+        member.name.toLowerCase().includes('milagros')
+          ? {
+              ...member,
+              title: 'Systems Engineering Student (UTN, FRBA) · Full Stack & 3D',
+              roleBadge: 'Full Stack & 3D',
+            }
+          : member
+      ),
+    [lang]
+  );
   const highlights = useMemo(() => getArchitectureHighlights(lang), [lang]);
 
   return (
-    <div className="era-detail-page">
+    <div className="era-detail-page th-team-page" style={{ fontFamily: RALEWAY_FONT }}>
       <div className="era-detail-container">
         {/* TOPBAR */}
         <div className="era-detail-topbar">
           <Link href="/compendio" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
             <GlassSurface
               width="auto"
-              height={46}
-              borderRadius={999}
+              height={44}
+              borderRadius={2}
               borderWidth={0.12}
-              brightness={58}
+              brightness={52}
               opacity={0.95}
               blur={10}
-              displace={0.6}
-              backgroundOpacity={0.12}
-              saturation={1.4}
-              distortionScale={-140}
+              displace={0.5}
+              backgroundOpacity={0.14}
+              saturation={1.3}
+              distortionScale={-120}
+              redOffset={12}
+              greenOffset={5}
+              blueOffset={0}
               className="ac-glass-btn-surface"
             >
               <span className="ac-readmore-label">
@@ -61,8 +98,8 @@ export function TeamView() {
             </GlassSurface>
           </Link>
 
-          <ElectricBorder color="#7df9ff" speed={1.15} chaos={0.5} borderRadius={16}>
-            <div className="era-detail-period-pill" style={{ color: '#7df9ff' }}>
+          <ElectricBorder color="#fb923c" speed={1.15} chaos={0.35} borderRadius={2}>
+            <div className="era-detail-period-pill" style={{ color: '#fdba74' }}>
               {metadata.event} · {isEs ? 'Publicación' : 'Release'} {metadata.releaseDate}
             </div>
           </ElectricBorder>
@@ -73,7 +110,7 @@ export function TeamView() {
           style={{
             textAlign: 'center',
             maxWidth: '940px',
-            margin: '0 auto 2.8rem auto',
+            margin: '0 auto 2.5rem auto',
           }}
         >
           <span className="ac-timeline-badge">
@@ -92,23 +129,32 @@ export function TeamView() {
           </p>
         </header>
 
+        <div className="th-team-divider" aria-hidden="true" />
+
         {/* MISSION PHILOSOPHY CARD */}
-        <section style={{ marginBottom: '3.2rem' }} aria-labelledby="mission-philosophy-heading">
+        <section style={{ marginBottom: '2.8rem' }} aria-labelledby="mission-philosophy-heading">
           <GlassSurface
             width="100%"
             height="auto"
-            borderRadius={28}
+            borderRadius={2}
             borderWidth={0.07}
-            brightness={50}
+            brightness={48}
             opacity={0.94}
             blur={14}
-            displace={0.85}
-            backgroundOpacity={0.1}
-            saturation={1.35}
-            distortionScale={-165}
+            displace={0.55}
+            backgroundOpacity={0.12}
+            saturation={1.25}
+            distortionScale={-140}
+            redOffset={14}
+            greenOffset={6}
+            blueOffset={0}
+            style={{
+              background: 'rgba(26, 12, 17, 0.78)',
+              border: '1px solid rgba(255, 255, 255, 0.24)',
+            }}
           >
             <div className="team-philosophy-inner">
-              <span className="thesis-abstract-label" style={{ color: '#7df9ff' }}>
+              <span className="thesis-abstract-label" style={{ color: '#fb923c' }}>
                 {philosophy.kicker}
               </span>
               <h2 id="mission-philosophy-heading" className="team-philosophy-title">
@@ -141,8 +187,10 @@ export function TeamView() {
           </GlassSurface>
         </section>
 
+        <div className="th-team-divider" aria-hidden="true" />
+
         {/* RESPONSIVE 2x2 PROFILE CARDS GRID */}
-        <section style={{ marginBottom: '3.4rem' }} aria-labelledby="team-roster-heading">
+        <section style={{ marginBottom: '2.8rem' }} aria-labelledby="team-roster-heading">
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <span className="ac-timeline-badge">
               {isEs
@@ -169,26 +217,38 @@ export function TeamView() {
           </div>
         </section>
 
+        <div className="th-team-divider" aria-hidden="true" />
+
         {/* TANGO HORIZON ARCHITECTURE HIGHLIGHTS */}
         <section aria-labelledby="architecture-highlights-heading">
           <GlassSurface
             width="100%"
             height="auto"
-            borderRadius={32}
+            borderRadius={2}
             borderWidth={0.07}
-            brightness={50}
+            brightness={48}
             opacity={0.94}
             blur={14}
-            displace={0.9}
-            backgroundOpacity={0.1}
-            saturation={1.35}
-            distortionScale={-170}
-            redOffset={0}
-            greenOffset={12}
-            blueOffset={24}
+            displace={0.55}
+            backgroundOpacity={0.12}
+            saturation={1.25}
+            distortionScale={-140}
+            redOffset={14}
+            greenOffset={6}
+            blueOffset={0}
+            style={{
+              background: 'rgba(26, 12, 17, 0.78)',
+              border: '1px solid rgba(255, 255, 255, 0.24)',
+            }}
           >
             <article className="era-detail-article">
-              <div style={{ marginBottom: '2rem' }}>
+              <div
+                style={{
+                  marginBottom: '1.75rem',
+                  paddingBottom: '1rem',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.22)',
+                }}
+              >
                 <span className="ac-timeline-badge">
                   {isEs ? 'Arquitectura Técnica' : 'Technical Architecture'} · {metadata.releaseDate}
                 </span>
@@ -200,27 +260,30 @@ export function TeamView() {
               </div>
 
               <div className="team-arch-grid">
-                {highlights.map((item) => (
-                  <div
-                    key={item.id}
-                    className="team-arch-card"
-                    style={{ borderTop: `3px solid ${item.accent}` }}
-                  >
-                    <div className="team-arch-top">
-                      <span className="team-arch-badge" style={{ color: item.accent }}>
-                        {item.badge}
-                      </span>
-                      <span className="team-arch-metric th-mono">{item.metric}</span>
+                {highlights.map((item) => {
+                  const accent = toSunsetAccent(item.accent);
+                  return (
+                    <div
+                      key={item.id}
+                      className="team-arch-card"
+                      style={{ borderTop: `3px solid ${accent}` }}
+                    >
+                      <div className="team-arch-top">
+                        <span className="team-arch-badge" style={{ color: accent }}>
+                          {item.badge}
+                        </span>
+                        <span className="team-arch-metric th-mono">{item.metric}</span>
+                      </div>
+                      <h3 className="team-arch-title">{item.title}</h3>
+                      <p className="team-arch-desc">{item.description}</p>
                     </div>
-                    <h3 className="team-arch-title">{item.title}</h3>
-                    <p className="team-arch-desc">{item.description}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* OFFICIAL PROJECT LINKS */}
               <div className="team-actions-row">
-                <ElectricBorder color="#7df9ff" speed={1.2} chaos={0.45} borderRadius={999}>
+                <ElectricBorder color="#f97316" speed={1.2} chaos={0.35} borderRadius={2}>
                   <a
                     href={metadata.simulatorUrl}
                     target="_blank"
@@ -230,22 +293,25 @@ export function TeamView() {
                   >
                     <GlassSurface
                       width="auto"
-                      height={54}
-                      borderRadius={999}
+                      height={44}
+                      borderRadius={2}
                       borderWidth={0.12}
-                      brightness={60}
+                      brightness={54}
                       opacity={0.96}
                       blur={12}
-                      displace={0.6}
+                      displace={0.5}
                       backgroundOpacity={0.18}
-                      saturation={1.45}
-                      distortionScale={-140}
+                      saturation={1.35}
+                      distortionScale={-120}
+                      redOffset={14}
+                      greenOffset={6}
+                      blueOffset={0}
                       className="ac-glass-btn-surface"
                     >
-                      <span className="ac-readmore-label" style={{ padding: '0 1.75rem' }}>
-                        <Rocket size={17} style={{ color: '#7df9ff' }} aria-hidden="true" />
+                      <span className="ac-readmore-label" style={{ padding: '0 1.5rem' }}>
+                        <Rocket size={17} style={{ color: '#fbbf24' }} aria-hidden="true" />
                         <span>{isEs ? 'Lanzar Simulador 3D ↗' : 'Launch 3D Simulator ↗'}</span>
-                        <ExternalLink size={15} style={{ color: '#7df9ff' }} aria-hidden="true" />
+                        <ExternalLink size={15} style={{ color: '#fdba74' }} aria-hidden="true" />
                       </span>
                     </GlassSurface>
                   </a>
@@ -260,22 +326,25 @@ export function TeamView() {
                 >
                   <GlassSurface
                     width="auto"
-                    height={54}
-                    borderRadius={999}
+                    height={44}
+                    borderRadius={2}
                     borderWidth={0.12}
-                    brightness={56}
+                    brightness={52}
                     opacity={0.95}
                     blur={10}
-                    displace={0.6}
-                    backgroundOpacity={0.12}
-                    saturation={1.35}
-                    distortionScale={-140}
+                    displace={0.5}
+                    backgroundOpacity={0.14}
+                    saturation={1.3}
+                    distortionScale={-120}
+                    redOffset={12}
+                    greenOffset={5}
+                    blueOffset={0}
                     className="ac-glass-btn-surface"
                   >
-                    <span className="ac-readmore-label" style={{ padding: '0 1.65rem' }}>
-                      <Github size={17} style={{ color: '#fde68a' }} aria-hidden="true" />
+                    <span className="ac-readmore-label" style={{ padding: '0 1.45rem' }}>
+                      <Github size={17} style={{ color: '#fbbf24' }} aria-hidden="true" />
                       <span>{isEs ? 'Repositorio en GitHub ↗' : 'GitHub Repository ↗'}</span>
-                      <ExternalLink size={14} style={{ color: '#fde68a' }} aria-hidden="true" />
+                      <ExternalLink size={14} style={{ color: '#fdba74' }} aria-hidden="true" />
                     </span>
                   </GlassSurface>
                 </a>
@@ -289,24 +358,27 @@ export function TeamView() {
                 >
                   <GlassSurface
                     width="auto"
-                    height={54}
-                    borderRadius={999}
+                    height={44}
+                    borderRadius={2}
                     borderWidth={0.12}
-                    brightness={56}
+                    brightness={52}
                     opacity={0.95}
                     blur={10}
-                    displace={0.6}
-                    backgroundOpacity={0.12}
-                    saturation={1.35}
-                    distortionScale={-140}
+                    displace={0.5}
+                    backgroundOpacity={0.14}
+                    saturation={1.3}
+                    distortionScale={-120}
+                    redOffset={12}
+                    greenOffset={5}
+                    blueOffset={0}
                     className="ac-glass-btn-surface"
                   >
-                    <span className="ac-readmore-label" style={{ padding: '0 1.65rem' }}>
+                    <span className="ac-readmore-label" style={{ padding: '0 1.45rem' }}>
                       <BookOpen size={17} style={{ color: '#fb923c' }} aria-hidden="true" />
                       <span>
                         {isEs ? 'Proyecto Tango Horizon ↗' : 'Tango Horizon Project ↗'}
                       </span>
-                      <ExternalLink size={14} style={{ color: '#fb923c' }} aria-hidden="true" />
+                      <ExternalLink size={14} style={{ color: '#fda4af' }} aria-hidden="true" />
                     </span>
                   </GlassSurface>
                 </a>
@@ -322,19 +394,22 @@ export function TeamView() {
           <Link href="/compendio" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
             <GlassSurface
               width="auto"
-              height={50}
-              borderRadius={999}
+              height={44}
+              borderRadius={2}
               borderWidth={0.1}
-              brightness={56}
+              brightness={52}
               opacity={0.94}
               blur={10}
-              displace={0.5}
+              displace={0.45}
               backgroundOpacity={0.12}
-              saturation={1.35}
-              distortionScale={-130}
+              saturation={1.25}
+              distortionScale={-120}
+              redOffset={12}
+              greenOffset={5}
+              blueOffset={0}
               className="ac-glass-btn-surface"
             >
-              <span className="ac-readmore-label" style={{ padding: '0 1.5rem' }}>
+              <span className="ac-readmore-label" style={{ padding: '0 1.4rem' }}>
                 <ArrowLeft size={15} className="ac-readmore-arrow-left" aria-hidden="true" />
                 <span>{isEs ? 'Compendio General' : 'General Compendium'}</span>
               </span>
@@ -344,19 +419,22 @@ export function TeamView() {
           <Link href="/" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
             <GlassSurface
               width="auto"
-              height={50}
-              borderRadius={999}
+              height={44}
+              borderRadius={2}
               borderWidth={0.1}
-              brightness={56}
+              brightness={52}
               opacity={0.94}
               blur={10}
-              displace={0.5}
+              displace={0.45}
               backgroundOpacity={0.12}
-              saturation={1.35}
-              distortionScale={-130}
+              saturation={1.25}
+              distortionScale={-120}
+              redOffset={12}
+              greenOffset={5}
+              blueOffset={0}
               className="ac-glass-btn-surface"
             >
-              <span className="ac-readmore-label" style={{ padding: '0 1.5rem' }}>
+              <span className="ac-readmore-label" style={{ padding: '0 1.4rem' }}>
                 <span>{isEs ? 'Ir al Inicio' : 'Go to Home'}</span>
               </span>
             </GlassSurface>
@@ -365,6 +443,61 @@ export function TeamView() {
       </div>
 
       <style>{`
+        .th-team-page,
+        .th-team-page * {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
+        .th-team-page .th-mono,
+        .th-team-page code {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+          font-variant-numeric: tabular-nums;
+        }
+        .th-team-page .ac-timeline-badge {
+          border-radius: 2px;
+          background: rgba(249, 115, 22, 0.16);
+          border: 1px solid rgba(251, 146, 60, 0.48);
+          color: #fdba74;
+        }
+        .th-team-page .era-detail-period-pill {
+          border-radius: 2px;
+          background: #1c0e13;
+          color: #fdba74;
+        }
+        .th-team-page .era-detail-main-title {
+          color: #fff8f1;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          text-shadow: 0 2px 24px rgba(249, 115, 22, 0.28);
+        }
+        .th-team-page .era-detail-subtitle {
+          color: #f3dfd1;
+        }
+        .th-team-page .synthesis-section-title {
+          color: #fff8f1;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+        .th-team-page .ac-glass-btn-surface {
+          border-radius: 2px;
+          border: 1px solid rgba(251, 146, 60, 0.45);
+          background: rgba(26, 12, 17, 0.84);
+          box-shadow: 0 6px 18px rgba(10, 4, 6, 0.45);
+        }
+        .th-team-page .ac-readmore-wrap:hover {
+          filter: drop-shadow(0 0 14px rgba(249, 115, 22, 0.38));
+        }
+        .th-team-page .ac-readmore-label {
+          color: #fff8f1;
+          font-weight: 700;
+        }
+        .th-team-page .ac-readmore-arrow-left {
+          color: #fb923c;
+        }
+        .th-team-divider {
+          width: 100%;
+          border-top: 1px solid rgba(255, 255, 255, 0.24);
+          margin-bottom: 2.6rem;
+        }
         .team-philosophy-inner {
           width: 100%;
           padding: 2.3rem 2.5rem;
@@ -376,7 +509,7 @@ export function TeamView() {
           margin: 0;
           font-size: clamp(1.45rem, 2.5vw, 2rem);
           font-weight: 800;
-          color: #ffffff;
+          color: #fff8f1;
           line-height: 1.25;
         }
         .team-philosophy-copy {
@@ -386,9 +519,9 @@ export function TeamView() {
         }
         .team-philosophy-copy p {
           margin: 0;
-          font-size: 1.04rem;
-          line-height: 1.8;
-          color: #e2e8f0;
+          font-size: 1.02rem;
+          line-height: 1.78;
+          color: #f3dfd1;
         }
         .team-pillars-grid {
           display: grid;
@@ -398,9 +531,10 @@ export function TeamView() {
         }
         .team-pillar-card {
           padding: 1.2rem 1.3rem;
-          border-radius: 18px;
-          background: rgba(9, 13, 24, 0.72);
-          border: 1px solid rgba(125, 249, 255, 0.22);
+          border-radius: 2px;
+          background: #1c0e13;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-top: 2px solid #f97316;
           display: flex;
           flex-direction: column;
           gap: 0.55rem;
@@ -413,26 +547,26 @@ export function TeamView() {
         .team-pillar-icon {
           width: 30px;
           height: 30px;
-          border-radius: 10px;
+          border-radius: 2px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          background: rgba(56, 189, 248, 0.14);
-          border: 1px solid rgba(125, 249, 255, 0.32);
-          color: #7df9ff;
+          background: rgba(249, 115, 22, 0.16);
+          border: 1px solid rgba(251, 146, 60, 0.42);
+          color: #fb923c;
           flex-shrink: 0;
         }
         .team-pillar-head h3 {
           margin: 0;
           font-size: 1.02rem;
           font-weight: 800;
-          color: #f8fafc;
+          color: #fff8f1;
         }
         .team-pillar-card p {
           margin: 0;
           font-size: 0.92rem;
           line-height: 1.65;
-          color: #cbd5e1;
+          color: #c4a99a;
         }
         .team-cards-grid {
           display: grid;
@@ -451,9 +585,9 @@ export function TeamView() {
         }
         .team-arch-card {
           padding: 1.55rem 1.7rem;
-          border-radius: 20px;
-          background: rgba(9, 13, 22, 0.72);
-          border: 1px solid rgba(148, 163, 184, 0.22);
+          border-radius: 2px;
+          background: #1c0e13;
+          border: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;
           flex-direction: column;
           gap: 0.65rem;
@@ -473,31 +607,33 @@ export function TeamView() {
         }
         .team-arch-metric {
           font-size: 0.76rem;
-          color: #bae6fd;
+          color: #fdba74;
           padding: 0.22rem 0.65rem;
-          border-radius: 999px;
-          background: rgba(15, 23, 42, 0.85);
-          border: 1px solid rgba(148, 163, 184, 0.25);
+          border-radius: 2px;
+          background: #140a0e;
+          border: 1px solid rgba(251, 146, 60, 0.34);
         }
         .team-arch-title {
           margin: 0;
           font-size: 1.2rem;
           font-weight: 800;
-          color: #ffffff;
+          color: #fff8f1;
         }
         .team-arch-desc {
           margin: 0;
           font-size: 0.98rem;
           line-height: 1.7;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         .team-actions-row {
-          margin-top: 2.4rem;
+          margin-top: 2.2rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.22);
           display: flex;
           flex-wrap: wrap;
           align-items: center;
           justify-content: center;
-          gap: 1.1rem;
+          gap: 1rem;
         }
         @media (max-width: 960px) {
           .team-pillars-grid {

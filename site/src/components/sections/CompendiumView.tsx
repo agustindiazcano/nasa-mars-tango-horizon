@@ -14,6 +14,28 @@ import {
   getSynthesisCarouselImages,
 } from '@/data/compendiumAndTeam';
 
+const RALEWAY_FONT = "var(--font-raleway), 'Raleway', sans-serif";
+
+const SUNSET_ACCENT_MAP: Record<string, string> = {
+  '#7df9ff': '#f97316',
+  '#38bdf8': '#fb923c',
+  '#0ea5e9': '#f97316',
+  '#0284c7': '#f97316',
+  '#7dd3fc': '#fdba74',
+  '#60a5fa': '#fb923c',
+  '#3b82f6': '#f97316',
+  '#5227ff': '#fb7185',
+  '#a78bfa': '#fb7185',
+  '#c4b5fd': '#fda4af',
+  '#fde68a': '#fbbf24',
+  '#34d399': '#fbbf24',
+  '#6ee7b7': '#fdba74',
+};
+
+function toSunsetAccent(color: string): string {
+  return SUNSET_ACCENT_MAP[color.toLowerCase()] ?? color;
+}
+
 type GalleryFilter = 'all' | 'lunar' | 'marciana';
 
 export function CompendiumView() {
@@ -42,23 +64,26 @@ export function CompendiumView() {
   );
 
   return (
-    <div className="era-detail-page">
+    <div className="era-detail-page th-compendio-page" style={{ fontFamily: RALEWAY_FONT }}>
       <div className="era-detail-container">
         {/* TOPBAR */}
         <div className="era-detail-topbar">
           <Link href="/marte" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
             <GlassSurface
               width="auto"
-              height={46}
-              borderRadius={999}
+              height={44}
+              borderRadius={2}
               borderWidth={0.12}
-              brightness={58}
+              brightness={52}
               opacity={0.95}
               blur={10}
-              displace={0.6}
-              backgroundOpacity={0.12}
-              saturation={1.4}
-              distortionScale={-140}
+              displace={0.5}
+              backgroundOpacity={0.14}
+              saturation={1.3}
+              distortionScale={-120}
+              redOffset={12}
+              greenOffset={5}
+              blueOffset={0}
               className="ac-glass-btn-surface"
             >
               <span className="ac-readmore-label">
@@ -68,8 +93,8 @@ export function CompendiumView() {
             </GlassSurface>
           </Link>
 
-          <ElectricBorder color="#a78bfa" speed={1.2} chaos={0.5} borderRadius={16}>
-            <div className="era-detail-period-pill" style={{ color: '#ddd6fe' }}>
+          <ElectricBorder color="#fb7185" speed={1.2} chaos={0.35} borderRadius={2}>
+            <div className="era-detail-period-pill" style={{ color: '#fda4af' }}>
               {isEs ? 'Compendio Final' : 'Final Compendium'} · {metadata.releaseDate}
             </div>
           </ElectricBorder>
@@ -80,13 +105,13 @@ export function CompendiumView() {
           style={{
             textAlign: 'center',
             maxWidth: '980px',
-            margin: '0 auto 3rem auto',
+            margin: '0 auto 2.8rem auto',
           }}
         >
           <div className="compendio-hero-visual">
             <div className="compendio-globe-wrap">
               <EarthGlobe size={118} />
-              <span className="compendio-orbit-tag" style={{ color: '#7dd3fc' }}>
+              <span className="compendio-orbit-tag" style={{ color: '#fdba74' }}>
                 {isEs ? 'Origen · Tierra' : 'Origin · Earth'}
               </span>
             </div>
@@ -95,10 +120,10 @@ export function CompendiumView() {
               <svg viewBox="0 0 360 88" className="compendio-trajectory-svg">
                 <defs>
                   <linearGradient id="compendioArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#38bdf8" />
-                    <stop offset="36%" stopColor="#fde68a" />
-                    <stop offset="72%" stopColor="#fb923c" />
-                    <stop offset="100%" stopColor="#c4b5fd" />
+                    <stop offset="0%" stopColor="#fbbf24" />
+                    <stop offset="36%" stopColor="#fdba74" />
+                    <stop offset="72%" stopColor="#f97316" />
+                    <stop offset="100%" stopColor="#fb7185" />
                   </linearGradient>
                 </defs>
                 <path
@@ -108,17 +133,17 @@ export function CompendiumView() {
                   strokeWidth="2.5"
                   strokeDasharray="6 5"
                 />
-                <circle cx="20" cy="54" r="5.5" fill="#38bdf8" />
-                <circle cx="132" cy="27" r="5" fill="#fde68a" />
-                <circle cx="242" cy="51" r="5.5" fill="#fb923c" />
-                <circle cx="340" cy="46" r="6" fill="#c4b5fd" />
+                <circle cx="20" cy="54" r="5.5" fill="#fbbf24" />
+                <circle cx="132" cy="27" r="5" fill="#fdba74" />
+                <circle cx="242" cy="51" r="5.5" fill="#f97316" />
+                <circle cx="340" cy="46" r="6" fill="#fb7185" />
                 <text
                   x="20"
                   y="76"
                   textAnchor="middle"
-                  fill="#94a3b8"
+                  fill="#f3dfd1"
                   fontSize="10"
-                  fontFamily="system-ui, sans-serif"
+                  fontFamily="var(--font-raleway), 'Raleway', sans-serif"
                 >
                   {isEs ? 'Tierra' : 'Earth'}
                 </text>
@@ -126,9 +151,9 @@ export function CompendiumView() {
                   x="132"
                   y="14"
                   textAnchor="middle"
-                  fill="#fde68a"
+                  fill="#fbbf24"
                   fontSize="10"
-                  fontFamily="system-ui, sans-serif"
+                  fontFamily="var(--font-raleway), 'Raleway', sans-serif"
                 >
                   {isEs ? 'Luna · 384k km' : 'Moon · 384k km'}
                 </text>
@@ -138,7 +163,7 @@ export function CompendiumView() {
                   textAnchor="middle"
                   fill="#fdba74"
                   fontSize="10"
-                  fontFamily="system-ui, sans-serif"
+                  fontFamily="var(--font-raleway), 'Raleway', sans-serif"
                 >
                   {isEs ? 'Marte · 225M km' : 'Mars · 225M km'}
                 </text>
@@ -146,10 +171,10 @@ export function CompendiumView() {
                   x="336"
                   y="28"
                   textAnchor="middle"
-                  fill="#ddd6fe"
+                  fill="#fda4af"
                   fontSize="10"
                   fontWeight="700"
-                  fontFamily="system-ui, sans-serif"
+                  fontFamily="var(--font-raleway), 'Raleway', sans-serif"
                 >
                   EVA 2026
                 </text>
@@ -183,33 +208,44 @@ export function CompendiumView() {
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={32}
+          borderRadius={2}
           borderWidth={0.07}
-          brightness={50}
+          brightness={48}
           opacity={0.94}
           blur={14}
-          displace={0.9}
-          backgroundOpacity={0.1}
-          saturation={1.35}
-          distortionScale={-170}
-          redOffset={0}
-          greenOffset={12}
-          blueOffset={24}
+          displace={0.55}
+          backgroundOpacity={0.12}
+          saturation={1.25}
+          distortionScale={-140}
+          redOffset={14}
+          greenOffset={6}
+          blueOffset={0}
+          style={{
+            background: 'rgba(26, 12, 17, 0.78)',
+            border: '1px solid rgba(255, 255, 255, 0.24)',
+          }}
         >
           <article className="era-detail-article">
             {/* Executive Abstract */}
             <div
               className="thesis-abstract-box"
-              style={{ borderColor: 'rgba(167, 139, 250, 0.38)' }}
+              style={{ borderColor: 'rgba(251, 113, 133, 0.42)' }}
             >
-              <span className="thesis-abstract-label" style={{ color: '#c4b5fd' }}>
+              <span className="thesis-abstract-label" style={{ color: '#fda4af' }}>
                 {isEs ? 'Visión Integral de la Investigación' : 'Comprehensive Research Overview'}
               </span>
               <p className="thesis-abstract-text">{synthesisData.abstract}</p>
             </div>
 
             {/* Continuity Arc: Earth -> Moon -> Mars -> Tango Horizon 2026 */}
-            <section style={{ marginTop: '2.2rem' }} aria-labelledby="continuity-arc-heading">
+            <section
+              style={{
+                marginTop: '2.2rem',
+                paddingTop: '2rem',
+                borderTop: '1px solid rgba(255, 255, 255, 0.22)',
+              }}
+              aria-labelledby="continuity-arc-heading"
+            >
               <span className="ac-timeline-badge">
                 {isEs ? 'Trayectoria Continua' : 'Continuous Trajectory'}
               </span>
@@ -220,25 +256,35 @@ export function CompendiumView() {
               </h2>
 
               <div className="compendio-arc-grid">
-                {synthesisData.continuityArc.map((stage) => (
-                  <div
-                    key={stage.id}
-                    className="compendio-arc-card"
-                    style={{ borderTop: `3px solid ${stage.accent}` }}
-                  >
-                    <span className="compendio-arc-step" style={{ color: stage.accent }}>
-                      {stage.step}
-                    </span>
-                    <h3 className="compendio-arc-world">{stage.world}</h3>
-                    <span className="compendio-arc-metric th-mono">{stage.metric}</span>
-                    <p className="compendio-arc-summary">{stage.summary}</p>
-                  </div>
-                ))}
+                {synthesisData.continuityArc.map((stage) => {
+                  const accent = toSunsetAccent(stage.accent);
+                  return (
+                    <div
+                      key={stage.id}
+                      className="compendio-arc-card"
+                      style={{ borderTop: `3px solid ${accent}` }}
+                    >
+                      <span className="compendio-arc-step" style={{ color: accent }}>
+                        {stage.step}
+                      </span>
+                      <h3 className="compendio-arc-world">{stage.world}</h3>
+                      <span className="compendio-arc-metric th-mono">{stage.metric}</span>
+                      <p className="compendio-arc-summary">{stage.summary}</p>
+                    </div>
+                  );
+                })}
               </div>
             </section>
 
             {/* 5 Cross-Cutting Modules */}
-            <section style={{ marginTop: '3.2rem' }} aria-labelledby="modules-compendium-heading">
+            <section
+              style={{
+                marginTop: '3rem',
+                paddingTop: '2.2rem',
+                borderTop: '1px solid rgba(255, 255, 255, 0.22)',
+              }}
+              aria-labelledby="modules-compendium-heading"
+            >
               <span className="ac-timeline-badge">
                 {isEs ? 'Arquitectura Conceptual Unificada' : 'Unified Conceptual Architecture'}
               </span>
@@ -249,42 +295,52 @@ export function CompendiumView() {
               </h2>
 
               <div className="synthesis-modules-grid">
-                {synthesisData.modulesCompendium.map((mod) => (
-                  <div
-                    key={mod.code}
-                    className="synthesis-module-card"
-                    style={{ borderTop: `3px solid ${mod.accent}` }}
-                  >
-                    <div className="synthesis-module-header">
-                      <span className="synthesis-module-code" style={{ color: mod.accent }}>
-                        {mod.code}
-                      </span>
-                      <span className="synthesis-module-sphere">{mod.sphere}</span>
-                    </div>
-
-                    <h3 className="synthesis-module-title">{mod.title}</h3>
-                    <p className="era-section-body" style={{ fontSize: '1.05rem' }}>
-                      {mod.synthesis}
-                    </p>
-
-                    <div className="synthesis-concepts-tags">
-                      {mod.keyConcepts.map((concept) => (
-                        <span key={concept} className="synthesis-concept-chip">
-                          ✦ {concept}
+                {synthesisData.modulesCompendium.map((mod) => {
+                  const accent = toSunsetAccent(mod.accent);
+                  return (
+                    <div
+                      key={mod.code}
+                      className="synthesis-module-card"
+                      style={{ borderTop: `3px solid ${accent}` }}
+                    >
+                      <div className="synthesis-module-header">
+                        <span className="synthesis-module-code" style={{ color: accent }}>
+                          {mod.code}
                         </span>
-                      ))}
-                    </div>
+                        <span className="synthesis-module-sphere">{mod.sphere}</span>
+                      </div>
 
-                    <div className="thesis-formula-bar" style={{ borderLeftColor: mod.accent }}>
-                      <code>{mod.formula}</code>
+                      <h3 className="synthesis-module-title">{mod.title}</h3>
+                      <p className="era-section-body" style={{ fontSize: '1.05rem' }}>
+                        {mod.synthesis}
+                      </p>
+
+                      <div className="synthesis-concepts-tags">
+                        {mod.keyConcepts.map((concept) => (
+                          <span key={concept} className="synthesis-concept-chip">
+                            ✦ {concept}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="thesis-formula-bar" style={{ borderLeftColor: accent }}>
+                        <code>{mod.formula}</code>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
 
             {/* Moon vs Mars Comparison Matrix */}
-            <section style={{ marginTop: '3.6rem' }} aria-labelledby="comparison-table-heading">
+            <section
+              style={{
+                marginTop: '3.2rem',
+                paddingTop: '2.2rem',
+                borderTop: '1px solid rgba(255, 255, 255, 0.22)',
+              }}
+              aria-labelledby="comparison-table-heading"
+            >
               <span className="ac-timeline-badge">
                 {isEs ? 'Contraste Astrodinámico y Ambiental' : 'Astrodynamic & Environmental Contrast'}
               </span>
@@ -301,13 +357,13 @@ export function CompendiumView() {
                       <th>
                         {isEs ? 'Parámetro Físico / Operativo' : 'Physical / Operational Parameter'}
                       </th>
-                      <th style={{ color: '#fde68a' }}>
+                      <th style={{ color: '#fbbf24' }}>
                         {isEs ? 'Tesis I · La Luna' : 'Thesis I · The Moon'}
                       </th>
                       <th style={{ color: '#fb923c' }}>
                         {isEs ? 'Tesis II · Marte' : 'Thesis II · Mars'}
                       </th>
-                      <th style={{ color: '#7df9ff' }}>
+                      <th style={{ color: '#fda4af' }}>
                         {isEs ? 'Implicancia de Ingeniería y EVA' : 'Engineering & EVA Implication'}
                       </th>
                     </tr>
@@ -327,7 +383,14 @@ export function CompendiumView() {
             </section>
 
             {/* Interactive NASA Gallery with FlexCarousel */}
-            <section style={{ marginTop: '3.8rem' }} aria-labelledby="nasa-gallery-heading">
+            <section
+              style={{
+                marginTop: '3.4rem',
+                paddingTop: '2.2rem',
+                borderTop: '1px solid rgba(255, 255, 255, 0.22)',
+              }}
+              aria-labelledby="nasa-gallery-heading"
+            >
               <div className="synthesis-carousel-section">
                 <div className="synthesis-carousel-top">
                   <div>
@@ -382,13 +445,20 @@ export function CompendiumView() {
                   speed={0.5}
                   cardSize="md"
                   gap={24}
-                  borderRadius={18}
+                  borderRadius={2}
                 />
               </div>
             </section>
 
             {/* Final Philosophical & Technical Reflection */}
-            <section style={{ marginTop: '3.6rem' }} aria-labelledby="reflection-heading">
+            <section
+              style={{
+                marginTop: '3.2rem',
+                paddingTop: '2.2rem',
+                borderTop: '1px solid rgba(255, 255, 255, 0.22)',
+              }}
+              aria-labelledby="reflection-heading"
+            >
               <span className="ac-timeline-badge">
                 {isEs ? 'Síntesis Filosófica y Operativa' : 'Philosophical & Operational Synthesis'}
               </span>
@@ -399,23 +469,26 @@ export function CompendiumView() {
               </h2>
 
               <div className="compendio-reflections-grid">
-                {synthesisData.reflectionBlocks.map((block) => (
-                  <div
-                    key={block.id}
-                    className="compendio-reflection-card"
-                    style={{ borderLeft: `3px solid ${block.accent}` }}
-                  >
-                    <span className="compendio-reflection-badge" style={{ color: block.accent }}>
-                      {block.badge}
-                    </span>
-                    <h3 className="compendio-reflection-title">{block.title}</h3>
-                    <div className="compendio-reflection-body">
-                      {block.paragraphs.map((paragraph, idx) => (
-                        <p key={idx}>{paragraph}</p>
-                      ))}
+                {synthesisData.reflectionBlocks.map((block) => {
+                  const accent = toSunsetAccent(block.accent);
+                  return (
+                    <div
+                      key={block.id}
+                      className="compendio-reflection-card"
+                      style={{ borderLeft: `3px solid ${accent}` }}
+                    >
+                      <span className="compendio-reflection-badge" style={{ color: accent }}>
+                        {block.badge}
+                      </span>
+                      <h3 className="compendio-reflection-title">{block.title}</h3>
+                      <div className="compendio-reflection-body">
+                        {block.paragraphs.map((paragraph, idx) => (
+                          <p key={idx}>{paragraph}</p>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           </article>
@@ -426,7 +499,7 @@ export function CompendiumView() {
           className="compendio-cta-banner"
           aria-label={isEs ? 'Acciones finales del compendio' : 'Final compendium actions'}
         >
-          <ElectricBorder color="#7df9ff" speed={1.2} chaos={0.48} borderRadius={999}>
+          <ElectricBorder color="#f97316" speed={1.2} chaos={0.35} borderRadius={2}>
             <a
               href={metadata.simulatorUrl}
               target="_blank"
@@ -436,50 +509,56 @@ export function CompendiumView() {
             >
               <GlassSurface
                 width="auto"
-                height={56}
-                borderRadius={999}
+                height={44}
+                borderRadius={2}
                 borderWidth={0.12}
-                brightness={60}
+                brightness={54}
                 opacity={0.96}
                 blur={12}
-                displace={0.6}
+                displace={0.5}
                 backgroundOpacity={0.18}
-                saturation={1.45}
-                distortionScale={-140}
+                saturation={1.35}
+                distortionScale={-120}
+                redOffset={14}
+                greenOffset={6}
+                blueOffset={0}
                 className="ac-glass-btn-surface"
               >
-                <span className="ac-readmore-label" style={{ padding: '0 1.85rem' }}>
-                  <Rocket size={17} style={{ color: '#7df9ff' }} aria-hidden="true" />
+                <span className="ac-readmore-label" style={{ padding: '0 1.65rem' }}>
+                  <Rocket size={17} style={{ color: '#fbbf24' }} aria-hidden="true" />
                   <span>{isEs ? 'Lanzar Simulador 3D ↗' : 'Launch 3D Simulator ↗'}</span>
-                  <ExternalLink size={15} style={{ color: '#7df9ff' }} aria-hidden="true" />
+                  <ExternalLink size={15} style={{ color: '#fdba74' }} aria-hidden="true" />
                 </span>
               </GlassSurface>
             </a>
           </ElectricBorder>
 
           <Link href="/equipo" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
-            <ElectricBorder color="#fb923c" speed={1.15} chaos={0.45} borderRadius={999}>
+            <ElectricBorder color="#fb923c" speed={1.15} chaos={0.35} borderRadius={2}>
               <GlassSurface
                 width="auto"
-                height={56}
-                borderRadius={999}
+                height={44}
+                borderRadius={2}
                 borderWidth={0.12}
-                brightness={58}
+                brightness={52}
                 opacity={0.95}
                 blur={10}
-                displace={0.6}
+                displace={0.5}
                 backgroundOpacity={0.14}
-                saturation={1.4}
-                distortionScale={-140}
+                saturation={1.3}
+                distortionScale={-120}
+                redOffset={12}
+                greenOffset={5}
+                blueOffset={0}
                 className="ac-glass-btn-surface"
               >
-                <span className="ac-readmore-label" style={{ padding: '0 1.75rem' }}>
+                <span className="ac-readmore-label" style={{ padding: '0 1.6rem' }}>
                   <Users size={17} style={{ color: '#fb923c' }} aria-hidden="true" />
                   <span>{isEs ? 'Explorar Equipo' : 'Explore Team'}</span>
                   <ArrowRight
                     size={16}
                     className="ac-readmore-arrow"
-                    style={{ color: '#fb923c' }}
+                    style={{ color: '#fbbf24' }}
                     aria-hidden="true"
                   />
                 </span>
@@ -495,16 +574,19 @@ export function CompendiumView() {
           <Link href="/" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
             <GlassSurface
               width="auto"
-              height={48}
-              borderRadius={999}
+              height={44}
+              borderRadius={2}
               borderWidth={0.1}
-              brightness={54}
+              brightness={52}
               opacity={0.94}
               blur={10}
-              displace={0.5}
-              backgroundOpacity={0.1}
-              saturation={1.3}
-              distortionScale={-130}
+              displace={0.45}
+              backgroundOpacity={0.12}
+              saturation={1.25}
+              distortionScale={-120}
+              redOffset={12}
+              greenOffset={5}
+              blueOffset={0}
               className="ac-glass-btn-surface"
             >
               <span className="ac-readmore-label" style={{ padding: '0 1.4rem' }}>
@@ -517,16 +599,19 @@ export function CompendiumView() {
           <Link href="/cronologia" className="ac-readmore-wrap" style={{ textDecoration: 'none' }}>
             <GlassSurface
               width="auto"
-              height={48}
-              borderRadius={999}
+              height={44}
+              borderRadius={2}
               borderWidth={0.1}
-              brightness={54}
+              brightness={52}
               opacity={0.94}
               blur={10}
-              displace={0.5}
-              backgroundOpacity={0.1}
-              saturation={1.3}
-              distortionScale={-130}
+              displace={0.45}
+              backgroundOpacity={0.12}
+              saturation={1.25}
+              distortionScale={-120}
+              redOffset={12}
+              greenOffset={5}
+              blueOffset={0}
               className="ac-glass-btn-surface"
             >
               <span className="ac-readmore-label" style={{ padding: '0 1.4rem' }}>
@@ -539,6 +624,139 @@ export function CompendiumView() {
       </div>
 
       <style>{`
+        .th-compendio-page,
+        .th-compendio-page * {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+        }
+        .th-compendio-page .th-mono,
+        .th-compendio-page code {
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+          font-variant-numeric: tabular-nums;
+        }
+        .th-compendio-page .ac-timeline-badge {
+          border-radius: 2px;
+          background: rgba(249, 115, 22, 0.16);
+          border: 1px solid rgba(251, 146, 60, 0.48);
+          color: #fdba74;
+        }
+        .th-compendio-page .era-detail-period-pill {
+          border-radius: 2px;
+          background: #1c0e13;
+          color: #fda4af;
+        }
+        .th-compendio-page .era-detail-main-title {
+          color: #fff8f1;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          text-shadow: 0 2px 24px rgba(249, 115, 22, 0.28);
+        }
+        .th-compendio-page .era-detail-subtitle {
+          color: #f3dfd1;
+        }
+        .th-compendio-page .synthesis-section-title {
+          color: #fff8f1;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+        .th-compendio-page .era-section-body {
+          color: #f3dfd1;
+        }
+        .th-compendio-page .thesis-abstract-box {
+          border-radius: 2px;
+          background: #1c0e13;
+          border: 1px solid rgba(251, 113, 133, 0.42);
+        }
+        .th-compendio-page .thesis-abstract-text {
+          color: #fff8f1;
+        }
+        .th-compendio-page .thesis-formula-bar {
+          border-radius: 2px;
+          background: #140a0e;
+          color: #fbbf24;
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+          font-variant-numeric: tabular-nums;
+        }
+        .th-compendio-page .synthesis-module-card {
+          border-radius: 2px;
+          background: #1c0e13;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .th-compendio-page .synthesis-module-sphere {
+          border-radius: 2px;
+          background: #140a0e;
+          border: 1px solid rgba(251, 146, 60, 0.34);
+          color: #c4a99a;
+        }
+        .th-compendio-page .synthesis-module-title {
+          color: #fff8f1;
+        }
+        .th-compendio-page .synthesis-concept-chip {
+          border-radius: 2px;
+          background: #140a0e;
+          border: 1px solid rgba(251, 146, 60, 0.36);
+          color: #fdba74;
+        }
+        .th-compendio-page .synthesis-table-wrapper {
+          border-radius: 2px;
+          background: #1c0e13;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+        }
+        .th-compendio-page .synthesis-comparison-table th {
+          background: #140a0e;
+          color: #fff8f1;
+        }
+        .th-compendio-page .synthesis-comparison-table th,
+        .th-compendio-page .synthesis-comparison-table td {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+        }
+        .th-compendio-page .synthesis-td-param {
+          color: #fff8f1;
+        }
+        .th-compendio-page .synthesis-td-moon {
+          color: #fbbf24;
+        }
+        .th-compendio-page .synthesis-td-mars {
+          color: #fdba74;
+        }
+        .th-compendio-page .synthesis-td-imp {
+          color: #f3dfd1;
+        }
+        .th-compendio-page .synthesis-carousel-section {
+          border-radius: 2px;
+          background: #1c0e13;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+        }
+        .th-compendio-page .synthesis-filter-pill {
+          border-radius: 2px;
+          min-height: 40px;
+          background: #140a0e;
+          border: 1px solid rgba(251, 146, 60, 0.36);
+          color: #f3dfd1;
+        }
+        .th-compendio-page .synthesis-filter-pill:hover,
+        .th-compendio-page .synthesis-filter-pill.is-active {
+          background: rgba(249, 115, 22, 0.26);
+          border-color: #f97316;
+          color: #fff8f1;
+          box-shadow: 0 0 14px rgba(249, 115, 22, 0.35);
+        }
+        .th-compendio-page .ac-glass-btn-surface {
+          border-radius: 2px;
+          border: 1px solid rgba(251, 146, 60, 0.45);
+          background: rgba(26, 12, 17, 0.84);
+          box-shadow: 0 6px 18px rgba(10, 4, 6, 0.45);
+        }
+        .th-compendio-page .ac-readmore-wrap:hover {
+          filter: drop-shadow(0 0 14px rgba(249, 115, 22, 0.38));
+        }
+        .th-compendio-page .ac-readmore-label {
+          color: #fff8f1;
+          font-weight: 700;
+        }
+        .th-compendio-page .ac-readmore-arrow,
+        .th-compendio-page .ac-readmore-arrow-left {
+          color: #fb923c;
+        }
         .compendio-hero-visual {
           display: flex;
           align-items: center;
@@ -576,26 +794,27 @@ export function CompendiumView() {
           align-items: center;
           gap: 0.25rem;
           padding: 1rem 1.45rem;
-          border-radius: 20px;
-          background: radial-gradient(circle at 30% 25%, rgba(251, 146, 60, 0.18), rgba(15, 23, 42, 0.85));
-          border: 1px solid rgba(251, 146, 60, 0.42);
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.42), 0 0 24px rgba(167, 139, 250, 0.14);
+          border-radius: 2px;
+          background: linear-gradient(145deg, rgba(249, 115, 22, 0.18), #1c0e13);
+          border: 1px solid rgba(251, 146, 60, 0.48);
+          box-shadow: 0 12px 32px rgba(10, 4, 6, 0.52), 0 0 24px rgba(251, 113, 133, 0.16);
         }
         .compendio-horizon-kicker {
-          font-family: var(--th-font-mono);
+          font-family: var(--font-raleway), 'Raleway', sans-serif;
+          font-variant-numeric: tabular-nums;
           font-size: 0.7rem;
           font-weight: 700;
           letter-spacing: 0.14em;
-          color: #fde68a;
+          color: #fbbf24;
         }
         .compendio-horizon-title {
           font-size: 1.22rem;
           font-weight: 800;
-          color: #ffffff;
+          color: #fff8f1;
         }
         .compendio-horizon-sub {
           font-size: 0.8rem;
-          color: #cbd5e1;
+          color: #f3dfd1;
         }
         .compendio-arc-grid {
           display: grid;
@@ -604,9 +823,9 @@ export function CompendiumView() {
         }
         .compendio-arc-card {
           padding: 1.35rem 1.4rem;
-          border-radius: 20px;
-          background: rgba(9, 13, 22, 0.7);
-          border: 1px solid rgba(148, 163, 184, 0.22);
+          border-radius: 2px;
+          background: #1c0e13;
+          border: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
@@ -621,18 +840,18 @@ export function CompendiumView() {
           margin: 0;
           font-size: 1.16rem;
           font-weight: 800;
-          color: #f8fafc;
+          color: #fff8f1;
         }
         .compendio-arc-metric {
           font-size: 0.76rem;
-          color: #bae6fd;
-          opacity: 0.9;
+          color: #fdba74;
+          opacity: 0.94;
         }
         .compendio-arc-summary {
           margin: 0.2rem 0 0 0;
           font-size: 0.94rem;
           line-height: 1.65;
-          color: #cbd5e1;
+          color: #c4a99a;
         }
         .compendio-reflections-grid {
           display: grid;
@@ -641,9 +860,9 @@ export function CompendiumView() {
         }
         .compendio-reflection-card {
           padding: 1.75rem 1.9rem;
-          border-radius: 22px;
-          background: linear-gradient(145deg, rgba(15, 23, 42, 0.78), rgba(6, 10, 20, 0.88));
-          border: 1px solid rgba(148, 163, 184, 0.22);
+          border-radius: 2px;
+          background: linear-gradient(145deg, #1c0e13, #140a0e);
+          border: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;
           flex-direction: column;
           gap: 0.65rem;
@@ -658,7 +877,7 @@ export function CompendiumView() {
           margin: 0;
           font-size: clamp(1.2rem, 1.8vw, 1.45rem);
           font-weight: 800;
-          color: #ffffff;
+          color: #fff8f1;
         }
         .compendio-reflection-body {
           display: flex;
@@ -669,15 +888,17 @@ export function CompendiumView() {
           margin: 0;
           font-size: 1.01rem;
           line-height: 1.8;
-          color: #e2e8f0;
+          color: #f3dfd1;
         }
         .compendio-cta-banner {
           display: flex;
           flex-wrap: wrap;
           align-items: center;
           justify-content: center;
-          gap: 1.35rem;
+          gap: 1.2rem;
           margin-top: 2.8rem;
+          padding-top: 2rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.24);
         }
         @media (max-width: 1080px) {
           .compendio-arc-grid {

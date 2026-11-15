@@ -119,7 +119,7 @@ export const TECH_STACK_GROUPS: TechStackGroup[] = [
   {
     id: 'frontend-3d',
     category: { en: 'Frontend & 3D', es: 'Frontend y 3D' },
-    accent: '#7df9ff',
+    accent: '#fbbf24',
     items: [
       { en: 'Three.js (WebGL2 · 60 FPS)', es: 'Three.js (WebGL2 · 60 FPS)' },
       { en: 'TypeScript · Vite', es: 'TypeScript · Vite' },
@@ -141,7 +141,7 @@ export const TECH_STACK_GROUPS: TechStackGroup[] = [
   {
     id: 'backend-mcp',
     category: { en: 'Backend & Multi-Agent MCP', es: 'Backend y Multi-Agente MCP' },
-    accent: '#c4b5fd',
+    accent: '#fb7185',
     items: [
       {
         en: 'Node.js 22 · Fastify 5 (@fastify/websocket, rate-limit)',
@@ -196,7 +196,7 @@ export const TECH_STACK_GROUPS: TechStackGroup[] = [
   {
     id: 'gcp-terraform',
     category: { en: 'Google Cloud & Terraform IaC', es: 'Google Cloud y Terraform IaC' },
-    accent: '#38bdf8',
+    accent: '#f97316',
     items: [
       { en: 'Terraform IaC (infra/terraform/)', es: 'Terraform IaC (infra/terraform/)' },
       {
@@ -216,7 +216,7 @@ export const TECH_STACK_GROUPS: TechStackGroup[] = [
   {
     id: 'cicd-vercel',
     category: { en: 'CI/CD & Vercel', es: 'CI/CD y Vercel' },
-    accent: '#fde68a',
+    accent: '#fdba74',
     items: [
       {
         en: 'GitHub Actions CI/CD (test-shared, test-server, build, Python checks)',
@@ -257,13 +257,13 @@ export const PROJECT_HERO_COPY: ProjectHeroCopy = {
 
 export const AI_USAGE_DATA: AiUsageSection = {
   methodologyTitle: {
-    en: 'Software 3.0 Methodology — AFAW (Anti-Fragile Agentic Workflow)',
-    es: 'Metodología Software 3.0 — AFAW (Anti-Fragile Agentic Workflow)',
+    en: 'AI-Assisted Development',
+    es: 'Desarrollo Asistido por IA',
   },
   methodologyUrl: 'https://github.com/agustindiazcano/afaw-anti-fragile-agentic-workflow',
   methodologySummary: {
-    en: 'This project was built with AI-assisted development in the Software 3.0 style using our own AFAW (Anti-Fragile Agentic Workflow) methodology for multi-agent coordination: AI coding agents took part in the whole development process (implementation, tests, CI/CD, pull requests, commits, human-validated and designed documentation, and deploy), under human direction and review.',
-    es: 'Este proyecto fue construido con desarrollo asistido por IA al estilo Software 3.0 mediante nuestra propia metodología AFAW (Anti-Fragile Agentic Workflow) para coordinación multi-agente: los agentes de codificación participaron en todo el proceso (implementación, tests, CI/CD, pull requests, commits, documentación validada y diseñada por humanos, y despliegue) bajo dirección y revisión humana continua.',
+    en: 'This project was built through AI-assisted development under continuous human direction and review: AI coding agents took part in the whole development process (implementation, tests, CI/CD, pull requests, commits, human-validated documentation, and deployment).',
+    es: 'Este proyecto fue construido mediante desarrollo asistido por IA bajo dirección y revisión humana continua: los agentes de codificación participaron en todo el proceso (implementación, tests, CI/CD, pull requests, commits, documentación validada por humanos y despliegue).',
   },
   codingAgents: ['Codex', 'Claude Code', 'Gemini Antigravity', 'IBM Bob', 'Meta Muse'],
   orchestrationNote: {
@@ -319,7 +319,7 @@ export const MULTI_AGENT_TIERS: MultiAgentTier[] = [
       en: '~400–600 ms voice / <5 ms local',
       es: '~400–600 ms voz / <5 ms local',
     },
-    accent: '#7df9ff',
+    accent: '#fbbf24',
     role: {
       en: 'First voice contact in 5 languages (EN, ES, FR, DE, IT). Resolves HUD visor layers, cartographic map, O2/consumables readouts, fleet status, ballistic pod trajectory previews, and multimodal camera vision (capture_vision); escalates routing, FDIR, science, and emergencies to BASE.',
       es: 'Primer punto de contacto por voz en 5 idiomas (EN, ES, FR, DE, IT). Resuelve capas del visor HUD, mapa cartográfico, lecturas de O2/consumibles, estado de flota, previsualización balística y visión de cámara (capture_vision); escala rutas, FDIR, ciencia y emergencias a BASE.',
@@ -343,7 +343,7 @@ export const MULTI_AGENT_TIERS: MultiAgentTier[] = [
       en: 'MAX_TURNS = 6 · Survival first',
       es: 'MAX_TURNS = 6 · Prioridad supervivencia',
     },
-    accent: '#c4b5fd',
+    accent: '#fb7185',
     role: {
       en: 'Strategic brain of the habitat/Starship complex (conae-base-mars). Prioritizes crew survival over science, reads live LiDAR and environmental telemetry, triggers autonomous rescue protocols, and delegates specialized analysis to the 5 domain specialists and robotic fleet.',
       es: 'Cerebro estratégico del complejo base/Starship (conae-base-mars). Prioriza la supervivencia de la tripulación sobre la ciencia, lee LiDAR y telemetría ambiental en vivo, dispara protocolos autónomos de rescate y delega análisis a los 5 especialistas y a la flota robótica.',
@@ -394,7 +394,7 @@ export const GUARDIAN_LAYERS: GuardianLayer[] = [
       es: 'ruleCheck (guardian.ts)',
     },
     moduleRef: 'server/src/agents/guardian.ts',
-    accent: '#7df9ff',
+    accent: '#fbbf24',
     summary: {
       en: 'Automatically blocks any action violating verified physical envelopes before it reaches the 3D environment.',
       es: 'Bloquea automáticamente toda acción que viole envolventes físicas verificadas antes de llegar al entorno 3D.',
@@ -429,7 +429,7 @@ export const GUARDIAN_LAYERS: GuardianLayer[] = [
       es: 'LLM Safety Judge (<untrusted>)',
     },
     moduleRef: 'server/src/agents/guardian.ts · gemini-4-argon / muse-spark-1.3',
-    accent: '#fde68a',
+    accent: '#fdba74',
     summary: {
       en: 'Wraps voice transcripts, RAG chunks, and subagent text in <untrusted> tags to verify alignment with crew intent.',
       es: 'Envuelve transcripciones de voz, fragmentos RAG y texto entre subagentes en etiquetas <untrusted> para verificar coherencia con la intención de la tripulación.',
@@ -517,7 +517,7 @@ export const ML_MODELS_DATA: MlModelSummary[] = [
       en: 'Generates the 1024×1024 subsurface mineral hydration layer (relative H/OH) and uncertainty map to prioritize drilling targets.',
       es: 'Genera la capa 1024×1024 de hidratación mineral subsuperficial (H/OH relativo) y mapa de incertidumbre para priorizar objetivos de perforación.',
     },
-    accent: '#38bdf8',
+    accent: '#f97316',
   },
   {
     id: 'storm-nowcaster',
@@ -589,7 +589,7 @@ export const ML_MODELS_DATA: MlModelSummary[] = [
       en: 'Produces 256×256 heatmaps strictly over real Mastcam/MAHLI photographs (never synthetic 3D renders) to guide sampling targets.',
       es: 'Produce mapas de calor 256×256 únicamente sobre fotografías reales Mastcam/MAHLI (nunca renders sintéticos) para guiar objetivos de muestreo.',
     },
-    accent: '#a78bfa',
+    accent: '#fb7185',
   },
 ];
 
@@ -634,7 +634,7 @@ export const RESCUE_SCENARIO_STEPS: RescueScenarioStep[] = [
       en: 'SUIT.HEALTH detects suit depressurization from a micro-puncture and tachycardia spike against personal baselines and NASA-STD-3001. Simultaneously, atmospheric dust opacity tau ramps toward 6.0 and WEATHER-RAD issues a NO-GO verdict for walking back.',
       es: 'SUIT.HEALTH detecta despresurización por micro-perforación y pico taquicárdico contra la línea base personal y NASA-STD-3001. Simultáneamente, la opacidad atmosférica tau escala hacia 6.0 y WEATHER-RAD emite veredicto NO-GO para retorno a pie.',
     },
-    accent: '#f87171',
+    accent: '#e11d48',
   },
   {
     id: 'rescue-s4-s5',
@@ -655,7 +655,7 @@ export const RESCUE_SCENARIO_STEPS: RescueScenarioStep[] = [
       en: 'BASE launches drone-1 and drone-2 for LiDAR mapping and radio relay while tau < 1.8, dispatches pressurized rover rescue-1 carrying rescue-bot-1 along a HiRISE A* path, and—if time-to-hypoxia requires—fires the 8.0 kg RK4-integrated ballistic life-support drop-pod (COPV O2, LiOH scrubber, 200 Wh battery, patch kit).',
       es: 'BASE lanza drone-1 y drone-2 para mapeo LiDAR y enlace radio mientras tau < 1.8, despacha el rover presurizado rescue-1 con rescue-bot-1 por ruta A* sobre HiRISE y, si el tiempo a hipoxia lo exige, dispara el pod balístico de soporte vital de 8.0 kg integrado con RK4 (COPV O2, depurador LiOH, batería 200 Wh y kit de parche).',
     },
-    accent: '#7df9ff',
+    accent: '#fbbf24',
   },
   {
     id: 'rescue-s6-s7',
@@ -676,7 +676,7 @@ export const RESCUE_SCENARIO_STEPS: RescueScenarioStep[] = [
       en: 'Once dust crosses tau ≥ 1.8, drones land safely (recall_aircraft). After human-in-the-loop confirmation (ask_human), rescue-bot-1 descends the 11.3° north ramp, stabilizes oxygen, winches DIAZ-CANO onto its stretcher, transfers him into rescue-1, and returns to the habitat airlock.',
       es: 'Al superar tau ≥ 1.8 los drones aterrizan de forma segura (recall_aircraft). Tras confirmación human-in-the-loop (ask_human), rescue-bot-1 desciende por la rampa norte de 11.3°, estabiliza el oxígeno, asegura a DIAZ-CANO en camilla con cabrestante, lo transfiere a rescue-1 y retorna a la esclusa de la base.',
     },
-    accent: '#34d399',
+    accent: '#fbbf24',
   },
 ];
 
@@ -692,7 +692,7 @@ export const PROJECT_CAPABILITY_PILLARS: ProjectCapabilityPillar[] = [
       en: '5 Languages · <5 ms Local · 32-Band FFT',
       es: '5 Idiomas · <5 ms Local · 32-Band FFT',
     },
-    accent: '#7df9ff',
+    accent: '#fbbf24',
     description: {
       en: 'Full keyboard-free operation in English, Spanish, French, German, and Italian with sub-5 ms local critical intents, Mars-glossary multimodal STT, and Google Cloud Neural TTS (Journey Voices) with Apollo Quindar tones (2525/2475 Hz).',
       es: 'Operación integral sin teclado en inglés, español, francés, alemán e italiano con intenciones críticas locales (<5 ms), STT multimodal normalizado por glosario marciano y síntesis Cloud Neural TTS (Journey Voices) con tonos Apollo Quindar (2525/2475 Hz).',
@@ -719,7 +719,7 @@ export const PROJECT_CAPABILITY_PILLARS: ProjectCapabilityPillar[] = [
       en: '1,002 Chunks · <2 ms · 0 External DB',
       es: '1,002 Chunks · <2 ms · 0 DB Externa',
     },
-    accent: '#c4b5fd',
+    accent: '#fb7185',
     description: {
       en: 'BM25 engine (k1 = 1.5, b = 0.75) citing exact document and page across NASA-STD-3001 Vol. 1 & 2, OCHMO, AMCL, MEDPRAT, Mars-GRAM, MCD v5.2, MSL RAD, and MOXIE to anticipate failures before critical thresholds are breached.',
       es: 'Motor BM25 (k1 = 1.5, b = 0.75) que cita documento y página exacta de NASA-STD-3001 Vol. 1 y 2, OCHMO, AMCL, MEDPRAT, Mars-GRAM, MCD v5.2, MSL RAD y MOXIE para anticipar fallas antes de alcanzar umbrales críticos.',
@@ -773,7 +773,7 @@ export const PROJECT_CAPABILITY_PILLARS: ProjectCapabilityPillar[] = [
       en: '57 Provenance Entries · 3 ML Models',
       es: '57 Entradas Provenance · 3 Modelos ML',
     },
-    accent: '#fde68a',
+    accent: '#fdba74',
     description: {
       en: 'Gale Crater terrain anchored to HiRISE (1 m/px DTM, 0.25 m/px ortho), CTX, THEMIS IR, JPL Horizons DE441 ephemeris, DONKI WSA-Enlil alerts, MSL RAD doses, and 3 offline-trained ML models with leakage-free spatial/temporal CV.',
       es: 'Terreno del Cráter Gale anclado a HiRISE (1 m/px DTM, 0.25 m/px orto), CTX, THEMIS IR, efemérides JPL Horizons DE441, alertas DONKI WSA-Enlil, dosis MSL RAD y 3 modelos entrenados offline con validación cruzada libre de fuga temporal/espacial.',
@@ -819,8 +819,8 @@ export const TEAM_ROSTER_SUMMARY: TeamMemberSummary[] = [
   {
     name: 'Milagros Sotelo',
     role: {
-      en: 'Systems Engineering Student',
-      es: 'Estudiante de Ingeniería en Sistemas',
+      en: 'Full Stack & 3D · Systems Engineering Student',
+      es: 'Full Stack & 3D · Estudiante de Ingeniería en Sistemas',
     },
     affiliation: { en: 'UTN, FRBA', es: 'UTN, FRBA' },
     links: [{ label: 'GitHub', url: 'https://github.com/Milagros-Sotelo' }],

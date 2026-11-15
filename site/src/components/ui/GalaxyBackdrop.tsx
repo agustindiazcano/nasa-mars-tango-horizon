@@ -109,7 +109,7 @@ vec3 starLayer(vec2 uv, float starSpeed) {
         clamp(uTwilight, 0.0, 1.0)
       );
 
-      vec3 tint = mix(vec3(0.82, 0.92, 1.0), vec3(1.0, 0.86, 0.68), fract(seed * 73.17));
+      vec3 tint = mix(vec3(1.0, 0.72, 0.56), vec3(1.0, 0.88, 0.66), fract(seed * 73.17));
       tint = mix(vec3(dot(tint, vec3(0.299, 0.587, 0.114))), tint, clamp(uSaturation + 0.35, 0.0, 1.5));
       tint = hueShiftColor(tint, uHueShift);
 
@@ -162,7 +162,7 @@ void main() {
   // Subtle deep-space nebula glow
   float neb1 = fbm(uv * 2.2 + vec2(uTime * 0.015 * uSpeed, -uTime * 0.01 * uSpeed));
   float neb2 = fbm(uv * 3.8 - vec2(uTime * 0.012 * uSpeed, uTime * 0.018 * uSpeed));
-  vec3 nebulaCol = mix(vec3(0.02, 0.07, 0.16), vec3(0.14, 0.05, 0.18), neb2) * smoothstep(0.35, 0.9, neb1);
+  vec3 nebulaCol = mix(vec3(0.16, 0.04, 0.06), vec3(0.22, 0.09, 0.03), neb2) * smoothstep(0.35, 0.9, neb1);
   nebulaCol = hueShiftColor(nebulaCol, uHueShift * 0.35) * (0.28 + 0.35 * uTwilight);
 
   float starSpeed = uTime * 0.04 * uSpeed;
@@ -196,7 +196,7 @@ export function GalaxyBackdrop({
   transparent = true,
   speed = 1.0,
   density = 1.0,
-  hueShift = 140,
+  hueShift = 0,
   glowIntensity = 0.32,
   saturation = 0.35,
   twilight = 0.35,
@@ -372,7 +372,7 @@ export function GalaxyBackdrop({
       if (s.transparent) {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
       } else {
-        gl.clearColor(0.0196, 0.0196, 0.0314, 1.0);
+        gl.clearColor(0.0353, 0.0157, 0.0235, 1.0);
       }
       gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -423,7 +423,7 @@ export function GalaxyBackdrop({
       aria-hidden="true"
       className={`galaxy-backdrop${className ? ` ${className}` : ''}`}
       style={{
-        backgroundColor: transparent ? 'transparent' : '#050508',
+        backgroundColor: transparent ? 'transparent' : '#090406',
       }}
     />
   );

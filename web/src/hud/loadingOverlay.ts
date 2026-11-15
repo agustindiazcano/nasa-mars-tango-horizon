@@ -44,7 +44,7 @@ interface RainStream {
 }
 
 const TELEMETRY_SYMBOLS = "0123456789ABCDEF+-*/:=[]<>#·";
-const GLITCH_COLORS = ["#ff8a5b", "#7df9ff", "#ffb36b", "#f3ece3"];
+const GLITCH_COLORS = ["#f97316", "#fb7185", "#fbbf24", "#fff8f1"];
 
 function parseHexToRgb(hex: string): Rgb {
   const clean = hex.replace("#", "").trim();
@@ -307,7 +307,7 @@ export function createLoadingOverlay(parent: HTMLElement = document.body): Loadi
       const elapsed = (now - startClock) / 1000;
 
       ctx.clearRect(0, 0, width, height);
-      ctx.font = `500 ${fontSize}px "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+      ctx.font = `600 ${fontSize}px "Raleway", system-ui, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 

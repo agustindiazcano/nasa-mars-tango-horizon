@@ -29,7 +29,7 @@ const SPACE_TIMELINE_DATA_EN: SpaceEra[] = [
     subtitle:
       'The celestial vault as an architecture of time, agriculture, and geometric thought across early civilizations.',
     iconName: 'Compass',
-    accentColor: '#fde68a',
+    accentColor: '#fbbf24',
     summary:
       'Civilizations across Mesopotamia, Egypt, and Mesoamerica compiled the first systematic records of the night sky. In this pre-theoretical era, celestial cycles governed agricultural calendars, anchored cosmogonies, and served as a stellar compass, until Hellenic astronomy transformed those records into geometric geocentric models.',
     keyFigures: [
@@ -119,7 +119,7 @@ const SPACE_TIMELINE_DATA_EN: SpaceEra[] = [
     subtitle:
       'Kepler’s elliptical laws and Newton’s gravitational synthesis unify terrestrial and celestial mechanics.',
     iconName: 'Orbit',
-    accentColor: '#7df9ff',
+    accentColor: '#fdba74',
     summary:
       'Working from the arc-minute observations of Mars’s eccentric orbit compiled by Tycho Brahe, Johannes Kepler formulated the three laws of planetary motion. In 1687, Isaac Newton derived those laws from a single principle—universal gravitation—founding the classical mechanics used to compute every spacecraft trajectory.',
     keyFigures: ['Tycho Brahe', 'Johannes Kepler', 'Isaac Newton'],
@@ -155,7 +155,7 @@ const SPACE_TIMELINE_DATA_EN: SpaceEra[] = [
     subtitle:
       'From Tsiolkovsky’s rocket equation to Sputnik 1, Yuri Gagarin, the Apollo 11 Moon landing, and the International Space Station.',
     iconName: 'Rocket',
-    accentColor: '#38bdf8',
+    accentColor: '#f97316',
     summary:
       'Grounded in the reaction-propulsion physics of Tsiolkovsky and Goddard and driven by Cold War competition, humanity overcame Earth’s gravity well. In barely four decades, spaceflight progressed from the first artificial satellite to crewed Apollo Moon landings and continuous orbital habitation.',
     keyFigures: [
@@ -221,7 +221,7 @@ const SPACE_TIMELINE_DATA_EN: SpaceEra[] = [
     subtitle:
       'Reusable rocketry, infrared astrophysics at L2, Artemis cislunar return, and interplanetary architecture toward Mars.',
     iconName: 'Telescope',
-    accentColor: '#c4b5fd',
+    accentColor: '#fb7185',
     summary:
       'As of November 15, 2026, space exploration is undergoing a structural shift: vertical booster reuse has dramatically lowered orbital launch costs, the James Webb Space Telescope maps the early universe from L2, and the Artemis program builds the cislunar bridge toward the Martian horizon.',
     keyFigures: [
@@ -277,7 +277,7 @@ const SPACE_TIMELINE_DATA_ES: SpaceEra[] = [
     subtitle:
       'La bóveda celeste como arquitectura del tiempo, la agricultura y el pensamiento geométrico en las civilizaciones prístinas.',
     iconName: 'Compass',
-    accentColor: '#fde68a',
+    accentColor: '#fbbf24',
     summary:
       'Las civilizaciones de Mesopotamia, Egipto y Mesoamérica articularon los primeros registros sistemáticos de la bóveda celeste. En esta etapa preteórica, los fenómenos astronómicos regían los calendarios agrícolas, fundamentaban las cosmogonías y servían de brújula estelar, hasta que la astronomía helénica transformó esos datos en modelos geométricos geocéntricos.',
     keyFigures: [
@@ -367,7 +367,7 @@ const SPACE_TIMELINE_DATA_ES: SpaceEra[] = [
     subtitle:
       'Las leyes elípticas de Kepler y la síntesis gravitatoria de Newton unifican la mecánica terrestre y celeste.',
     iconName: 'Orbit',
-    accentColor: '#7df9ff',
+    accentColor: '#fdba74',
     summary:
       'A partir de las observaciones de arco de minuto recopiladas por Tycho Brahe sobre la órbita excéntrica de Marte, Johannes Kepler formuló las tres leyes del movimiento planetario. En 1687, Isaac Newton dedujo esas leyes desde un principio único: la gravitación universal, fundando la mecánica clásica sobre la que se calculan todas las trayectorias espaciales.',
     keyFigures: ['Tycho Brahe', 'Johannes Kepler', 'Isaac Newton'],
@@ -403,7 +403,7 @@ const SPACE_TIMELINE_DATA_ES: SpaceEra[] = [
     subtitle:
       'De la ecuación del cohete de Tsiolkovski al Sputnik 1, Yuri Gagarin, el alunizaje del Apolo 11 y la Estación Espacial Internacional.',
     iconName: 'Rocket',
-    accentColor: '#38bdf8',
+    accentColor: '#f97316',
     summary:
       'Sustentada en la física de propulsión a reacción de Tsiolkovski y Goddard e impulsada por la competencia geopolítica de la Guerra Fría, la humanidad venció el pozo gravitatorio terrestre. En apenas cuatro décadas pasó del primer satélite artificial al alunizaje tripulado del Programa Apolo y a la permanencia continua en estaciones orbitales.',
     keyFigures: [
@@ -469,7 +469,7 @@ const SPACE_TIMELINE_DATA_ES: SpaceEra[] = [
     subtitle:
       'Cohetería reutilizable, astrofísica infrarroja en L2, retorno cislunar Artemis y la arquitectura interplanetaria hacia Marte.',
     iconName: 'Telescope',
-    accentColor: '#c4b5fd',
+    accentColor: '#fb7185',
     summary:
       'Hacia el 15 de noviembre de 2026, la exploración espacial vive una transformación estructural: la reutilización vertical de lanzadores redujo los costos de acceso orbital, el Telescopio Espacial James Webb cartografía el universo primitivo desde el punto L2 y el programa Artemis construye el puente cislunar hacia el horizonte marciano.',
     keyFigures: [

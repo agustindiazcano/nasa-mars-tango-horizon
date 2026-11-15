@@ -47,6 +47,7 @@ export function PartnerLogosStrip({
           target="_blank"
           rel="noopener noreferrer"
           className="th-partner-pill"
+          style={{ borderRadius: '2px' }}
           aria-label="NASA International Space Apps Challenge"
           title="NASA Space Apps Challenge"
         >
@@ -59,15 +60,15 @@ export function PartnerLogosStrip({
           >
             <path
               d="M12 2.5L20 20.5H15.8L12 11.8L8.2 20.5H4L12 2.5Z"
-              fill="#f8fafc"
+              fill="#fff8f1"
             />
             <path
               d="M7.6 15.8H16.4"
-              stroke="#7df9ff"
+              stroke="#f97316"
               strokeWidth="1.8"
               strokeLinecap="round"
             />
-            <circle cx="12" cy="3.2" r="1.4" fill="#7df9ff" />
+            <circle cx="12" cy="3.2" r="1.4" fill="#fbbf24" />
           </svg>
           <span className="th-partner-pill__label">NASA Space Apps</span>
         </a>
@@ -77,6 +78,7 @@ export function PartnerLogosStrip({
           target="_blank"
           rel="noopener noreferrer"
           className="th-partner-pill"
+          style={{ borderRadius: '2px' }}
           aria-label="NASA"
           title="NASA"
         >
@@ -92,7 +94,7 @@ export function PartnerLogosStrip({
               cy="12"
               r="9"
               fill="#1e40af"
-              stroke="#93c5fd"
+              stroke="rgba(255, 248, 241, 0.72)"
               strokeWidth="1"
             />
             <path
@@ -105,7 +107,7 @@ export function PartnerLogosStrip({
             <path
               d="M6.2 7.8C11.4 13.4 18 16 23.6 14.3"
               fill="none"
-              stroke="#f8fafc"
+              stroke="#fff8f1"
               strokeWidth="1.15"
               strokeLinecap="round"
               opacity="0.85"
@@ -121,6 +123,7 @@ export function PartnerLogosStrip({
           target="_blank"
           rel="noopener noreferrer"
           className="th-partner-pill"
+          style={{ borderRadius: '2px' }}
           aria-label={conaeLabel}
           title={conaeLabel}
         >
@@ -133,25 +136,25 @@ export function PartnerLogosStrip({
           >
             <path
               d="M13 2.2L21.8 5.4V11.8C21.8 17.1 18 20.8 13 22.2C8 20.8 4.2 17.1 4.2 11.8V5.4L13 2.2Z"
-              fill="rgba(56, 189, 248, 0.14)"
-              stroke="#7dd3fc"
+              fill="rgba(251, 146, 60, 0.14)"
+              stroke="#fdba74"
               strokeWidth="1.35"
             />
             <path
               d="M7.2 14.4C10.4 10.6 14.8 9.2 18.9 9.7"
               fill="none"
-              stroke="#f8fafc"
+              stroke="#fff8f1"
               strokeWidth="1.5"
               strokeLinecap="round"
             />
             <path
               d="M8.4 16.9C11.3 14.1 14.6 13.1 18 13.4"
               fill="none"
-              stroke="#38bdf8"
+              stroke="#fb923c"
               strokeWidth="1.4"
               strokeLinecap="round"
             />
-            <circle cx="17.8" cy="7.6" r="1.3" fill="#fde68a" />
+            <circle cx="17.8" cy="7.6" r="1.3" fill="#fbbf24" />
           </svg>
           <span className="th-partner-pill__label">CONAE · Argentina</span>
         </a>
@@ -161,6 +164,7 @@ export function PartnerLogosStrip({
           target="_blank"
           rel="noopener noreferrer"
           className="th-partner-pill"
+          style={{ borderRadius: '2px' }}
           aria-label="Universidad de Palermo"
           title="Universidad de Palermo"
         >
@@ -173,18 +177,18 @@ export function PartnerLogosStrip({
           >
             <path
               d="M12 2.4L20.2 5.2V11.6C20.2 16.6 16.6 20.3 12 21.7C7.4 20.3 3.8 16.6 3.8 11.6V5.2L12 2.4Z"
-              fill="rgba(248, 250, 252, 0.08)"
-              stroke="#e2e8f0"
+              fill="rgba(255, 248, 241, 0.08)"
+              stroke="#f3dfd1"
               strokeWidth="1.35"
             />
             <text
               x="12"
               y="14.9"
               textAnchor="middle"
-              fill="#f8fafc"
+              fill="#fff8f1"
               fontSize="8.6"
               fontWeight="800"
-              fontFamily="system-ui, -apple-system, sans-serif"
+              fontFamily="var(--font-raleway), 'Raleway', sans-serif"
               letterSpacing="0.4"
             >
               UP
@@ -198,6 +202,7 @@ export function PartnerLogosStrip({
           target="_blank"
           rel="noopener noreferrer"
           className="th-partner-pill"
+          style={{ borderRadius: '2px' }}
           aria-label="IBM"
           title="IBM"
         >
@@ -221,7 +226,7 @@ export function PartnerLogosStrip({
                 <rect x="0" y="18.5" width="58" height="1.55" fill="#ffffff" />
               </mask>
             </defs>
-            <g mask={`url(#${ibmMaskId})`} fill="#93c5fd">
+            <g mask={`url(#${ibmMaskId})`} fill="#f3dfd1">
               {/* I */}
               <rect x="1" y="1" width="11" height="3.8" />
               <rect x="4.3" y="4.5" width="4.4" height="12" />

@@ -189,6 +189,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noopener noreferrer"
               className="site-footer__cta"
+              style={{ borderRadius: '2px' }}
             >
               <Rocket size={15} aria-hidden="true" />
               <span>
@@ -206,9 +207,10 @@ export function SiteFooter() {
               rel="noopener noreferrer"
               className="site-footer__cta"
               style={{
-                background: 'rgba(15, 23, 42, 0.78)',
-                borderColor: 'rgba(148, 163, 184, 0.38)',
-                color: '#f8fafc',
+                background: 'rgba(28, 12, 18, 0.84)',
+                borderColor: 'rgba(255, 255, 255, 0.24)',
+                color: '#fff8f1',
+                borderRadius: '2px',
               }}
             >
               <Github size={15} aria-hidden="true" />
@@ -220,9 +222,10 @@ export function SiteFooter() {
               href="/sources"
               className="site-footer__cta"
               style={{
-                background: 'rgba(14, 165, 233, 0.14)',
-                borderColor: 'rgba(56, 189, 248, 0.42)',
-                color: '#bae6fd',
+                background: 'rgba(249, 115, 22, 0.14)',
+                borderColor: 'rgba(255, 255, 255, 0.24)',
+                color: '#fdba74',
+                borderRadius: '2px',
               }}
             >
               <Database size={15} aria-hidden="true" />
@@ -289,15 +292,15 @@ export function SiteFooter() {
                 key={member.name}
                 style={{
                   padding: '0.55rem 0.7rem',
-                  borderRadius: '10px',
-                  background: 'rgba(15, 23, 42, 0.56)',
-                  border: '1px solid rgba(148, 163, 184, 0.18)',
+                  borderRadius: '2px',
+                  background: 'rgba(28, 12, 18, 0.62)',
+                  border: '1px solid rgba(255, 255, 255, 0.24)',
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#f8fafc' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#fff8f1' }}>
                   {member.name}
                 </div>
-                <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '0.1rem' }}>
+                <div style={{ fontSize: '0.76rem', color: '#b89b8c', marginTop: '0.1rem' }}>
                   {pickLang(lang, member.role)}
                 </div>
                 {member.links.length > 0 && (
@@ -318,7 +321,7 @@ export function SiteFooter() {
                         className="site-footer__link"
                         style={{
                           fontSize: '0.75rem',
-                          color: '#7df9ff',
+                          color: '#fbbf24',
                           textDecoration: 'underline',
                           textUnderlineOffset: '2px',
                         }}
@@ -336,12 +339,12 @@ export function SiteFooter() {
             style={{
               marginTop: '0.75rem',
               padding: '0.72rem 0.85rem',
-              borderRadius: '12px',
+              borderRadius: '2px',
               background: 'rgba(249, 115, 22, 0.08)',
-              border: '1px solid rgba(251, 146, 60, 0.32)',
+              border: '1px solid rgba(255, 255, 255, 0.24)',
               fontSize: '0.77rem',
               lineHeight: 1.5,
-              color: '#fed7aa',
+              color: '#fdba74',
             }}
           >
             <div
@@ -362,7 +365,7 @@ export function SiteFooter() {
                 })}
               </span>
             </div>
-            <p style={{ margin: 0, color: '#e2e8f0' }}>
+            <p style={{ margin: 0, color: '#f3dfd1' }}>
               {pickLang(lang, {
                 en: 'All 3D models created by Team Tango Horizon are free to use under Creative Commons Attribution 4.0 International (CC BY 4.0) for personal, educational, commercial, and illustration purposes.',
                 es: 'Todos los modelos 3D creados por el equipo Tango Horizon son libres para uso personal, educativo, comercial e ilustraciones bajo licencia Creative Commons Atribución 4.0 Internacional (CC BY 4.0).',
@@ -371,7 +374,7 @@ export function SiteFooter() {
                 href="https://creativecommons.org/licenses/by/4.0/"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: '#7df9ff', textDecoration: 'underline' }}
+                style={{ color: '#fbbf24', textDecoration: 'underline' }}
               >
                 CC BY 4.0 ↗
               </a>

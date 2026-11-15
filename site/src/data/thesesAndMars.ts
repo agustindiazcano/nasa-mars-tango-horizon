@@ -331,7 +331,7 @@ const MARS_EXPLORATION_EN: MarsPhase[] = [
     subtitle: 'The enigma of retrograde motion, Kepler’s ellipse, and the first albedo maps of the Red Planet.',
     description:
       'Positional study of Mars revealed the elliptical nature of planetary orbits and enabled humanity to measure the true scale of the Solar System for the first time.',
-    accent: '#fde68a',
+    accent: '#fbbf24',
     tags: ['Kepler’s Laws', 'Cassini’s Parallax', 'Syrtis Major'],
     metrics: [
       { value: '1609', label: 'Astronomia Nova by Johannes Kepler' },
@@ -422,7 +422,7 @@ const MARS_EXPLORATION_EN: MarsPhase[] = [
       'Crewed interplanetary transfers, in-situ chemical propellant synthesis, subterranean shelters, and autonomous surface robotics.',
     description:
       '21st-century human exploration architecture integrates reusable rockets, Sabatier plants, lava-tube shielding, and coordinated human–AI surface operations (Tango Horizon · 2026).',
-    accent: '#7df9ff',
+    accent: '#fb7185',
     tags: ['Hohmann Transfer', 'Sabatier Reaction', 'Tango Horizon · 2026'],
     metrics: [
       { value: '~100 t', label: 'Surface payload delivery capacity per mission' },
@@ -470,7 +470,7 @@ const MARS_EXPLORATION_ES: MarsPhase[] = [
     subtitle: 'El enigma del movimiento retrógrado, la elipse de Kepler y los primeros mapas de albedo del Planeta Rojo.',
     description:
       'El estudio posicional de Marte permitió descubrir la naturaleza elíptica de las órbitas planetarias y medir por primera vez la escala real del Sistema Solar.',
-    accent: '#fde68a',
+    accent: '#fbbf24',
     tags: ['Leyes de Kepler', 'Paralaje de Cassini', 'Syrtis Major'],
     metrics: [
       { value: '1609', label: 'Astronomia Nova de Johannes Kepler' },
@@ -561,7 +561,7 @@ const MARS_EXPLORATION_ES: MarsPhase[] = [
       'Transferencias interplanetarias tripuladas, síntesis química de propelentes in situ, refugios subterráneos y robótica autónoma de superficie.',
     description:
       'La arquitectura de exploración humana del siglo XXI integra cohetes reutilizables, plantas de Sabatier, protección en tubos de lava y operaciones coordinadas humano–IA en superficie (Tango Horizon · 2026).',
-    accent: '#7df9ff',
+    accent: '#fb7185',
     tags: ['Transferencia de Hohmann', 'Reacción de Sabatier', 'Tango Horizon · 2026'],
     metrics: [
       { value: '~100 t', label: 'Capacidad de carga útil en superficie por misión' },
