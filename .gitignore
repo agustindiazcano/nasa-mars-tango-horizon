@@ -45,3 +45,6 @@ desktop.ini
 
 # Agent local settings
 .claude/settings.local.json
+
+# Local voice simulation scratch
+scratch-voice/
