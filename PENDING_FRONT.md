@@ -1,7 +1,7 @@
 # Pending frontend tasks (`web/`)
 
 > Priority: 🔴 blocking/urgent · 🟡 next · 🟢 later · ⚪ backlog
-> All target frontend code is tracked for `web/` (consuming `@th/shared`). Active runtime code currently resides in `web-test-3d/` until `B22` and `B23` in `PENDING.md` consolidate it and reconcile `F1`–`F15`.
+> All target frontend code is tracked for `web/` (consuming `@th/shared`). The active runtime code lives in `web/` (the former `web-test-3d/`, migrated under `B22`); `B23` in `PENDING.md` reconciles `F1`–`F15` against it.
 > When a frontend task is completed, remove it from the table and mention it in `LASTCONTEXT.md`.
 
 ## Frontend reference plans
@@ -43,4 +43,4 @@
 
 ## NASA data audit priority
 
-- 🟢 F16: Runtime remediation in `web-test-3d/` (`B32`–`B36`, `B25`) is code-complete and verified under Node/Vitest (explicit DEM startup/lifecycle, flat `BASE_ORIGIN` and `@th/shared` `MISSION_SITES`, `8x8` adaptive LOD mesh over `height_2048.u16`, real `1024px` terrain rasters + 377 `in_scene` DAN points, `hydration_index` units, `N`/`S` coordinates, CTX/HiRISE datum audit, and dynamic Provenance modal). Remaining work is live browser DOM/WebGL visual verification (tracked under `B37`) and future consolidation into `web/` (`B22`).
+- 🟢 F16: Runtime remediation in `web/` (`B32`–`B36`, `B25`) is code-complete and verified under Node/Vitest (explicit DEM startup/lifecycle, flat `BASE_ORIGIN` and `@th/shared` `MISSION_SITES`, `8x8` adaptive LOD mesh over `height_2048.u16`, real `1024px` terrain rasters + 377 `in_scene` DAN points, `hydration_index` units, `N`/`S` coordinates, CTX/HiRISE datum audit, and dynamic Provenance modal). Remaining work is live browser DOM/WebGL visual verification (tracked under `B37`).

@@ -6,5 +6,5 @@
 
 | # | Priority | Step | Task | Guides | Depends on |
 |---|---|---|---|---|---|
-| B15 | 🔴 | Step 19 | Run final deploy to Cloud Run and Vercel once `web/` is merged, and tag `submission` | `10_DEPLOY_SUBMISSION.md` | B22 |
-| B22 | 🟡 | Tech Debt | Consolidate active frontend from `web-test-3d/` into `web/` (only `web/public/` exists today), align `vercel.json` and `server/src/index.ts` static path (`../../web/dist`), carry over Vitest tests, and reconcile `PENDING_FRONT.md` (`F1`–`F15`) against features already built in `web-test-3d/` | `01_SCAFFOLD.md`, `10_DEPLOY_SUBMISSION.md` | — |
+| B15 | 🔴 | Step 19 | Run final deploy to Cloud Run and Vercel from `web/`, and tag `submission` | `10_DEPLOY_SUBMISSION.md` | — |
+| B23 | 🟡 | Tech Debt | Reconcile `PENDING_FRONT.md` (`F1`–`F15`) against the features already built in `web/` (formerly `web-test-3d/`), make the Dockerfile build the frontend so the `web/dist` mirror in `server/src/index.ts` becomes active (or confirm Vercel-only), and fix `src/voice/localIntents.test.ts:6` (expects 6 categories, implementation has 9) | `01_SCAFFOLD.md`, `10_DEPLOY_SUBMISSION.md` | — |
