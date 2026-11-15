@@ -971,7 +971,6 @@ export class TacticalHud {
         <div id="map-host"></div>
         <div class="hud-map-foot">
           <span>${t("map.circles", { n: this.terrain.danPoints.length })}: ${escapeHtml(t("hud.dan_stations"))}</span>
-          <span>${t("map.keepout")}</span>
           ${s.activeRoute ? `<span><b>${t("map.route")} (${s.activeRoute.algorithm})</b>: ${fmt(s.activeRoute.distanceM, 0)} m, ${fmt(s.activeRoute.timeS / 60, 1)} min, O2 ${fmt(s.activeRoute.o2Kg * 1000, 0)} g</span>` : ""}
           ${s.layer === "hydration" ? `<span><b>${escapeHtml(t("hud.hydration_index"))}:</b> ${fmt(hydHere, 2)} ± ${fmt(uncHere, 2)} (${t("common.range")} ${fmt(hydMeta.weh_min, 2)}–${fmt(hydMeta.weh_max, 2)}) <button class="hud-btn ${this.terrain.hydrationUncMode ? "active" : ""}" data-pointable id="map-hyd-unc">${escapeHtml(t("hud.layer.hydration_unc"))}</button></span>` : ""}
         </div>
