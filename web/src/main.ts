@@ -19,11 +19,13 @@ import { MissionStore } from "./state";
 import { VoiceController } from "./voice/voiceController";
 import { AstronautProc } from "./world/astronautProc";
 import { BaseProc } from "./world/baseProc";
+import { CrewProc } from "./world/crewProc";
 import { CINEMATIC_CAM_IDS, CinematicCams, type CinematicCamId } from "./world/cinematicCams";
 import { FleetProc } from "./world/fleetProc";
 import { LaunchSiteProc } from "./world/launchSiteProc";
+import { PitProc } from "./world/pitProc";
+import { RescueScenario, type RescueView } from "./world/rescueScenario";
 import { PodBallistics } from "./world/podBallistics";
-import { trackCrew } from "./world/crewTracker";
 import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
 import { TerrainProc } from "./world/terrainProc";
@@ -118,6 +120,8 @@ scene.add(astronaut.group);
 
 const baseProc = new BaseProc(scene, terrain);
 const launchSite = new LaunchSiteProc(scene, terrain);
+new PitProc(scene, terrain);
+const crew = new CrewProc(scene, terrain);
 const skyCrane = new SkyCraneProc(scene, terrain);
 createSkyCraneToggle(() => {
   skyCrane.setVisible(!skyCrane.visible);
@@ -400,6 +404,18 @@ store.setHooks({
         break;
     }
   },
+  onDispatchOverwatch: (unitId, x, z, altitudeM) => {
+    const unit = fleet.get(unitId);
+    if (!unit) return;
+    unit.targetAltitude = altitudeM;
+    fleet.dispatchTo(unitId, x, z, "overwatch", () => store.pushAlert("info", `${unitId}: on overwatch station at (${Math.round(x)}, ${Math.round(z)})`));
+    store.pushAlert("info", `${unitId}: overwatch dispatched, ${Math.round(altitudeM)} m altitude, 25 m crew standoff`, "BASE");
+  },
+  onDeployRescueRobot: (unitId, x, z) => {
+    fleet.setRescueBotStowed(false);
+    fleet.dispatchTo(unitId, x, z, "rescue", () => store.pushAlert("info", `${unitId}: at the casualty position`));
+    store.pushAlert("info", `${unitId}: deployed from rescue-1 toward (${Math.round(x)}, ${Math.round(z)})`, "BASE");
+  },
   onArmSkill: (skill: ArmSkillId, targetId: string, item?: string) => {
     fleet.executeArmSkill(skill, targetId, astronaut.pos, astronaut.yaw, item);
   },
@@ -420,7 +436,38 @@ store.setHooks({
   onStopAll: () => fleet.stopAll(),
 });
 
-function startScenario(id: "storm" | "sep2017" | "leak"): void {
+const rescue = new RescueScenario({
+  heightAt: (x, z) => terrain.heightAt(x, z),
+  getCrew1: () => ({ x: astronaut.pos.x, z: astronaut.pos.z }),
+  onEvent: (ev) => store.pushAlert(ev.level, ev.text, ev.source),
+});
+store.rescue = rescue;
+
+/** Applies the scripted rescue state to the fleet, crew, rescue robot and environment. */
+function applyRescueView(v: RescueView): void {
+  store.env.tau = v.tau;
+  store.env.wind_ms = v.windMs;
+  store.env.sun_elev_deg = v.sunElevDeg;
+  for (const id of ["rover-1", "rescue-1", "rescue-bot-1", "drone-1", "drone-2"] as const) {
+    fleet.placeUnit(id, v.units[id].x, v.units[id].z, v.units[id].yaw);
+  }
+  for (const id of ["drone-1", "drone-2"] as const) {
+    const drone = fleet.get(id);
+    if (!drone) continue;
+    drone.targetAltitude = v.droneAltM[id];
+    drone.manualGrounded = v.dronesGrounded;
+  }
+  fleet.setRescueBotStowed(v.robot.stowed);
+  fleet.setRescueRamp(v.rampOpen01);
+  fleet.applyRescueBotPose(v.robot.pose);
+  for (const id of ["crew-2", "crew-3"] as const) {
+    const c = v.crew[id];
+    crew.place(id, c.x, c.z, c.yaw, c.pose, { yOffset: c.yOffset, visible: c.visible });
+  }
+}
+
+function startScenario(id: "storm" | "sep2017" | "leak" | "rescue"): void {
+  if (id !== "rescue") rescue.reset();
   store.activeScenario = id;
   store.scenarioElapsedS = 0;
   store.env.data_category = "design";
@@ -451,6 +498,9 @@ function startScenario(id: "storm" | "sep2017" | "leak"): void {
     const route = planAndDrawRoute(bestX, bestZ, 2.5);
     if (route) store.activeRoute = route;
     store.pushAlert("crit", `Solar Particle Event! Sheltered SVF=${bestSvf.toFixed(2)} route plotted`, "WEATHER-RAD");
+  } else if (id === "rescue") {
+    store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
+    rescue.start();
   } else if (id === "leak") {
     leakEscalated = false;
     store.emergencyResponseActive = false;
@@ -615,6 +665,14 @@ function stepSimulation(dt: number): void {
         store.activeScenario = "none";
         store.env.rad_source = "Design quiet absorbed dose";
       }
+    } else if (store.activeScenario === "rescue") {
+      rescue.step(dt);
+      store.scenarioElapsedS = rescue.elapsedS;
+      applyRescueView(rescue.view);
+      if (!rescue.running && rescue.elapsedS >= rescue.durationS) {
+        store.activeScenario = "none";
+        store.env.storm_source = "Design clear atmosphere";
+      }
     } else if (store.activeScenario === "leak") {
       if (!leakEscalated && store.scenarioElapsedS >= 2.0) {
         leakEscalated = true;
@@ -651,7 +709,8 @@ function stepSimulation(dt: number): void {
 
   fleet.update(dt, store.env.tau);
   store.fleet = fleet.snapshots();
-  store.crew = trackCrew(store.crew, astronaut.pos, store.fleet);
+  crew.update(dt);
+  store.crew = rescue.getCrewSnapshots();
 
   podBallistics.updateKeepoutRing(astronaut.pos.x, astronaut.pos.z);
   podBallistics.update(dt, store.podTelemetry);

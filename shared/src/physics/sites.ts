@@ -87,6 +87,9 @@ export const FISSION_COORD: Readonly<Coord2D> = {
   z: BASE_ORIGIN.z + FISSION_OFFSET.z,
 };
 
+/** Idle position of the second base astronaut (`crew-4`) beside `hab-1`. */
+export const CREW4_START: Readonly<Coord2D> = { x: BASE_ORIGIN.x + 8, z: BASE_ORIGIN.z + 7 };
+
 export const LAUNCHER_PRIMARY_OFFSET: Readonly<Coord2D> = { x: 55, z: 24 };
 
 export const LAUNCHER_PRIMARY_COORD: Readonly<Coord2D> = {
@@ -99,6 +102,15 @@ export const LAUNCHER_PRIMARY_COORD: Readonly<Coord2D> = {
  * real HiRISE DEM as a <7 deg, <7 m relief area within a 70 m radius with line of sight to the base.
  */
 export const LAUNCH_SITE_COORD: Readonly<Coord2D> = { x: 1202, z: -1022 };
+
+/**
+ * Crew rescue scenario site (world m): center of the designed pit. About 1.66 km from `BASE_ORIGIN`, found by a DEM scan
+ * for a patch with <1.3 m relief and <5 deg slope within 35 m that is reachable from the base over <=18 deg terrain.
+ */
+export const RESCUE_SITE: Readonly<Coord2D> = { x: 1420, z: 648 };
+
+/** Designed pit at `RESCUE_SITE` (no real pit exists in the HiRISE DEM): open shaft, design assumption. */
+export const RESCUE_PIT = { depthM: 4, radiusM: 1.5 } as const;
 
 /** Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` for all 16 base modules. */
 export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
@@ -126,6 +138,7 @@ export const FLEET_START_OFFSETS: Readonly<Record<string, Readonly<Coord2D>>> = 
   "rover-2": { x: 62, z: 48 },
   "rover-3": { x: 34, z: 42 },
   "rescue-1": { x: -16, z: 24 },
+  "rescue-bot-1": { x: -16, z: 24 },
   "drone-1": { x: 40, z: -30 },
   "drone-2": { x: -60, z: 55 },
   // Legacy alias kept for backward compatibility with existing tests/snapshots

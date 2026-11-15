@@ -1,7 +1,9 @@
 import {
+  CREW_ROSTER,
   MAX_FDIR_WINDOW_SAMPLES,
   terrainMatches,
   type CrewProfile,
+  type CrewSnapshot,
   type DonkiAlert,
   type EnvTelemetrySample,
   type FleetUnitHealth,
@@ -175,6 +177,33 @@ function sanitizeFleet(raw: unknown): FleetUnitSnapshot[] {
     if (typeof id !== "string" || typeof kind !== "string") continue;
     if (!isNum(x) || !isNum(z) || !isNum(battery)) continue;
     out.push({ id, kind, x, z, battery, busy: Boolean(busy) });
+  }
+  return out;
+}
+
+const CREW_STATUSES = new Set(["nominal", "incapacitated", "evacuating", "recovering"]);
+const CREW_LOCATIONS = new Set(["base", "traverse", "in_pit", "rescue_vehicle", "in_rover"]);
+
+/** Keeps only the four roster members; name and assignment always come from the roster, never from the client. */
+function sanitizeCrew(raw: unknown): CrewSnapshot[] {
+  if (!Array.isArray(raw)) return [];
+  const out: CrewSnapshot[] = [];
+  for (const m of raw) {
+    if (!m || typeof m !== "object") continue;
+    const { id, x, z, status, location, unit_id } = m as Record<string, unknown>;
+    const member = typeof id === "string" ? CREW_ROSTER.find((c) => c.id === id) : undefined;
+    if (!member || out.some((c) => c.id === member.id)) continue;
+    if (!isNum(x) || !isNum(z)) continue;
+    out.push({
+      id: member.id,
+      name: member.name,
+      assignment: member.assignment,
+      x,
+      z,
+      location: typeof location === "string" && CREW_LOCATIONS.has(location) ? (location as CrewSnapshot["location"]) : "base",
+      status: typeof status === "string" && CREW_STATUSES.has(status) ? (status as CrewSnapshot["status"]) : "nominal",
+      ...(typeof unit_id === "string" && unit_id.length <= 40 ? { unit_id } : {}),
+    });
   }
   return out;
 }
@@ -431,6 +460,8 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     ...(baseBatteryWh !== undefined && baseBatteryWh >= 0 ? { base_battery_wh: baseBatteryWh } : {}),
     ...(donkiAlert ? { donki_alert: donkiAlert } : {}),
     fleet: sanitizeFleet(c.fleet),
+    ...(Array.isArray(c.crew) ? { crew: sanitizeCrew(c.crew) } : {}),
+    ...(c.rescue_active === true ? { rescue_active: true } : {}),
     hud: {
       layer: String(c.hud?.layer ?? "optical"),
       panel: typeof c.hud?.panel === "string" ? c.hud.panel : null,

@@ -1,5 +1,8 @@
 import {
   BASE_ORIGIN,
+  CREW_ROSTER,
+  findCrew,
+  findCrewInText,
   getMissionSite,
   MISSION_SITES_BY_ID,
   type ComponentHealthReport,
@@ -62,6 +65,61 @@ function proposeAction(
 
 function pick(lang: Lang, msgs: Record<Lang, string>): string {
   return msgs[lang] ?? msgs.en;
+}
+
+const CREW_LOC_LABEL: Record<string, Record<Lang, string>> = {
+  base: { en: "at the base", es: "en la base", fr: "à la base", de: "an der Basis", it: "alla base" },
+  traverse: { en: "on the traverse", es: "en travesía", fr: "en traversée", de: "auf der Traverse", it: "in traversata" },
+  in_pit: { en: "in the pit", es: "en el pozo", fr: "dans le puits", de: "im Schacht", it: "nel pozzo" },
+  rescue_vehicle: {
+    en: "aboard the rescue vehicle",
+    es: "a bordo del vehículo de rescate",
+    fr: "à bord du véhicule de secours",
+    de: "im Rettungsfahrzeug",
+    it: "a bordo del veicolo di soccorso",
+  },
+  in_rover: { en: "in the rover", es: "en el rover", fr: "dans le rover", de: "im Rover", it: "nel rover" },
+};
+
+const CREW_STATUS_LABEL: Record<string, Record<Lang, string>> = {
+  nominal: { en: "nominal", es: "nominal", fr: "nominal", de: "nominal", it: "nominale" },
+  incapacitated: { en: "incapacitated", es: "incapacitado", fr: "hors d'état d'agir", de: "handlungsunfähig", it: "incapacitato" },
+  evacuating: { en: "being evacuated", es: "en evacuación", fr: "en évacuation", de: "wird evakuiert", it: "in evacuazione" },
+  recovering: { en: "recovering", es: "en recuperación", fr: "en récupération", de: "in Erholung", it: "in recupero" },
+};
+
+const CREW_HEADER: Record<"expedition" | "base" | "all", Record<Lang, string>> = {
+  expedition: {
+    en: "Science expedition",
+    es: "Expedición científica",
+    fr: "Expédition scientifique",
+    de: "Wissenschaftsexpedition",
+    it: "Spedizione scientifica",
+  },
+  base: { en: "At the base", es: "En la base", fr: "À la base", de: "An der Basis", it: "Alla base" },
+  all: { en: "Crew", es: "Tripulación", fr: "Équipage", de: "Besatzung", it: "Equipaggio" },
+};
+
+const stripAccents = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+const CREW_WHO_RE = /\b(quienes|quien|who|qui|wer|chi)\b/;
+const CREW_WHERE_RE = /\b(donde|where|ou (?:est|sont|se trouve)|wo (?:ist|sind|befindet)|dov['’]? ?e|dove)\b/;
+const CREW_STATUS_RE =
+  /\b(estado|status|state|condition|etat|zustand|stato|how (?:is|are)|como (?:esta|estan|van)|comment (?:va|vont|allez)|wie (?:geht|gehts|ist|sind)|come (?:sta|stanno))\b/;
+const CREW_GROUP_RE = /\b(astronautas|astronauts|astronautes|astronauten|astronauti|tripulacion|tripulantes|crew(?! rover)|equipage|besatzung|equipaggio|equipo)\b/;
+const EXPEDITION_RE = /\b(expedicion|expedition|spedizione)\b/;
+const AT_BASE_RE = /\b(base|basis)\b/;
+const RESCUE_ORDER_RE = /\b(rescat\w*|rescue|secour\w*|sauv\w*|rett\w*|soccorr\w*|salva\w*)\b/;
+const RESCUE_ROBOT_RE = /\b(robot de rescate|rescue robot|robot de sauvetage|rettungsroboter|robot di soccorso)\b/;
+const DEPLOY_VERB_RE = /\b(desplieg\w*|deploy\w*|enví\w*|envia\w*|send\w*|manda\w*|deploi\w*|envoie\w*|einsetz\w*|schick\w*|schier\w*|invia\w*)\b/;
+const DRONE_WORD_RE = /\b(drones?|dron|drohnen?|droni)\b/;
+const OVERWATCH_RE = /\b(overwatch|vigilancia|vigila\w*|surveillance|surveill\w*|ueberwach\w*|uberwach\w*|sorveglianza|sorveglia\w*|contacto visual|visual contact)\b/;
+const CASUALTY_RE = /\b(herido|accidentad\w*|casualty|injured|blesse|verletzt\w*|ferito|caido)\b/;
+
+function crewLine(c: { name: string; location: string; status: string; distance_to_base_m?: number }, lang: Lang): string {
+  const loc = CREW_LOC_LABEL[c.location]?.[lang] ?? c.location;
+  const st = CREW_STATUS_LABEL[c.status]?.[lang] ?? c.status;
+  return `${c.name} (${loc}, ${st})`;
 }
 
 const LAYER_LABELS: Record<string, Record<Lang, string>> = {
@@ -407,6 +465,125 @@ export async function offlineReply(
   const actions: Action[] = [];
   const trace: TraceEvent[] = [];
   const lang = ctx.lang;
+
+  // 0. Crew roster: "who is on the expedition", "where is Sotelo", "how is Yaconis", rescue orders (plan 22)
+  const qa = stripAccents(q);
+  const namedCrew = findCrewInText(text);
+  const crewWhere = CREW_WHERE_RE.test(qa);
+  const crewStatusWord = CREW_STATUS_RE.test(qa);
+  const crewWho = CREW_WHO_RE.test(qa);
+  const crewQueryScope: "expedition" | "base" | "all" | null =
+    namedCrew.length > 0 && (crewWhere || crewStatusWord)
+      ? "all"
+      : crewWho && EXPEDITION_RE.test(qa)
+        ? "expedition"
+        : crewWho && AT_BASE_RE.test(qa)
+          ? "base"
+          : CREW_GROUP_RE.test(qa) && (crewStatusWord || crewWho || crewWhere)
+            ? "all"
+            : null;
+  if (crewQueryScope) {
+    const caller = "BASE";
+    trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
+    const res = await execRead(
+      "get_crew_status",
+      { where: crewQueryScope === "all" ? "all" : crewQueryScope },
+      ctx,
+      caller,
+      trace,
+    );
+    const rows: { name: string; location: string; status: string; distance_to_base_m: number }[] = res?.crew ?? [];
+    const selected = namedCrew.length > 0 ? rows.filter((r) => namedCrew.some((n) => n.name === r.name)) : rows;
+    let speech: string;
+    if (namedCrew.length > 0 && selected.length === 1) {
+      const r = selected[0];
+      const d = Math.round(r.distance_to_base_m);
+      speech = pick(lang, {
+        es: `${crewLine(r, lang)}, a ${d} m de la base.`,
+        en: `${crewLine(r, lang)}, ${d} m from the base.`,
+        fr: `${crewLine(r, lang)}, à ${d} m de la base.`,
+        de: `${crewLine(r, lang)}, ${d} m von der Basis entfernt.`,
+        it: `${crewLine(r, lang)}, a ${d} m dalla base.`,
+      });
+    } else if (selected.length === 0) {
+      speech = pick(lang, {
+        es: "Nadie en ese grupo.",
+        en: "Nobody in that group.",
+        fr: "Personne dans ce groupe.",
+        de: "Niemand in dieser Gruppe.",
+        it: "Nessuno in quel gruppo.",
+      });
+    } else {
+      speech = `${CREW_HEADER[crewQueryScope][lang]}: ${selected.map((r) => crewLine(r, lang)).join("; ")}.`;
+    }
+    return { speech, actions, trace, route: ["SUIT.VOICE-EXEC", "BASE"] };
+  }
+
+  const rescueRobotOrder = RESCUE_ROBOT_RE.test(qa) && DEPLOY_VERB_RE.test(qa);
+  const overwatchOrder = DRONE_WORD_RE.test(qa) && OVERWATCH_RE.test(qa) && (namedCrew.length > 0 || CASUALTY_RE.test(qa) || ctx.rescue_active === true);
+  const rescueCrewOrder = namedCrew.length > 0 && RESCUE_ORDER_RE.test(qa) && !crewWhere && !crewStatusWord;
+  if (rescueRobotOrder || overwatchOrder || rescueCrewOrder) {
+    const caller = "BASE";
+    const route = ["SUIT.VOICE-EXEC", "BASE"];
+    trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
+    const casualty =
+      namedCrew[0] ??
+      CREW_ROSTER.find((m) => ctx.crew?.some((c) => c.id === m.id && c.status === "incapacitated")) ??
+      findCrew("YACONIS")!;
+    const snap = ctx.crew?.find((c) => c.id === casualty.id);
+    if (!snap) {
+      return {
+        speech: pick(lang, {
+          es: `No tengo la posición de ${casualty.name}.`,
+          en: `I have no position for ${casualty.name}.`,
+          fr: `Je n'ai pas la position de ${casualty.name}.`,
+          de: `Keine Position für ${casualty.name} vorhanden.`,
+          it: `Non ho la posizione di ${casualty.name}.`,
+        }),
+        actions,
+        trace,
+        route,
+      };
+    }
+    const proposals: Action[] = [];
+    if (rescueCrewOrder) {
+      proposals.push(
+        proposeAction("dispatch", { unit_id: "rescue-1", x: Math.round(snap.x), z: Math.round(snap.z), task: "rescue" }, ctx, caller, actions, trace),
+      );
+    }
+    if (rescueCrewOrder || overwatchOrder) {
+      for (const unit of ctx.fleet.filter((u) => u.kind === "drone").slice(0, 2)) {
+        const planned = (await missionScope.run({ ctx, caller }, () =>
+          toolByName("dispatch_overwatch").run(
+            { unit_id: unit.id, target_id: casualty.id, radius_m: 34, altitude_m: 25 },
+            ctx,
+            caller,
+          ),
+        )) as Action;
+        proposals.push(proposeAction("dispatch_overwatch", planned.args, ctx, caller, actions, trace));
+      }
+    }
+    if (rescueCrewOrder || rescueRobotOrder) {
+      const robot = ctx.fleet.find((u) => u.kind === "rescue_robot")?.id ?? "rescue-bot-1";
+      const planned = (await missionScope.run({ ctx, caller }, () =>
+        toolByName("deploy_rescue_robot").run({ unit_id: robot, target_id: casualty.id }, ctx, caller),
+      )) as Action;
+      proposals.push(proposeAction("deploy_rescue_robot", planned.args, ctx, caller, actions, trace));
+    }
+    const ok = proposals.filter((a) => a.verdict?.decision === "allow").length;
+    const ask = proposals.filter((a) => a.verdict?.decision === "ask_human").length;
+    const denied = proposals.find((a) => a.verdict?.decision === "deny");
+    const n = casualty.name;
+    const tail = denied?.verdict ? ` ${denied.verdict.reason}.` : "";
+    const speech = pick(lang, {
+      es: `${n}: ${ok} acciones aprobadas, ${ask} esperan tu confirmación.${tail}`,
+      en: `${n}: ${ok} actions approved, ${ask} awaiting your confirmation.${tail}`,
+      fr: `${n} : ${ok} actions approuvées, ${ask} en attente de confirmation.${tail}`,
+      de: `${n}: ${ok} Aktionen genehmigt, ${ask} warten auf Bestätigung.${tail}`,
+      it: `${n}: ${ok} azioni approvate, ${ask} in attesa di conferma.${tail}`,
+    });
+    return { speech, actions, trace, route };
+  }
 
   const isExplicitUnitOrderToRescue =
     /(?<![\p{L}\d])(rescue|rescate)(?:\s*(?:uno|one|1|-1))?(?![\p{L}\d])/iu.test(q) &&
