@@ -358,10 +358,11 @@ All three domain models are trained offline by Python scripts in [`tools/`](tool
 
 ## AI Usage
 
-### AI-assisted development methodology (Software 3.0)
+### AI-assisted development methodology (Software 3.0 — AFAW)
 
-This project was built with AI-assisted development in the Software 3.0 style: AI coding agents took part in the whole development process (implementation, tests, CI/CD, pull requests, commits and documentation validated and designed by human, deploy), under human direction and review.
+This project was built with AI-assisted development in the Software 3.0 style using our own [**AFAW (Anti-Fragile Agentic Workflow)**](https://github.com/agustindiazcano/afaw-anti-fragile-agentic-workflow) methodology for multi-agent coordination: AI coding agents took part in the whole development process (implementation, tests, CI/CD, pull requests, commits and documentation validated and designed by human, deploy), under human direction and review.
 
+- **Multi-agent coordination methodology:** [**AFAW — Anti-Fragile Agentic Workflow**](https://github.com/agustindiazcano/afaw-anti-fragile-agentic-workflow) (author's methodology for coordinating multiple autonomous coding agents with shared contracts, worktree isolation, atomic commits, and human-in-the-loop verification)
 - **Coding agents:** Codex, Claude Code, Gemini Antigravity, IBM Bob, Meta Muse
 - **Parallel orchestration & isolation:** Multiple agents running in parallel via an orchestrator coordinating medium-tier models, each in its own git worktree and branch to avoid conflicts, plus a code reviewer agent
 - **Workflow AI:** ChatGPT, Gemini, Google AI Studio, Grok

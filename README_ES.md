@@ -114,10 +114,11 @@ Tango Horizon mantiene la simulación WebGL2 del navegador (`web/`) como única 
 
 ## Uso de IA
 
-### Metodología de desarrollo asistido por IA (Software 3.0)
+### Metodología de desarrollo asistido por IA (Software 3.0 — AFAW)
 
-Este proyecto se construyó con desarrollo asistido por IA al estilo Software 3.0: los agentes de programación con IA participaron en todo el proceso de desarrollo (implementación, pruebas, CI/CD, pull requests, commits y documentación validados y diseñados por humanos, despliegue), bajo dirección y revisión humana.
+Este proyecto se construyó con desarrollo asistido por IA al estilo Software 3.0 utilizando nuestra metodología propia [**AFAW (Anti-Fragile Agentic Workflow)**](https://github.com/agustindiazcano/afaw-anti-fragile-agentic-workflow) para la coordinación de múltiples agentes: los agentes de programación con IA participaron en todo el proceso de desarrollo (implementación, pruebas, CI/CD, pull requests, commits y documentación validados y diseñados por humanos, despliegue), bajo dirección y revisión humana.
 
+- **Metodología propia de coordinación multi-agente:** [**AFAW — Anti-Fragile Agentic Workflow**](https://github.com/agustindiazcano/afaw-anti-fragile-agentic-workflow) (metodología propia para coordinar múltiples agentes autónomos de código con contratos de contexto compartidos, aislamiento por worktrees, commits atómicos y verificación human-in-the-loop)
 - **Agentes de código:** Codex, Claude Code, Gemini Antigravity, IBM Bob, Meta Muse
 - **Orquestación en paralelo y aislamiento:** Múltiples agentes ejecutados en paralelo bajo un agente orquestador coordinando modelos medianos, cada uno en su propio worktree y rama para evitar conflictos, junto con un agente code reviewer
 - **IA para workflows:** ChatGPT, Gemini, Google AI Studio, Grok
