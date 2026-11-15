@@ -66,8 +66,10 @@ Baseline main `8e61b4c` includes PR #15, verified merged through GitHub. Active 
 
 Implemented bounded retries, cancellation, stale-generation protection, pinned metadata/DEM identity, explicit startup states and client/server rejection. Terrain commit is idempotent; reset remains document reload. Shared footprint/contact placement covers base modules and actual rover wheels, including launcher origins.
 
-Local validation: lifecycle 14/14 tests passed; terrain validation 9/9 and coordinates 3/3 passed. Frontend and server TypeScript passed. Tests cover a real 6.5-second delay, missing/truncated/same-length corrupt assets, metadata mismatch, retry, cancellation/backoff, ignored abort/late completion, validated-cache reuse, fresh reset owner, repeated-load scene/marker counts, both HTTP mismatch endpoints and numerical contact clearances.
+Local validation: lifecycle 15/15 tests passed; terrain validation 9/9 and coordinates 3/3 passed. Frontend and server TypeScript passed. Tests cover a real 6.5-second delay, missing/truncated/same-length corrupt assets, metadata mismatch, retry, cancellation/backoff, ignored abort/late completion, validated-cache reuse, fresh reset owner, repeated-load scene/marker counts, both HTTP mismatch endpoints and numerical contact clearances.
 
 Browser inventory retried through CUA: `apps: []`, `browsers: []`; native pipe connection failed with Windows `os error 2` (file not found). No screenshots, visual contact/reset acceptance or preview MIME checks are claimed.
 
 Source identity does not certify 256-sample client geometry against 2048-sample server queries and processed layers. Contact tests prove no penetration only at supplied supports. Browser residuals, broader crew/pod/camera checks, flat base selection, CTX vertical-reference disposition and P4-P7 gates remain open. No merge or deployment performed.
+
+Portability correction: the first Linux CI rejected raw Windows CRLF metadata hashes. Identity now normalizes CRLF to LF before hashing metadata, with an explicit cross-platform regression test. DEM bytes remain exact. The final local lifecycle run passed 15 tests in 34.58 s; frontend and server TypeScript passed. PR: https://github.com/agustindiazcano/nasa-mars-tango-horizon/pull/16 .
