@@ -27,3 +27,5 @@
 ## NASA data remediation plan
 
 Execute `docs/NASA_DATA_REMEDIATION_PLAN.md` using the existing task IDs: B32 maps to P1, B33 to P2–P3, B34 to P5, B35 to P1/P6, B36 to P4/P7, and B27 to the P7 standards audit. P0 establishes integration status and P8 covers validation. These corrections gate B15; frontend coordination is tracked as F16. Do not create a second B32 umbrella task.
+
+Implementation evidence for PR #14 is in `docs/NASA_DATA_REMEDIATION_EVIDENCE.md`. B32-B36 and B27 remain open: initial label, startup, hydration-contract and source-crop fixes do not satisfy all plan gates. Continue P1 replay/epoch work, P2/P3 browser lifecycle checks, then P4 vertical-reference and P5-P7 science integration.

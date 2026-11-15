@@ -1,26 +1,18 @@
-﻿# Last context
+# Last context
 
 **Date:** 2026-11-14
 **Agent:** Codex
 
-## What was done
+## Work performed
 
-- Updated local `main` to `32f63e1`, then merged it into the PR #13 branch `docs/nasa-data-remediation-plan` to resolve documentation conflicts.
-- Preserved the main-branch B27 and B32–B36 audit tasks and mapped the remediation plan to those IDs. Kept the removal of completed B28–B31 tasks.
-- Retained the full remediation plan and execution prompt, and aligned frontend tracking with the existing task IDs.
+Implemented NASA remediation changes on `fix/nasa-data-remediation`, PR #14. Added validated terrain startup with retries and a manual retry control before actor construction; rebuilt terrain markers after loading; corrected synthetic event attribution and coordinate hemispheres. Added independent historical exact-sample inspection and HiRISE optical imagery loading. Renamed backend hydration prediction fields to dimensionless indices. Added environment provenance/category fields and historical/design forecast disclaimers.
 
-## Files touched
+Verified coordinate patch 42c5e92 is integrated. Reproduced the authoritative USGS crop using the pipeline sampling policy; maximum uint16 decoding residual is 0.006070 m. Added a reproducible verification script and evidence JSON. No raw raster was committed.
 
-- `PENDING.md`, `PENDING_FRONT.md`, `LASTCONTEXT.md`
+## Files and validation
 
-## Integration context
+Changes cover shared mission types, server terrain/tool/offline responses, frontend startup/terrain/HUD/archive and metadata tests, the verification script and evidence documents. Frontend TypeScript passed; server TypeScript passed after hydration changes. Targeted Vitest passed 12 tests. Initial branch CI passed shared/server/build; subsequent source commits trigger new CI. See `docs/NASA_DATA_REMEDIATION_EVIDENCE.md` for results and scope.
 
-- Updated main includes the AI/RAG fixes: empty-completion handling, explicit offline markers, measured-tau weather decisions, plain spoken replies, bounded document searches, provider token-budget fixes, and terrain-metadata coordinate anchoring with regression tests.
-- The prior session reported 46 shared tests and 35 server tests. Those results were not rerun during this documentation conflict resolution; the prior voice run still has no recorded result here.
-- Source-raster verification and deployment are not established by this merge. The plan requires independent verification of both.
+## Handoff
 
-## Decisions and handoff
-
-- Preserve main's task identifiers rather than replacing B32 with a duplicate umbrella task.
-- Resolve documentation conflicts on the PR branch without changing runtime code or merging the PR into main.
-- Keep untracked `.claude/` content untouched. Validate the resulting documentation diff and push the PR branch for GitHub checks.
+PR: https://github.com/agustindiazcano/nasa-mars-tango-horizon/pull/14 . The plan is partially implemented; no full completion or visual approval is claimed. Browser creation timed out and inventory showed no browser plus an unavailable native pipe. No merge or production deployment was performed. Untracked `.claude/` content remains untouched.
