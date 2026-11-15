@@ -249,7 +249,7 @@ export const TOOLS: ToolDef[] = [
     server: "environment",
     effect: false,
     schema: z.object({}),
-    description: "Surface pressure, air temperature, dust opacity tau, wind speed, radiation dose rate, and air density (REMS & RAD).",
+    description: "Mission surface pressure, temperature, opacity, wind, absorbed dose rate and density. Respect data_category and source fields: design values are not NASA observations.",
     run: (_a, ctx) => ({
       ...ctx.env,
       air_density_kg_m3: Number(surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k).toFixed(5)),
