@@ -7,21 +7,21 @@ import {
 } from "../rescueRobotProc";
 
 describe("rescue robot skills", () => {
-  it("pays the tether out to the pit floor on descend and recovers it on winch", () => {
-    const depth = 4;
-    expect(rescuePoseFor("descend", 0, depth).winchM).toBeLessThan(0.5);
-    expect(rescuePoseFor("descend", 1, depth).winchM).toBeGreaterThanOrEqual(depth);
-    expect(rescuePoseFor("secure", 1, depth).stretcher).toBe("loaded");
-    expect(rescuePoseFor("winch", 0, depth).winchM).toBeGreaterThanOrEqual(depth);
-    expect(rescuePoseFor("winch", 1, depth).winchM).toBeLessThan(1);
+  it("lowers the arm to the casualty, hooks the harness and raises it for the drag", () => {
+    expect(rescuePoseFor("descend", 0).armPitch).toBeLessThan(rescuePoseFor("descend", 1).armPitch);
+    expect(rescuePoseFor("secure", 1).stretcher).toBe("loaded");
+    expect(rescuePoseFor("winch", 0).armPitch).toBeGreaterThan(rescuePoseFor("winch", 1).armPitch);
+    expect(rescuePoseFor("winch", 1).stretcher).toBe("loaded");
   });
 
-  it("builds a model whose tether and stretcher follow the pose", () => {
+  it("builds a model whose harness hook follows the pose and stays above the ground", () => {
     const model = buildRescueRobotModel();
-    model.applyPose(rescuePoseFor("descend", 1, 4));
-    const deep = model.hook.position.y;
-    model.applyPose(rescuePoseFor("winch", 1, 4));
-    expect(model.hook.position.y).toBeGreaterThan(deep);
+    model.applyPose(rescuePoseFor("secure", 1));
+    const reach = model.hook.position.y;
+    expect(reach).toBeGreaterThan(0.05);
+    expect(reach).toBeLessThan(0.4);
+    model.applyPose(rescuePoseFor("winch", 1));
+    expect(model.hook.position.y).toBeGreaterThan(reach - 0.05);
   });
 
   it("runs a skill to completion and emits one done event", () => {

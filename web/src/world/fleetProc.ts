@@ -66,6 +66,9 @@ export class FleetUnit {
   mastPivot?: THREE.Group;
   grounded = false;
   manualGrounded = false;
+  /** Scripted vertical offset above the terrain (pit ramp, bay ramp) and optional pitch override (rad). */
+  scriptYOffset = 0;
+  scriptPitch: number | undefined;
   targetAltitude?: number;
   onArrive?: () => void;
   /** `rescue-1`: hinged rear ramp of the robot bay (rotation.x 1.45 = closed/up, 0 = open/flat). */
@@ -141,7 +144,9 @@ export class FleetUnit {
       }
     } else {
       this.alignToTerrain();
+      if (this.scriptPitch !== undefined) o.rotation.x = this.scriptPitch;
       this.placeOnGround();
+      o.position.y += this.scriptYOffset;
       const wheelSpin = distMoved / 0.32;
       for (const w of this.wheels) w.rotation.x += wheelSpin;
     }
@@ -527,7 +532,13 @@ export class FleetProc {
   }
 
   /** Teleports a ground or flying unit to (x, z) with an optional heading; used by scripted scenarios. */
-  placeUnit(unitId: string, x: number, z: number, yaw?: number): void {
+  placeUnit(
+    unitId: string,
+    x: number,
+    z: number,
+    yaw?: number,
+    opts: { yOffset?: number; pitch?: number } = {},
+  ): void {
     const unit = this.units.get(unitId);
     if (!unit) return;
     unit.path = [];
@@ -535,8 +546,13 @@ export class FleetProc {
     unit.object.position.z = z;
     if (yaw !== undefined) unit.object.rotation.y = yaw;
     if (!unit.spec.flies) {
+      // A scripted pitch (pit ramp, bay ramp) replaces the terrain-derived one; yOffset lifts or sinks the unit.
+      unit.scriptYOffset = opts.yOffset ?? 0;
+      unit.scriptPitch = opts.pitch;
       unit.alignToTerrain();
+      if (opts.pitch !== undefined) unit.object.rotation.x = opts.pitch;
       unit.placeOnGround();
+      unit.object.position.y += unit.scriptYOffset;
     }
   }
 

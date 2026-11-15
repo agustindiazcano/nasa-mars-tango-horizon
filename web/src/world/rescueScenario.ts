@@ -9,6 +9,7 @@ import {
   findCrew,
   initialCrewSnapshots,
   fleetStartPos,
+  pitSurfaceOffsetAt,
   RESCUE_PIT,
   RESCUE_SITE,
   t as tr,
@@ -54,6 +55,10 @@ export interface RescueUnitView {
   x: number;
   z: number;
   yaw: number;
+  /** Metres above the terrain surface (negative inside the pit, positive on the bay ramp). */
+  yOffset?: number;
+  /** Scripted pitch (rad, positive = nose down) along a ramp. */
+  pitch?: number;
 }
 
 export interface RescueCrewView extends RescueUnitView {
@@ -93,15 +98,17 @@ const T_DRONE_CLIMB_END = 72;
 const T_DRONE_STATION = 104;
 const T_RESCUE_ARRIVE = 130;
 const T_RAMP_OPEN = 130;
-const T_ROBOT_GO = 132;
-const T_ROBOT_RIM = 138;
-const T_DESCEND = 140;
-const T_SECURE = T_DESCEND + RESCUE_SKILL_DURATION_S.descend;
-const T_WINCH = T_SECURE + RESCUE_SKILL_DURATION_S.secure;
-const T_DRAG = T_WINCH + RESCUE_SKILL_DURATION_S.winch;
-const T_DRAG_END = 172;
-const T_RAMP_CLOSE = 174;
-const T_DEPART = 176;
+const T_ROBOT_GO = 132; // robot reverses out of the rear bay
+const T_RIM = 137; // robot reaches the top of the pit ramp
+const T_DESCEND = 142; // robot stops next to the casualty; arm reaches for the harness straps
+const T_SECURE = T_DESCEND + RESCUE_SKILL_DURATION_S.descend; // 145: hooks the harness
+const T_WINCH = T_SECURE + RESCUE_SKILL_DURATION_S.secure; // 149: raises the arm to the carry pose
+const T_DRAG = T_WINCH + RESCUE_SKILL_DURATION_S.winch; // 152: drags the casualty up the ramp to rescue-1
+const T_DRAG_END = 168; // casualty and robot are inside the bay
+const T_RAMP_CLOSE = 170;
+const T_DEPART = 174;
+const T_C2_WALK = 150; // SOTELO walks to rescue-1
+const T_C2_BOARD = 164;
 
 const TAU_BASE = 0.48;
 const TAU_PEAK = 6;
@@ -149,15 +156,45 @@ const toRover = (() => {
   const d = Math.hypot(dx, dz);
   return { x: dx / d, z: dz / d };
 })();
-const PARK = at(P, toBase, 18);
-const BAY = at(PARK, neg(toBase), 1.9);
-const RIM_ROBOT = at(P, toBase, 2.9);
-const DRAG_END = at(PARK, neg(toBase), 4.2);
-const PIT_FLOOR_XZ = at(P, toBase, 1.0);
-const CREW2_RIM = at(P, toRover, 5.5);
+const PARK_S = 18;
+const PARK = at(P, toBase, PARK_S);
+/** Position along the pit axis (m from the pit center toward the base) of the robot while parked in the bay. */
+const S_BAY = PARK_S - 1.9;
+/** Casualty lying on the pit floor just beyond the ramp bottom; the robot stops one trail length up the ramp. */
+const S_CAS = -3.85;
+const TRAIL_M = 1.85;
+const S_SECURE = S_CAS + TRAIL_M;
+const S_RIM_TOP = Math.sqrt(RESCUE_PIT.radiusM ** 2 - RESCUE_PIT.rampHalfWidthM ** 2);
+/** Bay entry: the casualty counts as loaded once his position passes this distance along the axis. */
+const S_BAY_ENTRY = PARK_S - 2.5;
+const BAY_RAMP_START_S = PARK_S - 4;
+const BAY_RAMP_END_S = PARK_S - 2.6;
+const BAY_FLOOR_M = 0.44;
+const CREW2_RIM = at(P, toRover, RESCUE_PIT.radiusM + 1.5);
 const CREW2_BOARD = at(PARK, neg(toBase), 3.0);
-const FORWARD_TO_PIT = neg(toBase);
-const YAW_TO_PIT = yawOf(FORWARD_TO_PIT.x, FORWARD_TO_PIT.z);
+
+const axisPoint = (sAlong: number) => at(P, toBase, sAlong);
+const alongAxis = (x: number, z: number) => (x - P.x) * toBase.x + (z - P.z) * toBase.z;
+const lateralOf = (x: number, z: number) => -(x - P.x) * toBase.z + (z - P.z) * toBase.x;
+const wrapPi = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+
+/** Height above the terrain of the pit floor, the pit ramp or the bay ramp at a point (pure, deterministic). */
+function surfaceOffsetAt(x: number, z: number): number {
+  let off = pitSurfaceOffsetAt(x, z);
+  const sAlong = alongAxis(x, z);
+  if (Math.abs(lateralOf(x, z)) < 1.2 && sAlong > BAY_RAMP_START_S) {
+    off += BAY_FLOOR_M * clamp01((sAlong - BAY_RAMP_START_S) / (BAY_RAMP_END_S - BAY_RAMP_START_S));
+  }
+  return off;
+}
+
+/** Pitch (rad, positive nose down) of a unit heading along +axis at position `sAlong`. */
+function pitchAtS(sAlong: number): number {
+  const back = axisPoint(sAlong - 0.9);
+  const ahead = axisPoint(sAlong + 0.9);
+  return Math.atan2(surfaceOffsetAt(back.x, back.z) - surfaceOffsetAt(ahead.x, ahead.z), 1.8);
+}
+
 const YAW_TO_BASE = yawOf(toBase.x, toBase.z);
 const THETA_BASE = Math.atan2(toBase.z, toBase.x);
 const ORBIT_OMEGA = 0.03;
@@ -170,7 +207,7 @@ const orbitPoint = (phi: number) => ({
   z: P.z + DRONE_ORBIT_RADIUS_M * Math.sin(phi),
 });
 
-const CREW3_WALK_R = 9;
+const CREW3_WALK_R = 11;
 const crew3Circle = (t: number) => {
   const a = Math.atan2(toRover.z, toRover.x) + 0.12 * t;
   return { x: P.x + CREW3_WALK_R * Math.cos(a), z: P.z + CREW3_WALK_R * Math.sin(a), a };
@@ -196,14 +233,15 @@ function computeView(t: number): RescueView {
     rescue1 = { x: lerp(r1Start.x, PARK.x, u), z: lerp(r1Start.z, PARK.z, u), yaw: driveYaw };
   } else if (t < T_DEPART) {
     const turn = smooth(seg(t, T_RESCUE_ARRIVE - 4, T_RESCUE_ARRIVE));
-    rescue1 = { x: PARK.x, z: PARK.z, yaw: driveYaw + Math.PI * turn };
+    rescue1 = { x: PARK.x, z: PARK.z, yaw: driveYaw + wrapPi(YAW_TO_BASE - driveYaw) * turn };
   } else {
     const u = smooth(seg(t, T_DEPART, RESCUE_DURATION_S));
     const away = at(PARK, toBase, 40 * u);
     rescue1 = { x: away.x, z: away.z, yaw: YAW_TO_BASE };
   }
 
-  // rescue-bot-1
+  // rescue-bot-1: reverses out of the bay (rear boom toward the pit), reverses down the pit ramp, hooks the casualty,
+  // then drives forward up the ramp pulling him on the ground to the bay of rescue-1.
   let robot: RescueUnitView;
   let stowed = false;
   const skill: RescueSkillId | null =
@@ -213,30 +251,31 @@ function computeView(t: number): RescueView {
   else if (skill === "secure") skillStart = T_SECURE;
   else if (skill === "winch") skillStart = T_WINCH;
   const progress01 = skill ? seg(t, skillStart, skillStart + RESCUE_SKILL_DURATION_S[skill]) : 0;
-  let pose: RescuePose;
+  let pose: RescuePose = RESCUE_POSE_STOWED;
+  let robotS = S_BAY;
   if (t < T_ROBOT_GO) {
     stowed = true;
-    robot = { x: BAY.x, z: BAY.z, yaw: rescue1.yaw };
-    pose = RESCUE_POSE_STOWED;
-  } else if (t < T_ROBOT_RIM) {
-    const u = seg(t, T_ROBOT_GO, T_ROBOT_RIM);
-    robot = { x: lerp(BAY.x, RIM_ROBOT.x, u), z: lerp(BAY.z, RIM_ROBOT.z, u), yaw: YAW_TO_PIT };
-    pose = RESCUE_POSE_STOWED;
+  } else if (t < T_RIM) {
+    robotS = lerp(S_BAY, S_RIM_TOP, seg(t, T_ROBOT_GO, T_RIM));
+  } else if (t < T_DESCEND) {
+    robotS = lerp(S_RIM_TOP, S_SECURE, seg(t, T_RIM, T_DESCEND));
   } else if (t < T_DRAG) {
-    const turn = smooth(seg(t, T_ROBOT_RIM, T_DESCEND));
-    robot = { x: RIM_ROBOT.x, z: RIM_ROBOT.z, yaw: YAW_TO_PIT + Math.PI * turn };
-    pose = skill ? rescuePoseFor(skill, progress01, RESCUE_PIT.depthM) : RESCUE_POSE_STOWED;
+    robotS = S_SECURE;
+    if (skill) pose = rescuePoseFor(skill, progress01, RESCUE_PIT.depthM);
   } else if (t < T_DRAG_END) {
-    const u = seg(t, T_DRAG, T_DRAG_END);
-    robot = { x: lerp(RIM_ROBOT.x, DRAG_END.x, u), z: lerp(RIM_ROBOT.z, DRAG_END.z, u), yaw: YAW_TO_BASE };
+    robotS = lerp(S_SECURE, S_BAY, smooth(seg(t, T_DRAG, T_DRAG_END)));
     pose = rescuePoseFor("winch", 1, RESCUE_PIT.depthM);
   } else if (t < T_RAMP_CLOSE) {
-    robot = { x: DRAG_END.x, z: DRAG_END.z, yaw: YAW_TO_BASE };
+    robotS = S_BAY;
     pose = rescuePoseFor("winch", 1, RESCUE_PIT.depthM);
   } else {
     stowed = true;
+  }
+  const rp = axisPoint(robotS);
+  if (stowed) {
     robot = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw };
-    pose = RESCUE_POSE_STOWED;
+  } else {
+    robot = { x: rp.x, z: rp.z, yaw: YAW_TO_BASE, yOffset: surfaceOffsetAt(rp.x, rp.z), pitch: pitchAtS(robotS) };
   }
   const rampOpen01 =
     t < T_RAMP_OPEN ? 0 : t < T_RAMP_OPEN + 2 ? seg(t, T_RAMP_OPEN, T_RAMP_OPEN + 2) : t < T_RAMP_CLOSE ? 1 : 1 - seg(t, T_RAMP_CLOSE, T_RAMP_CLOSE + 2);
@@ -273,92 +312,92 @@ function computeView(t: number): RescueView {
           : lerp(cruise, 0.35, smooth(seg(t, DRONE_GROUNDING_T_S, DRONE_GROUNDING_T_S + 4)));
   }
 
-  // crew-2 (driver): works near rover-1, goes to the pit rim after the fall, then boards rescue-1
+  // crew-2 (SOTELO): works near rover-1, goes to the pit rim after the fall, then walks to rescue-1 and boards
   const c2a = 0.5 * t;
+  const c2Work = { x: ROVER1.x + 3 * Math.cos(0.5 * T_FALL), z: ROVER1.z + 3 * Math.sin(0.5 * T_FALL) };
+  const traverse = { location: "traverse" as CrewLocation, status: "nominal" as CrewStatus, yOffset: 0, inPit: false, visible: true };
   let crew2: RescueCrewView;
   if (t < T_FALL) {
     const x = ROVER1.x + 3 * Math.cos(c2a);
     const z = ROVER1.z + 3 * Math.sin(c2a);
-    crew2 = { x, z, yaw: yawOf(-Math.sin(c2a), Math.cos(c2a)), pose: "walk", location: "traverse", status: "nominal", yOffset: 0, inPit: false, visible: true };
+    crew2 = { x, z, yaw: yawOf(-Math.sin(c2a), Math.cos(c2a)), pose: "walk", ...traverse };
   } else if (t < 70) {
     const u = smooth(seg(t, T_FALL, 70));
-    const from = { x: ROVER1.x + 3 * Math.cos(0.5 * T_FALL), z: ROVER1.z + 3 * Math.sin(0.5 * T_FALL) };
     crew2 = {
-      x: lerp(from.x, CREW2_RIM.x, u),
-      z: lerp(from.z, CREW2_RIM.z, u),
-      yaw: yawOf(P.x - from.x, P.z - from.z),
+      x: lerp(c2Work.x, CREW2_RIM.x, u),
+      z: lerp(c2Work.z, CREW2_RIM.z, u),
+      yaw: yawOf(P.x - c2Work.x, P.z - c2Work.z),
       pose: u < 1 ? "walk" : "idle",
-      location: "traverse", status: "nominal",
-      yOffset: 0,
-      inPit: false,
-      visible: true,
+      ...traverse,
     };
-  } else if (t < T_DRAG - 2) {
-    crew2 = { x: CREW2_RIM.x, z: CREW2_RIM.z, yaw: yawOf(P.x - CREW2_RIM.x, P.z - CREW2_RIM.z), pose: "idle", location: "traverse", status: "nominal", yOffset: 0, inPit: false, visible: true };
-  } else if (t < T_DRAG_END) {
-    const u = seg(t, T_DRAG - 2, T_DRAG_END);
+  } else if (t < T_C2_WALK) {
+    crew2 = { x: CREW2_RIM.x, z: CREW2_RIM.z, yaw: yawOf(P.x - CREW2_RIM.x, P.z - CREW2_RIM.z), pose: "idle", ...traverse };
+  } else if (t < T_C2_BOARD) {
+    const u = seg(t, T_C2_WALK, T_C2_BOARD);
     crew2 = {
       x: lerp(CREW2_RIM.x, CREW2_BOARD.x, u),
       z: lerp(CREW2_RIM.z, CREW2_BOARD.z, u),
       yaw: yawOf(CREW2_BOARD.x - CREW2_RIM.x, CREW2_BOARD.z - CREW2_RIM.z),
       pose: "walk",
-      location: "traverse", status: "nominal",
-      yOffset: 0,
-      inPit: false,
-      visible: true,
+      ...traverse,
     };
   } else {
-    crew2 = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw, pose: "hidden", location: "rescue_vehicle", status: "evacuating", unit_id: "rescue-1", yOffset: 0, inPit: false, visible: false };
+    crew2 = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw, pose: "hidden", location: "rescue_vehicle", status: "nominal", unit_id: "rescue-1", yOffset: 0, inPit: false, visible: false };
   }
 
-  // crew-3 (geologist): walks the rim, falls into the pit, is raised on the stretcher and dragged to rescue-1
+  // crew-3 (YACONIS): walks around the pit, falls in and lies unconscious on the floor, is hooked by the robot,
+  // dragged on the ground up the ramp and across the terrain, and loaded into the bay of rescue-1.
   const c3 = crew3Circle(Math.min(t, T_FAULT));
-  const c3Rim = at(P, { x: Math.cos(c3.a), z: Math.sin(c3.a) }, 2.2);
+  const rimR = RESCUE_PIT.radiusM + 0.8;
+  const c3Rim = at(P, { x: Math.cos(c3.a), z: Math.sin(c3.a) }, rimR);
+  const casPos = axisPoint(S_CAS);
+  const lie = 0.12;
+  const casFloorY = surfaceOffsetAt(casPos.x, casPos.z) + lie;
+  const hurt = t < T_WINCH ? ("incapacitated" as CrewStatus) : ("evacuating" as CrewStatus);
+  const insidePit = (x: number, z: number) => Math.hypot(x - P.x, z - P.z) < RESCUE_PIT.radiusM;
   let crew3: RescueCrewView;
   if (t < T_FAULT) {
     const c = crew3Circle(t);
-    crew3 = { x: c.x, z: c.z, yaw: yawOf(-Math.sin(c.a), Math.cos(c.a)), pose: "walk", location: "traverse", status: "nominal", yOffset: 0, inPit: false, visible: true };
+    crew3 = { x: c.x, z: c.z, yaw: yawOf(-Math.sin(c.a), Math.cos(c.a)), pose: "walk", ...traverse };
   } else if (t < T_FALL) {
     const u = smooth(seg(t, T_FAULT, T_FALL));
-    crew3 = {
-      x: lerp(c3.x, c3Rim.x, u),
-      z: lerp(c3.z, c3Rim.z, u),
-      yaw: yawOf(P.x - c3.x, P.z - c3.z),
-      pose: "walk",
-      location: "traverse", status: "nominal",
-      yOffset: 0,
-      inPit: false,
-      visible: true,
-    };
-  } else if (t < T_WINCH) {
-    const u = smooth(seg(t, T_FALL, T_FALL_END));
-    crew3 = {
-      x: lerp(c3Rim.x, PIT_FLOOR_XZ.x, u),
-      z: lerp(c3Rim.z, PIT_FLOOR_XZ.z, u),
-      yaw: YAW_TO_BASE,
-      pose: "lying",
-      location: (u >= 1) ? "in_pit" : "traverse", status: t < (T_WINCH + T_DRAG) / 2 ? "incapacitated" : "evacuating",
-      yOffset: -RESCUE_PIT.depthM * u,
-      inPit: u >= 1,
-      visible: true,
-    };
+    crew3 = { x: lerp(c3.x, c3Rim.x, u), z: lerp(c3.z, c3Rim.z, u), yaw: yawOf(P.x - c3.x, P.z - c3.z), pose: "walk", ...traverse };
   } else if (t < T_DRAG) {
-    const u = smooth(seg(t, T_WINCH, T_DRAG));
+    const u = seg(t, T_FALL, T_FALL_END);
+    const moveU = smooth(Math.min(1, u * 1.6));
+    const dropU = smooth(clamp01((u - 0.35) / 0.65));
+    const x = lerp(c3Rim.x, casPos.x, moveU);
+    const z = lerp(c3Rim.z, casPos.z, moveU);
     crew3 = {
-      x: PIT_FLOOR_XZ.x,
-      z: PIT_FLOOR_XZ.z,
+      x,
+      z,
       yaw: YAW_TO_BASE,
       pose: "lying",
-      location: (u < 0.5) ? "in_pit" : "traverse", status: t < (T_WINCH + T_DRAG) / 2 ? "incapacitated" : "evacuating",
-      yOffset: lerp(-RESCUE_PIT.depthM, 0.35, u),
-      inPit: u < 0.5,
+      location: insidePit(x, z) ? "in_pit" : "traverse",
+      status: hurt,
+      yOffset: lerp(0, casFloorY, dropU),
+      inPit: insidePit(x, z),
       visible: true,
     };
-  } else if (t < T_DRAG_END) {
-    const trail = at(robot, neg(toBase), 1.9);
-    crew3 = { x: trail.x, z: trail.z, yaw: YAW_TO_BASE, pose: "lying", location: "traverse", status: t < (T_WINCH + T_DRAG) / 2 ? "incapacitated" : "evacuating", yOffset: 0.35, inPit: false, visible: true };
   } else {
-    crew3 = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw, pose: "hidden", location: "rescue_vehicle", status: "evacuating", unit_id: "rescue-1", yOffset: 0, inPit: false, visible: false };
+    const trail = lerp(TRAIL_M, 0.5, seg(robotS, S_BAY - 4, S_BAY));
+    const sCas = robotS - trail;
+    const cp = axisPoint(sCas);
+    if (t >= T_DRAG_END || sCas >= S_BAY_ENTRY) {
+      crew3 = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw, pose: "hidden", location: "rescue_vehicle", status: "evacuating", unit_id: "rescue-1", yOffset: 0, inPit: false, visible: false };
+    } else {
+      crew3 = {
+        x: cp.x,
+        z: cp.z,
+        yaw: YAW_TO_BASE,
+        pose: "lying",
+        location: insidePit(cp.x, cp.z) ? "in_pit" : "traverse",
+        status: "evacuating",
+        yOffset: surfaceOffsetAt(cp.x, cp.z) + lie,
+        inPit: insidePit(cp.x, cp.z),
+        visible: true,
+      };
+    }
   }
 
   const phase: RescueView["phase"] =
@@ -395,7 +434,7 @@ const EVENT_SPECS: EventSpec[] = [
   { tS: T_RESCUE_ARRIVE, id: "rescue1_arrive", level: "info", source: "GUARDIAN" },
   { tS: T_RAMP_OPEN, id: "ramp_open", level: "info", source: "ROBOT.rescue-bot-1" },
   { tS: T_ROBOT_GO, id: "robot_deploy", level: "info", source: "ROBOT.rescue-bot-1" },
-  { tS: T_DESCEND, id: "robot_descend", level: "info", source: "ROBOT.rescue-bot-1" },
+  { tS: T_RIM, id: "robot_descend", level: "info", source: "ROBOT.rescue-bot-1" },
   { tS: T_SECURE, id: "robot_secure", level: "info", source: "ROBOT.rescue-bot-1" },
   { tS: T_WINCH, id: "robot_winch", level: "info", source: "ROBOT.rescue-bot-1" },
   { tS: T_DRAG, id: "robot_drag", level: "info", source: "ROBOT.rescue-bot-1" },
@@ -530,7 +569,7 @@ export class RescueScenario {
       case "rescue-1":
       case "rescue-bot-1": {
         const u = v.units[id];
-        return ground(u.x, u.z, id === "rescue-bot-1" && v.robot.stowed ? 0.5 : 0);
+        return ground(u.x, u.z, (id === "rescue-bot-1" && v.robot.stowed ? 0.5 : 0) + (u.yOffset ?? 0));
       }
       case "rover-2":
       case "rover-3": {

@@ -13,6 +13,7 @@ interface CrewMember {
   rightLeg: THREE.Group;
   leftArm: THREE.Group;
   rightArm: THREE.Group;
+  head: THREE.Group;
   pose: CrewPose;
   phase: number;
   /** World y offset applied on top of the terrain height (pit floor, stretcher height). */
@@ -75,16 +76,18 @@ export class CrewProc {
     plss.position.set(0, 0.04, 0.25);
     plss.castShadow = true;
     torso.add(plss);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.19, 16, 14), white);
-    head.position.y = 0.44;
-    head.castShadow = true;
-    torso.add(head);
+    const headGroup = new THREE.Group();
+    headGroup.position.y = 0.44;
+    torso.add(headGroup);
+    const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.19, 16, 14), white);
+    helmet.castShadow = true;
+    headGroup.add(helmet);
     const visor = new THREE.Mesh(
       new THREE.SphereGeometry(0.165, 16, 12, Math.PI * 0.65, Math.PI * 0.7, Math.PI * 0.25, Math.PI * 0.5),
       gold,
     );
-    visor.position.set(0, 0.45, -0.055);
-    torso.add(visor);
+    visor.position.set(0, 0.01, -0.055);
+    headGroup.add(visor);
 
     const limb = (r: number, len: number, x: number, y: number, parent: THREE.Object3D) => {
       const l = new THREE.Group();
@@ -119,6 +122,7 @@ export class CrewProc {
       rightLeg,
       leftArm,
       rightArm,
+      head: headGroup,
       pose: "idle",
       phase: 0,
       yOffset: 0,
@@ -150,13 +154,21 @@ export class CrewProc {
 
   private applyPose(m: CrewMember, dt: number): void {
     if (m.pose === "lying") {
-      m.body.rotation.x = -Math.PI / 2;
-      m.body.position.set(0, 0.22, 0.45);
-      for (const l of [m.leftLeg, m.rightLeg, m.leftArm, m.rightArm]) l.rotation.x = 0;
+      // Face up, head toward local +z, backpack resting on the ground; the body is centered on the group origin.
+      m.body.rotation.set(Math.PI / 2, 0.06, 0);
+      m.body.position.set(0, 0.38, -0.8);
+      // Relaxed, slightly asymmetric limbs and a head rolled to one side so it reads as unconscious.
+      m.leftArm.rotation.set(-0.1, 0, 0.42);
+      m.rightArm.rotation.set(0.28, 0, -0.14);
+      m.leftLeg.rotation.set(0.05, 0, -0.1);
+      m.rightLeg.rotation.set(-0.1, 0, 0.24);
+      m.head.rotation.set(0, 0, 0.4);
       return;
     }
-    m.body.rotation.x = 0;
+    m.body.rotation.set(0, 0, 0);
     m.body.position.set(0, 0, 0);
+    m.head.rotation.set(0, 0, 0);
+    for (const l of [m.leftLeg, m.rightLeg, m.leftArm, m.rightArm]) l.rotation.set(0, 0, 0);
     if (m.pose === "walk") {
       m.phase += dt * 5;
       const s = Math.sin(m.phase) * 0.55;

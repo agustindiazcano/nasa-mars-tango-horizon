@@ -165,32 +165,92 @@ describe("RescueScenario", () => {
     expect(Math.hypot(mid.x - RESCUE_SITE.x, mid.z - RESCUE_SITE.z)).toBeLessThan(1);
   });
 
-  it("drops crew-3 into the pit, then recovers and boards the crew", () => {
+  it("drops YACONIS into the pit and leaves him lying on the floor until he is loaded", () => {
     const s = make();
     s.seekTo(40);
     expect(s.getEntityPosition("crew-3")!.y).toBeCloseTo(100, 6);
     s.seekTo(100);
     const inPit = s.getEntityPosition("crew-3")!;
-    expect(inPit.y).toBeCloseTo(100 - RESCUE_PIT.depthM, 6);
+    expect(inPit.y).toBeGreaterThan(100 - RESCUE_PIT.depthM);
+    expect(inPit.y).toBeLessThan(100 - RESCUE_PIT.depthM + 0.3);
     expect(Math.hypot(inPit.x - RESCUE_SITE.x, inPit.z - RESCUE_SITE.z)).toBeLessThan(RESCUE_PIT.radiusM);
-    expect(s.view.crew["crew-3"].inPit).toBe(true);
-    s.seekTo(166);
-    const dragged = s.getEntityPosition("crew-3")!;
-    expect(dragged.y).toBeCloseTo(100.35, 6);
-    s.seekTo(176);
-    expect(s.view.crew["crew-3"].location).toBe("rescue_vehicle");
-    expect(s.view.crew["crew-2"].location).toBe("rescue_vehicle");
+    const v = s.view.crew["crew-3"];
+    expect(v).toMatchObject({ pose: "lying", inPit: true, location: "in_pit", status: "incapacitated", visible: true });
+    for (const t of [56, 70, 110, 140]) {
+      s.seekTo(t);
+      expect(s.view.crew["crew-3"].pose, `t=${t}`).toBe("lying");
+    }
   });
 
-  it("parks rescue-1 beyond the 15 m keep-out of the pit and the robot reaches the rim", () => {
+  it("rolls the robot out of the bay, down the ramp, and stops next to the casualty", () => {
     const s = make();
     s.seekTo(135);
     const r = s.getEntityPosition("rescue-1")!;
     expect(Math.hypot(r.x - RESCUE_SITE.x, r.z - RESCUE_SITE.z)).toBeGreaterThan(15);
-    s.seekTo(145);
+    expect(s.view.robot.stowed).toBe(false);
+    expect(s.view.units["rescue-bot-1"].yOffset ?? 0).toBeCloseTo(0, 6);
+    s.seekTo(139);
+    const onRamp = s.view.units["rescue-bot-1"];
+    expect(onRamp.yOffset!).toBeLessThan(-0.5);
+    expect(onRamp.pitch!).toBeLessThan(-0.3);
+    s.seekTo(143);
     const bot = s.getEntityPosition("rescue-bot-1")!;
-    expect(Math.hypot(bot.x - RESCUE_SITE.x, bot.z - RESCUE_SITE.z)).toBeLessThan(4);
+    const cas = s.getEntityPosition("crew-3")!;
+    expect(Math.hypot(bot.x - cas.x, bot.z - cas.z)).toBeCloseTo(1.85, 2);
+    expect(bot.y).toBeLessThan(100 - 2.5);
     expect(s.view.robot.skill).toBe("descend");
+    s.seekTo(147);
+    expect(s.view.robot.skill).toBe("secure");
+  });
+
+  it("drags him on the ground up the ramp, and hides him only once he passes the bay threshold", () => {
+    const s = make();
+    let hiddenAt: number | null = null;
+    let prevY = -Infinity;
+    for (let t = 150; t <= 174; t += 0.25) {
+      s.seekTo(t);
+      const c = s.view.crew["crew-3"];
+      if (c.visible) {
+        const p = s.getEntityPosition("crew-3")!;
+        expect(c.pose).toBe("lying");
+        expect(c.status).toBe("evacuating");
+        expect(p.y - 100).toBeLessThan(0.6);
+        if (t >= 152) expect(p.y).toBeGreaterThanOrEqual(prevY - 1e-6);
+        prevY = p.y;
+      } else if (hiddenAt === null) {
+        hiddenAt = t;
+        expect(c.location).toBe("rescue_vehicle");
+        expect(c.unit_id).toBe("rescue-1");
+      }
+    }
+    expect(hiddenAt).not.toBeNull();
+    expect(hiddenAt!).toBeGreaterThan(160);
+    expect(hiddenAt!).toBeLessThanOrEqual(168.25);
+    // The robot is in the bay when he is loaded; the ramp closes afterwards.
+    s.seekTo(169);
+    expect(s.view.rampOpen01).toBe(1);
+    s.seekTo(173);
+    expect(s.view.rampOpen01).toBe(0);
+    expect(s.view.robot.stowed).toBe(true);
+  });
+
+  it("is deterministic across the whole choreography", () => {
+    const seeked = make();
+    const stepped = make();
+    stepped.start();
+    for (let t = 1; t <= 175; t += 6.5) {
+      while (stepped.elapsedS < t - 1e-9) stepped.step(0.5);
+      seeked.seekTo(stepped.elapsedS);
+      expect(snapshot(seeked), `t=${stepped.elapsedS}`).toBe(snapshot(stepped));
+      expect(JSON.stringify(seeked.view)).toBe(JSON.stringify(stepped.view));
+    }
+  });
+
+  it("boards SOTELO and ends with rescue-1 departing with both aboard", () => {
+    const s = make();
+    s.seekTo(178);
+    expect(s.view.crew["crew-3"].location).toBe("rescue_vehicle");
+    expect(s.view.crew["crew-2"].location).toBe("rescue_vehicle");
   });
 
   it("drives the storm tau up from 60 s", () => {
@@ -216,7 +276,7 @@ describe("RescueScenario", () => {
     expect(snaps.find((c) => c.name === "SALERNO")).toMatchObject({ location: "base", assignment: "base" });
     expect(s.getEntityPosition("YACONIS")!.toArray()).toEqual(s.getEntityPosition("crew-3")!.toArray());
     expect(s.getEntityPosition("Sotelo")).not.toBeNull();
-    s.seekTo(166);
+    s.seekTo(160);
     expect(s.getCrewSnapshots().find((c) => c.name === "YACONIS")).toMatchObject({ location: "traverse", status: "evacuating" });
     s.seekTo(178);
     expect(s.getCrewSnapshots().find((c) => c.name === "YACONIS")).toMatchObject({ location: "rescue_vehicle", unit_id: "rescue-1" });

@@ -1,20 +1,24 @@
 import * as THREE from "three";
 
-/** Rescue robot skills, run in this order by the rescue scenario. Dimensions and speeds are design assumptions. */
+/**
+ * Rescue robot skills, run in this order by the rescue scenario. Dimensions and speeds are design assumptions.
+ * `descend` lowers the arm toward the casualty's shoulder straps, `secure` hooks the harness,
+ * `winch` raises the arm to the carry pose used while dragging.
+ */
 export type RescueSkillId = "descend" | "secure" | "winch";
 
 export const RESCUE_SKILL_DURATION_S: Readonly<Record<RescueSkillId, number>> = {
-  descend: 8,
-  secure: 6,
-  winch: 8,
+  descend: 3,
+  secure: 4,
+  winch: 3,
 };
 
 export type StretcherState = "stowed" | "lowering" | "loaded";
 
 export interface RescuePose {
-  /** Boom pitch above horizontal (rad). */
+  /** Boom tip drop (rad): 0 horizontal, positive lowers the tip toward the ground. */
   armPitch: number;
-  /** Tether length paid out below the boom tip (m). */
+  /** Harness strap length below the boom tip (m). */
   winchM: number;
   stretcher: StretcherState;
 }
@@ -24,20 +28,16 @@ export const RESCUE_POSE_STOWED: RescuePose = { armPitch: 0.15, winchM: 0.2, str
 const clamp01 = (u: number) => Math.min(1, Math.max(0, u));
 const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
 
-/**
- * Pure pose of the winch arm and stretcher for a skill at progress `u` in [0, 1].
- * `pitDepthM` is the tether length needed to reach the casualty on the pit floor.
- */
-export function rescuePoseFor(skill: RescueSkillId, u: number, pitDepthM: number): RescuePose {
+/** Pure pose of the arm and harness for a skill at progress `u` in [0, 1] (the casualty lies on the ground). */
+export function rescuePoseFor(skill: RescueSkillId, u: number, _pitDepthM = 0): RescuePose {
   const k = clamp01(u);
-  const reach = pitDepthM + 0.9;
   switch (skill) {
     case "descend":
-      return { armPitch: lerp(0.15, -0.35, k), winchM: lerp(0.2, reach, k), stretcher: "lowering" };
+      return { armPitch: lerp(0.15, 0.35, k), winchM: lerp(0.2, 0.1, k), stretcher: "lowering" };
     case "secure":
-      return { armPitch: -0.35, winchM: reach, stretcher: k < 0.5 ? "lowering" : "loaded" };
+      return { armPitch: 0.35, winchM: 0.1, stretcher: k < 0.5 ? "lowering" : "loaded" };
     case "winch":
-      return { armPitch: lerp(-0.35, 0.15, k), winchM: lerp(reach, 0.8, k), stretcher: "loaded" };
+      return { armPitch: lerp(0.35, 0.15, k), winchM: lerp(0.1, 0.3, k), stretcher: "loaded" };
   }
 }
 
@@ -119,7 +119,8 @@ export function buildRescueRobotModel(): RescueRobotModel {
     tether.scale.y = len;
     tether.position.set(tmp.x, tmp.y - len / 2, tmp.z);
     hook.position.set(tmp.x, tmp.y - len, tmp.z);
-    stretcher.visible = pose.stretcher !== "stowed";
+    // The casualty is dragged on the ground by the harness, so the stretcher board stays hidden.
+    stretcher.visible = false;
     stretcher.position.set(tmp.x, tmp.y - len - 0.05, tmp.z);
   };
   applyPose(RESCUE_POSE_STOWED);

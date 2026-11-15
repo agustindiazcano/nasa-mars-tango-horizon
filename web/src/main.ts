@@ -494,7 +494,8 @@ function applyRescueView(v: RescueView): void {
   store.env.wind_ms = v.windMs;
   store.env.sun_elev_deg = v.sunElevDeg;
   for (const id of ["rover-1", "rescue-1", "rescue-bot-1", "drone-1", "drone-2"] as const) {
-    fleet.placeUnit(id, v.units[id].x, v.units[id].z, v.units[id].yaw);
+    const u = v.units[id];
+    fleet.placeUnit(id, u.x, u.z, u.yaw, { yOffset: u.yOffset, pitch: u.pitch });
   }
   for (const id of ["drone-1", "drone-2"] as const) {
     const drone = fleet.get(id);
