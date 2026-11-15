@@ -96,4 +96,28 @@ describe("offlineReply fixes (Issue 10)", () => {
       expect(res.speech).toMatch(c.expected);
     }
   });
+
+  it("answers conversational fleet count, unit position, ambient weather, and pod calculation on SUIT.VOICE-EXEC without physical actions (B38)", async () => {
+    const ctx = makeContext({ lang: "es" });
+
+    const countRes = await offlineReply("Cuántos vehículos hay en la flota", ctx);
+    expect(countRes.route).toEqual(["SUIT.VOICE-EXEC"]);
+    expect(countRes.actions).toHaveLength(0);
+    expect(countRes.speech).toMatch(/4 vehículos/i);
+
+    const posRes = await offlineReply("Dónde está el rover 1", ctx);
+    expect(posRes.route).toEqual(["SUIT.VOICE-EXEC"]);
+    expect(posRes.actions).toHaveLength(0);
+    expect(posRes.speech).toMatch(/rover-1.*batería/i);
+
+    const wxRes = await offlineReply("Qué temperatura y viento hay", ctx);
+    expect(wxRes.route).toEqual(["SUIT.VOICE-EXEC"]);
+    expect(wxRes.actions).toHaveLength(0);
+    expect(wxRes.speech).toMatch(/220 K.*6 m\/s/i);
+
+    const calcRes = await offlineReply("Calculá la trayectoria del pod de soporte vital", ctx);
+    expect(calcRes.route).toEqual(["SUIT.VOICE-EXEC"]);
+    expect(calcRes.actions).toHaveLength(0);
+    expect(calcRes.speech).toMatch(/RK4/i);
+  });
 });

@@ -85,9 +85,31 @@ describe("runAgent and hierarchy reliability guards", () => {
     expect(shouldEscalateFast("Rover uno, seguime", ctx)).toBe(true);
     expect(shouldEscalateFast("Cómo está el clima para una EVA, puedo salir", ctx)).toBe(true);
     expect(shouldEscalateFast("Planificá una ruta hasta S2", ctx)).toBe(true);
+    expect(shouldEscalateFast("Lanzá una cápsula de soporte vital", ctx)).toBe(true);
     expect(shouldEscalateFast("Mostrá la capa térmica", ctx)).toBe(false);
     expect(shouldEscalateFast("Mostrá la capa de radiación", ctx)).toBe(false);
     expect(shouldEscalateFast("Cuánto oxígeno me queda", makeContext({ leak_diameter_m: 0.0016, emergency_response_active: true }))).toBe(false);
+    expect(shouldEscalateFast("Cuántos vehículos tenemos en la flota", ctx)).toBe(false);
+    expect(shouldEscalateFast("Dónde está el rover 1", ctx)).toBe(false);
+    expect(shouldEscalateFast("Qué temperatura y viento hay", ctx)).toBe(false);
+    expect(shouldEscalateFast("Calculá el lanzamiento de la cápsula de soporte vital", ctx)).toBe(false);
+  });
+
+  it("grants SUIT.VOICE-EXEC read-only fleet, localization, weather, biomed, and pod calculation tools (B38)", () => {
+    const fastTools = AGENTS["SUIT.VOICE-EXEC"].tools;
+    for (const toolName of [
+      "list_units",
+      "get_localization_and_lidar",
+      "get_terrain_at",
+      "get_environment",
+      "get_storm_forecast",
+      "evaluate_eva_weather",
+      "evaluate_environmental_risk",
+      "calculate_pod_launch",
+      "evaluate_crew_biomed",
+    ]) {
+      expect(fastTools).toContain(toolName);
+    }
   });
 
   it("skips redundant BASE re-summarization after a single valid delegation", async () => {
