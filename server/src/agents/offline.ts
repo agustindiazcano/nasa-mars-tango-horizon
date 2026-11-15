@@ -231,19 +231,23 @@ function parseSiteTarget(
   q: string,
   ctx?: MissionContext,
   history: ConversationTurn[] = [],
-): { x: number; z: number; label: string } {
+): { x: number; z: number; label: string; isAstronaut?: boolean } {
   const lang = ctx?.lang ?? "en";
+  const explicit = matchExplicitSiteTarget(q);
   if (
     ctx &&
-    /(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?=$|\s|[.,;!?])/i.test(
+    !explicit &&
+    (/(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?=$|\s|[.,;!?])/i.test(
       q,
-    )
+    ) ||
+      /(?<![\p{L}\d])(ven[ií]?|ac[eé]rcate|come|approach)(?![\p{L}\d])/iu.test(q))
   ) {
     const ax = Math.round(ctx.astronaut.x);
     const az = Math.round(ctx.astronaut.z);
     return {
       x: ax,
       z: az,
+      isAstronaut: true,
       label: pick(lang, {
         es: `tu posición (${ax}, ${az})`,
         en: `your position (${ax}, ${az})`,
@@ -253,7 +257,6 @@ function parseSiteTarget(
       }),
     };
   }
-  const explicit = matchExplicitSiteTarget(q);
   if (explicit) return explicit;
   if (/\b(there|all[ií]|ah[ií]|all[aá]|l[aà]|dort|l[iì])\b/i.test(q)) {
     for (let i = history.length - 1; i >= 0; i--) {
@@ -268,16 +271,16 @@ function parseSiteTarget(
 function matchExplicitUnitId(q: string): string | null {
   const direct = q.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i);
   if (direct) return direct[1].toLowerCase();
-  if (/\b(hands|manip(?:ulador|ulator)?|brazo|arm)\b/i.test(q)) return "manip-1";
+  if (/\b(hands|manip(?:ulador|ulator)?(?:\s*(?:uno|one|1))?|brazo|arm)\b/i.test(q)) return "manip-1";
   if (/\b(rescate|rescue)(?:\s*(?:uno|one|1))?\b/i.test(q)) return "rescue-1";
   if (/\b(glider|planeador|planeur|segler|aliante)\b/i.test(q)) return "glider-1";
   if (/\bscout\s*(?:dos|two|deux|zwei|due|2)\b/i.test(q)) return "scout-2";
   if (/\bscout(?:\s*(?:uno|one|un|eins|1))?\b/i.test(q)) return "scout-1";
   if (/\bdron(?:e|a)?\s*(?:dos|two|deux|zwei|due|2)\b/i.test(q)) return "drone-2";
   if (/\bdron(?:e|a)?(?:\s*(?:uno|one|un|eins|1))?\b/i.test(q)) return "drone-1";
-  if (/\b(rover\s*(?:dos|two|deux|zwei|due|2)|rvr-2)\b/i.test(q)) return "rover-2";
-  if (/\b(rover\s*(?:tres|three|trois|drei|tre|3)|rvr-3)\b/i.test(q)) return "rover-3";
-  if (/\b(rover(?:\s*(?:uno|one|un|eins|1))?|rvr-1)\b/i.test(q)) return "rover-1";
+  if (/\b(rover\s*(?:dos|two|deux|zwei|due|2)|rvr[- ]?2)\b/i.test(q)) return "rover-2";
+  if (/\b(rover\s*(?:tres|three|trois|drei|tre|3)|rvr[- ]?3)\b/i.test(q)) return "rover-3";
+  if (/\b(rover(?:\s*(?:uno|one|un|eins|1))?|rvr[- ]?1)\b/i.test(q)) return "rover-1";
   return null;
 }
 
@@ -394,7 +397,7 @@ export async function offlineReply(
 
   const isExplicitUnitOrderToRescue =
     /(?<![\p{L}\d])(rescue|rescate)(?:\s*(?:uno|one|1|-1))?(?![\p{L}\d])/iu.test(q) &&
-    /(?<![\p{L}\d])(volv[\p{L}]*|regres[\p{L}]*|return|base|trae[\p{L}]*|bring|deliver|suministr[\p{L}]*|ox[ií]geno|oxygen|segu[\p{L}]*|follow|qu[eé]date|quedate|hold|repetidor|relay)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(volv[\p{L}]*|regres[\p{L}]*|return|base|trae[\p{L}]*|bring|deliver|suministr[\p{L}]*|ox[ií]geno|oxygen|segu[\p{L}]*|follow|qu[eé]date|quedate|hold|repetidor|relay|go\s+to|ir\s+a|ven[ií]?|come|ac[eé]rcate|posici[oó]n|position|here|aqu[ií]|ac[aá]|overwatch|vigil[\p{L}]*|survey|relev[\p{L}]*)(?![\p{L}\d])/iu.test(
       q,
     ) &&
     !/(?<![\p{L}\d])(emergenc[\p{L}]*|fuga|leak|mayday|socorro|auxilio|urgence|notfall|emergenza)(?![\p{L}\d])/iu.test(q);
@@ -540,11 +543,19 @@ export async function offlineReply(
       q,
     );
 
-  // 2. Manipulator arm skills (manip-1 / "Hands")
+  // 2. Manipulator arm skills (manip-1 / "Hands") — do not hijack navigation orders for manip-1
+  const hasManipArmIntent =
+    /(?<![\p{L}\d])(martillo|hammer|perfor[\p{L}]*|drill|broca|handover|entreg[\p{L}]*|scoop|tubo|agarr[\p{L}]*|grab|recog[\p{L}]*|pick up)(?![\p{L}\d])/iu.test(
+      q,
+    ) ||
+    (/(?<![\p{L}\d])(fotograf[\p{L}]*|photograph[\p{L}]*)(?![\p{L}\d])/iu.test(q) && !mentionsMobileUnit);
+  const hasMovementOnlyVerb =
+    /(?<![\p{L}\d])(go\s+to|ir\s+a|ven[ií]?|come|ac[eé]rcate|follow|segu[\p{L}]*|return|volv[\p{L}]*|regres[\p{L}]*|hold|qu[eé]date|quedate|survey|relev[\p{L}]*|env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move)(?![\p{L}\d])/iu.test(
+      q,
+    );
   if (
     !isMaintenanceQuery &&
-    (/(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?|martillo|hammer|perfor[\p{L}]*|drill|broca|handover|entreg[\p{L}]*|scoop|tubo|agarr[\p{L}]*|grab|recog[\p{L}]*|pick up)(?![\p{L}\d])/iu.test(q) ||
-      (/(?<![\p{L}\d])(fotograf[\p{L}]*|photograph[\p{L}]*)(?![\p{L}\d])/iu.test(q) && !mentionsMobileUnit))
+    (hasManipArmIntent || (/(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?)(?![\p{L}\d])/iu.test(q) && !hasMovementOnlyVerb))
   ) {
     const caller = "ROBOT.manip-1";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
@@ -693,8 +704,11 @@ export async function offlineReply(
     };
   }
 
-  // 5. Route planning (EVA-PLANNER)
-  if (/\b(ruta|route|planif\w*|plan|camino|ir a|go to|navigate|naveg\w*|itin[eé]raire|percorso|weg)\b/i.test(q)) {
+  // 5. Route planning (EVA-PLANNER) — skip when a fleet unit is being dispatched/navigated
+  if (
+    !matchExplicitUnitId(q) &&
+    /\b(ruta|route|planif\w*|plan|camino|ir a|go to|navigate|naveg\w*|itin[eé]raire|percorso|weg)\b/i.test(q)
+  ) {
     const caller = "EVA-PLANNER";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
@@ -889,7 +903,10 @@ export async function offlineReply(
   }
 
   // 7. Science: Hydration & Vein Detector (SCIENCE)
-  if (/\b(hidrat\w*|hydrat\w*|agua|water|eau|wasser|acqua|veta|vein|veine|ader|vena|muestra|sample|échantillon|probe|campione|prospector|ciencia|science|wissenschaft|scienza|sitios|sites)\b/i.test(q)) {
+  if (
+    /\b(hidrat\w*|hydrat\w*|agua|water|eau|wasser|acqua|veta|vein|veine|ader|vena|muestra|sample|échantillon|probe|campione|prospector|ciencia|science|wissenschaft|scienza|sitios|sites)\b/i.test(q) &&
+    !(matchExplicitUnitId(q) && /\b(go\s+to|ir\s+a|send|env[ií]a\w*|m[aá]nd\w*|dispatch|despach\w*|ven[ií]?|come)\b/i.test(q))
+  ) {
     const caller = "SCIENCE";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
@@ -1078,13 +1095,13 @@ export async function offlineReply(
 
   // 10. Fleet unit_action, dispatch & Mars MRL/UWB/LiDAR localization
   const isUnitActionPhrase =
-    /(?<![\p{L}\d])(despeg[\p{L}]*|take ?off|décoll[\p{L}]*|abheb[\p{L}]*|decoll[\p{L}]*|aterriz[\p{L}]*|land|atterr[\p{L}]*|fotograf[\p{L}]*|photograph[\p{L}]*|foto|photo|vigil[\p{L}]*|overwatch|hover|sobrevol[\p{L}]*|segu[\p{L}]*|s[ií]gueme|follow|suivre|suis[- ]moi|folg[\p{L}]*|volv[\p{L}]*|regres[\p{L}]*|return|back to base|zur[uü]ck|torna|relev[\p{L}]*|survey|inspeccion[\p{L}]*|erkund[\p{L}]*|qu[eé]date|quedate|hold position|stay there|halte|repetidor|relay|relais|ripetitore|traeme|tr[aá]eme|deliver|supplies|suministr[\p{L}]*|bring.*oxygen|apporte|portami)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(despeg[\p{L}]*|take ?off|décoll[\p{L}]*|abheb[\p{L}]*|decoll[\p{L}]*|aterriz[\p{L}]*|land|atterr[\p{L}]*|fotograf[\p{L}]*|photograph[\p{L}]*|foto|photo|vigil[\p{L}]*|overwatch|hover|sobrevol[\p{L}]*|segu[\p{L}]*|s[ií]gueme|follow|suivre|suis[- ]moi|folg[\p{L}]*|volv[\p{L}]*|regres[\p{L}]*|return|back to base|zur[uü]ck|torna|relev[\p{L}]*|survey|inspeccion[\p{L}]*|erkund[\p{L}]*|qu[eé]date|quedate|hold(?:\s+position)?|stay there|halte|repetidor|relay|relais|ripetitore|traeme|tr[aá]eme|deliver|supplies|suministr[\p{L}]*|bring.*oxygen|apporte|portami)(?![\p{L}\d])/iu.test(
       q,
     );
 
   if (
     isUnitActionPhrase ||
-    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move|rover|drone?|scout|glider|ven[ií]|come|localiza[\p{L}]*|lidar|ubicaci[oó]n|coordenada[\p{L}]*|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move|rover|drone?|scout|glider|manip(?:ulador|ulator)?|hands|rescue|rescate|ven[ií]?|come|ac[eé]rcate|go\s+to|ir\s+a|here|aqu[ií]|ac[aá]|posici[oó]n|position|localiza[\p{L}]*|lidar|ubicaci[oó]n|coordenada[\p{L}]*|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
       q,
     )
   ) {
@@ -1150,7 +1167,7 @@ export async function offlineReply(
       if (/(?<![\p{L}\d])(segu[\p{L}]*|s[ií]gueme|follow|suivre|suis[- ]moi|folg[\p{L}]*)(?![\p{L}\d])/iu.test(q)) requested.push("follow_astronaut");
       if (/(?<![\p{L}\d])(volv[\p{L}]*|regres[\p{L}]*|return|back to base|zur[uü]ck|torna)(?![\p{L}\d])/iu.test(q)) requested.push("return_to_base");
       if (/(?<![\p{L}\d])(relev[\p{L}]*|survey|inspeccion[\p{L}]*|erkund[\p{L}]*)(?![\p{L}\d])/iu.test(q)) requested.push("survey_area");
-      if (/(?<![\p{L}\d])(qu[eé]date|quedate|hold position|stay there|halte)(?![\p{L}\d])/iu.test(q)) requested.push("hold_position");
+      if (/(?<![\p{L}\d])(qu[eé]date|quedate|hold(?:\s+position)?|stay there|halte)(?![\p{L}\d])/iu.test(q)) requested.push("hold_position");
       if (/(?<![\p{L}\d])(repetidor|relay|relais|ripetitore)(?![\p{L}\d])/iu.test(q)) requested.push("relay_comms");
       if (/(?<![\p{L}\d])(traeme|tr[aá]eme|deliver|supplies|suministr[\p{L}]*|bring.*oxygen|apporte|portami|ox[ií]geno|oxygen)(?![\p{L}\d])/iu.test(q) && requested.length === 0) {
         requested.push("deliver_supplies");
@@ -1195,16 +1212,28 @@ export async function offlineReply(
 
     const target = parseSiteTarget(q, ctx, history);
     const unitObj = ctx.fleet.find((u) => u.id === unitId);
-    const maxSlope = unitObj ? (MAX_SLOPE[unitObj.kind] ?? 20) : 20;
-    const safeTarget = nearestSafePoint(target.x, target.z, maxSlope);
-    const rPlan = await execRead(
-      "plan_route",
-      { unit_id: unitId, to_x: safeTarget.x, to_z: safeTarget.z, speed_ms: 1.2 },
-      ctx,
-      robotAgent,
-      trace,
-    );
-    proposeAction("show_route", { to_x: safeTarget.x, to_z: safeTarget.z }, ctx, robotAgent, actions, trace);
+    const isFlyer = unitObj?.kind === "drone" || unitObj?.kind === "glider";
+    const maxSlope = unitObj ? MAX_SLOPE[unitObj.kind] : 20;
+    const safeTarget =
+      isFlyer || maxSlope === undefined
+        ? { x: target.x, z: target.z, slope_deg: 0, adjusted: false }
+        : nearestSafePoint(target.x, target.z, maxSlope);
+    let distM: number | undefined;
+    if (isFlyer && unitObj) {
+      distM = Math.round(Math.hypot(safeTarget.x - unitObj.x, safeTarget.z - unitObj.z));
+    } else {
+      const rPlan = await execRead(
+        "plan_route",
+        { unit_id: unitId, to_x: safeTarget.x, to_z: safeTarget.z, speed_ms: 1.2 },
+        ctx,
+        robotAgent,
+        trace,
+      );
+      distM = rPlan?.distance_m;
+      if (!target.isAstronaut && rPlan?.reachable) {
+        proposeAction("show_route", { to_x: safeTarget.x, to_z: safeTarget.z }, ctx, robotAgent, actions, trace);
+      }
+    }
     const act = proposeAction(
       "dispatch",
       { unit_id: unitId, x: safeTarget.x, z: safeTarget.z, task: "goto" },
@@ -1227,7 +1256,7 @@ export async function offlineReply(
         route,
       };
     }
-    const distInfo = rPlan?.distance_m ? ` (${rPlan.distance_m} m, LiDAR + MRL HiRISE OK)` : "";
+    const distInfo = distM ? ` (${distM} m, ${isFlyer ? "aerial 14 m, MRL HiRISE OK" : "LiDAR + MRL HiRISE OK"})` : "";
     return {
       speech: pick(lang, {
         es: `Despachando ${unitId} hacia ${target.label}${distInfo}.`,
