@@ -103,7 +103,7 @@ gcloud run deploy "$CLOUD_RUN_SERVICE" \
   "${SECRETS_FLAG[@]}" \
   --set-env-vars "$ENV_VARS"
 
-URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')
+URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)' | tr -d '\r')
 ORIGINS="${URL}${VERCEL_URL:+,${VERCEL_URL}}"
 gcloud run services update "$CLOUD_RUN_SERVICE" \
   --project "$GCP_PROJECT_ID" \
