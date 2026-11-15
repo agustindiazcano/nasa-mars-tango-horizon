@@ -1,13 +1,110 @@
-import { AIRLOCK_COORD, MISSION_SITES_BY_ID, terrainMatches } from "@th/shared";
+import { AIRLOCK_COORD, BASE_ORIGIN, MISSION_SITES_BY_ID, terrainMatches } from "@th/shared";
 import { postAgentVoice, type VoiceAgentRequest, type VoiceAgentResponse } from "../api";
-import { ASR_LOCALE, getLang, onLangChange, t } from "../core/i18n";
-import { C } from "../core/physics";
+import { ASR_LOCALE, getLang, onLangChange, t, type Lang } from "../core/i18n";
+import { AIRCRAFT_GROUNDING_TAU, C, surfaceDensity } from "../core/physics";
 import type { Action, ConversationTurn, TraceEvent } from "../core/types";
 import type { MissionStore } from "../state";
 import { Listener, type ListenErrorCode } from "./listen";
 import { matchLocalIntent, type LocalIntentId } from "./localIntents";
 import { RadioSpeaker } from "./speak";
 import { isVisionQuestion } from "./visionIntent";
+
+const OFFLINE_SITES: Record<number, { x: number; z: number; label: string }> = {
+  1: { x: MISSION_SITES_BY_ID.S1.x, z: MISSION_SITES_BY_ID.S1.z, label: "S1" },
+  2: { x: MISSION_SITES_BY_ID.S2.x, z: MISSION_SITES_BY_ID.S2.z, label: "S2" },
+  3: { x: MISSION_SITES_BY_ID.S3.x, z: MISSION_SITES_BY_ID.S3.z, label: "S3" },
+  4: { x: MISSION_SITES_BY_ID.S4.x, z: MISSION_SITES_BY_ID.S4.z, label: "S4" },
+};
+void BASE_ORIGIN;
+
+const ALL_OFFLINE_KINDS = ["rover_crew", "rover_science", "rover_cargo", "scout", "rescue", "drone", "glider", "manipulator"];
+const OFFLINE_ACTION_KINDS: Record<string, string[]> = {
+  takeoff: ["drone", "glider"],
+  land: ["drone", "glider"],
+  hover_overwatch: ["drone", "glider"],
+  follow_astronaut: ALL_OFFLINE_KINDS,
+  return_to_base: ALL_OFFLINE_KINDS,
+  hold_position: ALL_OFFLINE_KINDS,
+  survey_area: ["rover_science", "scout", "drone", "glider"],
+  photograph_area: ["drone", "glider", "scout", "rover_science"],
+  relay_comms: ["rover_crew", "rover_science", "drone", "glider"],
+  deliver_supplies: ["rover_cargo", "rescue", "rover_crew"],
+};
+
+function matchOfflineExplicitUnitId(low: string): string | null {
+  const direct = low.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i);
+  if (direct) return direct[1].toLowerCase();
+  if (/\b(hands|manip(?:ulador|ulator)?(?:\s*(?:uno|one|1))?|brazo|arm)\b/i.test(low)) return "manip-1";
+  if (/\b(rescate|rescue)(?:\s*(?:uno|one|1))?\b/i.test(low)) return "rescue-1";
+  if (/\b(glider|planeador|planeur|segler|aliante)\b/i.test(low)) return "glider-1";
+  if (/\bscout\s*(?:dos|two|deux|zwei|due|2)\b/i.test(low)) return "scout-2";
+  if (/\bscout(?:\s*(?:uno|one|un|eins|1))?\b/i.test(low)) return "scout-1";
+  if (/\bdron(?:e|a)?\s*(?:dos|two|deux|zwei|due|2)\b/i.test(low)) return "drone-2";
+  if (/\bdron(?:e|a)?(?:\s*(?:uno|one|un|eins|1))?\b/i.test(low)) return "drone-1";
+  if (/\b(rover\s*(?:dos|two|deux|zwei|due|2)|rvr[- ]?2)\b/i.test(low)) return "rover-2";
+  if (/\b(rover\s*(?:tres|three|trois|drei|tre|3)|rvr[- ]?3)\b/i.test(low)) return "rover-3";
+  if (/\b(rover(?:\s*(?:uno|one|un|eins|1))?|rvr[- ]?1)\b/i.test(low)) return "rover-1";
+  return null;
+}
+
+function inferOfflineUnitKind(unitId: string, fleet: { id: string; kind: string }[]): string {
+  const found = fleet.find((u) => u.id === unitId);
+  if (found) return found.kind;
+  if (unitId.startsWith("drone-")) return "drone";
+  if (unitId.startsWith("glider-")) return "glider";
+  if (unitId.startsWith("rescue-")) return "rescue";
+  if (unitId.startsWith("manip-")) return "manipulator";
+  if (unitId === "rover-2") return "rover_science";
+  if (unitId.startsWith("scout-")) return "scout";
+  return "rover_crew";
+}
+
+function parseOfflineHeading(low: string): "north" | "east" | "south" | "west" | undefined {
+  if (/\b(norte|north|nord|norden)\b/i.test(low)) return "north";
+  if (/\b(este|east|est|osten)\b/i.test(low)) return "east";
+  if (/\b(sur|south|sud|süden|sueden)\b/i.test(low)) return "south";
+  if (/\b(oeste|west|ouest|westen|ovest)\b/i.test(low)) return "west";
+  return undefined;
+}
+
+function parseOfflineTarget(
+  low: string,
+  ax: number,
+  az: number,
+): { x: number; z: number; label: string; isAstronaut: boolean } {
+  const siteMatch = low.match(
+    /(?<![\p{L}\d])(?:sitio|site|estaci[oó]n|station|s)\s*[-#]?\s*(1|2|3|4|uno|un|one|dos|two|tres|three|cuatro|four)(?![\p{L}\d])/iu,
+  );
+  if (siteMatch) {
+    const map: Record<string, number> = {
+      "1": 1, uno: 1, un: 1, one: 1,
+      "2": 2, dos: 2, two: 2,
+      "3": 3, tres: 3, three: 3,
+      "4": 4, cuatro: 4, four: 4,
+    };
+    const site = OFFLINE_SITES[map[siteMatch[1].toLowerCase()] ?? 2];
+    return { x: site.x, z: site.z, label: site.label, isAstronaut: false };
+  }
+  const coords = low.match(/(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)/);
+  if (coords && !/\b(?:rover|drone|dron|rescue|rescate|manip|scout|glider)\s*[- ]?\d\b/i.test(coords[0])) {
+    const x = Number(coords[1]);
+    const z = Number(coords[2]);
+    return { x, z, label: `(${x}, ${z})`, isAstronaut: false };
+  }
+  if (/\b(base|hab|habitat|refugio|shelter)\b/i.test(low)) {
+    return { x: 0, z: 0, label: "Base", isAstronaut: false };
+  }
+  return {
+    x: Math.round(ax),
+    z: Math.round(az),
+    label: `(${Math.round(ax)}, ${Math.round(az)})`,
+    isAstronaut: true,
+  };
+}
+
+function pickOfflineSpeech(lang: Lang, esText: string, enText: string): string {
+  return lang === "es" ? esText : enText;
+}
 
 export interface VoiceHistoryTurn {
   role: "user" | "assistant";
@@ -359,7 +456,7 @@ export class VoiceController {
     }
   }
 
-  private offlineFallback(text: string): {
+  offlineFallback(text: string): {
     speech: string;
     actions: Action[];
     trace: TraceEvent[];
@@ -367,7 +464,9 @@ export class VoiceController {
   } {
     const now = Date.now();
     const low = text.toLowerCase();
-    const es = getLang() === "es";
+    const lang = getLang();
+    const es = lang === "es";
+    const explicitUnit = matchOfflineExplicitUnitId(low);
 
     if (/thermal|t[eé]rmic/.test(low)) {
       const a: Action = {
@@ -387,7 +486,7 @@ export class VoiceController {
       };
     }
 
-    if (/route|ruta|site two|sitio.*dos|s2/.test(low)) {
+    if (!explicitUnit && /route|ruta|site two|sitio.*dos|s2/.test(low)) {
       const s2 = MISSION_SITES_BY_ID.S2;
       const a: Action = {
         type: "show_route",
@@ -433,7 +532,9 @@ export class VoiceController {
 
     const isUnitRescueOrder =
       /\b(rescue|rescate)(?:\s*(?:uno|one|1|-1))?\b/i.test(low) &&
-      /\b(volv|regres|return|base|trae|bring|deliver|segu|follow|quedate|hold)\b/i.test(low);
+      /\b(volv|regres|return|base|trae|bring|deliver|segu|follow|quedate|qu[eé]date|hold|go\s+to|ir\s+a|ven[ií]?|come|ac[eé]rcate|posici[oó]n|position|here|aqu[ií]|ac[aá]|overwatch|vigil|survey|relev)\b/i.test(
+        low,
+      );
     const isEmergencyQuery =
       !isUnitRescueOrder &&
       /(?<![\p{L}])(emerg[\p{L}]*|leak|fuga|rescat[aáe]?me|mayday|socorro|auxilio|urgence|notfall|emergenza|send rescue)(?![\p{L}])/iu.test(
@@ -490,10 +591,16 @@ export class VoiceController {
       };
     }
 
-    if (/hands|manip|drill|sample|hammer|martillo|taladr|muestra/.test(low)) {
+    const hasArmSkillVerb = /\b(drill|taladr|sample|muestra|hammer|martillo|handover|entreg|grab|agarr)\b/i.test(low);
+    const hasNavVerb =
+      /\b(go\s+to|ir\s+a|come|ven[ií]?|ac[eé]rcate|a\s+mi\s+posici[oó]n|my\s+position|follow|segu[ií]?|seguime|overwatch|vigil|take\s*off|despeg|land|aterriz|return|volv|regres|hold|quedate|qu[eé]date|survey|relev|relay|repetidor|send|env[ií]a|manda|dispatch|despacha|here|aqu[ií]|ac[aá])\b/i.test(
+        low,
+      );
+
+    if (hasArmSkillVerb || (/hands|manip/i.test(low) && !hasNavVerb)) {
       const skill = /drill|taladr/.test(low)
         ? "drill"
-        : /hammer|martillo|hand|trae|bring/.test(low)
+        : /hammer|martillo|handover|entreg/.test(low)
           ? "handover"
           : /sample|muestra/.test(low)
             ? "sample"
@@ -524,11 +631,147 @@ export class VoiceController {
               : `ROBOT.manip-1 executing ${skill} on ${targetId}.`,
         actions: [act],
         trace: [
-          { t: now, agent: "BASE", kind: "delegate", detail: { to: "ROBOT.manip-1" } },
+          { t: now, agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } },
+          { t: now + 2, agent: "BASE", kind: "delegate", detail: { to: "ROBOT.manip-1" } },
           { t: now + 4, agent: "ROBOT.manip-1", kind: "tool", detail: { tool: "arm_skill", args: act.args } },
           { t: now + 6, agent: "GUARDIAN", kind: "verdict", detail: act },
         ],
         route: ["SUIT.VOICE-EXEC", "BASE", "ROBOT.manip-1"],
+      };
+    }
+
+    const isFleetOrder = Boolean(explicitUnit) || hasNavVerb;
+    if (isFleetOrder) {
+      let unitAction: string | null = null;
+      if (/\b(take\s*off|despeg\w*)\b/i.test(low)) unitAction = "takeoff";
+      else if (/\b(land|aterriz\w*)\b/i.test(low)) unitAction = "land";
+      else if (/\b(overwatch|vigil\w*|hover|sobrevol\w*)\b/i.test(low)) unitAction = "hover_overwatch";
+      else if (/\b(follow(?:\s+me)?|segu[ií]?(?:me)?|s[ií]gueme)\b/i.test(low)) unitAction = "follow_astronaut";
+      else if (/\b(return(?:\s+to\s+base)?|volv[eé]?|regres[aá]?|back\s+to\s+base)\b/i.test(low)) unitAction = "return_to_base";
+      else if (/\b(hold(?:\s+position)?|stay\s+there|qu[eé]date|quedate)\b/i.test(low)) unitAction = "hold_position";
+      else if (/\b(survey|relev\w*|inspeccion\w*)\b/i.test(low)) unitAction = "survey_area";
+      else if (/\b(photograph\w*|fotograf\w*|foto|photo)\b/i.test(low)) unitAction = "photograph_area";
+      else if (/\b(relay|repetidor)\b/i.test(low)) unitAction = "relay_comms";
+      else if (/\b(deliver|supplies|suministr\w*|traeme\s+ox[ií]geno|bring\s+oxygen)\b/i.test(low)) unitAction = "deliver_supplies";
+
+      let unitId = explicitUnit;
+      if (!unitId) {
+        for (let i = this.history.length - 1; i >= 0; i--) {
+          const fromHist = matchOfflineExplicitUnitId(this.history[i].content.toLowerCase());
+          if (fromHist) {
+            unitId = fromHist;
+            break;
+          }
+        }
+      }
+      if (!unitId) {
+        unitId =
+          unitAction === "takeoff" || unitAction === "land" || unitAction === "hover_overwatch"
+            ? (this.store.fleet.find((u) => u.kind === "drone")?.id ?? "drone-1")
+            : (this.store.fleet[0]?.id ?? "rover-1");
+      }
+
+      const unitKind = inferOfflineUnitKind(unitId, this.store.fleet);
+      const unitObj = this.store.fleet.find((u) => u.id === unitId);
+      const isFlyer = unitKind === "drone" || unitKind === "glider";
+      const battery = unitObj?.battery ?? 0.94;
+      const robotAgent = `ROBOT.${unitId}`;
+      const route = ["SUIT.VOICE-EXEC", "BASE", robotAgent];
+
+      const checkFlightAndBattery = (what: string, allowGrounded: boolean): NonNullable<Action["verdict"]> => {
+        if (battery < 0.1) {
+          return { decision: "deny", reason: `Battery of ${unitId} is below 10%`, by: "rules" };
+        }
+        if (isFlyer && !allowGrounded) {
+          if (battery < 0.15) {
+            return { decision: "deny", reason: `Battery of ${unitId} is too low for ${what}`, by: "rules" };
+          }
+          if (this.store.env.tau >= AIRCRAFT_GROUNDING_TAU) {
+            return {
+              decision: "deny",
+              reason: `Dust opacity tau=${this.store.env.tau.toFixed(2)} exceeds ${AIRCRAFT_GROUNDING_TAU} aircraft grounding limit`,
+              by: "rules",
+            };
+          }
+          if (this.store.env.wind_ms >= 20) {
+            return {
+              decision: "deny",
+              reason: `Wind speed ${this.store.env.wind_ms.toFixed(1)} m/s exceeds 20 m/s aircraft flight limit`,
+              by: "rules",
+            };
+          }
+          if (surfaceDensity(this.store.env.pressure_pa, this.store.env.air_temp_k) < 0.01) {
+            return { decision: "deny", reason: "Air density below 0.01 kg/m^3 minimum flight density", by: "rules" };
+          }
+        }
+        return { decision: "allow", reason: "Offline safety rule check passed", by: "rules" };
+      };
+
+      if (unitAction) {
+        const allowedKinds = OFFLINE_ACTION_KINDS[unitAction] ?? [];
+        const allowGrounded = unitAction === "land" || unitAction === "hold_position";
+        const verdict: NonNullable<Action["verdict"]> = !allowedKinds.includes(unitKind)
+          ? { decision: "deny", reason: `${unitId} (${unitKind}) cannot perform ${unitAction}`, by: "rules" }
+          : checkFlightAndBattery(unitAction, allowGrounded);
+        const heading = parseOfflineHeading(low);
+        const args: Record<string, unknown> = { unit_id: unitId, action: unitAction };
+        if (unitAction === "takeoff") args.altitude_m = 14;
+        if ((unitAction === "photograph_area" || unitAction === "survey_area") && heading) args.heading = heading;
+        const act: Action = { type: "unit_action", args, proposedBy: robotAgent, verdict };
+        const speech =
+          verdict.decision === "deny"
+            ? pickOfflineSpeech(lang, `Orden rechazada por GUARDIAN: ${verdict.reason}.`, `Order rejected by GUARDIAN: ${verdict.reason}.`)
+            : pickOfflineSpeech(lang, `${unitId} ejecutando ${unitAction}.`, `${unitId} executing ${unitAction}.`);
+        return {
+          speech,
+          actions: [act],
+          trace: [
+            { t: now, agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } },
+            { t: now + 2, agent: "BASE", kind: "delegate", detail: { to: robotAgent } },
+            { t: now + 4, agent: robotAgent, kind: "tool", detail: { tool: "unit_action", args: act.args } },
+            { t: now + 6, agent: "GUARDIAN", kind: "verdict", detail: act },
+          ],
+          route,
+        };
+      }
+
+      const target = parseOfflineTarget(low, this.store.astronaut.x, this.store.astronaut.z);
+      let destX = target.x;
+      let destZ = target.z;
+      if (target.isAstronaut && !isFlyer && unitObj) {
+        const dx = unitObj.x - this.store.astronaut.x;
+        const dz = unitObj.z - this.store.astronaut.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist > 5) {
+          destX = Number((this.store.astronaut.x + (dx / dist) * 5).toFixed(1));
+          destZ = Number((this.store.astronaut.z + (dz / dist) * 5).toFixed(1));
+        }
+      }
+      const verdict = checkFlightAndBattery("dispatch", false);
+      const act: Action = {
+        type: "dispatch",
+        args: { unit_id: unitId, x: destX, z: destZ, task: "goto" },
+        proposedBy: robotAgent,
+        verdict,
+      };
+      const speech =
+        verdict.decision === "deny"
+          ? pickOfflineSpeech(lang, `Orden rechazada por GUARDIAN: ${verdict.reason}.`, `Dispatch rejected by GUARDIAN: ${verdict.reason}.`)
+          : pickOfflineSpeech(
+              lang,
+              `Despachando ${unitId} a (${destX}, ${destZ})${isFlyer ? " a 14 m de altitud" : ""}.`,
+              `Dispatching ${unitId} to (${destX}, ${destZ})${isFlyer ? " at 14 m altitude" : ""}.`,
+            );
+      return {
+        speech,
+        actions: [act],
+        trace: [
+          { t: now, agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } },
+          { t: now + 2, agent: "BASE", kind: "delegate", detail: { to: robotAgent } },
+          { t: now + 4, agent: robotAgent, kind: "tool", detail: { tool: "dispatch", args: act.args } },
+          { t: now + 6, agent: "GUARDIAN", kind: "verdict", detail: act },
+        ],
+        route,
       };
     }
 
