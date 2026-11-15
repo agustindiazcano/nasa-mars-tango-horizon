@@ -38,6 +38,7 @@ import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/resc
 import { SceneDirector } from "./world/sceneDirector";
 import { PodBallistics } from "./world/podBallistics";
 import { RocksProc } from "./world/rocksProc";
+import { DecorRobots } from "./world/decorRobots";
 import { createSkyCraneToggle, SkyCraneProc } from "./world/skyCraneProc";
 import { SkyDust } from "./world/skyDust";
 import { TerrainProc } from "./world/terrainProc";
@@ -135,7 +136,10 @@ const launchSite = new LaunchSiteProc(scene, terrain);
 new PitProc(scene, terrain);
 const crew = new CrewProc(scene, terrain);
 const rocks = new RocksProc(scene, terrain);
-void rocks;
+// Decorative ground robots (the team rover.glb at robot scale, procedurally weathered).
+const decor = new DecorRobots(scene, terrain, {
+  avoid: rocks.placements.filter((r) => r.tier !== "small").map((r) => ({ x: r.x, z: r.z, r: Math.max(r.sx, r.sz) })),
+});
 const skyCrane = new SkyCraneProc(scene, terrain);
 createSkyCraneToggle(() => {
   skyCrane.setVisible(!skyCrane.visible);
@@ -801,6 +805,7 @@ function animate(now: number): void {
   narrationFeeder.sync(rescue.elapsedS, store.activeScenario === "rescue");
   agentChat.update(store.hudVisible);
   launchSite.update(now / 1000);
+  decor.update(realDt);
   skyCrane.update(realDt, store.env.tau);
 
   skyDust.update(
