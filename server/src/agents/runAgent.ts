@@ -351,7 +351,7 @@ export async function runAgent(
         });
         if (tool.effect) {
           const action = result as Action;
-          action.verdict = await review(action, ctx, userRequest, [...untrusted]);
+          action.verdict = await review(action, ctx, userRequest, [...untrusted], (ev) => trace.push(ev));
           trace.push({ t: Date.now(), agent: "GUARDIAN", kind: "verdict", detail: action });
           if (action.verdict.decision === "deny" && action.verdict.by === "rules") {
             hardDenied ??= action.verdict.reason;

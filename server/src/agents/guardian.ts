@@ -3,7 +3,8 @@ import { z } from "zod";
 import { chat, llmAvailable } from "../llm/provider.js";
 import { slopeAt } from "./tools/terrainData.js";
 import { UNIT_ACTIONS, type UnitActionId } from "./unitCapabilities.js";
-import type { Action, MissionContext, Verdict } from "./types.js";
+import { runEscalatedVoting } from "./voting.js";
+import type { Action, MissionContext, TraceEvent, Verdict } from "./types.js";
 
 export const MAX_SLOPE: Record<string, number> = {
   rover_crew: 20,
@@ -443,12 +444,25 @@ export async function review(
   ctx: MissionContext,
   userRequest: string,
   untrusted: string[] = [],
+  onTrace?: (ev: TraceEvent) => void,
 ): Promise<Verdict> {
   const hard = ruleCheck(a, ctx);
   if (hard) return hard;
   // Low-risk action already inside hard limits, with no document/agent text in context and a clean request: no LLM hop.
-  if (JUDGE_SKIP_TYPES.has(a.type) && untrusted.length === 0 && !INJECTION_RE.test(userRequest)) {
-    return { decision: "allow", reason: "Within hard limits; no untrusted input", by: "rules" };
+  const step2: Verdict =
+    JUDGE_SKIP_TYPES.has(a.type) && untrusted.length === 0 && !INJECTION_RE.test(userRequest)
+      ? { decision: "allow", reason: "Within hard limits; no untrusted input", by: "rules" }
+      : await judge(a, ctx, userRequest, untrusted);
+
+  const voted = await runEscalatedVoting(a, ctx, userRequest, untrusted, step2);
+  if (voted) {
+    onTrace?.({
+      t: Date.now(),
+      agent: "ESC-VOTE",
+      kind: "voting",
+      detail: voted.traceDetail,
+    });
+    return voted.verdict;
   }
-  return judge(a, ctx, userRequest, untrusted);
+  return step2;
 }
