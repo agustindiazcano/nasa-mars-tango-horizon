@@ -34,6 +34,7 @@ import { barHeight } from "../voice/spectrum";
 export interface HudActions {
   togglePov(): void;
   toggleIso(): void;
+  setCinematic(id: number): void;
   setLayer(layer: LayerId): void;
   runManipSkill(skill: ArmSkillId, targetId: string): void;
   captureRoverVision(unitId: string, question: string): void;
@@ -289,8 +290,9 @@ export class TacticalHud {
           ${menuHtml}
           <button class="hud-btn" data-pointable id="btn-rover-cam">${t("menu.rover_cam")}</button>
           <button class="hud-btn" data-pointable id="btn-qr">${t("menu.remote")}</button>
-          <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : this.store.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso")}</button>
+          <button class="hud-btn" data-pointable id="btn-pov">${this.store.povMode === "1st" ? t("hud.pov_1st") : this.store.povMode === "3rd" ? t("hud.pov_3rd") : this.store.povMode === "cinematic" ? t("hud.pov_cinematic") : t("hud.pov_iso")}</button>
           <button class="hud-btn ${this.store.povMode === "iso" ? "active" : ""}" data-pointable id="btn-iso" title="${t("hud.iso_hint")}">${t("hud.btn_iso")}</button>
+          ${[1, 2, 3, 4, 5].map((n) => `<button class="hud-btn" data-pointable data-cam="${n}" title="${t("hud.cam_hint")}">CAM-${n}</button>`).join("")}
           <button class="hud-btn" data-pointable id="btn-hud-toggle" title="${t("hud.visibility_hint")}">HUD</button>
         </div>
         <div class="btn-row">
@@ -353,6 +355,9 @@ export class TacticalHud {
 
     document.getElementById("btn-pov")!.addEventListener("click", () => this.actions.togglePov());
     document.getElementById("btn-iso")!.addEventListener("click", () => this.actions.toggleIso());
+    this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-cam]").forEach((b) =>
+      b.addEventListener("click", () => this.actions.setCinematic(Number(b.dataset.cam))),
+    );
     document.getElementById("btn-hud-toggle")?.addEventListener("click", () => {
       this.store.setHudVisible(!this.store.hudVisible);
     });
@@ -574,8 +579,11 @@ export class TacticalHud {
     const povBtn = document.getElementById("btn-pov");
     if (povBtn) {
       povBtn.textContent =
-        s.povMode === "1st" ? t("hud.pov_1st") : s.povMode === "3rd" ? t("hud.pov_3rd") : t("hud.pov_iso");
+        s.povMode === "1st" ? t("hud.pov_1st") : s.povMode === "3rd" ? t("hud.pov_3rd") : s.povMode === "cinematic" ? t("hud.pov_cinematic") : t("hud.pov_iso");
     }
+    this.bottomEl.querySelectorAll<HTMLButtonElement>("[data-cam]").forEach((b) => {
+      b.classList.toggle("active", s.povMode === "cinematic" && Number(b.dataset.cam) === s.cinematicCam);
+    });
     const isoBtn = document.getElementById("btn-iso");
     if (isoBtn) isoBtn.classList.toggle("active", s.povMode === "iso");
     const hudVis = s.hudVisible;
