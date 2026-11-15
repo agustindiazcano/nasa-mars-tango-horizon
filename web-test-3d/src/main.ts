@@ -200,6 +200,7 @@ async function captureAndInspectVision(
 
 const voice = new VoiceController(store, {
   onVisionRequest: captureAndInspectVision,
+  slopeAt: (x, z) => terrain.slopeAt(x, z),
 });
 const sessionStore = new SessionStore();
 const sessionManager = new ChatSessionManager(store, sessionStore, voice);
