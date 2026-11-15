@@ -87,7 +87,7 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       const slope = slopeAt(x as number, z as number);
       if (max !== undefined && slope > max && !(unit.kind === "drone" || unit.kind === "glider")) {
         return deny(
-          `${slope.toFixed(0)}° slope exceeds the ${max}° limit of ${unit_id}`,
+          `${slope.toFixed(0)}Â° slope exceeds the ${max}Â° limit of ${unit_id}`,
           "guard.slope",
           { slope: Math.round(slope), max, unit: unit_id },
         );
