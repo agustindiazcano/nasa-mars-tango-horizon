@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { planRoute } from "../core/physics";
+import { AIRCRAFT_GROUNDING_TAU, planRoute } from "../core/physics";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "../core/types";
 import { ManipulatorArm, SkillRunner } from "./manipulatorArm";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
@@ -61,7 +61,7 @@ export class FleetUnit {
   update(dt: number, tau: number): void {
     const o = this.object;
     if (this.spec.flies) {
-      this.grounded = tau > 3.5;
+      this.grounded = tau >= AIRCRAFT_GROUNDING_TAU;
     }
     const target = this.path[0];
     let distMoved = 0;

@@ -3,7 +3,7 @@ import { inject } from "@vercel/analytics";
 import * as THREE from "three";
 import { apiUrl } from "./api";
 import { getLang, t } from "./core/i18n";
-import { C, leakTimeline, planRoute, stepSuitTelemetry } from "./core/physics";
+import { AIRCRAFT_GROUNDING_TAU, C, leakTimeline, planRoute, stepSuitTelemetry } from "./core/physics";
 import type { ArmSkillId, LayerId, RouteDisplay } from "./core/types";
 import { createDemoDeck } from "./hud/demoDeck";
 import { TacticalHud } from "./hud/hud";
@@ -311,7 +311,7 @@ function startScenario(id: "storm" | "sep2017" | "leak"): void {
   store.scenarioElapsedS = 0;
   if (id === "storm") {
     store.env.storm_source = "REMS MSL 2018 Global Dust Storm (Sol 2080)";
-    store.pushAlert("warn", "Dust storm approaching: tau rising, drones grounding >3.5", "WEATHER-RAD");
+    store.pushAlert("warn", `Dust storm approaching: tau rising, drones grounding at tau >= ${AIRCRAFT_GROUNDING_TAU}`, "WEATHER-RAD");
   } else if (id === "sep2017") {
     store.env.rad_source = "RAD MSL Real SEP Event (Sep 2017)";
     store.setLayer("radiation");
