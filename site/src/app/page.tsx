@@ -155,9 +155,10 @@ export default function HomePage() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '1.5rem',
+        gap: '1.65rem',
         width: '100%',
-        paddingBottom: '2.75rem',
+        paddingTop: '2.5rem',
+        paddingBottom: '3rem',
         fontFamily: RALEWAY_FONT,
       }}
     >
@@ -167,6 +168,7 @@ export default function HomePage() {
         style={{
           width: '80vw',
           margin: '0 auto',
+          paddingTop: '0.5rem',
         }}
       >
         <PartnerLogosStrip variant="hero" />
@@ -178,6 +180,8 @@ export default function HomePage() {
         style={{
           width: '80vw',
           margin: '0 auto',
+          paddingTop: '1.15rem',
+          paddingBottom: '0.45rem',
           display: 'flex',
           justifyContent: 'center',
         }}
