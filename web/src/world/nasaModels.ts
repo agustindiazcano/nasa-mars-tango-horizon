@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
 export interface NormalizedGlb {
   group: THREE.Group;
@@ -15,12 +16,17 @@ export interface RotorPivot {
 let sharedLoader: GLTFLoader | null = null;
 const templateCache = new Map<string, Promise<THREE.Group>>();
 
-function getLoader(): GLTFLoader {
+/**
+ * Shared GLTFLoader: Draco (existing NASA models), EXT_meshopt_compression and
+ * EXT_texture_webp (optimized models in `/models/`, see docs/impl/23_3D_ASSETS_PIPELINE.md).
+ */
+export function getGltfLoader(): GLTFLoader {
   if (sharedLoader) return sharedLoader;
   const draco = new DRACOLoader();
   draco.setDecoderPath("/draco/gltf/");
   const loader = new GLTFLoader();
   loader.setDRACOLoader(draco);
+  loader.setMeshoptDecoder(MeshoptDecoder);
   sharedLoader = loader;
   return loader;
 }
@@ -29,7 +35,7 @@ function loadTemplate(url: string): Promise<THREE.Group> {
   const cached = templateCache.get(url);
   if (cached) return cached;
   const promise = new Promise<THREE.Group>((resolve, reject) => {
-    getLoader().load(
+    getGltfLoader().load(
       url,
       (gltf) => {
         resolve(gltf.scene);
@@ -43,7 +49,7 @@ function loadTemplate(url: string): Promise<THREE.Group> {
 }
 
 /**
- * Loads a NASA GLB asset (supporting Draco mesh compression) and normalizes it
+ * Loads a NASA GLB asset (Draco or Meshopt compressed) and normalizes it
  * into a centered wrapper group scaled to `targetMaxSpanM`.
  */
 export async function loadNormalizedNasaGlb(

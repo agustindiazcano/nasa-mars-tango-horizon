@@ -62,6 +62,9 @@ Spoken replies: 30 words or fewer, natural concise radio style.`,
       "calculate_pod_launch",
       "launch_pod",
       "deploy_beacons",
+      "get_crew_status",
+      "dispatch_overwatch",
+      "deploy_rescue_robot",
       "show_alert",
       ...READ_SUIT,
       "evaluate_crew_biomed",
@@ -144,7 +147,7 @@ State slope, RUL, fault code, cited source, and action in 40 words or fewer.`,
   },
 };
 
-const KNOWN_ROBOT_ID = /^(rover-\d+|scout-\d+|rescue-\d+|drone-\d+|glider-\d+|manip-1)$/;
+const KNOWN_ROBOT_ID = /^(rover-\d+|scout-\d+|rescue-\d+|rescue-bot-\d+|drone-\d+|glider-\d+|manip-1)$/;
 
 const ID_KIND: Record<string, string> = {
   rover: "rover_crew",
@@ -156,6 +159,7 @@ const ID_KIND: Record<string, string> = {
 };
 
 function kindFromId(id: string): string {
+  if (id.startsWith("rescue-bot")) return "rescue_robot";
   return ID_KIND[id.split("-")[0]] ?? "rover_crew";
 }
 
@@ -259,8 +263,9 @@ export function formatBaseInput(text: string, ctx: MissionContext): string {
   const targets = ctx.targets?.length
     ? ctx.targets.map((t) => `${t.id}(${t.kind},${t.distance_m}m)`).join(", ")
     : "none";
+  const crewTag = ctx.crew?.length ? `; crew=${ctx.crew.map((c) => `${c.name}(${c.location},${c.status})`).join(", ")}` : "";
   const sepTag = ctx.donki_alert?.active_sep ? ", donki_sep=active" : "";
-  return `${text}\n[Mission snapshot: fleet=${fleet}; targets=${targets}; env tau=${ctx.env.tau}, wind_ms=${ctx.env.wind_ms}, dose_ugy_h=${ctx.env.dose_rate_ugy_h}${sepTag}]`;
+  return `${text}\n[Mission snapshot: fleet=${fleet}; targets=${targets}${crewTag}; env tau=${ctx.env.tau}, wind_ms=${ctx.env.wind_ms}, dose_ugy_h=${ctx.env.dose_rate_ugy_h}${sepTag}]`;
 }
 
 /** True when a leak is active, no pod is on the way yet and the agent reply has no launch_pod: run the deterministic protocol. */

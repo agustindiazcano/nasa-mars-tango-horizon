@@ -150,7 +150,9 @@ Several people and several agents work on this project at the same time.
 | `docs/impl/19_PREDICTIVE_BIOMEDICAL_RAG.md` | 19. Predictive biomedical monitoring, personal baseline and standards RAG (future plan) |
 | `docs/impl/20_COMPONENT_FAULT_TELEMETRY_RAG.md` | 20. Component fault & predictive maintenance telemetry + aerospace FDIR RAG (future plan) |
 | `docs/impl/21_ENVIRONMENTAL_WEATHER_RAG.md` | 21. Environmental, space-weather & Martian climate predictive telemetry + atmospheric RAG (future plan) |
-| `docs/impl/22_RESCUE_SCENARIO_AND_BASE_REVISION.md` | 22. Crew rescue scenario, three-astronaut crew and base revision (plan) |
+| `docs/impl/22_RESCUE_SCENARIO_AND_BASE_REVISION.md` | 22. Crew rescue scenario, four-astronaut crew and base revision (plan) |
+| `docs/impl/23_3D_ASSETS_PIPELINE.md` | 23. 3D assets: optimization pipeline, model lab and rigid-astronaut close-up (plan) |
+| `docs/impl/24_MODELS_IN_SIMULATOR_NATURAL_PIT_AND_MAP.md` | 24. Optimized models in the simulator, base design, natural pit, NASA-style map (plan) |
 
 ## Session memory
 

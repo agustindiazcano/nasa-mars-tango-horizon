@@ -6,7 +6,7 @@
 export type CrewId = "crew-1" | "crew-2" | "crew-3" | "crew-4";
 
 /** Callsigns shown in the HUD and spoken by the AI orchestrator. */
-export type CrewName = "DIAZ-CANO" | "SALERNO" | "SOTELO" | "YACONIS";
+export type CrewName = "SOTELO" | "YACONIS" | "SALERNO" | "DIAZ-CANO";
 
 /** Mission assignment: the two at the base, the two on the science expedition. */
 export type CrewAssignment = "base" | "science_expedition";
@@ -26,14 +26,14 @@ export interface CrewMember {
 }
 
 /**
- * Default roster. DIAZ-CANO is the player-controlled astronaut at the base; SALERNO waits at the base;
- * SOTELO (driver) and YACONIS (geologist) are on the science expedition. Change the casting here only.
+ * Default roster. SOTELO is the player-controlled astronaut at the base; YACONIS waits at the base;
+ * SALERNO (driver) and DIAZ-CANO (geologist) are on the science expedition. Change the casting here only.
  */
 export const CREW_ROSTER: readonly CrewMember[] = [
-  { id: "crew-1", name: "DIAZ-CANO", assignment: "base", roleKey: "crew.role.eva_lead" },
-  { id: "crew-4", name: "SALERNO", assignment: "base", roleKey: "crew.role.base_ops" },
-  { id: "crew-2", name: "SOTELO", assignment: "science_expedition", roleKey: "crew.role.driver" },
-  { id: "crew-3", name: "YACONIS", assignment: "science_expedition", roleKey: "crew.role.geologist" },
+  { id: "crew-1", name: "SOTELO", assignment: "base", roleKey: "crew.role.eva_lead" },
+  { id: "crew-4", name: "YACONIS", assignment: "base", roleKey: "crew.role.base_ops" },
+  { id: "crew-2", name: "SALERNO", assignment: "science_expedition", roleKey: "crew.role.driver" },
+  { id: "crew-3", name: "DIAZ-CANO", assignment: "science_expedition", roleKey: "crew.role.geologist" },
 ];
 
 /** Live state of one crew member (positions in world metres, same frame as `astronaut` and `fleet`). */
@@ -57,14 +57,14 @@ const strip = (s: string) =>
     .replace(/[^a-z0-9]+/g, "");
 
 const ALIASES: Record<CrewName, string[]> = {
-  "DIAZ-CANO": ["diazcano", "diaz", "cano"],
-  SALERNO: ["salerno"],
   SOTELO: ["sotelo"],
   YACONIS: ["yaconis", "yaconi", "yakonis"],
+  SALERNO: ["salerno"],
+  "DIAZ-CANO": ["diazcano", "diaz", "cano"],
 };
 
 /**
- * Resolves a spoken or typed name ("díaz cano", "Salerno", "crew-3") to a crew member.
+ * Resolves a spoken or typed name ("díaz cano", "Sotelo", "crew-3") to a crew member.
  * Accent, case and separator insensitive. Returns null when nothing matches.
  */
 export function findCrew(query: string): CrewMember | null {

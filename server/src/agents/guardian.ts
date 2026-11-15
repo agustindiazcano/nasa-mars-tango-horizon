@@ -1,8 +1,19 @@
-import { computeEnvGradients, ENV_LIMITS, evaluateComponentHealth, surfaceDensity } from "@th/shared";
+import { computeEnvGradients, findCrew, ENV_LIMITS, evaluateComponentHealth, surfaceDensity } from "@th/shared";
 import { z } from "zod";
 import { chat, llmAvailable } from "../llm/provider.js";
 import { slopeAt } from "./tools/terrainData.js";
-import { MAX_SLOPE, UNIT_ACTIONS, type UnitActionId } from "./unitCapabilities.js";
+import {
+  crewOf,
+  DRONE_CREW_STANDOFF_M,
+  MAX_SLOPE,
+  OVERWATCH_ALT_MAX_M,
+  OVERWATCH_ALT_MIN_M,
+  OVERWATCH_RADIUS_MAX_M,
+  OVERWATCH_RADIUS_MIN_M,
+  RESCUE_ROBOT_MAX_CARRIER_DIST_M,
+  UNIT_ACTIONS,
+  type UnitActionId,
+} from "./unitCapabilities.js";
 import { runEscalatedVoting } from "./voting.js";
 import type { Action, MissionContext, TraceEvent, Verdict } from "./types.js";
 
@@ -11,7 +22,7 @@ export { MAX_SLOPE };
 const POD_KEEPOUT_M = 15; // design assumption: exclusion radius around crew for pod landing
 const AIRCRAFT_MIN_BATTERY = 0.15;
 const ARM_CREW_KEEPOUT_M = 2; // design assumption: minimum clearance around crew for non-handover arm skills
-const JUDGE_SKIP_TYPES = new Set(["dispatch", "arm_skill", "unit_action"]); // low risk once hard limits pass; launch_pod/deploy_beacons stay judged
+const JUDGE_SKIP_TYPES = new Set(["dispatch", "arm_skill", "unit_action", "dispatch_overwatch"]); // low risk once hard limits pass; launch_pod/deploy_beacons stay judged
 const INJECTION_RE =
   /ignore (all |previous |prior )?(instructions|rules)|disregard|system prompt|override|disable (safety|guardian)|you are now|jailbreak|<\/?untrusted>|ignora (las |todas )?(instrucciones|reglas)|desactiva/i;
 const HUD_ONLY = new Set(["set_layer", "open_panel", "show_route", "show_alert", "capture_vision", "set_lang", "set_hud_visible"]);
@@ -43,6 +54,19 @@ function aircraftDeny(unit: { id: string; kind: string; battery: number }, what:
   const rho = surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k);
   if (rho < ENV_LIMITS.minFlightDensityKgM3) {
     return `Air density ${rho.toFixed(4)} kg/m^3 is below ${ENV_LIMITS.minFlightDensityKgM3} kg/m^3 minimum flight density`;
+  }
+  return null;
+}
+
+/** Deny reason when a drone waypoint lies within the standoff radius of any crew member, else null. */
+function crewStandoffDeny(x: number, z: number, ctx: MissionContext): string | null {
+  let nearest: { name: string; d: number } | null = null;
+  for (const c of crewOf(ctx)) {
+    const d = Math.hypot(x - c.x, z - c.z);
+    if (!nearest || d < nearest.d) nearest = { name: c.name, d };
+  }
+  if (nearest && nearest.d < DRONE_CREW_STANDOFF_M) {
+    return `Drone waypoint (${Math.round(x)}, ${Math.round(z)}) is ${nearest.d.toFixed(0)} m from ${nearest.name}; overwatch standoff is ${DRONE_CREW_STANDOFF_M} m`;
   }
   return null;
 }
@@ -121,6 +145,10 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     if (mobFault) return deny(mobFault);
     const aircraftReason = aircraftDeny(unit, "dispatch", ctx);
     if (aircraftReason) return deny(aircraftReason);
+    if (ctx.rescue_active === true && isAircraft(unit.kind)) {
+      const standoff = crewStandoffDeny(x, z, ctx);
+      if (standoff) return deny(standoff);
+    }
     const max = MAX_SLOPE[unit.kind];
     if (max !== undefined) {
       const slope = slopeAt(x, z);
@@ -177,6 +205,19 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       const aircraftReason = aircraftDeny(unit, action, ctx);
       if (aircraftReason) return deny(aircraftReason);
     }
+    if (ctx.rescue_active === true && isAircraft(unit.kind)) {
+      if (action === "hover_overwatch") {
+        return deny("hover_overwatch parks above the astronaut; use dispatch_overwatch to keep the 25 m standoff");
+      }
+      const alt = (a.args as { altitude_m?: number }).altitude_m;
+      if (alt !== undefined && (!Number.isFinite(alt) || alt < OVERWATCH_ALT_MIN_M || alt > OVERWATCH_ALT_MAX_M)) {
+        return deny(`Drone altitude ${alt} m is outside the ${OVERWATCH_ALT_MIN_M}-${OVERWATCH_ALT_MAX_M} m overwatch band`);
+      }
+      if (x !== undefined && z !== undefined && Number.isFinite(x) && Number.isFinite(z)) {
+        const standoff = crewStandoffDeny(x, z, ctx);
+        if (standoff) return deny(standoff);
+      }
+    }
     if (x !== undefined || z !== undefined) {
       if (!Number.isFinite(x) || !Number.isFinite(z)) return deny("Invalid target coordinates");
       const max = MAX_SLOPE[unit.kind];
@@ -190,6 +231,75 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       }
     }
   }
+  if (a.type === "dispatch_overwatch") {
+    const { unit_id, x, z, center_x, center_z, radius_m, altitude_m } = a.args as {
+      unit_id: string;
+      x: number;
+      z: number;
+      center_x: number;
+      center_z: number;
+      radius_m: number;
+      altitude_m: number;
+    };
+    if (![x, z, center_x, center_z, radius_m, altitude_m].every((v) => Number.isFinite(v))) {
+      return deny("Invalid overwatch parameters");
+    }
+    const unit = ctx.fleet.find((u) => u.id === unit_id);
+    if (!unit) return deny(`Unit ${unit_id} does not exist`);
+    if (!isAircraft(unit.kind)) return deny(`${unit_id} (${unit.kind}) is not an aircraft and cannot perform overwatch`);
+    if (a.proposedBy.startsWith("ROBOT.") && a.proposedBy !== `ROBOT.${unit_id}`) {
+      return deny("A robot may only command itself");
+    }
+    const aircraftReason = aircraftDeny(unit, "overwatch", ctx);
+    if (aircraftReason) return deny(aircraftReason);
+    if (altitude_m < OVERWATCH_ALT_MIN_M || altitude_m > OVERWATCH_ALT_MAX_M) {
+      return deny(`Drone altitude ${altitude_m} m is outside the ${OVERWATCH_ALT_MIN_M}-${OVERWATCH_ALT_MAX_M} m overwatch band`);
+    }
+    if (radius_m < OVERWATCH_RADIUS_MIN_M || radius_m > OVERWATCH_RADIUS_MAX_M) {
+      return deny(`Orbit radius ${radius_m} m is outside the ${OVERWATCH_RADIUS_MIN_M}-${OVERWATCH_RADIUS_MAX_M} m overwatch band`);
+    }
+    const entry = crewStandoffDeny(x, z, ctx);
+    if (entry) return deny(entry);
+    for (const c of crewOf(ctx)) {
+      // Closest approach of the orbit circle to a crew member is | distance to center - radius |.
+      const gap = Math.abs(Math.hypot(c.x - center_x, c.z - center_z) - radius_m);
+      if (gap < DRONE_CREW_STANDOFF_M) {
+        return deny(`Orbit passes ${gap.toFixed(0)} m from ${c.name}; overwatch standoff is ${DRONE_CREW_STANDOFF_M} m`);
+      }
+    }
+  }
+
+  if (a.type === "deploy_rescue_robot") {
+    const { unit_id, carrier_id, target_id, x, z } = a.args as {
+      unit_id: string;
+      carrier_id?: string;
+      target_id: string;
+      x?: number;
+      z?: number;
+    };
+    const unit = ctx.fleet.find((u) => u.id === unit_id);
+    if (!unit) return deny(`Unit ${unit_id} does not exist`);
+    if (unit.kind !== "rescue_robot") return deny(`${unit_id} (${unit.kind}) is not a rescue robot`);
+    if (unit.battery < 0.1) return deny(`Battery of ${unit_id} is below 10%`);
+    const mobFault = fleetMobilityFaultDeny(unit_id, ctx);
+    if (mobFault) return deny(mobFault);
+    const member = findCrew(String(target_id ?? ""));
+    const casualty = member ? ctx.crew?.find((c) => c.id === member.id) : undefined;
+    if (!casualty || !Number.isFinite(x) || !Number.isFinite(z)) return deny(`Crew member ${target_id} not found`);
+    if (casualty.location === "rescue_vehicle") return deny(`${casualty.name} is already aboard`);
+    const carrier = ctx.fleet.find((u) => u.id === (carrier_id ?? "rescue-1"));
+    if (!carrier) return deny(`Carrier ${carrier_id ?? "rescue-1"} does not exist`);
+    const dCarrier = Math.hypot(carrier.x - casualty.x, carrier.z - casualty.z);
+    if (dCarrier > RESCUE_ROBOT_MAX_CARRIER_DIST_M) {
+      return deny(`${carrier.id} is ${dCarrier.toFixed(0)} m from ${casualty.name}; the robot deploys within ${RESCUE_ROBOT_MAX_CARRIER_DIST_M} m`);
+    }
+    return {
+      decision: "ask_human",
+      reason: `Rescue robot ${unit_id} will approach ${casualty.name} (${casualty.status}, ${casualty.location}); crew confirmation required`,
+      by: "rules",
+    };
+  }
+
   if (a.type === "launch_pod") {
     const { target_x, target_z } = a.args as { target_x: number; target_z: number };
     if (!Number.isFinite(target_x) || !Number.isFinite(target_z)) {

@@ -1,5 +1,6 @@
 import type {
   CrewProfile,
+  CrewSnapshot,
   DonkiAlert,
   EnvTelemetrySample,
   FleetUnitHealth,
@@ -10,6 +11,8 @@ import type {
   VitalsSample,
 } from "@th/shared";
 import type { z } from "zod";
+
+export type { CrewSnapshot };
 
 export type Lang = "en" | "es" | "fr" | "de" | "it";
 
@@ -102,6 +105,10 @@ export interface MissionContext {
   base_battery_wh?: number;
   donki_alert?: DonkiAlert;
   fleet: FleetUnitSnapshot[];
+  /** Crew positions (`crew-1`..`crew-4`); drone standoff and rescue rules use them. */
+  crew?: CrewSnapshot[];
+  /** True while the crew rescue scenario runs. */
+  rescue_active?: boolean;
   hud: {
     layer: string;
     panel: string | null;

@@ -1,10 +1,11 @@
 import { ASTRONAUT_START, BASE_ORIGIN, MISSION_SITES_BY_ID, fleetStartPos, initialCrewSnapshots } from "@th/shared";
-import type { CrewSnapshot, TerrainIdentity } from "@th/shared";
+import type { TerrainIdentity } from "@th/shared";
 import { ASR_LOCALE, getLang, setLang, type Lang } from "@th/shared";
 import { C, directTransmission } from "@th/shared";
 import type {
   Action,
   ArmSkillId,
+  CrewSnapshot,
   EnvState,
   HudAlert,
   LayerId,
@@ -17,6 +18,7 @@ import type {
   TraceEvent,
   UnitSnapshot,
 } from "@th/shared";
+import type { RescueScenario } from "./world/rescueScenario";
 
 export interface WorldHooks {
   onLayerChange?(layer: LayerId): void;
@@ -27,6 +29,8 @@ export interface WorldHooks {
   onArmSkill?(skill: ArmSkillId, targetId: string, item?: string): void;
   onStopAll?(): void;
   onUnitAction?(unitId: string, action: string, args: Record<string, unknown>): void;
+  onDispatchOverwatch?(unitId: string, x: number, z: number, altitudeM: number): void;
+  onDeployRescueRobot?(unitId: string, x: number, z: number): void;
   onCaptureVision?(unitId: string, question?: string): void;
 }
 
@@ -140,7 +144,9 @@ export class MissionStore {
   remoteRoom = "";
   micListening = false;
   injectionBlockedBanner = false;
-  activeScenario: "none" | "storm" | "sep2017" | "leak" = "none";
+  activeScenario: "none" | "storm" | "sep2017" | "leak" | "rescue" = "none";
+  /** Crew rescue scenario instance (set by the world setup); the scene panel drives it. */
+  rescue: RescueScenario | null = null;
   scenarioElapsedS = 0;
   selectedBaseModuleId: string | null = null;
   selectedUnitId: string | null = null;
@@ -153,7 +159,7 @@ export class MissionStore {
   env: EnvState = createInitialEnv();
 
   fleet: UnitSnapshot[] = [];
-  /** The four astronauts by callsign (DIAZ-CANO, SALERNO, SOTELO, YACONIS). */
+  /** The four astronauts by callsign (SOTELO, YACONIS, SALERNO, DIAZ-CANO). */
   crew: CrewSnapshot[] = initialCrewSnapshots(BASE_ORIGIN, fleetStartPos("rover-1"));
   alerts: HudAlert[] = [];
   trace: TraceEvent[] = [];
@@ -246,6 +252,7 @@ export class MissionStore {
         busy: u.busy,
       })),
       crew: this.crew.map((c) => ({ ...c, x: Number(c.x.toFixed(1)), z: Number(c.z.toFixed(1)) })),
+      ...(this.activeScenario === "rescue" ? { rescue_active: true } : {}),
       hud: {
         layer: this.layer,
         panel: this.panel === "none" ? null : this.panel,
@@ -520,6 +527,22 @@ export class MissionStore {
       }
       case "unit_action": {
         this.hooks.onUnitAction?.(String(args.unit_id ?? ""), String(args.action ?? ""), args);
+        break;
+      }
+      case "dispatch_overwatch": {
+        const x = Number(args.x);
+        const z = Number(args.z);
+        if (Number.isFinite(x) && Number.isFinite(z)) {
+          this.hooks.onDispatchOverwatch?.(String(args.unit_id ?? "drone-1"), x, z, Number(args.altitude_m ?? 25));
+        }
+        break;
+      }
+      case "deploy_rescue_robot": {
+        const x = Number(args.x);
+        const z = Number(args.z);
+        if (Number.isFinite(x) && Number.isFinite(z)) {
+          this.hooks.onDeployRescueRobot?.(String(args.unit_id ?? "rescue-bot-1"), x, z);
+        }
         break;
       }
       case "capture_vision": {

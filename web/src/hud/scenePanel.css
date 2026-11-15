@@ -1,0 +1,145 @@
+/* Scene panel: pick a recorded scene and play it. Standalone from the HUD so takes can hide the HUD. */
+.scene-panel {
+  position: fixed;
+  top: 46px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  width: 300px;
+  font-family: var(--font-ui, "Rajdhani", system-ui, sans-serif);
+  font-size: 12px;
+  color: var(--ink, #f3ece3);
+  pointer-events: auto;
+  transition: opacity 0.2s;
+}
+
+.scene-panel.open {
+  background: linear-gradient(180deg, rgba(16, 10, 7, 0.86), rgba(16, 10, 7, 0.66));
+  border-left: 1px solid var(--border, rgba(255, 179, 107, 0.34));
+  padding: 10px 12px;
+  backdrop-filter: blur(8px);
+}
+
+/* During a take with the HUD hidden the panel fades out; hover brings it back. */
+.scene-panel.clean {
+  opacity: 0;
+}
+
+.scene-panel.clean:hover {
+  opacity: 1;
+}
+
+.scene-btn {
+  background: rgba(255, 179, 107, 0.1);
+  border: 1px solid var(--border, rgba(255, 179, 107, 0.34));
+  color: var(--ok, #ffb36b);
+  font: inherit;
+  letter-spacing: 0.08em;
+  padding: 4px 9px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.scene-btn:hover,
+.scene-btn.primary {
+  background: var(--ok, #ffb36b);
+  color: #1b0f08;
+}
+
+.scene-open {
+  display: block;
+}
+
+.scene-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--ok, #ffb36b);
+  margin-bottom: 8px;
+}
+
+.scene-state {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim, rgba(243, 236, 227, 0.62));
+}
+
+.scene-state.playing {
+  color: var(--crit, #ff4d5e);
+}
+
+.scene-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scene-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 6px;
+  align-items: center;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink, #f3ece3);
+  font: inherit;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+
+.scene-row:hover {
+  border-color: var(--border, rgba(255, 179, 107, 0.34));
+}
+
+.scene-row.active {
+  border-color: var(--ok, #ffb36b);
+  background: rgba(255, 179, 107, 0.12);
+}
+
+.scene-time {
+  color: var(--ink-dim, rgba(243, 236, 227, 0.62));
+  font-variant-numeric: tabular-nums;
+}
+
+.scene-bar {
+  height: 4px;
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.scene-bar > div {
+  height: 100%;
+  background: var(--ok, #ffb36b);
+}
+
+.scene-time-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--ink-dim, rgba(243, 236, 227, 0.62));
+  font-variant-numeric: tabular-nums;
+}
+
+.scene-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.scene-check {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink-dim, rgba(243, 236, 227, 0.62));
+}
+
+.scene-hint {
+  margin-top: 6px;
+  font-size: 10px;
+  opacity: 0.7;
+}
