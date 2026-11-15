@@ -1,4 +1,8 @@
-import type { TerrainIdentity } from "@th/shared";
+import type {
+  CrewProfile,
+  TerrainIdentity,
+  VitalsSample,
+} from "@th/shared";
 import type { z } from "zod";
 
 export type Lang = "en" | "es" | "fr" | "de" | "it";
@@ -88,6 +92,10 @@ export interface MissionContext {
   emergency_response_active?: boolean;
   targets?: VisionTargetMarker[];
   storm_forecast?: StormForecastPoint[];
+  /** Privacy-bounded anonymized physiological baselines (never PII/EMR text). */
+  crew_profile?: CrewProfile;
+  /** Sliding time-series window of recent physiological samples. */
+  vitals_window?: VitalsSample[];
 }
 
 export interface Verdict {

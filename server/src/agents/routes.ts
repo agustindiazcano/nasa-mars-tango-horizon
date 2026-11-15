@@ -1,4 +1,8 @@
-import { terrainMatches } from "@th/shared";
+import {
+  terrainMatches,
+  type CrewProfile,
+  type VitalsSample,
+} from "@th/shared";
 import { terrainIdentity } from "./tools/terrainData.js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
@@ -48,6 +52,30 @@ const VisionBody = z.object({
 
 const MAX_FLEET = 32;
 const MAX_LIST = 64;
+const MAX_VITALS_WINDOW = 120;
+
+const CREW_PROFILE_NUMERIC_KEYS = [
+  "resting_hr_bpm",
+  "max_hr_bpm",
+  "hr_delta_sigma",
+  "baseline_core_temp_c",
+  "baseline_spo2_pct",
+  "personal_co2_warn_pa",
+  "personal_core_temp_warn_c",
+  "personal_spo2_warn_pct",
+  "personal_psi_warn",
+  "heat_strain_index",
+  "dcs_prebreathe_min",
+] as const;
+
+const VITALS_NUMERIC_KEYS = [
+  "co2_pa",
+  "core_temp_c",
+  "spo2_pct",
+  "heart_rate_bpm",
+  "metabolic_w",
+  "suit_pressure_pa",
+] as const;
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const toNum = (v: unknown): number | undefined => {
@@ -97,6 +125,41 @@ function sanitizeStormForecast(raw: unknown): StormForecastPoint[] {
   return out;
 }
 
+/** Strips all unexpected/PII/EMR fields from crew_profile; keeps only privacy_mode and finite numeric baselines. */
+function sanitizeCrewProfile(raw: unknown): CrewProfile | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const p = raw as Record<string, unknown>;
+  const privacyMode =
+    p.privacy_mode === "anonymized_baselines" ? "anonymized_baselines" : "standards_only";
+  if (privacyMode !== "anonymized_baselines") {
+    return { privacy_mode: "standards_only" };
+  }
+  const clean: CrewProfile = { privacy_mode: "anonymized_baselines" };
+  for (const key of CREW_PROFILE_NUMERIC_KEYS) {
+    const v = p[key];
+    if (isNum(v)) clean[key] = v;
+  }
+  return clean;
+}
+
+/** Keeps only finite numeric physiological sample fields and caps window length. */
+function sanitizeVitalsWindow(raw: unknown): VitalsSample[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: VitalsSample[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const rec = item as Record<string, unknown>;
+    if (!isNum(rec.t_s)) continue;
+    const sample: VitalsSample = { t_s: rec.t_s };
+    for (const key of VITALS_NUMERIC_KEYS) {
+      const v = rec[key];
+      if (isNum(v)) sample[key] = v;
+    }
+    out.push(sample);
+  }
+  return out.length ? out.slice(-MAX_VITALS_WINDOW) : undefined;
+}
+
 /** Builds a MissionContext from an untrusted client snapshot: malformed values fall back to defaults or are dropped. */
 export function buildContext(raw: any, lang: Lang): MissionContext {
   const c = raw && typeof raw === "object" ? raw : {};
@@ -108,6 +171,8 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     const n = toNum(c.env?.[key]);
     return n === undefined ? {} : { [key]: n };
   };
+  const crewProfile = sanitizeCrewProfile(c.crew_profile);
+  const vitalsWindow = sanitizeVitalsWindow(c.vitals_window);
   return {
     terrain: terrainMatches(c.terrain) ? c.terrain : undefined,
     lang,
@@ -139,6 +204,8 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     emergency_response_active: c.emergency_response_active === true,
     ...(Array.isArray(c.targets) ? { targets: sanitizeTargets(c.targets) } : {}),
     ...(Array.isArray(c.storm_forecast) ? { storm_forecast: sanitizeStormForecast(c.storm_forecast) } : {}),
+    ...(crewProfile ? { crew_profile: crewProfile } : {}),
+    ...(vitalsWindow ? { vitals_window: vitalsWindow } : {}),
   };
 }
 
