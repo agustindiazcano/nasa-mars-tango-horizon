@@ -1,4 +1,15 @@
-import { terrainMatches } from "@th/shared";
+import {
+  MAX_FDIR_WINDOW_SAMPLES,
+  terrainMatches,
+  type CrewProfile,
+  type DonkiAlert,
+  type EnvTelemetrySample,
+  type FleetUnitHealth,
+  type FleetWindowSample,
+  type PowerIsruWindowSample,
+  type SuitWindowSample,
+  type VitalsSample,
+} from "@th/shared";
 import { terrainIdentity } from "./tools/terrainData.js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
@@ -20,10 +31,16 @@ import {
 
 const LangInput = z.string().optional().transform((v) => normalizeLang(v));
 
+const ConversationTurnSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().trim().min(1).max(400),
+});
+
 const VoiceBody = z.object({
-  text: z.string().min(1).max(400),
+  text: z.string().trim().min(1).max(400),
   lang: LangInput,
   context: z.any(),
+  history: z.array(ConversationTurnSchema).max(6).optional(),
 });
 
 const RunBody = z.object({
@@ -42,6 +59,64 @@ const VisionBody = z.object({
 
 const MAX_FLEET = 32;
 const MAX_LIST = 64;
+const MAX_VITALS_WINDOW = 120;
+const MAX_FAULT_CODES = 16;
+const MAX_ENV_WINDOW = 48;
+
+const CREW_PROFILE_NUMERIC_KEYS = [
+  "resting_hr_bpm",
+  "max_hr_bpm",
+  "hr_delta_sigma",
+  "baseline_core_temp_c",
+  "baseline_spo2_pct",
+  "personal_co2_warn_pa",
+  "personal_core_temp_warn_c",
+  "personal_spo2_warn_pct",
+  "personal_psi_warn",
+  "heat_strain_index",
+  "dcs_prebreathe_min",
+] as const;
+
+const VITALS_NUMERIC_KEYS = [
+  "co2_pa",
+  "core_temp_c",
+  "spo2_pct",
+  "heart_rate_bpm",
+  "metabolic_w",
+  "suit_pressure_pa",
+] as const;
+
+const SUIT_WINDOW_FIELDS = [
+  "fan_pri_rpm",
+  "fan_sec_rpm",
+  "fan_delta_p_pa",
+  "scrubber_a_co2_storage",
+  "scrubber_b_co2_storage",
+  "suit_co2_pa",
+  "helmet_co2_pa",
+  "coolant_ml",
+  "coolant_liquid_pressure",
+  "coolant_gas_pressure",
+  "suit_temp_k",
+  "battery_temp_c",
+] as const;
+
+const FLEET_WINDOW_FIELDS = [
+  "motor_current_a",
+  "actuator_temp_c",
+  "slip_ratio",
+  "drill_torque_nm",
+  "battery",
+] as const;
+
+const POWER_ISRU_FIELDS = [
+  "solar_dust_factor",
+  "hab_bus_v",
+  "hab_battery_temp_c",
+  "moxie_compressor_a",
+  "moxie_soxe_asr",
+  "moxie_o2_rate_g_h",
+] as const;
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const toNum = (v: unknown): number | undefined => {
@@ -91,6 +166,157 @@ function sanitizeStormForecast(raw: unknown): StormForecastPoint[] {
   return out;
 }
 
+/** Strips all unexpected/PII/EMR fields from crew_profile; keeps only privacy_mode and finite numeric baselines. */
+function sanitizeCrewProfile(raw: unknown): CrewProfile | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const p = raw as Record<string, unknown>;
+  const privacyMode =
+    p.privacy_mode === "anonymized_baselines" ? "anonymized_baselines" : "standards_only";
+  if (privacyMode !== "anonymized_baselines") {
+    return { privacy_mode: "standards_only" };
+  }
+  const clean: CrewProfile = { privacy_mode: "anonymized_baselines" };
+  for (const key of CREW_PROFILE_NUMERIC_KEYS) {
+    const v = p[key];
+    if (isNum(v)) clean[key] = v;
+  }
+  return clean;
+}
+
+/** Keeps only finite numeric physiological sample fields and caps window length. */
+function sanitizeVitalsWindow(raw: unknown): VitalsSample[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: VitalsSample[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const rec = item as Record<string, unknown>;
+    if (!isNum(rec.t_s)) continue;
+    const sample: VitalsSample = { t_s: rec.t_s };
+    for (const key of VITALS_NUMERIC_KEYS) {
+      const v = rec[key];
+      if (isNum(v)) sample[key] = v;
+    }
+    out.push(sample);
+  }
+  return out.length ? out.slice(-MAX_VITALS_WINDOW) : undefined;
+}
+
+function pickNumFields<K extends string>(obj: Record<string, unknown>, keys: readonly K[]): Partial<Record<K, number>> {
+  const out: Partial<Record<K, number>> = {};
+  for (const key of keys) {
+    const val = obj[key];
+    if (isNum(val)) out[key] = val;
+  }
+  return out;
+}
+
+function sanitizeTimedWindow<K extends string>(
+  raw: unknown,
+  keys: readonly K[],
+): Array<{ t_s: number } & Partial<Record<K, number>>> {
+  if (!Array.isArray(raw)) return [];
+  const out: Array<{ t_s: number } & Partial<Record<K, number>>> = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    const obj = entry as Record<string, unknown>;
+    if (!isNum(obj.t_s)) continue;
+    out.push({ t_s: obj.t_s, ...pickNumFields(obj, keys) });
+  }
+  return out.length > MAX_FDIR_WINDOW_SAMPLES ? out.slice(-MAX_FDIR_WINDOW_SAMPLES) : out;
+}
+
+function sanitizeFleetHealth(raw: unknown): Record<string, FleetUnitHealth> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, FleetUnitHealth> = {};
+  for (const [id, val] of Object.entries(raw as Record<string, unknown>)) {
+    if (Object.keys(out).length >= MAX_FLEET) break;
+    if (!id || id.length > 40 || !val || typeof val !== "object" || Array.isArray(val)) continue;
+    const obj = val as Record<string, unknown>;
+    const entry: FleetUnitHealth = {
+      ...pickNumFields(obj, ["motor_current_a", "actuator_temp_c", "slip_ratio", "drill_torque_nm"] as const),
+    };
+    if (typeof obj.isolated === "boolean") entry.isolated = obj.isolated;
+    if (Array.isArray(obj.fault_codes)) {
+      entry.fault_codes = obj.fault_codes
+        .filter((c): c is string => typeof c === "string" && c.trim().length > 0 && c.length <= 32)
+        .slice(0, MAX_FAULT_CODES);
+    }
+    out[id] = entry;
+  }
+  return out;
+}
+
+function sanitizeFleetWindows(raw: unknown): Record<string, FleetWindowSample[]> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: Record<string, FleetWindowSample[]> = {};
+  for (const [id, series] of Object.entries(raw as Record<string, unknown>)) {
+    if (Object.keys(out).length >= MAX_FLEET) break;
+    if (!id || id.length > 40 || !Array.isArray(series)) continue;
+    const cleaned = sanitizeTimedWindow(series, FLEET_WINDOW_FIELDS) as FleetWindowSample[];
+    if (cleaned.length > 0) out[id] = cleaned;
+  }
+  return out;
+}
+
+function sanitizeEnvWindow(raw: unknown): EnvTelemetrySample[] {
+  if (!Array.isArray(raw)) return [];
+  const out: EnvTelemetrySample[] = [];
+  for (const s of raw) {
+    if (!s || typeof s !== "object") continue;
+    const r = s as Record<string, unknown>;
+    const t_s = toNum(r.t_s);
+    const pressure_pa = toNum(r.pressure_pa);
+    const air_temp_k = toNum(r.air_temp_k);
+    const tau = toNum(r.tau);
+    const wind_ms = toNum(r.wind_ms);
+    const dose_rate_ugy_h = toNum(r.dose_rate_ugy_h);
+    if (
+      t_s === undefined ||
+      pressure_pa === undefined ||
+      air_temp_k === undefined ||
+      air_temp_k <= 0 ||
+      tau === undefined ||
+      wind_ms === undefined ||
+      dose_rate_ugy_h === undefined
+    ) {
+      continue;
+    }
+    const sol = toNum(r.sol);
+    const lst_h = toNum(r.lst_h);
+    const ground_temp_k = toNum(r.ground_temp_k);
+    const sun_elev_deg = toNum(r.sun_elev_deg);
+    out.push({
+      t_s,
+      pressure_pa,
+      air_temp_k,
+      tau,
+      wind_ms,
+      dose_rate_ugy_h,
+      ...(sol !== undefined ? { sol } : {}),
+      ...(lst_h !== undefined ? { lst_h } : {}),
+      ...(ground_temp_k !== undefined ? { ground_temp_k } : {}),
+      ...(sun_elev_deg !== undefined ? { sun_elev_deg } : {}),
+    });
+  }
+  return out.length > MAX_ENV_WINDOW ? out.slice(-MAX_ENV_WINDOW) : out;
+}
+
+function sanitizeDonkiAlert(raw: unknown): DonkiAlert | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.active_sep !== "boolean") return undefined;
+  const arrival = toNum(r.wsa_enlil_mars_arrival_h);
+  const sourceId =
+    typeof r.source_id === "string" && r.source_id.trim()
+      ? r.source_id.trim().slice(0, 120)
+      : undefined;
+  return {
+    active_sep: r.active_sep,
+    ...(arrival !== undefined ? { wsa_enlil_mars_arrival_h: arrival } : {}),
+    ...(sourceId !== undefined ? { source_id: sourceId } : {}),
+  };
+}
+
 /** Builds a MissionContext from an untrusted client snapshot: malformed values fall back to defaults or are dropped. */
 export function buildContext(raw: any, lang: Lang): MissionContext {
   const c = raw && typeof raw === "object" ? raw : {};
@@ -98,10 +324,39 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     c.suit && typeof c.suit === "object" && !Array.isArray(c.suit)
       ? Object.entries(c.suit).filter(([, v]) => isNum(v))
       : [];
-  const solar = (key: "solar_demand_w" | "solar_area_m2" | "solar_efficiency") => {
+  const optEnvNum = (
+    key:
+      | "ground_temp_k"
+      | "cumulative_dose_ugy"
+      | "sol"
+      | "lst_h"
+      | "sun_elev_deg"
+      | "wind_dir_deg"
+      | "solar_demand_w"
+      | "solar_area_m2"
+      | "solar_efficiency",
+  ) => {
     const n = toNum(c.env?.[key]);
     return n === undefined ? {} : { [key]: n };
   };
+  const crewProfile = sanitizeCrewProfile(c.crew_profile);
+  const vitalsWindow = sanitizeVitalsWindow(c.vitals_window);
+  const dataCategory =
+    c.env?.data_category === "design" ||
+    c.env?.data_category === "observation" ||
+    c.env?.data_category === "derived"
+      ? { data_category: c.env.data_category }
+      : {};
+  const stormSource =
+    typeof c.env?.storm_source === "string" && c.env.storm_source.trim()
+      ? { storm_source: c.env.storm_source.trim().slice(0, 160) }
+      : {};
+  const radSource =
+    typeof c.env?.rad_source === "string" && c.env.rad_source.trim()
+      ? { rad_source: c.env.rad_source.trim().slice(0, 160) }
+      : {};
+  const baseBatteryWh = toNum(c.base_battery_wh);
+  const donkiAlert = sanitizeDonkiAlert(c.donki_alert);
   return {
     terrain: terrainMatches(c.terrain) ? c.terrain : undefined,
     lang,
@@ -115,15 +370,27 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     },
     suit: suitEntries.length ? (Object.fromEntries(suitEntries) as Record<string, number>) : { suit_pressure_pa: 29600, o2_primary_kg: 1.2 },
     env: {
+      ...dataCategory,
+      ...stormSource,
+      ...radSource,
       pressure_pa: num(c.env?.pressure_pa, 750),
       air_temp_k: num(c.env?.air_temp_k, 220),
       tau: num(c.env?.tau, 0.5),
       wind_ms: num(c.env?.wind_ms, 6),
       dose_rate_ugy_h: num(c.env?.dose_rate_ugy_h, 10),
-      ...solar("solar_demand_w"),
-      ...solar("solar_area_m2"),
-      ...solar("solar_efficiency"),
+      ...optEnvNum("ground_temp_k"),
+      ...optEnvNum("cumulative_dose_ugy"),
+      ...optEnvNum("sol"),
+      ...optEnvNum("lst_h"),
+      ...optEnvNum("sun_elev_deg"),
+      ...optEnvNum("wind_dir_deg"),
+      ...optEnvNum("solar_demand_w"),
+      ...optEnvNum("solar_area_m2"),
+      ...optEnvNum("solar_efficiency"),
     },
+    ...(Array.isArray(c.env_window) ? { env_window: sanitizeEnvWindow(c.env_window) } : {}),
+    ...(baseBatteryWh !== undefined && baseBatteryWh >= 0 ? { base_battery_wh: baseBatteryWh } : {}),
+    ...(donkiAlert ? { donki_alert: donkiAlert } : {}),
     fleet: sanitizeFleet(c.fleet),
     hud: {
       layer: String(c.hud?.layer ?? "optical"),
@@ -133,6 +400,20 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     emergency_response_active: c.emergency_response_active === true,
     ...(Array.isArray(c.targets) ? { targets: sanitizeTargets(c.targets) } : {}),
     ...(Array.isArray(c.storm_forecast) ? { storm_forecast: sanitizeStormForecast(c.storm_forecast) } : {}),
+    ...(crewProfile ? { crew_profile: crewProfile } : {}),
+    ...(vitalsWindow ? { vitals_window: vitalsWindow } : {}),
+    ...(Array.isArray(c.suit_window)
+      ? { suit_window: sanitizeTimedWindow(c.suit_window, SUIT_WINDOW_FIELDS) as SuitWindowSample[] }
+      : {}),
+    ...(c.fleet_health && typeof c.fleet_health === "object" && !Array.isArray(c.fleet_health)
+      ? { fleet_health: sanitizeFleetHealth(c.fleet_health) }
+      : {}),
+    ...(c.fleet_windows && typeof c.fleet_windows === "object" && !Array.isArray(c.fleet_windows)
+      ? { fleet_windows: sanitizeFleetWindows(c.fleet_windows) }
+      : {}),
+    ...(Array.isArray(c.power_isru_window)
+      ? { power_isru_window: sanitizeTimedWindow(c.power_isru_window, POWER_ISRU_FIELDS) as PowerIsruWindowSample[] }
+      : {}),
   };
 }
 
@@ -154,20 +435,20 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
 
 
     if (!llmAvailable()) {
-      const res = await offlineReply(b.data.text, ctx);
+      const res = await offlineReply(b.data.text, ctx, b.data.history);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, route: res.route, offline: true }, "/api/agent/voice");
       return { terrain: terrainIdentity, ...res, offline: true, latency_ms };
     }
 
     try {
-      const r = await handleVoice(b.data.text, ctx);
+      const r = await handleVoice(b.data.text, ctx, b.data.history);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, route: r.route, offline: false }, "/api/agent/voice");
       return { terrain: terrainIdentity, speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, route: r.route, offline: false, latency_ms };
     } catch (err) {
       req.log.error(err);
-      const res = await offlineReply(b.data.text, ctx);
+      const res = await offlineReply(b.data.text, ctx, b.data.history);
       const latency_ms = Date.now() - t0;
       req.log.warn({ latency_ms, route: res.route, offline: true }, "/api/agent/voice fell back to offline rules");
       return { terrain: terrainIdentity, ...res, offline: true, latency_ms };

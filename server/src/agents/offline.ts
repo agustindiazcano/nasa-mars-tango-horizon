@@ -1,9 +1,10 @@
+import type { ComponentHealthReport } from "@th/shared";
 import { MAX_SLOPE, ruleCheck } from "./guardian.js";
 import { callTool, missionScope, startMcpServers } from "./tools/mcp.js";
 import { TOOLS } from "./tools/registry.js";
 import { nearestSafePoint } from "./tools/terrainData.js";
 import type { UnitActionId } from "./unitCapabilities.js";
-import type { Action, Lang, MissionContext, ToolDef, TraceEvent } from "./types.js";
+import type { Action, ConversationTurn, Lang, MissionContext, ToolDef, TraceEvent } from "./types.js";
 
 export interface OfflineResult {
   speech: string;
@@ -203,28 +204,7 @@ function parseSpokenCoords(q: string): { x: number; z: number } | null {
   return null;
 }
 
-function parseSiteTarget(q: string, ctx?: MissionContext): { x: number; z: number; label: string } {
-  const lang = ctx?.lang ?? "en";
-  if (
-    ctx &&
-    /(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?=$|\s|[.,;!?])/i.test(
-      q,
-    )
-  ) {
-    const ax = Math.round(ctx.astronaut.x);
-    const az = Math.round(ctx.astronaut.z);
-    return {
-      x: ax,
-      z: az,
-      label: pick(lang, {
-        es: `tu posición (${ax}, ${az})`,
-        en: `your position (${ax}, ${az})`,
-        fr: `votre position (${ax}, ${az})`,
-        de: `deine Position (${ax}, ${az})`,
-        it: `tua posizione (${ax}, ${az})`,
-      }),
-    };
-  }
+function matchExplicitSiteTarget(q: string): { x: number; z: number; label: string } | null {
   const numMatch = q.match(
     /(?<![\p{L}\d])(?:sitio|site|estaci[oó]n|station|standort|sito|s)\s*[-#]?\s*(1|2|3|4|uno|un|one|eins|dos|two|deux|zwei|due|tres|three|trois|drei|tre|cuatro|four|quatre|vier|quattro)(?![\p{L}\d])/iu,
   );
@@ -246,10 +226,47 @@ function parseSiteTarget(q: string, ctx?: MissionContext): { x: number; z: numbe
   if (/\b(base|hab|habitat|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q)) {
     return { x: 0, z: 0, label: "Base" };
   }
+  return null;
+}
+
+function parseSiteTarget(
+  q: string,
+  ctx?: MissionContext,
+  history: ConversationTurn[] = [],
+): { x: number; z: number; label: string } {
+  const lang = ctx?.lang ?? "en";
+  if (
+    ctx &&
+    /(?:^|\s)(mi posici[oó]n|mi ubicaci[oó]n|d[oó]nde estoy|ad[oó]nde estoy|hacia m[ií]|conmigo|a mi lado|my position|my location|where i am|to me|here|ma position|vers moi|ici|meine position|zu mir|hier|la mia posizione|da me|qui)(?=$|\s|[.,;!?])/i.test(
+      q,
+    )
+  ) {
+    const ax = Math.round(ctx.astronaut.x);
+    const az = Math.round(ctx.astronaut.z);
+    return {
+      x: ax,
+      z: az,
+      label: pick(lang, {
+        es: `tu posición (${ax}, ${az})`,
+        en: `your position (${ax}, ${az})`,
+        fr: `votre position (${ax}, ${az})`,
+        de: `deine Position (${ax}, ${az})`,
+        it: `tua posizione (${ax}, ${az})`,
+      }),
+    };
+  }
+  const explicit = matchExplicitSiteTarget(q);
+  if (explicit) return explicit;
+  if (/\b(there|all[ií]|ah[ií]|all[aá]|l[aà]|dort|l[iì])\b/i.test(q)) {
+    for (let i = history.length - 1; i >= 0; i--) {
+      const fromHistory = matchExplicitSiteTarget(history[i].content);
+      if (fromHistory) return fromHistory;
+    }
+  }
   return { x: SITE_COORDS[2].x, z: SITE_COORDS[2].z, label: "S2" };
 }
 
-function parseUnitId(q: string, ctx: MissionContext): string | null {
+function matchExplicitUnitId(q: string): string | null {
   const direct = q.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i);
   if (direct) return direct[1].toLowerCase();
   if (/\b(hands|manip(?:ulador|ulator)?|brazo|arm)\b/i.test(q)) return "manip-1";
@@ -262,6 +279,16 @@ function parseUnitId(q: string, ctx: MissionContext): string | null {
   if (/\b(rover\s*(?:dos|two|deux|zwei|due|2)|rvr-2)\b/i.test(q)) return "rover-2";
   if (/\b(rover\s*(?:tres|three|trois|drei|tre|3)|rvr-3)\b/i.test(q)) return "rover-3";
   if (/\b(rover(?:\s*(?:uno|one|un|eins|1))?|rvr-1)\b/i.test(q)) return "rover-1";
+  return null;
+}
+
+function parseUnitId(q: string, ctx: MissionContext, history: ConversationTurn[] = []): string | null {
+  const explicit = matchExplicitUnitId(q);
+  if (explicit) return explicit;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const fromHistory = matchExplicitUnitId(history[i].content);
+    if (fromHistory) return fromHistory;
+  }
   return ctx.fleet[0]?.id ?? null;
 }
 
@@ -354,7 +381,11 @@ function localizedUnitActionDesc(action: UnitActionId, unitId: string, lang: Lan
  * Deterministic rule-based offline engine covering all demo deck orders, safety checks,
  * science queries, manipulator skills, unit actions, and weather evaluations when LLM link is unavailable.
  */
-export async function offlineReply(text: string, ctx: MissionContext): Promise<OfflineResult> {
+export async function offlineReply(
+  text: string,
+  ctx: MissionContext,
+  history: ConversationTurn[] = [],
+): Promise<OfflineResult> {
   await startMcpServers();
 
   const q = text.toLowerCase();
@@ -476,7 +507,7 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
-    const target = parseSiteTarget(q, ctx);
+    const target = parseSiteTarget(q, ctx, history);
     const toX = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? 0 : target.x;
     const toZ = /\b(base|hab|refugio|shelter|abri|unterkunft|rifugio)\b/i.test(q) ? 0 : target.z;
     const beaconTool = toolByName("deploy_beacons");
@@ -505,10 +536,16 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
 
   const mentionsMobileUnit = /\b(drone?|rover|scout|glider|rescue|rescate|rvr-\d)\b/i.test(q);
 
+  const isMaintenanceQuery =
+    /\b(ventilador|fan|ventilateur|lüfter|luefter|ventola|scrubber|depurador|coolant|refrigerante|moxie|soxe|slip|patinaje|stall|atasco|torque|sobrepar|overtorque|fdir|rul|diagn[oó]stic\w*|mantenim\w*|maintenance|wartung|manutenzione|falla|failure|tendencia|trend|component health|salud del componente|aislar|isolate)\b/i.test(
+      q,
+    );
+
   // 2. Manipulator arm skills (manip-1 / "Hands")
   if (
-    /(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?|martillo|hammer|perfor[\p{L}]*|drill|broca|handover|entreg[\p{L}]*|scoop|tubo|agarr[\p{L}]*|grab|recog[\p{L}]*|pick up)(?![\p{L}\d])/iu.test(q) ||
-    (/(?<![\p{L}\d])(fotograf[\p{L}]*|photograph[\p{L}]*)(?![\p{L}\d])/iu.test(q) && !mentionsMobileUnit)
+    !isMaintenanceQuery &&
+    (/(?<![\p{L}\d])(hands|manip(?:ulador|ulator)?|martillo|hammer|perfor[\p{L}]*|drill|broca|handover|entreg[\p{L}]*|scoop|tubo|agarr[\p{L}]*|grab|recog[\p{L}]*|pick up)(?![\p{L}\d])/iu.test(q) ||
+      (/(?<![\p{L}\d])(fotograf[\p{L}]*|photograph[\p{L}]*)(?![\p{L}\d])/iu.test(q) && !mentionsMobileUnit))
   ) {
     const caller = "ROBOT.manip-1";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
@@ -613,7 +650,11 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     /(?<![\p{L}\d])(panel|panneau|tafel|pannello|abr[aeií]r?|open|ouvr[\p{L}]*|[oö]ffn[\p{L}]*|oeffn[\p{L}]*|apr[ai][\p{L}]*|cierr[ae]?|cerrar|close|ferm[\p{L}]*|schlie[sß][\p{L}]*|chiud[\p{L}]*|procedencia|provenance|herkunft|provenienza|flota|fleet|flotte|flotta|agentes|agents|agenten|agenti|salud|health|sant[eé]|gesundheit|salute|mapa|map|carte|karte|mappa)(?![\p{L}\d])/iu.test(
       q,
     ) &&
-    !/(?<![\p{L}\d])(ruta|route|env[ií]a|dispatch|send|itin[eé]raire|percorso)(?![\p{L}\d])/iu.test(q)
+    !/(?<![\p{L}\d])(ruta|route|env[ií]a|dispatch|send|itin[eé]raire|percorso)(?![\p{L}\d])/iu.test(q) &&
+    (/\b(panel|panneau|tafel|pannello|abr[aeií]r?|open|ouvr\w*|cierr[ae]?|cerrar|close)\b/i.test(q) ||
+      !/\b(biomed\w*|hipercapn\w*|hypercapn\w*|hipox\w*|hypox\w*|spo2|heart|card[ií]ac\w*|vitals|signos|constantes|ews|psi|salud|health|sant[eé]|gesundheit|salute)\b/i.test(
+        q,
+      ))
   ) {
     const caller = "SUIT.VOICE-EXEC";
     const panel =
@@ -660,7 +701,7 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
-    const target = parseSiteTarget(q, ctx);
+    const target = parseSiteTarget(q, ctx, history);
     const res = await execRead("plan_route", { to_x: target.x, to_z: target.z, speed_ms: 1.0 }, ctx, caller, trace);
     if (!res?.reachable) {
       return {
@@ -692,33 +733,155 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     };
   }
 
-  // 6. Maintenance / Suit Fan Trend (MAINTENANCE)
-  if (/\b(ventilador|fan|ventilateur|lüfter|luefter|ventola|mantenim\w*|maintenance|wartung|manutenzione|falla|failure|tendencia|trend)\b/i.test(q)) {
+  // 5b. Predictive Biomedical Decision Support (SUIT.HEALTH)
+  if (
+    (/\b(biomed\w*|hipercapn\w*|hypercapn\w*|hipox\w*|hypox\w*|spo2|saturaci[oó]n|heart\s*rate|frecuencia\s*card\w*|ritmo\s*card\w*|card[ií]ac\w*|puls[oe]|heat\s*strain|estr[eé]s\s*t[eé]rmic\w*|estres\s*termic\w*|core\s*temp\w*|temperatura\s*corporal|early\s*warning|ews|triaje|triage|vitals|signos\s*vitales|constantes\s*vitales|psi)\b/i.test(
+      q,
+    ) ||
+      (/\b(co2|salud|health|sant[eé]|gesundheit|salute)\b/i.test(q) &&
+        !/\b(ventilador|fan|ventilateur|lüfter|luefter|ventola|panel|panneau|tafel|pannello)\b/i.test(q)))
+  ) {
+    const caller = "SUIT.HEALTH";
+    const route = ["SUIT.VOICE-EXEC", "BASE", caller];
+    trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
+    trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
+
+    const bio = await execRead("evaluate_crew_biomed", {}, ctx, caller, trace);
+    const docs = await execRead(
+      "search_docs",
+      { query: "NASA-STD-3001 CO2 hypercapnia hypoxia cardiovascular EVA", k: 1 },
+      ctx,
+      caller,
+      trace,
+    );
+    const topDoc =
+      Array.isArray(docs) && docs[0]
+        ? `${docs[0].doc} p.${docs[0].page}`
+        : "NASA-STD-3001_Vol2_RevE p.112";
+
+    const breachNote =
+      bio.min_time_to_breach_s !== null ? `, breach ~${Math.round(bio.min_time_to_breach_s)} s` : "";
+    if (bio.ews_level !== "green") {
+      const alertText = pick(lang, {
+        es: `Aviso (no diagnóstico): EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+        en: `Advisory (not diagnosis): EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+        fr: `Avis (non diagnostic) : EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+        de: `Hinweis (keine Diagnose): EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+        it: `Avviso (non diagnosi): EWS ${bio.ews_level} (${bio.ews_total}/12), CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%${breachNote}`,
+      });
+      proposeAction(
+        "show_alert",
+        {
+          level: bio.ews_level === "red" ? "crit" : "warn",
+          text: alertText.slice(0, 140),
+          source: topDoc,
+        },
+        ctx,
+        caller,
+        actions,
+        trace,
+      );
+    }
+
+    const speech = pick(lang, {
+      es: `Solo aviso de apoyo a la decisión; no es un diagnóstico médico. EWS ${bio.ews_level} (${bio.ews_total}/12): CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, FC ${bio.cardiac.heart_rate_bpm} lpm${breachNote} (${topDoc}).`,
+      en: `Decision support advisory only; not a medical diagnosis. EWS ${bio.ews_level} (${bio.ews_total}/12): CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, HR ${bio.cardiac.heart_rate_bpm} bpm${breachNote} (${topDoc}).`,
+      fr: `Avis d'aide à la décision uniquement ; pas un diagnostic médical. EWS ${bio.ews_level} (${bio.ews_total}/12) : CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, FC ${bio.cardiac.heart_rate_bpm} bpm${breachNote} (${topDoc}).`,
+      de: `Nur Entscheidungshilfe; keine medizinische Diagnose. EWS ${bio.ews_level} (${bio.ews_total}/12): CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, HF ${bio.cardiac.heart_rate_bpm} bpm${breachNote} (${topDoc}).`,
+      it: `Solo supporto decisionale; non è una diagnosi medica. EWS ${bio.ews_level} (${bio.ews_total}/12): CO2 ${bio.co2.current} Pa, SpO2 ${bio.hypoxia.current}%, PSI ${bio.thermal.psi}, FC ${bio.cardiac.heart_rate_bpm} bpm${breachNote} (${topDoc}).`,
+    });
+
+    return { speech, actions, trace, route };
+  }
+
+  // 6. Maintenance / FDIR Component Health & RUL (MAINTENANCE)
+  if (isMaintenanceQuery) {
     const caller = "MAINTENANCE";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
+    const explicitUnit = q.match(/\b(rover-[123]|scout-[12]|rescue-1|drone-[12]|glider-1|manip-1)\b/i)?.[1]?.toLowerCase();
+    const scope = explicitUnit
+      ? "fleet"
+      : /\b(moxie|soxe|solar|isru|hab)\b/i.test(q)
+        ? "power_isru"
+        : "all";
+    const health = (await execRead(
+      "evaluate_component_health",
+      explicitUnit ? { scope: "fleet", unit_id: explicitUnit } : { scope },
+      ctx,
+      caller,
+      trace,
+    )) as ComponentHealthReport;
+
+    if (health?.faults?.length > 0) {
+      const top = health.faults[0];
+      const docs = await execRead(
+        "search_docs",
+        {
+          query: `${top.fault_code} ${top.subsystem} ${top.signature} recovery SOP`,
+          k: 1,
+          fault_codes: [top.fault_code],
+        },
+        ctx,
+        caller,
+        trace,
+      );
+      const topDoc = Array.isArray(docs) && docs[0] ? `${docs[0].doc} p.${docs[0].page}` : "NASA-STD-3001";
+      const rulStr = top.rul_s === null ? "n/a" : `${top.rul_s} s`;
+      const alertLevel = top.severity === "critical" ? "crit" : "warn";
+      const alertMsg = `${top.fault_code} (${top.severity}) ${top.target_id}: slope ${top.slope_per_s}/s, RUL ${rulStr} (${topDoc})`;
+      proposeAction("show_alert", { level: alertLevel, text: alertMsg.slice(0, 140), source: topDoc }, ctx, caller, actions, trace);
+      proposeAction(
+        "isolate_component",
+        {
+          target_type: top.target_type,
+          target_id: top.target_id,
+          subsystem: top.subsystem,
+          fault_code: top.fault_code,
+          action: top.recommended_action,
+        },
+        ctx,
+        caller,
+        actions,
+        trace,
+      );
+
+      return {
+        speech: pick(lang, {
+          es: `Falla ${top.fault_code} (${top.severity}) en ${top.target_id}: pendiente ${top.slope_per_s}/s, RUL ${rulStr}; acción ${top.recommended_action} según ${topDoc}.`,
+          en: `Fault ${top.fault_code} (${top.severity}) on ${top.target_id}: slope ${top.slope_per_s}/s, RUL ${rulStr}; action ${top.recommended_action} per ${topDoc}.`,
+          fr: `Panne ${top.fault_code} (${top.severity}) sur ${top.target_id} : pente ${top.slope_per_s}/s, RUL ${rulStr} ; action ${top.recommended_action} selon ${topDoc}.`,
+          de: `Fehler ${top.fault_code} (${top.severity}) an ${top.target_id}: Steigung ${top.slope_per_s}/s, RUL ${rulStr}; Maßnahme ${top.recommended_action} gemäß ${topDoc}.`,
+          it: `Guasto ${top.fault_code} (${top.severity}) su ${top.target_id}: pendenza ${top.slope_per_s}/s, RUL ${rulStr}; azione ${top.recommended_action} secondo ${topDoc}.`,
+        }),
+        actions,
+        trace,
+        route,
+      };
+    }
+
     const suit = await execRead("get_suit_telemetry", {}, ctx, caller, trace);
     const docs = await execRead("search_docs", { query: "suit fan failure CO2 NASA-STD-3001", k: 1 }, ctx, caller, trace);
     const topDoc = Array.isArray(docs) && docs[0] ? `${docs[0].doc} p.${docs[0].page}` : "NASA-STD-3001";
-    const fanRpm = suit?.fan_pri_rpm ?? suit?.fan_rpm ?? 29500;
+    const fanRpm = suit?.fan_pri_rpm ?? suit?.fan_rpm ?? 30000;
     const alertMsg = pick(lang, {
-      es: `Revisar ventilador (${fanRpm} rpm); verificar depuración CO2 (${topDoc})`,
-      en: `Check suit fan (${fanRpm} rpm); monitor CO2 scrub margin (${topDoc})`,
-      fr: `Vérifier ventilateur (${fanRpm} rpm) ; surveiller CO2 (${topDoc})`,
-      de: `Lüfter prüfen (${fanRpm} rpm); CO2-Filter überwachen (${topDoc})`,
-      it: `Controlla ventola (${fanRpm} rpm); monitora CO2 (${topDoc})`,
+      es: `Componentes nominales; ventilador ${fanRpm} rpm (${topDoc})`,
+      en: `Components nominal; suit fan ${fanRpm} rpm (${topDoc})`,
+      fr: `Composants nominaux ; ventilateur ${fanRpm} rpm (${topDoc})`,
+      de: `Komponenten nominal; Lüfter ${fanRpm} rpm (${topDoc})`,
+      it: `Componenti nominali; ventola ${fanRpm} rpm (${topDoc})`,
     });
-    proposeAction("show_alert", { level: "warn", text: alertMsg.slice(0, 140), source: topDoc }, ctx, caller, actions, trace);
+    proposeAction("show_alert", { level: "info", text: alertMsg.slice(0, 140), source: topDoc }, ctx, caller, actions, trace);
 
     return {
       speech: pick(lang, {
-        es: `Ventilador en ${fanRpm} rpm. Monitorear flujo y CO2 según ${topDoc}.`,
-        en: `Suit fan at ${fanRpm} rpm. Monitor airflow and CO2 per ${topDoc}.`,
-        fr: `Ventilateur à ${fanRpm} rpm. Surveiller le débit et le CO2 selon ${topDoc}.`,
-        de: `Anzuglüfter bei ${fanRpm} rpm. Luftstrom und CO2 gemäß ${topDoc} überwachen.`,
-        it: `Ventola tuta a ${fanRpm} rpm. Monitorare flusso e CO2 secondo ${topDoc}.`,
+        es: `Sin fallas FDIR activas. Ventilador en ${fanRpm} rpm; límites nominales según ${topDoc}.`,
+        en: `No active FDIR faults. Suit fan at ${fanRpm} rpm; nominal limits per ${topDoc}.`,
+        fr: `Aucune panne FDIR active. Ventilateur à ${fanRpm} rpm ; limites nominales selon ${topDoc}.`,
+        de: `Keine aktiven FDIR-Fehler. Anzuglüfter bei ${fanRpm} rpm; Sollwerte gemäß ${topDoc}.`,
+        it: `Nessun guasto FDIR attivo. Ventola tuta a ${fanRpm} rpm; limiti nominali secondo ${topDoc}.`,
       }),
       actions,
       trace,
@@ -766,36 +929,93 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
   }
 
   // 8. Weather & Radiation (WEATHER-RAD)
-  if (/\b(tormenta|storm|temp[eê]te|sturm|tempesta|clima|weather|m[eé]t[eé]o|wetter|meteo|pronost\w*|forecast|solar|sep2017|radiaci[oó]n|radiation|rayonnement|strahlung|radiazione|dosis|dose|polvo|dust|poussi[eè]re|staub|polvere)\b/i.test(q)) {
+  if (/\b(tormenta|storm|temp[eê]te|sturm|tempesta|clima|weather|m[eé]t[eé]o|wetter|meteo|pronost\w*|forecast|solar|sep2017|donki|radiaci[oó]n|radiation|rayonnement|strahlung|radiazione|dosis|dose|polvo|dust|poussi[eè]re|staub|polvere)\b/i.test(q)) {
     const caller = "WEATHER-RAD";
     const route = ["SUIT.VOICE-EXEC", "BASE", caller];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
     trace.push({ t: Date.now(), agent: "BASE", kind: "delegate", detail: { to: caller } });
 
+    const isRadQuery = /\b(solar|sep2017|donki|radiac\w*|radiation|rayonnement|strahlung|radiazione|dosis|dose)\b/i.test(q);
     const env = await execRead("get_environment", {}, ctx, caller, trace);
-    const evalRes = await execRead("evaluate_eva_weather", { duration_min: 120, return_to_shelter_min: 25 }, ctx, caller, trace);
+    const riskRes = await execRead(
+      "evaluate_environmental_risk",
+      { duration_min: 120, return_to_shelter_min: 25 },
+      ctx,
+      caller,
+      trace,
+    );
+    const evalRes = await execRead(
+      "evaluate_eva_weather",
+      { duration_min: 120, return_to_shelter_min: 25 },
+      ctx,
+      caller,
+      trace,
+    );
+    const docQuery = isRadQuery
+      ? "ALARA radiation SPE shelter NASA-STD-3001 DONKI WSA-Enlil"
+      : "REMS thermal tide dust storm MEDA optical depth solar curtailment";
+    const docs = await execRead("search_docs", { query: docQuery, k: 2 }, ctx, caller, trace);
+    const topDoc =
+      Array.isArray(docs) && docs[0]
+        ? `${docs[0].doc} p.${docs[0].page}`
+        : "NASA-STD-3001_Vol2_RevE p.68";
 
-    if (/\b(solar|sep2017|radiac\w*|radiation|rayonnement|strahlung|radiazione|dosis|dose)\b/i.test(q)) {
+    if (isRadQuery) {
       proposeAction("set_layer", { layer: "radiation" }, ctx, caller, actions, trace);
     }
-    if (evalRes?.verdict !== "go") {
+
+    const combinedVerdict =
+      riskRes?.verdict === "no_go" || evalRes?.verdict === "no_go"
+        ? "no_go"
+        : riskRes?.verdict === "go_with_changes" || evalRes?.verdict === "go_with_changes"
+          ? "go_with_changes"
+          : "go";
+    const maneuvers: string[] = Array.from(
+      new Set([
+        ...(Array.isArray(riskRes?.recommended_maneuvers) ? riskRes.recommended_maneuvers : []),
+        ...(Array.isArray(evalRes?.maneuvers) ? evalRes.maneuvers : []),
+      ]),
+    );
+
+    if (combinedVerdict !== "go") {
+      const onsetS = riskRes?.time_to_storm_onset_s;
+      const etaTxt = onsetS !== null && onsetS !== undefined ? ` onset=${onsetS}s` : "";
       const msg = pick(lang, {
-        es: `Clima ${evalRes.verdict}: q90 tau=${evalRes.worst_q90_tau}. Maniobras: ${evalRes.maneuvers.join(", ")}`,
-        en: `Weather ${evalRes.verdict}: q90 tau=${evalRes.worst_q90_tau}. Maneuvers: ${evalRes.maneuvers.join(", ")}`,
-        fr: `Météo ${evalRes.verdict} : q90 tau=${evalRes.worst_q90_tau}. Manœuvres : ${evalRes.maneuvers.join(", ")}`,
-        de: `Wetter ${evalRes.verdict}: q90 tau=${evalRes.worst_q90_tau}. Maßnahmen: ${evalRes.maneuvers.join(", ")}`,
-        it: `Meteo ${evalRes.verdict}: q90 tau=${evalRes.worst_q90_tau}. Manovre: ${evalRes.maneuvers.join(", ")}`,
+        es: `Clima ${combinedVerdict}: tau=${env.tau.toFixed(2)}${etaTxt}. Maniobras: ${maneuvers.join(", ")} (${topDoc})`,
+        en: `Weather ${combinedVerdict}: tau=${env.tau.toFixed(2)}${etaTxt}. Maneuvers: ${maneuvers.join(", ")} (${topDoc})`,
+        fr: `Météo ${combinedVerdict} : tau=${env.tau.toFixed(2)}${etaTxt}. Manœuvres : ${maneuvers.join(", ")} (${topDoc})`,
+        de: `Wetter ${combinedVerdict}: tau=${env.tau.toFixed(2)}${etaTxt}. Maßnahmen: ${maneuvers.join(", ")} (${topDoc})`,
+        it: `Meteo ${combinedVerdict}: tau=${env.tau.toFixed(2)}${etaTxt}. Manovre: ${maneuvers.join(", ")} (${topDoc})`,
       });
-      proposeAction("show_alert", { level: evalRes.verdict === "no_go" ? "crit" : "warn", text: msg.slice(0, 140) }, ctx, caller, actions, trace);
+      proposeAction(
+        "show_alert",
+        {
+          level: combinedVerdict === "no_go" ? "crit" : "warn",
+          text: msg.slice(0, 140),
+          source: topDoc,
+        },
+        ctx,
+        caller,
+        actions,
+        trace,
+      );
     }
 
+    const onsetSuffix =
+      riskRes?.time_to_storm_onset_s !== null && riskRes?.time_to_storm_onset_s !== undefined
+        ? `, onset ${riskRes.time_to_storm_onset_s} s`
+        : "";
+    const doseSuffix =
+      riskRes?.projected_eva_dose_ugy !== undefined
+        ? `, EVA ${riskRes.projected_eva_dose_ugy} uGy`
+        : "";
     return {
       speech: pick(lang, {
-        es: `Opacidad tau ${env.tau.toFixed(2)}, dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h, evaluación ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
-        en: `Dust tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} uGy/h, EVA verdict ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
-        fr: `Opacité tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h, verdict EVA ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
-        de: `Staub-Tau ${env.tau.toFixed(2)}, Dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h, EVA-Urteil ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
-        it: `Opacità tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h, verdetto EVA ${evalRes.verdict} (q90=${evalRes.worst_q90_tau}).`,
+        es: `Opacidad tau ${env.tau.toFixed(2)}, dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h${onsetSuffix}${doseSuffix}, evaluación ${combinedVerdict} (q90=${evalRes.worst_q90_tau}; ${topDoc}).`,
+        en: `Dust tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} uGy/h${onsetSuffix}${doseSuffix}, EVA verdict ${combinedVerdict} (q90=${evalRes.worst_q90_tau}; ${topDoc}).`,
+        fr: `Opacité tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h${onsetSuffix}${doseSuffix}, verdict EVA ${combinedVerdict} (q90=${evalRes.worst_q90_tau} ; ${topDoc}).`,
+        de: `Staub-Tau ${env.tau.toFixed(2)}, Dosis ${env.dose_rate_ugy_h.toFixed(1)} µGy/h${onsetSuffix}${doseSuffix}, EVA-Urteil ${combinedVerdict} (q90=${evalRes.worst_q90_tau}; ${topDoc}).`,
+        it: `Opacità tau ${env.tau.toFixed(2)}, dose ${env.dose_rate_ugy_h.toFixed(1)} µGy/h${onsetSuffix}${doseSuffix}, verdetto EVA ${combinedVerdict} (q90=${evalRes.worst_q90_tau}; ${topDoc}).`,
       }),
       actions,
       trace,
@@ -862,11 +1082,11 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
 
   if (
     isUnitActionPhrase ||
-    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|manda[\p{L}]*|mand[aá]|send|dispatch|despacha[\p{L}]*|mueve|move|rover|drone?|scout|glider|ven[ií]|come|localiza[\p{L}]*|lidar|ubicaci[oó]n|coordenada[\p{L}]*|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
+    /(?<![\p{L}\d])(env[ií]a[\p{L}]*|m[aá]nd[\p{L}]*|send|dispatch|despach[\p{L}]*|mueve|move|rover|drone?|scout|glider|ven[ií]|come|localiza[\p{L}]*|lidar|ubicaci[oó]n|coordenada[\p{L}]*|envoie|schick[\p{L}]*|invia)(?![\p{L}\d])/iu.test(
       q,
     )
   ) {
-    const unitId = parseUnitId(q, ctx);
+    const unitId = parseUnitId(q, ctx, history);
     const robotAgent = unitId ? `ROBOT.${unitId}` : "BASE";
     const route = unitId ? ["SUIT.VOICE-EXEC", "BASE", robotAgent] : ["SUIT.VOICE-EXEC", "BASE"];
     trace.push({ t: Date.now(), agent: "SUIT.VOICE-EXEC", kind: "delegate", detail: { to: "BASE" } });
@@ -971,7 +1191,7 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
       }
     }
 
-    const target = parseSiteTarget(q, ctx);
+    const target = parseSiteTarget(q, ctx, history);
     const unitObj = ctx.fleet.find((u) => u.id === unitId);
     const maxSlope = unitObj ? (MAX_SLOPE[unitObj.kind] ?? 20) : 20;
     const safeTarget = nearestSafePoint(target.x, target.z, maxSlope);

@@ -9,6 +9,7 @@ import { AIRCRAFT_GROUNDING_TAU, C, leakTimeline, planRoute, stepSuitTelemetry }
 import type { ArmSkillId, LayerId, RouteDisplay } from "./core/types";
 import { createDemoDeck } from "./hud/demoDeck";
 import { TacticalHud } from "./hud/hud";
+import { ChatSessionManager, SessionStore } from "./data/sessionStore";
 import { ScreenRelay } from "./remote/screenRelay";
 import { MissionStore } from "./state";
 import { VoiceController } from "./voice/voiceController";
@@ -191,6 +192,9 @@ async function captureAndInspectVision(
 const voice = new VoiceController(store, {
   onVisionRequest: captureAndInspectVision,
 });
+const sessionStore = new SessionStore();
+const sessionManager = new ChatSessionManager(store, sessionStore, voice);
+await sessionManager.restoreLastSession();
 
 function planAndDrawRoute(toX: number, toZ: number, doseWeight = 0.4): RouteDisplay | null {
   const grid = terrain.buildRouteGrid();
@@ -393,7 +397,11 @@ const deck = createDemoDeck({
     store.fanDegraded = true;
     store.notify();
   },
-  reset: () => window.location.reload(),
+  reset: () => {
+    voice.clearHistory();
+    sessionManager.prepareResetSession();
+    window.location.reload();
+  },
 });
 
 const hud: TacticalHud = new TacticalHud(store, terrain, voice, deck, {
@@ -411,6 +419,7 @@ const hud: TacticalHud = new TacticalHud(store, terrain, voice, deck, {
   recenterRemote: () => relay.recenter(),
   setRemoteInvert: (ix, iy) => relay.setInvert(ix, iy),
   onToggleDeck: () => hud.toggleDeck(),
+  sessions: sessionManager,
 });
 
 const raycaster = new THREE.Raycaster();

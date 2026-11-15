@@ -1,7 +1,22 @@
-import type { TerrainIdentity } from "@th/shared";
+import type {
+  CrewProfile,
+  DonkiAlert,
+  EnvTelemetrySample,
+  FleetUnitHealth,
+  FleetWindowSample,
+  PowerIsruWindowSample,
+  SuitWindowSample,
+  TerrainIdentity,
+  VitalsSample,
+} from "@th/shared";
 import type { z } from "zod";
 
 export type Lang = "en" | "es" | "fr" | "de" | "it";
+
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
+}
 
 const LANG_MAP: Record<string, Lang> = {
   en: "en",
@@ -64,15 +79,28 @@ export interface MissionContext {
   };
   suit: Record<string, number>;
   env: {
+    data_category?: "design" | "observation" | "derived";
+    radiation_quantity?: "absorbed_dose_silicon";
+    storm_source?: string;
+    rad_source?: string;
     pressure_pa: number;
     air_temp_k: number;
+    ground_temp_k?: number;
     tau: number;
     wind_ms: number;
+    wind_dir_deg?: number;
     dose_rate_ugy_h: number;
+    cumulative_dose_ugy?: number;
+    sol?: number;
+    lst_h?: number;
+    sun_elev_deg?: number;
     solar_demand_w?: number;
     solar_area_m2?: number;
     solar_efficiency?: number;
   };
+  env_window?: EnvTelemetrySample[];
+  base_battery_wh?: number;
+  donki_alert?: DonkiAlert;
   fleet: FleetUnitSnapshot[];
   hud: {
     layer: string;
@@ -83,6 +111,14 @@ export interface MissionContext {
   emergency_response_active?: boolean;
   targets?: VisionTargetMarker[];
   storm_forecast?: StormForecastPoint[];
+  /** Privacy-bounded anonymized physiological baselines (never PII/EMR text). */
+  crew_profile?: CrewProfile;
+  /** Sliding time-series window of recent physiological samples. */
+  vitals_window?: VitalsSample[];
+  suit_window?: SuitWindowSample[];
+  fleet_health?: Record<string, FleetUnitHealth>;
+  fleet_windows?: Record<string, FleetWindowSample[]>;
+  power_isru_window?: PowerIsruWindowSample[];
 }
 
 export interface Verdict {
@@ -90,7 +126,7 @@ export interface Verdict {
   reason: string;
   reasonKey?: string;
   reasonParams?: Record<string, string | number>;
-  by: "rules" | "judge";
+  by: "rules" | "judge" | "voting";
 }
 
 /** Effect action proposed by an agent; applied by the browser only if GUARDIAN approves. */
@@ -113,9 +149,50 @@ export interface ToolDef<S extends z.ZodTypeAny = z.ZodTypeAny> {
   run(args: z.infer<S>, ctx: MissionContext, caller: string): Promise<unknown> | unknown;
 }
 
+export type VoteDecision = "allow" | "deny" | "ask_human";
+
+export interface VoterResult {
+  voter: string;
+  model: string;
+  provider: "vertex" | "gemini" | "meta";
+  vote: VoteDecision | null;
+  confidence: number | null;
+  rationale: string;
+  latency_ms: number;
+  status: "ok" | "timeout" | "error";
+  error?: string;
+}
+
+export interface VotingTally {
+  allow: number;
+  deny: number;
+  ask_human: number;
+  valid: number;
+}
+
+export type VotingConsensus =
+  | "unanimous"
+  | "majority"
+  | "asymmetric_safety_override"
+  | "split"
+  | "degraded_unanimous"
+  | "degraded_split"
+  | "quorum_failed";
+
+export interface VotingTraceDetail {
+  actionType: string;
+  triggers: string[];
+  voters: VoterResult[];
+  tally: VotingTally;
+  consensus: VotingConsensus;
+  finalDecision: VoteDecision;
+  reason: string;
+  latency_ms: number;
+}
+
 export interface TraceEvent {
   t: number;
   agent: string;
-  kind: "delegate" | "tool" | "verdict" | "say";
+  kind: "delegate" | "tool" | "verdict" | "voting" | "say";
   detail: unknown;
 }

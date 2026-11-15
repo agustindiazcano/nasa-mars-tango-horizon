@@ -18,6 +18,14 @@ export interface Limits {
   minPowerMarginW: number;
 }
 
+export interface EnvLimits extends Limits {
+  tauAbort: number;
+  maxFlightWindMs: number;
+  minFlightDensityKgM3: number;
+  sepDoseWarnUgyH: number;
+  sepDoseAbortUgyH: number;
+}
+
 export type Maneuver =
   | "shorten_eva"
   | "reroute_near_rover"
@@ -34,16 +42,29 @@ export interface Decision {
 }
 
 /**
- * Operational storm thresholds (one central definition).
+ * Unified operational environmental limits (single source of truth across shared, MCP tools, and GUARDIAN).
  * - tauVisibility: 1.5 (storm onset threshold from MSL 2018 opacity record; design assumption)
- * - tauDroneGrounding: 1.2 (optical/dust grounding limit for rotorcraft; design assumption)
+ * - tauAbort: 2.5 (optical opacity EVA abort limit; design assumption)
+ * - tauDroneGrounding: 1.8 (dust opacity grounding limit for rotorcraft and glider; design assumption)
+ * - maxFlightWindMs: 15.0 (horizontal wind ceiling for rotorcraft/glider operations; design assumption)
+ * - minFlightDensityKgM3: 0.012 (minimum Martian surface air density for rotorcraft lift; design assumption)
  * - minPowerMarginW: 500 (required base solar power margin above load; design assumption)
+ * - sepDoseWarnUgyH: 25 (elevated absorbed dose rate warning threshold, ~2x RAD quiet baseline; design assumption)
+ * - sepDoseAbortUgyH: 80 (acute SEP absorbed dose rate abort threshold requiring shelter; design assumption)
  */
-export const DEFAULT_STORM_LIMITS: Limits = {
+export const ENV_LIMITS: EnvLimits = {
   tauVisibility: 1.5,
-  tauDroneGrounding: 1.2,
+  tauAbort: 2.5,
+  tauDroneGrounding: 1.8,
+  maxFlightWindMs: 15.0,
+  minFlightDensityKgM3: 0.012,
   minPowerMarginW: 500,
+  sepDoseWarnUgyH: 25,
+  sepDoseAbortUgyH: 80,
 };
+
+/** Backward-compatible alias of ENV_LIMITS for chance-constrained storm planning callers. */
+export const DEFAULT_STORM_LIMITS: EnvLimits = ENV_LIMITS;
 
 /**
  * Chance-constrained EVA weather check: the plan must remain valid at the pessimistic

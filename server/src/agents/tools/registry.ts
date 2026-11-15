@@ -4,12 +4,15 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   decide,
   directTransmission,
+  ENV_LIMITS,
+  evaluateComponentHealth,
+  evaluateCrewBiomed,
   leakTimeline,
   metabolicRateW,
   o2KgPerHour,
+  predictEnvironmentalRisk,
   surfaceDensity,
   type EvaPlan,
-  type Limits,
   type StormForecast,
 } from "@th/shared";
 import type { MissionContext, ToolDef } from "../types.js";
@@ -32,14 +35,15 @@ export interface DocChunk {
   doc: string;
   page: number;
   text: string;
+  fault_codes?: string[];
   score?: number;
 }
 
-type SearchDocsFn = (query: string, k?: number) => DocChunk[];
+type SearchDocsFn = (query: string, k?: number, faultCodes?: string[]) => DocChunk[];
 let cachedSearchDocs: SearchDocsFn | null | undefined;
 
 /** Dynamically imports ./knowledge.js when available so pre-merge builds never fail. */
-export async function safeSearchDocs(query: string, k = 3): Promise<DocChunk[]> {
+export async function safeSearchDocs(query: string, k = 3, faultCodes?: string[]): Promise<DocChunk[]> {
   if (cachedSearchDocs === undefined) {
     try {
       const modPath = "./knowledge.js";
@@ -58,14 +62,8 @@ export async function safeSearchDocs(query: string, k = 3): Promise<DocChunk[]> 
       },
     ];
   }
-  return cachedSearchDocs(query, k);
+  return cachedSearchDocs(query, k, faultCodes);
 }
-
-const STORM_LIMITS: Limits = {
-  tauVisibility: 2.5,     // design assumption: optical opacity threshold for safe EVA navigation
-  tauDroneGrounding: 1.8, // design assumption: opacity threshold grounding drones and glider
-  minPowerMarginW: 500,   // design assumption: minimum solar generation margin above base demand
-};
 
 const xz = {
   x: z.number().describe("Metres east of the scene center"),
@@ -242,6 +240,36 @@ export const TOOLS: ToolDef[] = [
         ? leakTimeline(ctx.suit.suit_pressure_pa ?? 29600, ctx.leak_diameter_m)
         : { leak: false },
   }),
+  def({
+    name: "evaluate_crew_biomed",
+    server: "suit",
+    effect: false,
+    schema: z.object({}),
+    description:
+      "Evaluates deterministic EVA biomedical trends (CO2 hypercapnia, core temp/PSI, SpO2 hypoxia, cardiac drift), time-to-breach, composite Early Warning Score (green/amber/red), and NASA-STD-3001 vs personal baseline thresholds. Decision support advisory only.",
+    run: (_a, ctx) => evaluateCrewBiomed(ctx),
+  }),
+  def({
+    name: "evaluate_component_health",
+    server: "suit",
+    effect: false,
+    schema: z.object({
+      scope: z.enum(["suit", "fleet", "power_isru", "all"]).default("all").describe("FDIR subsystem scope to evaluate"),
+      unit_id: z.string().optional().describe("Optional fleet unit ID when inspecting a single fleet asset"),
+    }),
+    description:
+      "Deterministic FDIR/RUL prognostics: computes linear slopes, z-score residuals, clamped RUL (s), severity (nominal|degraded|critical), and canonical fault codes (PLSS-*, RVR-*, ARM-*, HAB-*, ISRU-*).",
+    run: (a, ctx, caller) => {
+      if (caller.startsWith("ROBOT.")) {
+        const ownId = caller.slice("ROBOT.".length);
+        if (a.unit_id && a.unit_id !== ownId) {
+          return { error: `ROBOT.${ownId} may only inspect unit_id "${ownId}"` };
+        }
+        return evaluateComponentHealth(ctx, "fleet", ownId);
+      }
+      return evaluateComponentHealth(ctx, a.scope, a.unit_id);
+    },
+  }),
 
   // --- mcp-environment ---------------------------------------------------
   def({
@@ -292,15 +320,40 @@ export const TOOLS: ToolDef[] = [
       const peakSolarW = (ctx.env.solar_area_m2 ?? 400) * 590 * (ctx.env.solar_efficiency ?? 0.22);
       const demandW = ctx.env.solar_demand_w ?? 18000;
       const powerAt = (tau: number) => peakSolarW * directTransmission(tau, 0.7);
-      const decision = decide(fc, plan, STORM_LIMITS, powerAt, demandW, undefined, ctx.env.tau);
+      const decision = decide(fc, plan, ENV_LIMITS, powerAt, demandW, undefined, ctx.env.tau);
       return {
         ...decision,
         current_tau: ctx.env.tau,
         worst_q90_tau: Math.max(...fc.map((f) => f.q90)),
-        limits: STORM_LIMITS,
+        limits: ENV_LIMITS,
         limits_source: "design_assumption",
       };
     },
+  }),
+  def({
+    name: "evaluate_environmental_risk",
+    server: "environment",
+    effect: false,
+    schema: z.object({
+      duration_min: z.number().min(5).max(600).default(120).describe("Planned remaining EVA duration in minutes"),
+      return_to_shelter_min: z.number().min(1).max(240).default(25).describe("Estimated return-to-shelter transit time in minutes"),
+      svf: z.number().min(0).max(1).default(1).describe("Local sky-view factor (0..1) for terrain radiation shielding"),
+    }),
+    description:
+      "Computes predictive environmental gradients (dp/dt, dtau/dt, dwind/dt, d(dose)/dt), storm onset and visibility abort ETAs, solar margin/battery autonomy, projected EVA radiation dose, aircraft flight envelope, and recommended maneuvers.",
+    run: (a, ctx) =>
+      predictEnvironmentalRisk({
+        env: ctx.env,
+        env_window: ctx.env_window,
+        storm_forecast: ctx.storm_forecast?.length ? ctx.storm_forecast : getStormForecastData().forecast,
+        base_battery_wh: ctx.base_battery_wh,
+        donki_alert: ctx.donki_alert,
+        plan: {
+          durationS: a.duration_min * 60,
+          returnToShelterS: a.return_to_shelter_min * 60,
+        },
+        svf: a.svf,
+      }),
   }),
 
   // --- mcp-fleet ---------------------------------------------------------
@@ -363,7 +416,7 @@ export const TOOLS: ToolDef[] = [
       mode: z
         .enum(["auto", "drone_drop", "ballistic_canister"])
         .default("auto")
-        .describe("Deployment mode: drone_drop when tau < 1.8, or ballistic_canister when dust/wind grounds aircraft"),
+        .describe(`Deployment mode: drone_drop when tau < ${ENV_LIMITS.tauDroneGrounding}, or ballistic_canister when dust/wind grounds aircraft`),
       spacing_m: z.number().min(25).max(100).default(50).describe("Spacing in metres between breadcrumb beacons"),
     }),
     description:
@@ -408,7 +461,10 @@ export const TOOLS: ToolDef[] = [
       const drone = ctx.fleet.find((u) => u.kind === "drone" && u.battery >= 0.2);
       const resolvedMode =
         a.mode === "auto"
-          ? ctx.env.tau < 1.8 && drone
+          ? ctx.env.tau < ENV_LIMITS.tauDroneGrounding &&
+            ctx.env.wind_ms < ENV_LIMITS.maxFlightWindMs &&
+            surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k) >= ENV_LIMITS.minFlightDensityKgM3 &&
+            drone
             ? "drone_drop"
             : "ballistic_canister"
           : a.mode;
@@ -463,6 +519,21 @@ export const TOOLS: ToolDef[] = [
       "Runs a unit capability: takeoff, land, photograph_area, hover_overwatch, follow_astronaut, return_to_base, survey_area, hold_position, relay_comms, deliver_supplies. Each unit kind supports a subset; GUARDIAN rejects unsupported ones.",
     run: (a, _c, caller) => ({ type: "unit_action", args: a, proposedBy: caller }),
   }),
+  def({
+    name: "isolate_component",
+    server: "fleet",
+    effect: true,
+    schema: z.object({
+      target_type: z.enum(["suit", "fleet", "hab_power", "isru"]).describe("Target system domain"),
+      target_id: z.string().min(1).max(40).describe("Target asset ID ('suit', fleet unit ID, 'hab_power', or 'isru')"),
+      subsystem: z.string().min(1).max(60).describe("Faulted subsystem (e.g. 'ventilation_fan', 'co2_scrubber', 'wheel_drive', 'arm_drill')"),
+      fault_code: z.string().min(1).max(32).describe("Canonical fault code verified by evaluate_component_health"),
+      action: z.enum(["switch_redundant", "derate", "safe_halt", "quarantine"]).describe("FDIR isolation or mitigation action"),
+    }),
+    description:
+      "Proposes hardware FDIR mitigation (switch_redundant, derate, safe_halt, quarantine) for a fault corroborated by evaluate_component_health; vetted by GUARDIAN.",
+    run: (a, _c, caller) => ({ type: "isolate_component", args: a, proposedBy: caller }),
+  }),
   // --- mcp-hud -----------------------------------------------------------
   def({
     name: "set_layer",
@@ -516,9 +587,14 @@ export const TOOLS: ToolDef[] = [
     schema: z.object({
       query: z.string().describe("Search query in English (the corpus is English; translate the crew's words first)"),
       k: z.number().int().min(1).max(5).default(3),
+      fault_codes: z
+        .array(z.string().min(1).max(32))
+        .max(8)
+        .optional()
+        .describe("Optional canonical FDIR fault codes (e.g. ['PLSS-FAN-01']) to pre-filter SOP chunks"),
     }),
-    description: "Searches the NASA corpus (NASA-STD-3001, OCHMO, AMCL, MEDPRAT, SUITS) and returns chunks with document and page.",
-    run: (a) => safeSearchDocs(a.query, a.k),
+    description: "Searches the NASA/JPL corpus (NASA-STD-3001, OCHMO, AMCL, MEDPRAT, SUITS, FDIR SOPs) and returns chunks with document and page.",
+    run: (a) => safeSearchDocs(a.query, a.k, a.fault_codes),
   }),
 ];
 

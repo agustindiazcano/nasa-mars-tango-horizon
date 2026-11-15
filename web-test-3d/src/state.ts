@@ -28,11 +28,90 @@ export interface WorldHooks {
   onUnitAction?(unitId: string, action: string, args: Record<string, unknown>): void;
 }
 
-export interface TranscriptLine {
+export interface TranscriptMeta {
+  metS?: number;
+  route?: string[];
+  latencyMs?: number;
+  lang?: Lang;
+  excludeFromHistory?: boolean;
+}
+
+export interface TranscriptLine extends TranscriptMeta {
+  id?: string;
   who: "you" | "base" | "system";
   text: string;
   final: boolean;
   ts: number;
+}
+
+const MAX_RAM_TRANSCRIPTS = 200;
+
+function createInitialAstronaut() {
+  return {
+    x: 28,
+    z: 36,
+    yaw: 0,
+    speed: 0,
+    gradePct: 0,
+    load_kg: 65,
+    body_kg: 78,
+    svf: 0.92,
+  };
+}
+
+function createInitialSuit(): SuitTelemetry {
+  return {
+    o2_primary_kg: 1.08,
+    o2_primary_cap_kg: 1.2,
+    o2_reserve_kg: 0.42,
+    o2_reserve_cap_kg: 0.45,
+    suit_pressure_pa: C.suit_p_nominal.value,
+    pao2_pa: C.suit_p_nominal.value - C.p_h2o_alv.value - C.p_co2_alv.value,
+    co2_pa: 210,
+    battery_wh: 740,
+    battery_cap_wh: 800,
+    coolant_l: 4.3,
+    coolant_cap_l: 4.5,
+    metabolic_w: 225,
+    heart_rate_bpm: 78,
+    fan_rpm: 28400,
+    body_temp_c: 36.8,
+    cumulative_dose_ugy: 12.4,
+  };
+}
+
+function createInitialEnv(): EnvState {
+  return {
+    sol: 4120,
+    ls_deg: 215,
+    ltst_hours: 11.4,
+    pressure_pa: 748,
+    air_temp_k: 234,
+    ground_temp_k: 248,
+    tau: 0.48,
+    wind_ms: 5.2,
+    wind_dir_rad: 0.65,
+    dose_rate_ugy_h: 9.8,
+    sun_elev_deg: 54,
+    earth_light_time_s: 492, // Design assumption; recorded Horizons epochs are shown separately in the archive.
+    storm_source: "Design clear atmosphere",
+    rad_source: "Design quiet absorbed dose",
+  };
+}
+
+function createInitialPodTelemetry(): PodTelemetry {
+  return {
+    active: false,
+    flightTimeS: 0,
+    elapsedS: 0,
+    impactX: 0,
+    impactZ: 0,
+    impactSpeed: 0,
+    chuteDeployed: false,
+    ellipseAlongM: 0,
+    ellipseCrossM: 0,
+    windDriftM: 0,
+  };
 }
 
 export class MissionStore {
@@ -60,52 +139,11 @@ export class MissionStore {
   selectedUnitId: string | null = null;
   lastHoveredCoord: { x: number; z: number } | null = null;
 
-  astronaut = {
-    x: 28,
-    z: 36,
-    yaw: 0,
-    speed: 0,
-    gradePct: 0,
-    load_kg: 65,
-    body_kg: 78,
-    svf: 0.92,
-  };
+  astronaut = createInitialAstronaut();
 
-  suit: SuitTelemetry = {
-    o2_primary_kg: 1.08,
-    o2_primary_cap_kg: 1.2,
-    o2_reserve_kg: 0.42,
-    o2_reserve_cap_kg: 0.45,
-    suit_pressure_pa: C.suit_p_nominal.value,
-    pao2_pa: C.suit_p_nominal.value - C.p_h2o_alv.value - C.p_co2_alv.value,
-    co2_pa: 210,
-    battery_wh: 740,
-    battery_cap_wh: 800,
-    coolant_l: 4.3,
-    coolant_cap_l: 4.5,
-    metabolic_w: 225,
-    heart_rate_bpm: 78,
-    fan_rpm: 28400,
-    body_temp_c: 36.8,
-    cumulative_dose_ugy: 12.4,
-  };
+  suit: SuitTelemetry = createInitialSuit();
 
-  env: EnvState = {
-    sol: 4120,
-    ls_deg: 215,
-    ltst_hours: 11.4,
-    pressure_pa: 748,
-    air_temp_k: 234,
-    ground_temp_k: 248,
-    tau: 0.48,
-    wind_ms: 5.2,
-    wind_dir_rad: 0.65,
-    dose_rate_ugy_h: 9.8,
-    sun_elev_deg: 54,
-    earth_light_time_s: 492, // Design assumption; recorded Horizons epochs are shown separately in the archive.
-    storm_source: "Design clear atmosphere",
-    rad_source: "Design quiet absorbed dose",
-  };
+  env: EnvState = createInitialEnv();
 
   fleet: UnitSnapshot[] = [];
   alerts: HudAlert[] = [];
@@ -113,18 +151,7 @@ export class MissionStore {
   routePath: string[] = [];
   pendingActions: Action[] = [];
   activeRoute: RouteDisplay | null = null;
-  podTelemetry: PodTelemetry = {
-    active: false,
-    flightTimeS: 0,
-    elapsedS: 0,
-    impactX: 0,
-    impactZ: 0,
-    impactSpeed: 0,
-    chuteDeployed: false,
-    ellipseAlongM: 0,
-    ellipseCrossM: 0,
-    windDriftM: 0,
-  };
+  podTelemetry: PodTelemetry = createInitialPodTelemetry();
   samples: SampleRecord[] = [];
   transcripts: TranscriptLine[] = [];
   roverPreviewUrl: string | null = null;
@@ -133,6 +160,8 @@ export class MissionStore {
 
   private hooks: WorldHooks = {};
   private subs = new Set<() => void>();
+  private finalTranscriptSubs = new Set<(line: TranscriptLine) => void>();
+  private resetSubs = new Set<() => void>();
 
   setHooks(hooks: WorldHooks): void {
     this.hooks = hooks;
@@ -141,6 +170,16 @@ export class MissionStore {
   subscribe(fn: () => void): () => void {
     this.subs.add(fn);
     return () => this.subs.delete(fn);
+  }
+
+  onTranscriptFinal(fn: (line: TranscriptLine) => void): () => void {
+    this.finalTranscriptSubs.add(fn);
+    return () => this.finalTranscriptSubs.delete(fn);
+  }
+
+  onReset(fn: () => void): () => void {
+    this.resetSubs.add(fn);
+    return () => this.resetSubs.delete(fn);
   }
 
   notify(): void {
@@ -217,16 +256,96 @@ export class MissionStore {
     this.notify();
   }
 
-  pushTranscript(who: "you" | "base" | "system", text: string, final: boolean): void {
+  pushTranscript(
+    who: "you" | "base" | "system",
+    text: string,
+    final: boolean,
+    meta: TranscriptMeta = {},
+  ): void {
+    const ts = Date.now();
+    const metS = meta.metS ?? Math.round(this.metS);
+    const route = meta.route?.length ? [...meta.route] : undefined;
     const last = this.transcripts[this.transcripts.length - 1];
+    let committed: TranscriptLine;
+
     if (last && !last.final && last.who === who) {
       last.text = text;
       last.final = final;
-      last.ts = Date.now();
+      last.ts = ts;
+      last.metS = metS;
+      if (route) last.route = route;
+      if (typeof meta.latencyMs === "number") last.latencyMs = meta.latencyMs;
+      if (meta.lang) last.lang = meta.lang;
+      if (meta.excludeFromHistory !== undefined) last.excludeFromHistory = meta.excludeFromHistory;
+      if (final && !last.id) last.id = `tx-${ts}-${Math.random().toString(36).slice(2, 7)}`;
+      committed = last;
     } else {
-      this.transcripts.push({ who, text, final, ts: Date.now() });
-      if (this.transcripts.length > 14) this.transcripts.shift();
+      committed = {
+        ...(final ? { id: `tx-${ts}-${Math.random().toString(36).slice(2, 7)}` } : {}),
+        who,
+        text,
+        final,
+        ts,
+        metS,
+        ...(route ? { route } : {}),
+        ...(typeof meta.latencyMs === "number" ? { latencyMs: meta.latencyMs } : {}),
+        ...(meta.lang ? { lang: meta.lang } : {}),
+        ...(meta.excludeFromHistory ? { excludeFromHistory: true } : {}),
+      };
+      this.transcripts.push(committed);
+      if (this.transcripts.length > MAX_RAM_TRANSCRIPTS) this.transcripts.shift();
     }
+
+    if (final) {
+      for (const fn of this.finalTranscriptSubs) fn({ ...committed, route: committed.route ? [...committed.route] : undefined });
+    }
+    this.notify();
+  }
+
+  /** Replace displayed transcripts (e.g. when restoring a saved session) without triggering auto-save. */
+  loadTranscriptLines(lines: TranscriptLine[]): void {
+    this.transcripts = lines.slice(-MAX_RAM_TRANSCRIPTS).map((line) => ({
+      ...line,
+      final: true,
+      route: line.route ? [...line.route] : undefined,
+    }));
+    this.notify();
+  }
+
+  /** Reset simulation state and clear active RAM transcript while allowing listeners to preserve saved sessions. */
+  reset(): void {
+    this.metS = 1420;
+    this.simScale = 1;
+    this.layer = "optical";
+    this.panel = "none";
+    this.leakDiameterM = 0;
+    this.emergencyResponseActive = false;
+    this.fanDegraded = false;
+    this.earthLinkDelay = false;
+    this.earthDelayRemainingS = 0;
+    this.lastAgentLatencyMs = 0;
+    this.baseProcessing = false;
+    this.injectionBlockedBanner = false;
+    this.activeScenario = "none";
+    this.scenarioElapsedS = 0;
+    this.selectedBaseModuleId = null;
+    this.selectedUnitId = null;
+    this.lastHoveredCoord = null;
+    this.astronaut = createInitialAstronaut();
+    this.suit = createInitialSuit();
+    this.env = createInitialEnv();
+    this.alerts = [];
+    this.trace = [];
+    this.routePath = [];
+    this.pendingActions = [];
+    this.activeRoute = null;
+    this.podTelemetry = createInitialPodTelemetry();
+    this.samples = [];
+    this.transcripts = [];
+    this.roverPreviewUrl = null;
+    this.roverPreviewCaption = "";
+    this.lastDrillDepthCm = 0;
+    for (const fn of this.resetSubs) fn();
     this.notify();
   }
 
@@ -264,11 +383,18 @@ export class MissionStore {
     this.notify();
   }
 
+  findPendingActionIndex(actionType: string): number {
+    return this.pendingActions.findIndex((a) => a.type === actionType && a.verdict?.decision === "ask_human");
+  }
+
   confirmPendingAction(index: number, approved: boolean): void {
     const [a] = this.pendingActions.splice(index, 1);
     if (!a) return;
     if (approved) {
-      this.executeApprovedAction({ ...a, verdict: { decision: "allow", reason: "Crew confirmed", by: "judge" } });
+      this.executeApprovedAction({
+        ...a,
+        verdict: { decision: "allow", reason: "Crew confirmed", by: a.verdict?.by ?? "judge" },
+      });
       this.pushAlert("info", `Crew confirmed: ${a.type}`);
     } else {
       this.pushAlert("info", `Crew cancelled: ${a.type}`);

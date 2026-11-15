@@ -1,8 +1,10 @@
+import { computeEnvGradients, ENV_LIMITS, evaluateComponentHealth, surfaceDensity } from "@th/shared";
 import { z } from "zod";
 import { chat, llmAvailable } from "../llm/provider.js";
 import { slopeAt } from "./tools/terrainData.js";
 import { UNIT_ACTIONS, type UnitActionId } from "./unitCapabilities.js";
-import type { Action, MissionContext, Verdict } from "./types.js";
+import { runEscalatedVoting } from "./voting.js";
+import type { Action, MissionContext, TraceEvent, Verdict } from "./types.js";
 
 export const MAX_SLOPE: Record<string, number> = {
   rover_crew: 20,
@@ -14,13 +16,22 @@ export const MAX_SLOPE: Record<string, number> = {
 };
 
 const POD_KEEPOUT_M = 15; // design assumption: exclusion radius around crew for pod landing
-const AIRCRAFT_GROUNDING_TAU = 1.8; // dust opacity at or above which drones and gliders are grounded
 const AIRCRAFT_MIN_BATTERY = 0.15;
 const ARM_CREW_KEEPOUT_M = 2; // design assumption: minimum clearance around crew for non-handover arm skills
 const JUDGE_SKIP_TYPES = new Set(["dispatch", "arm_skill", "unit_action"]); // low risk once hard limits pass; launch_pod/deploy_beacons stay judged
 const INJECTION_RE =
   /ignore (all |previous |prior )?(instructions|rules)|disregard|system prompt|override|disable (safety|guardian)|you are now|jailbreak|<\/?untrusted>|ignora (las |todas )?(instrucciones|reglas)|desactiva/i;
 const HUD_ONLY = new Set(["set_layer", "open_panel", "show_route", "show_alert"]);
+
+const CLINICAL_RX_RE =
+  /\b(prescrib\w*|prescription|administer|tablet|pill|mg|dosage|dose of|medication|ibuprofen|acetaminophen|aspirin|epinephrine|acetazolamide|dexamethasone|modafinil|antibiotic|steroid|recet\w*|medicament\w*|f[aá]rmac\w*|pastilla\w*|dosis de)\b/i;
+const CLINICAL_OVERRIDE_RE =
+  /\b(override|ignore|bypass|countermand|replace|supersede|skip|cancel|ignora|anula|omite|sustituye)\b.{0,35}\b(flight[- ]?surgeon|surgeon|physician|doctor|medical officer|medical review|m[eé]dico de vuelo|cirujano de vuelo)\b/i;
+const CLINICAL_DIAGNOSIS_RE =
+  /\b(?:diagnosis\b\s*:|diagnosed with\b|you have\b|suffering from\b|confirmed\s+(?:hypercapnia|hypoxia|heat\s*stroke|decompression sickness|dcs|arrhythmia|thrombosis|embolism)\b|diagnostico\b|diagn[oó]stico\b\s*:|padeces\b|tienes\s+(?:hipercapnia|hipoxia|golpe de calor|enfermedad por descompresi[oó]n)\b)/i;
+const CLINICAL_ADVISORY_FRAMING_RE =
+  /\b(?:advisory|decision support|not (?:a )?(?:medical )?diagnosis|aviso|apoyo a la decisi[oó]n|no (?:es )?(?:un )?diagn[oó]stico|avis|aide [àa] la d[ée]cision|non diagnostic|hinweis|entscheidungshilfe|keine diagnose|avviso|supporto decisionale|non diagnosi)\b/i;
+const CLINICAL_CITATION_RE = /(?<![a-z0-9])(NASA-STD-3001|OCHMO|AMCL|MEDPRAT)(?![a-z0-9])/i;
 
 function isAircraft(kind: string): boolean {
   return kind === "drone" || kind === "glider";
@@ -30,8 +41,30 @@ function isAircraft(kind: string): boolean {
 function aircraftDeny(unit: { id: string; kind: string; battery: number }, what: string, ctx: MissionContext): string | null {
   if (!isAircraft(unit.kind)) return null;
   if (unit.battery < AIRCRAFT_MIN_BATTERY) return `Battery of ${unit.id} is too low for ${what}`;
-  if (ctx.env.tau >= AIRCRAFT_GROUNDING_TAU) {
-    return `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${AIRCRAFT_GROUNDING_TAU} aircraft grounding limit`;
+  if (ctx.env.tau >= ENV_LIMITS.tauDroneGrounding) {
+    return `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${ENV_LIMITS.tauDroneGrounding} aircraft grounding limit`;
+  }
+  if (ctx.env.wind_ms >= ENV_LIMITS.maxFlightWindMs) {
+    return `Wind speed ${ctx.env.wind_ms.toFixed(1)} m/s exceeds ${ENV_LIMITS.maxFlightWindMs} m/s aircraft flight limit`;
+  }
+  const rho = surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k);
+  if (rho < ENV_LIMITS.minFlightDensityKgM3) {
+    return `Air density ${rho.toFixed(4)} kg/m^3 is below ${ENV_LIMITS.minFlightDensityKgM3} kg/m^3 minimum flight density`;
+  }
+  return null;
+}
+
+/** Deterministic FDIR block for isolated units or critical mobility/thermal faults. */
+function fleetMobilityFaultDeny(unitId: string, ctx: MissionContext): string | null {
+  if (ctx.fleet_health?.[unitId]?.isolated === true) {
+    return `Unit ${unitId} is isolated due to an active hardware fault`;
+  }
+  const report = evaluateComponentHealth(ctx, "fleet", unitId);
+  const crit = report.faults.find(
+    (f) => f.severity === "critical" && (f.fault_code === "RVR-MOB-01" || f.fault_code === "RVR-THM-01"),
+  );
+  if (crit) {
+    return `Unit ${unitId} has critical ${crit.fault_code} fault; dispatch blocked`;
   }
   return null;
 }
@@ -50,6 +83,32 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     by: "rules",
   });
 
+  if (a.type === "show_alert" && a.proposedBy === "SUIT.HEALTH") {
+    const { text, source } = a.args as { text?: unknown; source?: unknown };
+    const alertText = typeof text === "string" ? text : "";
+    const alertSource = typeof source === "string" ? source : "";
+    if (CLINICAL_RX_RE.test(alertText)) {
+      return deny("SUIT.HEALTH cannot prescribe or recommend medications; consult base flight surgeon");
+    }
+    if (CLINICAL_OVERRIDE_RE.test(alertText)) {
+      return deny("SUIT.HEALTH cannot override or bypass flight-surgeon authority");
+    }
+    if (CLINICAL_DIAGNOSIS_RE.test(alertText)) {
+      return deny("SUIT.HEALTH must issue operational decision-support advisories, not clinical diagnoses");
+    }
+    if (!CLINICAL_ADVISORY_FRAMING_RE.test(alertText)) {
+      return deny("SUIT.HEALTH alerts must include decision-support advisory framing (not a medical diagnosis)");
+    }
+    if (!CLINICAL_CITATION_RE.test(alertSource) && !CLINICAL_CITATION_RE.test(alertText)) {
+      return deny("SUIT.HEALTH clinical advisories require a NASA-STD-3001 or OCHMO document citation");
+    }
+    return {
+      decision: "allow",
+      reason: "Cited clinical decision-support advisory within operational boundaries",
+      by: "rules",
+    };
+  }
+
   if (HUD_ONLY.has(a.type)) {
     return { decision: "allow", reason: "UI action with no physical effect", by: "rules" };
   }
@@ -65,6 +124,8 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       return deny("A robot may only command itself");
     }
     if (unit.battery < 0.1) return deny(`Battery of ${unit_id} is below 10%`);
+    const mobFault = fleetMobilityFaultDeny(unit_id, ctx);
+    if (mobFault) return deny(mobFault);
     const aircraftReason = aircraftDeny(unit, "dispatch", ctx);
     if (aircraftReason) return deny(aircraftReason);
     const max = MAX_SLOPE[unit.kind];
@@ -76,6 +137,30 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
           "guard.slope",
           { slope: Math.round(slope), max, unit: unit_id },
         );
+      }
+    }
+    const task = (a.args as { task?: string }).task;
+    const isOutward = Math.hypot(x, z) > Math.hypot(unit.x, unit.z);
+    if (task !== "rescue" && isOutward) {
+      const radSlope = ctx.env_window?.length
+        ? computeEnvGradients(ctx.env_window, ctx.env).ddose_dt_ugy_h2
+        : 0;
+      if (ctx.env.dose_rate_ugy_h >= ENV_LIMITS.sepDoseAbortUgyH) {
+        return deny(
+          `SEP absorbed dose rate ${ctx.env.dose_rate_ugy_h.toFixed(1)} uGy/h exceeds ${ENV_LIMITS.sepDoseAbortUgyH} uGy/h abort limit for outward dispatch`,
+        );
+      }
+      if (ctx.donki_alert?.active_sep && radSlope > 0) {
+        return deny(
+          `Active DONKI SEP alert with rising RAD dose slope (+${radSlope.toFixed(1)} uGy/h^2) blocks outward dispatch`,
+        );
+      }
+      if (ctx.env.dose_rate_ugy_h >= ENV_LIMITS.sepDoseWarnUgyH || ctx.donki_alert?.active_sep) {
+        return {
+          decision: "ask_human",
+          reason: `Elevated SEP radiation (${ctx.env.dose_rate_ugy_h.toFixed(1)} uGy/h${ctx.donki_alert?.active_sep ? ", active DONKI SEP alert" : ""}) for outward dispatch`,
+          by: "rules",
+        };
       }
     }
   }
@@ -94,6 +179,8 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     }
     if (unit.battery < 0.1) return deny(`Battery of ${unit_id} is too low for ${action}`);
     if (action !== "land" && action !== "hold_position") {
+      const mobFault = fleetMobilityFaultDeny(unit_id, ctx);
+      if (mobFault) return deny(mobFault);
       const aircraftReason = aircraftDeny(unit, action, ctx);
       if (aircraftReason) return deny(aircraftReason);
     }
@@ -138,9 +225,20 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       );
     }
     if (mode === "drone_drop") {
-      if (ctx.env.tau >= AIRCRAFT_GROUNDING_TAU) {
+      if (ctx.env.tau >= ENV_LIMITS.tauDroneGrounding) {
         return deny(
-          `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${AIRCRAFT_GROUNDING_TAU} aircraft grounding limit; use ballistic_canister mode`,
+          `Dust opacity tau=${ctx.env.tau.toFixed(2)} exceeds ${ENV_LIMITS.tauDroneGrounding} aircraft grounding limit; use ballistic_canister mode`,
+        );
+      }
+      if (ctx.env.wind_ms >= ENV_LIMITS.maxFlightWindMs) {
+        return deny(
+          `Wind speed ${ctx.env.wind_ms.toFixed(1)} m/s exceeds ${ENV_LIMITS.maxFlightWindMs} m/s aircraft flight limit; use ballistic_canister mode`,
+        );
+      }
+      const rho = surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k);
+      if (rho < ENV_LIMITS.minFlightDensityKgM3) {
+        return deny(
+          `Air density ${rho.toFixed(4)} kg/m^3 is below ${ENV_LIMITS.minFlightDensityKgM3} kg/m^3 minimum flight density; use ballistic_canister mode`,
         );
       }
       if (unit_id) {
@@ -185,6 +283,75 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     }
     if (skill === "handover" && ctx.astronaut.speed > 0.1) {
       return deny("Astronaut must be standing still for a handover");
+    }
+    if (skill === "drill" || skill === "sample" || skill === "handover") {
+      if (ctx.fleet_health?.[unit.id]?.isolated === true) {
+        return deny(`Manipulator ${unit.id} is isolated; ${skill} blocked`);
+      }
+      const armReport = evaluateComponentHealth(ctx, "fleet", unit.id);
+      const armCrit = armReport.faults.find(
+        (f) => f.severity === "critical" && (f.fault_code === "ARM-TORQ-01" || f.fault_code === "RVR-THM-01"),
+      );
+      if (armCrit) {
+        return deny(`Manipulator ${unit.id} has critical ${armCrit.fault_code} fault; ${skill} blocked`);
+      }
+    }
+  }
+
+  if (a.type === "isolate_component") {
+    const { target_type, target_id, fault_code, action } = a.args as {
+      target_type: "suit" | "fleet" | "hab_power" | "isru";
+      target_id: string;
+      subsystem: string;
+      fault_code: string;
+      action: "switch_redundant" | "derate" | "safe_halt" | "quarantine";
+    };
+    if (a.proposedBy.startsWith("ROBOT.")) {
+      const ownId = a.proposedBy.slice("ROBOT.".length);
+      if (target_type !== "fleet" || target_id !== ownId) {
+        return deny(`ROBOT.${ownId} may only isolate itself`);
+      }
+    }
+    const fleetUnit = target_type === "fleet" ? ctx.fleet.find((u) => u.id === target_id) : undefined;
+    if (target_type === "fleet" && !fleetUnit) {
+      return deny(`Unit ${target_id} does not exist`);
+    }
+
+    const report = evaluateComponentHealth(ctx, "all");
+    const corroborated = report.faults.find(
+      (f) =>
+        f.fault_code === fault_code &&
+        f.target_type === target_type &&
+        (target_type !== "fleet" || f.target_id === target_id),
+    );
+    if (!corroborated || corroborated.severity === "nominal") {
+      return deny(`Fault ${fault_code} on ${target_id} is not corroborated by telemetry`);
+    }
+
+    const isActiveRescue =
+      target_type === "fleet" &&
+      fleetUnit?.kind === "rescue" &&
+      (fleetUnit.busy || ctx.leak_diameter_m > 0 || ctx.emergency_response_active === true);
+
+    if (
+      (action === "quarantine" || action === "safe_halt") &&
+      (corroborated.severity === "degraded" || isActiveRescue)
+    ) {
+      return {
+        decision: "ask_human",
+        reason: isActiveRescue
+          ? `Active rescue unit ${target_id} (${fault_code}); human confirmation required for ${action}`
+          : `Asset ${target_id} is degraded (${fault_code}); human confirmation required for ${action}`,
+        by: "rules",
+      };
+    }
+
+    if (action === "switch_redundant" && corroborated.severity === "critical") {
+      return {
+        decision: "allow",
+        reason: `Verified switch_redundant for critical ${fault_code} on ${target_id}`,
+        by: "rules",
+      };
     }
   }
 
@@ -277,12 +444,25 @@ export async function review(
   ctx: MissionContext,
   userRequest: string,
   untrusted: string[] = [],
+  onTrace?: (ev: TraceEvent) => void,
 ): Promise<Verdict> {
   const hard = ruleCheck(a, ctx);
   if (hard) return hard;
   // Low-risk action already inside hard limits, with no document/agent text in context and a clean request: no LLM hop.
-  if (JUDGE_SKIP_TYPES.has(a.type) && untrusted.length === 0 && !INJECTION_RE.test(userRequest)) {
-    return { decision: "allow", reason: "Within hard limits; no untrusted input", by: "rules" };
+  const step2: Verdict =
+    JUDGE_SKIP_TYPES.has(a.type) && untrusted.length === 0 && !INJECTION_RE.test(userRequest)
+      ? { decision: "allow", reason: "Within hard limits; no untrusted input", by: "rules" }
+      : await judge(a, ctx, userRequest, untrusted);
+
+  const voted = await runEscalatedVoting(a, ctx, userRequest, untrusted, step2);
+  if (voted) {
+    onTrace?.({
+      t: Date.now(),
+      agent: "ESC-VOTE",
+      kind: "voting",
+      detail: voted.traceDetail,
+    });
+    return voted.verdict;
   }
-  return judge(a, ctx, userRequest, untrusted);
+  return step2;
 }

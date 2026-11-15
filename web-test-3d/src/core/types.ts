@@ -1,9 +1,14 @@
 import type { TerrainIdentity } from "@th/shared";
 export type LayerId = "optical" | "slope" | "thermal" | "radiation" | "hydration";
-export type PanelId = "map" | "fleet" | "agents" | "health" | "provenance" | "base" | "none";
+export type PanelId = "map" | "fleet" | "agents" | "health" | "provenance" | "base" | "sessions" | "none";
 export type AlertLevel = "ok" | "warn" | "crit";
 export type UnitKind = "rover_crew" | "rover_science" | "rescue" | "drone" | "manipulator";
 export type ArmSkillId = "handover" | "sample" | "drill" | "photograph";
+
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export interface SuitTelemetry {
   o2_primary_kg: number;
@@ -56,7 +61,7 @@ export interface UnitSnapshot {
 export interface Verdict {
   decision: "allow" | "deny" | "ask_human";
   reason: string;
-  by: "rules" | "judge";
+  by: "rules" | "judge" | "voting";
 }
 
 export interface Action {
@@ -66,10 +71,51 @@ export interface Action {
   verdict?: Verdict;
 }
 
+export type VoteDecision = "allow" | "deny" | "ask_human";
+
+export interface VoterResult {
+  voter: string;
+  model: string;
+  provider: "vertex" | "gemini" | "meta";
+  vote: VoteDecision | null;
+  confidence: number | null;
+  rationale: string;
+  latency_ms: number;
+  status: "ok" | "timeout" | "error";
+  error?: string;
+}
+
+export interface VotingTally {
+  allow: number;
+  deny: number;
+  ask_human: number;
+  valid: number;
+}
+
+export type VotingConsensus =
+  | "unanimous"
+  | "majority"
+  | "asymmetric_safety_override"
+  | "split"
+  | "degraded_unanimous"
+  | "degraded_split"
+  | "quorum_failed";
+
+export interface VotingTraceDetail {
+  actionType: string;
+  triggers: string[];
+  voters: VoterResult[];
+  tally: VotingTally;
+  consensus: VotingConsensus;
+  finalDecision: VoteDecision;
+  reason: string;
+  latency_ms: number;
+}
+
 export interface TraceEvent {
   t: number;
   agent: string;
-  kind: "delegate" | "tool" | "verdict" | "say";
+  kind: "delegate" | "tool" | "verdict" | "voting" | "say";
   detail: unknown;
 }
 

@@ -7,6 +7,7 @@ export interface DocChunk {
   doc: string;
   page: number;
   text: string;
+  fault_codes?: string[];
   score?: number;
 }
 
@@ -126,6 +127,7 @@ interface Bm25Index {
   avgDocLength: number;
   idf: Map<string, number>;
   postings: Map<string, Posting[]>;
+  faultCodeIndex: Map<string, Set<number>>;
 }
 
 function buildIndex(): Bm25Index {
@@ -137,6 +139,7 @@ function buildIndex(): Bm25Index {
       avgDocLength: 0,
       idf: new Map(),
       postings: new Map(),
+      faultCodeIndex: new Map(),
     };
   }
 
@@ -145,11 +148,25 @@ function buildIndex(): Bm25Index {
   const n = parsed.length;
   const docLengths = new Float64Array(n);
   const postings = new Map<string, Posting[]>();
+  const faultCodeIndex = new Map<string, Set<number>>();
 
   let totalLength = 0;
   for (let idx = 0; idx < n; idx++) {
     const chunk = parsed[idx];
-    const tokens = tokenize(`${chunk.doc} ${chunk.text}`);
+    if (Array.isArray(chunk.fault_codes)) {
+      for (const rawCode of chunk.fault_codes) {
+        const code = String(rawCode).trim().toUpperCase();
+        if (!code) continue;
+        let set = faultCodeIndex.get(code);
+        if (!set) {
+          set = new Set<number>();
+          faultCodeIndex.set(code, set);
+        }
+        set.add(idx);
+      }
+    }
+    const codeText = Array.isArray(chunk.fault_codes) ? chunk.fault_codes.join(" ") : "";
+    const tokens = tokenize(`${chunk.doc} ${codeText} ${chunk.text}`);
     docLengths[idx] = tokens.length;
     totalLength += tokens.length;
 
@@ -174,7 +191,7 @@ function buildIndex(): Bm25Index {
     idf.set(term, Math.log(1 + (n - df + 0.5) / (df + 0.5)));
   }
 
-  return { chunks: parsed, docLengths, avgDocLength, idf, postings };
+  return { chunks: parsed, docLengths, avgDocLength, idf, postings, faultCodeIndex };
 }
 
 const INDEX = buildIndex();
@@ -182,11 +199,27 @@ const INDEX = buildIndex();
 /**
  * Search the in-memory NASA/OCHMO BM25 corpus and return top-k matching chunks
  * with exact document names, 1-based page numbers, and relevance scores.
+ * Optionally pre-filters chunks by canonical FDIR `fault_codes` metadata before ranking.
  */
-export function searchDocs(query: string, k = 3): DocChunk[] {
+export function searchDocs(query: string, k = 3, faultCodes?: string[]): DocChunk[] {
   if (!query || k <= 0 || INDEX.chunks.length === 0) return [];
   const terms = Array.from(new Set(tokenize(query)));
   if (terms.length === 0) return [];
+
+  let allowed: Set<number> | null = null;
+  if (Array.isArray(faultCodes)) {
+    const cleanedCodes = faultCodes.map((c) => c.trim().toUpperCase()).filter(Boolean);
+    if (cleanedCodes.length > 0) {
+      allowed = new Set<number>();
+      for (const code of cleanedCodes) {
+        const matches = INDEX.faultCodeIndex.get(code);
+        if (matches) {
+          for (const idx of matches) allowed.add(idx);
+        }
+      }
+      if (allowed.size === 0) return [];
+    }
+  }
 
   const scores = new Map<number, number>();
   const avgdl = INDEX.avgDocLength || 1;
@@ -198,6 +231,7 @@ export function searchDocs(query: string, k = 3): DocChunk[] {
 
     for (let i = 0; i < list.length; i++) {
       const { idx, tf } = list[i];
+      if (allowed && !allowed.has(idx)) continue;
       const dl = INDEX.docLengths[idx];
       const norm = 1 - BM25_B + BM25_B * (dl / avgdl);
       const tfWeight = (tf * (BM25_K1 + 1)) / (tf + BM25_K1 * norm);
@@ -216,6 +250,7 @@ export function searchDocs(query: string, k = 3): DocChunk[] {
         doc: c.doc,
         page: c.page,
         text: c.text,
+        ...(c.fault_codes?.length ? { fault_codes: c.fault_codes } : {}),
         score: Number(score.toFixed(4)),
       };
     });

@@ -52,6 +52,31 @@ export interface EnvironmentSnapshot {
   cumulative_dose_ugy?: number;
   sol?: number;
   lst_h?: number;
+  sun_elev_deg?: number;
+  solar_demand_w?: number;
+  solar_area_m2?: number;
+  solar_efficiency?: number;
+}
+
+/** Single bounded environmental telemetry sample in the rolling history window (max 48). */
+export interface EnvTelemetrySample {
+  t_s: number;
+  sol?: number;
+  lst_h?: number;
+  pressure_pa: number;
+  air_temp_k: number;
+  ground_temp_k?: number;
+  tau: number;
+  wind_ms: number;
+  dose_rate_ugy_h: number;
+  sun_elev_deg?: number;
+}
+
+/** Cached CCMC DONKI / WSA-Enlil space-weather alert state. */
+export interface DonkiAlert {
+  active_sep: boolean;
+  wsa_enlil_mars_arrival_h?: number;
+  source_id?: string;
 }
 
 export interface FleetUnitSnapshot {
@@ -69,6 +94,95 @@ export interface HudSnapshot {
   panel: HudPanel | (string & {}) | null;
 }
 
+/** Consent flag controlling whether anonymized personal physiological baselines are active. */
+export type CrewProfilePrivacyMode = "anonymized_baselines" | "standards_only";
+
+/**
+ * Privacy-bounded astronaut physiological baseline/delta profile.
+ * Contains strictly anonymized numeric parameters (never PII or raw EMR text).
+ */
+export interface CrewProfile {
+  privacy_mode: CrewProfilePrivacyMode;
+  resting_hr_bpm?: number;
+  max_hr_bpm?: number;
+  hr_delta_sigma?: number;
+  baseline_core_temp_c?: number;
+  baseline_spo2_pct?: number;
+  personal_co2_warn_pa?: number;
+  personal_core_temp_warn_c?: number;
+  personal_spo2_warn_pct?: number;
+  personal_psi_warn?: number;
+  heat_strain_index?: number;
+  dcs_prebreathe_min?: number;
+}
+
+/** Single timestamped sample in the sliding EVA biomedical telemetry window. */
+export interface VitalsSample {
+  t_s: number;
+  co2_pa?: number;
+  core_temp_c?: number;
+  spo2_pct?: number;
+  heart_rate_bpm?: number;
+  metabolic_w?: number;
+  suit_pressure_pa?: number;
+}
+
+export type FaultCode =
+  | "PLSS-FAN-01"
+  | "PLSS-SCRUB-01"
+  | "PLSS-COOL-01"
+  | "RVR-MOB-01"
+  | "RVR-THM-01"
+  | "ARM-TORQ-01"
+  | "HAB-PWR-01"
+  | "ISRU-MOX-01";
+
+export type FaultSeverity = "nominal" | "degraded" | "critical";
+
+export interface SuitWindowSample {
+  t_s: number;
+  fan_pri_rpm?: number;
+  fan_sec_rpm?: number;
+  fan_delta_p_pa?: number;
+  scrubber_a_co2_storage?: number;
+  scrubber_b_co2_storage?: number;
+  suit_co2_pa?: number;
+  helmet_co2_pa?: number;
+  coolant_ml?: number;
+  coolant_liquid_pressure?: number;
+  coolant_gas_pressure?: number;
+  suit_temp_k?: number;
+  battery_temp_c?: number;
+}
+
+export interface FleetUnitHealth {
+  motor_current_a?: number;
+  actuator_temp_c?: number;
+  slip_ratio?: number;
+  drill_torque_nm?: number;
+  isolated?: boolean;
+  fault_codes?: string[];
+}
+
+export interface FleetWindowSample {
+  t_s: number;
+  motor_current_a?: number;
+  actuator_temp_c?: number;
+  slip_ratio?: number;
+  drill_torque_nm?: number;
+  battery?: number;
+}
+
+export interface PowerIsruWindowSample {
+  t_s: number;
+  solar_dust_factor?: number;
+  hab_bus_v?: number;
+  hab_battery_temp_c?: number;
+  moxie_compressor_a?: number;
+  moxie_soxe_asr?: number;
+  moxie_o2_rate_g_h?: number;
+}
+
 /**
  * Stateless mission state snapshot sent from the browser to backend agents
  * on every `/api/agent/*` request. The browser remains the single source of truth.
@@ -80,11 +194,29 @@ export interface MissionContext {
   astronaut: AstronautSnapshot;
   suit: Record<string, number>;
   env: EnvironmentSnapshot;
+  /** Rolling environmental telemetry window (max 48 samples). */
+  env_window?: EnvTelemetrySample[];
+  /** Base energy storage reserve in Wh. */
+  base_battery_wh?: number;
+  /** Cached DONKI / WSA-Enlil solar energetic particle alert state. */
+  donki_alert?: DonkiAlert;
   fleet: FleetUnitSnapshot[];
   hud: HudSnapshot;
   leak_diameter_m: number;
   /** True once the O2 pod has been launched for the current leak. */
   emergency_response_active?: boolean;
+  /** Optional anonymized physiological baselines (never PII/EMR text). */
+  crew_profile?: CrewProfile;
+  /** Optional sliding window of recent physiological samples for trend prediction. */
+  vitals_window?: VitalsSample[];
+  /** Bounded sliding window (<= 90 samples) of PLSS suit component telemetry. */
+  suit_window?: SuitWindowSample[];
+  /** Latest hardware health snapshot per fleet unit ID. */
+  fleet_health?: Record<string, FleetUnitHealth>;
+  /** Bounded sliding window (<= 90 samples) per fleet unit ID. */
+  fleet_windows?: Record<string, FleetWindowSample[]>;
+  /** Bounded sliding window (<= 90 samples) of habitat power & MOXIE ISRU telemetry. */
+  power_isru_window?: PowerIsruWindowSample[];
 }
 
 export type VerdictDecision = "allow" | "deny" | "ask_human";
@@ -103,6 +235,7 @@ export type ActionType =
   | "launch_pod"
   | "deploy_beacons"
   | "arm_skill"
+  | "isolate_component"
   | "set_layer"
   | "open_panel"
   | "show_route"
