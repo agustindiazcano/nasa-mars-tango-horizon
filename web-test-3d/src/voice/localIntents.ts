@@ -22,7 +22,7 @@ export const LOCAL_INTENTS: LocalIntentDef[] = [
   },
   {
     id: "stop_all",
-    patterns: [/\b(alto|det[eé]n(gan|er)? todo|stop all|all stop|arret|alles stopp|ferma tutto)\b/i],
+    patterns: [/^\s*alto[\s.,!¡?¿]*$/i, /\b(det[eé]n(gan|er)? todo|stop all|all stop|arret|alles stopp|ferma tutto)\b/i],
   },
   {
     id: "open_map",

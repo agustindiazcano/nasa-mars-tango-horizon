@@ -7,6 +7,9 @@ export interface Const {
   assumption?: boolean;
 }
 
+/** Dust opacity at or above which drones and gliders are grounded (matches server GUARDIAN). */
+export const AIRCRAFT_GROUNDING_TAU = 1.8;
+
 export const C = {
   g_mars: { value: 3.711, unit: "m/s^2", source: "NASA Mars Fact Sheet (NSSDCA)" },
   g_earth: { value: 9.80665, unit: "m/s^2", source: "CODATA" },

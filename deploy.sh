@@ -76,7 +76,7 @@ ENV_VARS+="@LLM_MODEL_VISION=${LLM_MODEL_VISION:-muse-wonder-1.0}"
 ENV_VARS+="@TTS_VOICE_ES=${TTS_VOICE_ES:-es-US-Journey-D}"
 ENV_VARS+="@TTS_VOICE_EN=${TTS_VOICE_EN:-en-US-Journey-D}"
 ENV_VARS+="@RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-30}"
-ENV_VARS+="@LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-400}"
+ENV_VARS+="@LLM_MAX_OUTPUT_TOKENS=${LLM_MAX_OUTPUT_TOKENS:-1500}"
 ENV_VARS+="@AGENTS_OFFLINE=${AGENTS_OFFLINE:-0}"
 
 IMAGE_URI="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/tango-horizon/${CLOUD_RUN_SERVICE}:latest"
@@ -103,7 +103,7 @@ gcloud run deploy "$CLOUD_RUN_SERVICE" \
   "${SECRETS_FLAG[@]}" \
   --set-env-vars "$ENV_VARS"
 
-URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)')
+URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" --project "$GCP_PROJECT_ID" --region "$GCP_REGION" --format='value(status.url)' | tr -d '\r')
 ORIGINS="${URL}${VERCEL_URL:+,${VERCEL_URL}}"
 gcloud run services update "$CLOUD_RUN_SERVICE" \
   --project "$GCP_PROJECT_ID" \

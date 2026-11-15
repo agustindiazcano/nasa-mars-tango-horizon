@@ -2,8 +2,8 @@ import "./hud/hud.css";
 import { inject } from "@vercel/analytics";
 import * as THREE from "three";
 import { apiUrl } from "./api";
-import { getLang, t } from "./core/i18n";
-import { C, leakTimeline, planRoute, stepSuitTelemetry } from "./core/physics";
+import { ASR_LOCALE, getLang, t } from "./core/i18n";
+import { AIRCRAFT_GROUNDING_TAU, C, leakTimeline, planRoute, stepSuitTelemetry } from "./core/physics";
 import type { ArmSkillId, LayerId, RouteDisplay } from "./core/types";
 import { createDemoDeck } from "./hud/demoDeck";
 import { TacticalHud } from "./hud/hud";
@@ -82,7 +82,7 @@ async function captureAndInspectVision(
   hud.openRoverModal();
 
   try {
-    const apiLang = getLang() === "es" ? "es-AR" : "en-US";
+    const apiLang = ASR_LOCALE[getLang()];
     const res = await fetch(apiUrl("/api/agent/vision"), {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -182,6 +182,7 @@ let leakEscalated = false;
 function sealSuitLeak(sourceLabel: string): void {
   if (store.leakDiameterM <= 0) return;
   store.leakDiameterM = 0;
+  store.emergencyResponseActive = false;
   store.suit.suit_pressure_pa = C.suit_p_nominal.value;
   store.suit.o2_primary_kg = store.suit.o2_primary_cap_kg;
   store.suit.o2_reserve_kg = store.suit.o2_reserve_cap_kg;
@@ -201,6 +202,7 @@ store.setHooks({
     });
   },
   onLaunchPod: (tx, tz, payload) => {
+    if (store.leakDiameterM > 0) store.emergencyResponseActive = true;
     const dist = Math.hypot(tx - astronaut.pos.x, tz - astronaut.pos.z);
     if (dist < C.pod_keepout_m.value) {
       store.pushAlert("warn", `Pod aim shifted outside ${C.pod_keepout_m.value} m keep-out ring`);
@@ -244,6 +246,60 @@ store.setHooks({
       "EVA-PLANNER",
     );
   },
+  onUnitAction: (unitId, action, args) => {
+    const unit = fleet.get(unitId);
+    if (!unit) return;
+    const here = { x: unit.object.position.x, z: unit.object.position.z };
+    const me = { x: astronaut.pos.x, z: astronaut.pos.z };
+    const dir: Record<string, [number, number]> = { north: [0, -1], south: [0, 1], east: [1, 0], west: [-1, 0] };
+    const nx = typeof args.x === "number" ? args.x : undefined;
+    const nz = typeof args.z === "number" ? args.z : undefined;
+    const target = nx !== undefined && nz !== undefined ? { x: nx, z: nz } : null;
+    const standOff = () => {
+      const d = Math.hypot(here.x - me.x, here.z - me.z) || 1;
+      return { x: me.x + ((here.x - me.x) / d) * 5, z: me.z + ((here.z - me.z) / d) * 5 };
+    };
+    const note = (text: string) => store.pushAlert("info", `${unitId}: ${text}`);
+    const go = (p: { x: number; z: number }, task: string, done?: string) =>
+      fleet.dispatchTo(unitId, p.x, p.z, task, done ? () => note(done) : undefined);
+    switch (action) {
+      case "takeoff":
+        go(here, "takeoff");
+        note(`airborne, climbing to ${args.altitude_m ?? 14} m`);
+        break;
+      case "land":
+        go(here, "land");
+        note("landing");
+        break;
+      case "photograph_area": {
+        const d = dir[String(args.heading ?? "")] ?? [0, 0];
+        go(target ?? { x: here.x + d[0] * 60, z: here.z + d[1] * 60 }, "photograph", "photo captured");
+        break;
+      }
+      case "hover_overwatch":
+        go(me, "overwatch", "overwatch on station above the astronaut");
+        break;
+      case "follow_astronaut":
+        go(standOff(), "follow", "in position, 5 m from the astronaut");
+        break;
+      case "deliver_supplies":
+        go(standOff(), "deliver", "supplies delivered at 5 m");
+        break;
+      case "return_to_base":
+        go({ x: 0, z: 0 }, "return", "back at base");
+        break;
+      case "survey_area":
+        go(target ?? me, "survey", "survey complete");
+        break;
+      case "hold_position":
+        go(here, "hold");
+        note("holding position");
+        break;
+      case "relay_comms":
+        go(target ?? me, "relay", "relay node online");
+        break;
+    }
+  },
   onArmSkill: (skill: ArmSkillId, targetId: string, item?: string) => {
     fleet.executeArmSkill(skill, targetId, astronaut.pos, astronaut.yaw, item);
   },
@@ -255,7 +311,7 @@ function startScenario(id: "storm" | "sep2017" | "leak"): void {
   store.scenarioElapsedS = 0;
   if (id === "storm") {
     store.env.storm_source = "REMS MSL 2018 Global Dust Storm (Sol 2080)";
-    store.pushAlert("warn", "Dust storm approaching: tau rising, drones grounding >3.5", "WEATHER-RAD");
+    store.pushAlert("warn", `Dust storm approaching: tau rising, drones grounding at tau >= ${AIRCRAFT_GROUNDING_TAU}`, "WEATHER-RAD");
   } else if (id === "sep2017") {
     store.env.rad_source = "RAD MSL Real SEP Event (Sep 2017)";
     store.setLayer("radiation");
@@ -281,6 +337,7 @@ function startScenario(id: "storm" | "sep2017" | "leak"): void {
     store.pushAlert("crit", `Solar Particle Event! Sheltered SVF=${bestSvf.toFixed(2)} route plotted`, "WEATHER-RAD");
   } else if (id === "leak") {
     leakEscalated = false;
+    store.emergencyResponseActive = false;
     store.leakDiameterM = 0.0016;
     const tl = leakTimeline(store.suit.suit_pressure_pa, store.leakDiameterM);
     store.pushAlert("crit", t("alert.leak", { t: `${Math.round(tl.toCriticalS)} s` }), "SUIT.HEALTH");

@@ -24,6 +24,7 @@ export interface WorldHooks {
   onDeployBeacons?(beacons: { id: string; x: number; z: number }[], mode: string): void;
   onArmSkill?(skill: ArmSkillId, targetId: string, item?: string): void;
   onStopAll?(): void;
+  onUnitAction?(unitId: string, action: string, args: Record<string, unknown>): void;
 }
 
 export interface TranscriptLine {
@@ -40,6 +41,8 @@ export class MissionStore {
   layer: LayerId = "optical";
   panel: PanelId = "none";
   leakDiameterM = 0;
+  /** Set when a pod is launched for the current leak; sent to the server so it does not repeat the protocol. */
+  emergencyResponseActive = false;
   fanDegraded = false;
   earthLinkDelay = false;
   earthDelayRemainingS = 0;
@@ -191,6 +194,7 @@ export class MissionStore {
         panel: this.panel === "none" ? null : this.panel,
       },
       leak_diameter_m: this.leakDiameterM,
+      emergency_response_active: this.emergencyResponseActive,
     };
   }
 
@@ -324,6 +328,10 @@ export class MissionStore {
         const targetId = String(args.target_id ?? "T1");
         const item = args.item ? String(args.item) : undefined;
         this.hooks.onArmSkill?.(skill, targetId, item);
+        break;
+      }
+      case "unit_action": {
+        this.hooks.onUnitAction?.(String(args.unit_id ?? ""), String(args.action ?? ""), args);
         break;
       }
       case "stop_all": {

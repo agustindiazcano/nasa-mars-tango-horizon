@@ -9,7 +9,8 @@ import { registerRelay } from "./relay.js";
 import { registerTtsRoute } from "./tts.js";
 import { registerAgentRoutes } from "./agents/routes.js";
 
-const app = Fastify({ logger: true, bodyLimit: 4_000_000 });
+// One trusted hop (the Cloud Run front end): req.ip is the address it appended, not a client-supplied X-Forwarded-For entry.
+const app = Fastify({ logger: true, bodyLimit: 4_000_000, trustProxy: (_ip, hop) => hop === 0 });
 
 await app.register(fastifyRateLimit, { global: false });
 await app.register(fastifyWebsocket);

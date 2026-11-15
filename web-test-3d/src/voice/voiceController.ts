@@ -7,6 +7,10 @@ import { Listener } from "./listen";
 import { matchLocalIntent, type LocalIntentId } from "./localIntents";
 import { RadioSpeaker } from "./speak";
 
+/** Explicit questions about what the rover camera sees; a bare "rover 2" mention does not match. */
+const VISION_QUESTION_RE =
+  /what (do|does) (you|the rover|rover \w+) see|(?<![\p{L}])qu[eé] ves?(?![\p{L}])|read (the |that )?sign|(?<![\p{L}])le[eé]r? (el )?cartel|(camera|c[aá]mara) view|vista de (la )?c[aá]mara|(show|ver|mostr\w*) (me |the |la |el )?(rover \w+ )?(camera|c[aá]mara)/iu;
+
 export interface VoiceControllerHooks {
   onVisionRequest?(unitId: string, question: string): Promise<{ speech: string; injection: boolean }>;
 }
@@ -71,8 +75,9 @@ export class VoiceController {
       // For emergency, trigger local instant alert AND escalate to BASE for pod + rescue
     }
 
-    // Intercept rover vision orders so the 3D mast camera frame goes to /api/agent/vision
-    if (/\b(rover\s*(2|two|dos)|sign|cartel|what do you see|qu[eé] ves)\b/i.test(clean) && this.hooks.onVisionRequest) {
+    // Intercept explicit vision questions so the 3D mast camera frame goes to /api/agent/vision.
+    // A bare unit mention ("rover dos, scout the north") must reach the agent instead.
+    if (VISION_QUESTION_RE.test(clean) && this.hooks.onVisionRequest) {
       this.store.baseProcessing = true;
       this.store.notify();
       void this.radio.beep(740, 0.06);
@@ -101,7 +106,7 @@ export class VoiceController {
 
     try {
       const lang = getLang();
-      const apiLang = lang === "es" ? "es-AR" : "en-US";
+      const apiLang = ASR_LOCALE[lang];
       const res = await fetch(apiUrl("/api/agent/voice"), {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -110,7 +115,7 @@ export class VoiceController {
           lang: apiLang,
           context: this.store.toContext(),
         }),
-        signal: AbortSignal.timeout(45000),
+        signal: AbortSignal.timeout(70000),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const out = (await res.json()) as {

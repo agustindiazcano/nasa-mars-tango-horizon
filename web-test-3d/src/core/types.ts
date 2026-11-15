@@ -101,6 +101,8 @@ export interface MissionContext {
     panel: string | null;
   };
   leak_diameter_m: number;
+  /** True once the O2 pod has been launched for the current leak. */
+  emergency_response_active?: boolean;
 }
 
 export interface HudAlert {

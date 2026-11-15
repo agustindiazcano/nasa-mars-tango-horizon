@@ -159,7 +159,11 @@ export async function runAgent(
         ];
       } else {
         const finalText = (msg.content ?? "").trim();
-        if (!finalText) break; // empty reply: use the forced-final path below (never return empty)
+        if (!finalText) {
+          // Drop the empty assistant turn so the forced-final prompt below sees tool/user directly.
+          messages.pop();
+          break;
+        }
         trace.push({ t: Date.now(), agent: spec.name, kind: "say", detail: finalText });
         return { text: finalText, actions, trace };
       }
@@ -218,7 +222,7 @@ export async function runAgent(
         const unitId = (parsed.data as { unit_id?: unknown }).unit_id;
         if (
           tool.effect &&
-          (tool.name === "dispatch" || tool.name === "arm_skill") &&
+          (tool.name === "dispatch" || tool.name === "arm_skill" || tool.name === "unit_action") &&
           typeof unitId === "string" &&
           delegatedUnits.has(unitId)
         ) {
@@ -273,7 +277,7 @@ export async function runAgent(
     ...messages,
     {
       role: "user",
-      content: "Provide your concise spoken reply now based on the tool results already gathered.",
+      content: `Provide your concise spoken reply in ${ctx.lang} now based on the tool results already gathered. Never return empty text.`,
     },
   ]);
   let finalText = (finalMsg.content ?? "").trim();

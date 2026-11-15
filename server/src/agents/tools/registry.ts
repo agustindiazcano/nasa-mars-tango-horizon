@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { UNIT_ACTION_IDS } from "../unitCapabilities.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   decide,
@@ -445,6 +446,22 @@ export const TOOLS: ToolDef[] = [
     run: (a, _c, caller) => ({ type: "arm_skill", args: a, proposedBy: caller }),
   }),
 
+  def({
+    name: "unit_action",
+    server: "fleet",
+    effect: true,
+    schema: z.object({
+      unit_id: z.string().describe("Fleet unit identifier"),
+      action: z.enum(UNIT_ACTION_IDS),
+      x: z.number().optional().describe("Target metres east of scene center, when the action needs a place"),
+      z: z.number().optional().describe("Target metres south of scene center, when the action needs a place"),
+      heading: z.enum(["north", "east", "south", "west"]).optional().describe("Direction for photograph_area or survey_area"),
+      altitude_m: z.number().min(5).max(40).optional().describe("Flight altitude for takeoff"),
+    }),
+    description:
+      "Runs a unit capability: takeoff, land, photograph_area, hover_overwatch, follow_astronaut, return_to_base, survey_area, hold_position, relay_comms, deliver_supplies. Each unit kind supports a subset; GUARDIAN rejects unsupported ones.",
+    run: (a, _c, caller) => ({ type: "unit_action", args: a, proposedBy: caller }),
+  }),
   // --- mcp-hud -----------------------------------------------------------
   def({
     name: "set_layer",
