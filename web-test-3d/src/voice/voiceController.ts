@@ -4,13 +4,10 @@ import { ASR_LOCALE, getLang, onLangChange, t } from "../core/i18n";
 import { C } from "../core/physics";
 import type { Action, TraceEvent } from "../core/types";
 import type { MissionStore } from "../state";
-import { Listener } from "./listen";
+import { Listener, type ListenErrorCode } from "./listen";
 import { matchLocalIntent, type LocalIntentId } from "./localIntents";
 import { RadioSpeaker } from "./speak";
-
-/** Explicit questions about what the rover camera sees; a bare "rover 2" mention does not match. */
-const VISION_QUESTION_RE =
-  /what (do|does) (you|the rover|rover \w+) see|(?<![\p{L}])qu[eé] ves?(?![\p{L}])|read (the |that )?sign|(?<![\p{L}])le[eé]r? (el )?cartel|(camera|c[aá]mara) view|vista de (la )?c[aá]mara|(show|ver|mostr\w*) (me |the |la |el )?(rover \w+ )?(camera|c[aá]mara)/iu;
+import { isVisionQuestion } from "./visionIntent";
 
 export interface VoiceControllerHooks {
   onVisionRequest?(unitId: string, question: string): Promise<{ speech: string; injection: boolean }>;
@@ -31,6 +28,17 @@ export class VoiceController {
       onState: (listening) => {
         this.store.micListening = listening;
         this.store.notify();
+      },
+      onError: (code: ListenErrorCode) => {
+        const key =
+          code === "unsupported"
+            ? "voice.err_unsupported"
+            : code === "not-allowed"
+              ? "voice.err_mic_denied"
+              : "voice.err_mic_failed";
+        const msg = t(key);
+        this.store.pushAlert("warn", msg);
+        this.store.pushTranscript("system", msg, true);
       },
     });
 
@@ -78,7 +86,7 @@ export class VoiceController {
 
     // Intercept explicit vision questions so the 3D mast camera frame goes to /api/agent/vision.
     // A bare unit mention ("rover dos, scout the north") must reach the agent instead.
-    if (VISION_QUESTION_RE.test(clean) && this.hooks.onVisionRequest) {
+    if (isVisionQuestion(clean) && this.hooks.onVisionRequest) {
       this.store.baseProcessing = true;
       this.store.notify();
       void this.radio.beep(740, 0.06);
@@ -161,7 +169,6 @@ export class VoiceController {
   private runLocalIntent(intent: LocalIntentId): string {
     switch (intent) {
       case "emergency":
-        if (this.store.leakDiameterM <= 0) this.store.leakDiameterM = 0.0016;
         this.store.pushAlert("crit", "EMERGENCY DECLARED (<5 ms local intent)");
         return getLang() === "es"
           ? "Emergencia activada. Escalando rescate a BASE."
@@ -260,25 +267,52 @@ export class VoiceController {
       };
     }
 
-    if (/emerg|leak|fuga|rescat|rescue/.test(low) || this.store.leakDiameterM > 0) {
+    const isUnitRescueOrder =
+      /\b(rescue|rescate)(?:\s*(?:uno|one|1|-1))?\b/i.test(low) &&
+      /\b(volv|regres|return|base|trae|bring|deliver|segu|follow|quedate|hold)\b/i.test(low);
+    const isEmergencyQuery =
+      !isUnitRescueOrder &&
+      /(?<![\p{L}])(emerg[\p{L}]*|leak|fuga|rescat[aáe]?me|mayday|socorro|auxilio|urgence|notfall|emergenza|send rescue)(?![\p{L}])/iu.test(
+        low,
+      );
+
+    if (isEmergencyQuery) {
+      if (this.store.emergencyResponseActive) {
+        return {
+          speech: es
+            ? "Respuesta de emergencia ya activa; pod y rescue-1 ya despachados."
+            : "Emergency response already active; pod and rescue-1 already dispatched.",
+          actions: [],
+          trace: [{ t: now, agent: "SUIT", kind: "delegate", detail: { to: "BASE" } }],
+          route: ["SUIT.VOICE-EXEC", "BASE"],
+        };
+      }
       const podX = this.store.astronaut.x + C.pod_keepout_m.value + 5;
       const podZ = this.store.astronaut.z + 4;
       const podAct: Action = {
         type: "launch_pod",
         args: { target_x: podX, target_z: podZ, payload: "o2" },
         proposedBy: "BASE",
-        verdict: { decision: "allow", reason: "20 m outside 15 m keep-out ring", by: "rules" },
+        verdict: {
+          decision: "ask_human",
+          reason: "Backend offline: confirm emergency pod launch outside 15 m keep-out ring",
+          by: "rules",
+        },
       };
       const rescueAct: Action = {
         type: "dispatch",
         args: { unit_id: "rescue-1", x: this.store.astronaut.x, z: this.store.astronaut.z, task: "rescue" },
         proposedBy: "BASE",
-        verdict: { decision: "allow", reason: "Slope within 25 deg limit", by: "rules" },
+        verdict: {
+          decision: "ask_human",
+          reason: "Backend offline: confirm rescue-1 dispatch",
+          by: "rules",
+        },
       };
       return {
         speech: es
-          ? "Capsula O2 lanzada a 20 metros y rescue-1 despachado."
-          : "O2 pod launched 20 meters away and rescue-1 dispatched.",
+          ? "Enlace offline: confirmá el lanzamiento del pod O2 y despacho de rescue-1 en el panel."
+          : "Backend offline: confirm O2 pod launch and rescue-1 dispatch in the panel.",
         actions: [podAct, rescueAct],
         trace: [
           { t: now, agent: "SUIT", kind: "delegate", detail: { to: "BASE" } },
