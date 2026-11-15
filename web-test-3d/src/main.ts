@@ -20,6 +20,7 @@ import { VoiceController } from "./voice/voiceController";
 import { AstronautProc } from "./world/astronautProc";
 import { BaseProc } from "./world/baseProc";
 import { FleetProc } from "./world/fleetProc";
+import { LaunchSiteProc } from "./world/launchSiteProc";
 import { PodBallistics } from "./world/podBallistics";
 import { SkyDust } from "./world/skyDust";
 import { TerrainProc } from "./world/terrainProc";
@@ -113,6 +114,7 @@ const astronaut = new AstronautProc(terrain, camera, canvas);
 scene.add(astronaut.group);
 
 const baseProc = new BaseProc(scene, terrain);
+const launchSite = new LaunchSiteProc(scene, terrain);
 const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [LAUNCHER_PRIMARY_COORD.x, LAUNCHER_PRIMARY_COORD.z, 6];
 const podBallistics = new PodBallistics(scene, terrain, podLauncherOrigin);
 
@@ -669,6 +671,7 @@ function animate(now: number): void {
   }
 
   astronaut.updateMovement(realDt);
+  launchSite.update(now / 1000);
 
   skyDust.update(
     now / 1000,
