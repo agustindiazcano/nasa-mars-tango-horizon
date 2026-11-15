@@ -9,7 +9,7 @@ import { RadioSpeaker } from "./speak";
 
 /** Explicit questions about what the rover camera sees; a bare "rover 2" mention does not match. */
 const VISION_QUESTION_RE =
-  /what (do|does) (you|the rover|rover \w+) see|qu[eé] (ves|ve)|read (the |that )?sign|le[eé]r? (el )?cartel|(camera|c[aá]mara) view|vista de (la )?c[aá]mara|(show|ver|mostr\w*) (me |the |la |el )?(rover \w+ )?(camera|c[aá]mara)/i;
+  /what (do|does) (you|the rover|rover \w+) see|(?<![\p{L}])qu[eé] ves?(?![\p{L}])|read (the |that )?sign|(?<![\p{L}])le[eé]r? (el )?cartel|(camera|c[aá]mara) view|vista de (la )?c[aá]mara|(show|ver|mostr\w*) (me |the |la |el )?(rover \w+ )?(camera|c[aá]mara)/iu;
 
 export interface VoiceControllerHooks {
   onVisionRequest?(unitId: string, question: string): Promise<{ speech: string; injection: boolean }>;
