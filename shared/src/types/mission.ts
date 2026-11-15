@@ -69,6 +69,39 @@ export interface HudSnapshot {
   panel: HudPanel | (string & {}) | null;
 }
 
+/** Consent flag controlling whether anonymized personal physiological baselines are active. */
+export type CrewProfilePrivacyMode = "anonymized_baselines" | "standards_only";
+
+/**
+ * Privacy-bounded astronaut physiological baseline/delta profile.
+ * Contains strictly anonymized numeric parameters (never PII or raw EMR text).
+ */
+export interface CrewProfile {
+  privacy_mode: CrewProfilePrivacyMode;
+  resting_hr_bpm?: number;
+  max_hr_bpm?: number;
+  hr_delta_sigma?: number;
+  baseline_core_temp_c?: number;
+  baseline_spo2_pct?: number;
+  personal_co2_warn_pa?: number;
+  personal_core_temp_warn_c?: number;
+  personal_spo2_warn_pct?: number;
+  personal_psi_warn?: number;
+  heat_strain_index?: number;
+  dcs_prebreathe_min?: number;
+}
+
+/** Single timestamped sample in the sliding EVA biomedical telemetry window. */
+export interface VitalsSample {
+  t_s: number;
+  co2_pa?: number;
+  core_temp_c?: number;
+  spo2_pct?: number;
+  heart_rate_bpm?: number;
+  metabolic_w?: number;
+  suit_pressure_pa?: number;
+}
+
 /**
  * Stateless mission state snapshot sent from the browser to backend agents
  * on every `/api/agent/*` request. The browser remains the single source of truth.
@@ -85,6 +118,10 @@ export interface MissionContext {
   leak_diameter_m: number;
   /** True once the O2 pod has been launched for the current leak. */
   emergency_response_active?: boolean;
+  /** Optional anonymized physiological baselines (never PII/EMR text). */
+  crew_profile?: CrewProfile;
+  /** Optional sliding window of recent physiological samples for trend prediction. */
+  vitals_window?: VitalsSample[];
 }
 
 export type VerdictDecision = "allow" | "deny" | "ask_human";
