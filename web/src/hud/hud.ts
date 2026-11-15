@@ -1505,6 +1505,9 @@ export class TacticalHud {
         const notesHtml = entry.notes
           ? `<div class="prov-detail">${escapeHtml(entry.notes)}</div>`
           : "";
+        const licenseHtml = entry.license
+          ? `<div class="prov-detail">${escapeHtml(entry.license)}</div>`
+          : "";
         const offset = entry.vertical_datum_offset;
         const offsetHtml = offset?.summary
           ? `<div class="prov-offset-note">${escapeHtml(offset.summary)}</div>`
@@ -1520,6 +1523,7 @@ export class TacticalHud {
               <div><b>${escapeHtml(entry.product_id)}</b></div>
               <div class="prov-detail">${escapeHtml(entry.transform)}</div>
               ${notesHtml}
+              ${licenseHtml}
               ${offsetHtml}
             </td>
             <td>

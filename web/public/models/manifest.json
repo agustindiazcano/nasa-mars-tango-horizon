@@ -1,0 +1,718 @@
+{
+ "version": 1,
+ "totalBytes": 15795804,
+ "models": {
+  "antenna": {
+   "file": "antenna.glb",
+   "role": "prop",
+   "bytes": 619196,
+   "triangles": 40000,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.4,
+     0,
+     -0.381
+    ],
+    "max": [
+     0.4,
+     0.979,
+     0.38
+    ],
+    "size": [
+     0.801,
+     0.979,
+     0.762
+    ]
+   },
+   "heightM": 0.979,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 57945540,
+    "triangles": 1904556
+   }
+  },
+  "asset-1": {
+   "file": "asset-1.glb",
+   "role": "prop",
+   "bytes": 593184,
+   "triangles": 39970,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.308,
+     0,
+     -0.49
+    ],
+    "max": [
+     0.309,
+     0.348,
+     0.479
+    ],
+    "size": [
+     0.617,
+     0.348,
+     0.97
+    ]
+   },
+   "heightM": 0.348,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 57946204,
+    "triangles": 1881282
+   }
+  },
+  "asset-2": {
+   "file": "asset-2.glb",
+   "role": "prop",
+   "bytes": 609376,
+   "triangles": 39990,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.493,
+     0,
+     -0.298
+    ],
+    "max": [
+     0.493,
+     0.588,
+     0.299
+    ],
+    "size": [
+     0.986,
+     0.588,
+     0.597
+    ]
+   },
+   "heightM": 0.588,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 59897856,
+    "triangles": 1930571
+   }
+  },
+  "asset-3": {
+   "file": "asset-3.glb",
+   "role": "prop",
+   "bytes": 464468,
+   "triangles": 40000,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.49,
+     0,
+     -0.174
+    ],
+    "max": [
+     0.49,
+     0.265,
+     0.174
+    ],
+    "size": [
+     0.98,
+     0.265,
+     0.348
+    ]
+   },
+   "heightM": 0.265,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 64614468,
+    "triangles": 1988753
+   }
+  },
+  "asset-4": {
+   "file": "asset-4.glb",
+   "role": "prop",
+   "bytes": 685204,
+   "triangles": 39998,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.316,
+     0,
+     -0.491
+    ],
+    "max": [
+     0.315,
+     0.451,
+     0.491
+    ],
+    "size": [
+     0.631,
+     0.451,
+     0.982
+    ]
+   },
+   "heightM": 0.451,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 64564704,
+    "triangles": 1895153
+   }
+  },
+  "astronaut": {
+   "file": "astronaut.glb",
+   "role": "rigid-astronaut",
+   "bytes": 2429048,
+   "triangles": 99984,
+   "triangleBudget": 100000,
+   "byteBudget": 5242880,
+   "boundingBox": {
+    "min": [
+     -0.544,
+     -0.952,
+     -0.296
+    ],
+    "max": [
+     0.544,
+     0.95,
+     0.297
+    ],
+    "size": [
+     1.088,
+     1.903,
+     0.593
+    ]
+   },
+   "heightM": 1.9,
+   "heightIsReal": true,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "center",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 39975632,
+    "triangles": 1063480
+   }
+  },
+  "astronaut-animated": {
+   "file": "astronaut-animated.glb",
+   "role": "animated-astronaut",
+   "bytes": 1755472,
+   "triangles": 38767,
+   "triangleBudget": 38767,
+   "byteBudget": 4194304,
+   "boundingBox": {
+    "min": [
+     -0.486,
+     0,
+     -0.265
+    ],
+    "max": [
+     0.486,
+     1.7,
+     0.265
+    ],
+    "size": [
+     0.972,
+     1.7,
+     0.53
+    ]
+   },
+   "heightM": 1.7,
+   "heightIsReal": true,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "feet",
+   "skinned": true,
+   "joints": 66,
+   "animations": [
+    "Running",
+    "Walking",
+    "Dead",
+    "Fall_Dead_from_Abdominal_Injury",
+    "Idle_11",
+    "Sit_and_Doze_Off",
+    "Step_to_Sit_Transition",
+    "walking_2_inplace"
+   ],
+   "source": {
+    "bytes": 22439488,
+    "triangles": 38767
+   }
+  },
+  "building-1": {
+   "file": "building-1.glb",
+   "role": "prop",
+   "bytes": 610508,
+   "triangles": 39958,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.49,
+     0,
+     -0.308
+    ],
+    "max": [
+     0.49,
+     0.151,
+     0.308
+    ],
+    "size": [
+     0.98,
+     0.151,
+     0.616
+    ]
+   },
+   "heightM": 0.151,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 59566496,
+    "triangles": 1940646
+   }
+  },
+  "building-2": {
+   "file": "building-2.glb",
+   "role": "prop",
+   "bytes": 640156,
+   "triangles": 39998,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.49,
+     0,
+     -0.463
+    ],
+    "max": [
+     0.49,
+     0.499,
+     0.463
+    ],
+    "size": [
+     0.98,
+     0.499,
+     0.926
+    ]
+   },
+   "heightM": 0.499,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 60815896,
+    "triangles": 1954555
+   }
+  },
+  "building-3": {
+   "file": "building-3.glb",
+   "role": "prop",
+   "bytes": 561740,
+   "triangles": 39992,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.49,
+     0,
+     -0.419
+    ],
+    "max": [
+     0.49,
+     0.365,
+     0.42
+    ],
+    "size": [
+     0.981,
+     0.365,
+     0.839
+    ]
+   },
+   "heightM": 0.365,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 59442856,
+    "triangles": 1894759
+   }
+  },
+  "building-connector": {
+   "file": "building-connector.glb",
+   "role": "prop",
+   "bytes": 491896,
+   "triangles": 39991,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.491,
+     0,
+     -0.121
+    ],
+    "max": [
+     0.491,
+     0.436,
+     0.121
+    ],
+    "size": [
+     0.981,
+     0.436,
+     0.243
+    ]
+   },
+   "heightM": 0.436,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 61895392,
+    "triangles": 1932725
+   }
+  },
+  "conae-base-mars": {
+   "file": "conae-base-mars.glb",
+   "role": "hero",
+   "bytes": 996372,
+   "triangles": 99995,
+   "triangleBudget": 100000,
+   "byteBudget": 4194304,
+   "boundingBox": {
+    "min": [
+     -0.49,
+     0,
+     -0.463
+    ],
+    "max": [
+     0.49,
+     0.262,
+     0.463
+    ],
+    "size": [
+     0.98,
+     0.262,
+     0.926
+    ]
+   },
+   "heightM": 0.262,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 58409992,
+    "triangles": 1934699
+   }
+  },
+  "rescue-robot-astronaut": {
+   "file": "rescue-robot-astronaut.glb",
+   "role": "prop",
+   "bytes": 709636,
+   "triangles": 39988,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.157,
+     0,
+     -0.49
+    ],
+    "max": [
+     0.157,
+     0.375,
+     0.49
+    ],
+    "size": [
+     0.314,
+     0.375,
+     0.98
+    ]
+   },
+   "heightM": 0.375,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 58340372,
+    "triangles": 1880693
+   }
+  },
+  "rescue-robot-without-astronaut": {
+   "file": "rescue-robot-without-astronaut.glb",
+   "role": "prop",
+   "bytes": 669552,
+   "triangles": 39988,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.34,
+     0,
+     -0.49
+    ],
+    "max": [
+     0.34,
+     0.808,
+     0.489
+    ],
+    "size": [
+     0.68,
+     0.808,
+     0.979
+    ]
+   },
+   "heightM": 0.808,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 59259156,
+    "triangles": 1890782
+   }
+  },
+  "rescue-rover": {
+   "file": "rescue-rover.glb",
+   "role": "prop",
+   "bytes": 720192,
+   "triangles": 39980,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.308,
+     0,
+     -0.491
+    ],
+    "max": [
+     0.308,
+     0.653,
+     0.492
+    ],
+    "size": [
+     0.616,
+     0.653,
+     0.983
+    ]
+   },
+   "heightM": 0.653,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 57476540,
+    "triangles": 1858404
+   }
+  },
+  "rocket": {
+   "file": "rocket.glb",
+   "role": "hero",
+   "bytes": 830352,
+   "triangles": 80000,
+   "triangleBudget": 80000,
+   "byteBudget": 3145728,
+   "boundingBox": {
+    "min": [
+     -0.189,
+     0,
+     -0.135
+    ],
+    "max": [
+     0.189,
+     0.976,
+     0.135
+    ],
+    "size": [
+     0.378,
+     0.976,
+     0.269
+    ]
+   },
+   "heightM": 0.976,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 61265760,
+    "triangles": 1938421
+   }
+  },
+  "rover-1": {
+   "file": "rover-1.glb",
+   "role": "prop",
+   "bytes": 827712,
+   "triangles": 39980,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.295,
+     0,
+     -0.489
+    ],
+    "max": [
+     0.294,
+     0.499,
+     0.489
+    ],
+    "size": [
+     0.588,
+     0.499,
+     0.978
+    ]
+   },
+   "heightM": 0.499,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 58130676,
+    "triangles": 1862183
+   }
+  },
+  "rover-2": {
+   "file": "rover-2.glb",
+   "role": "prop",
+   "bytes": 796248,
+   "triangles": 39993,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.294,
+     0,
+     -0.49
+    ],
+    "max": [
+     0.295,
+     0.515,
+     0.491
+    ],
+    "size": [
+     0.589,
+     0.515,
+     0.981
+    ]
+   },
+   "heightM": 0.515,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 58313244,
+    "triangles": 1869780
+   }
+  },
+  "solar-panel": {
+   "file": "solar-panel.glb",
+   "role": "prop",
+   "bytes": 785492,
+   "triangles": 40000,
+   "triangleBudget": 40000,
+   "byteBudget": 2097152,
+   "boundingBox": {
+    "min": [
+     -0.49,
+     0,
+     -0.418
+    ],
+    "max": [
+     0.49,
+     0.503,
+     0.417
+    ],
+    "size": [
+     0.98,
+     0.503,
+     0.835
+    ]
+   },
+   "heightM": 0.503,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 61284156,
+    "triangles": 1961190
+   }
+  }
+ }
+}

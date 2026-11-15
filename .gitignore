@@ -48,3 +48,6 @@ desktop.ini
 
 # Local voice simulation scratch
 scratch-voice/
+
+# Raw team 3D models (920 MB); optimized outputs live in web/public/models/
+/3d-mars-assets/
