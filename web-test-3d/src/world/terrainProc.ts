@@ -630,7 +630,6 @@ export class TerrainProc {
     }
     this.heightN = n;
     this.elevationMidM = 0;
-    void cellM;
     this.recomputeDerivedFields();
   }
 

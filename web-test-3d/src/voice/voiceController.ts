@@ -117,7 +117,7 @@ function parseOfflineTarget(
     };
   }
   if (/\b(base|hab|habitat|refugio|shelter)\b/i.test(low)) {
-    return { x: 0, z: 0, label: "Base", isAstronaut: false };
+    return { x: BASE_ORIGIN.x, z: BASE_ORIGIN.z, label: "Base", isAstronaut: false };
   }
   return {
     x: Math.round(ax),
