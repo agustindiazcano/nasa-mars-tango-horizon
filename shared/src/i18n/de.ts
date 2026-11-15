@@ -195,6 +195,8 @@ export const de: Record<Key, string> = {
   "hud.iso_hint": "WASD: Bewegen · Mausrad: Zoom · Linksziehen: Drehen · Rechtsziehen: Verschieben",
   "hud.pov_cinematic": "POV: KINEMATISCH",
   "hud.cam_hint": "Kinokamera (Shift+1..5)",
+  "hud.skycrane": "SKY-CRANE",
+  "hud.skycrane_hint": "Sky-Crane-Seil und LiDAR umschalten",
   "hud.layers": "GELÄNDE-EBENEN",
   "hud.layer.optical": "Optisch",
   "hud.layer.slope": "Neigung",

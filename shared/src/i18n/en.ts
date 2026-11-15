@@ -193,6 +193,8 @@ export const en = {
   "hud.iso_hint": "WASD: Pan · Wheel: Zoom · Left-drag: Rotate · Right-drag: Move",
   "hud.pov_cinematic": "POV: CINEMATIC",
   "hud.cam_hint": "Cinematic camera (Shift+1..5)",
+  "hud.skycrane": "SKY-CRANE",
+  "hud.skycrane_hint": "Toggle Sky-Crane tether and LiDAR",
   "hud.layers": "TERRAIN LAYERS",
   "hud.layer.optical": "Optical",
   "hud.layer.slope": "Slope",

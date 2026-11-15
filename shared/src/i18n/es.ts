@@ -195,6 +195,8 @@ export const es: Record<Key, string> = {
   "hud.iso_hint": "WASD: Mover · Rueda: Zoom · Click izq: Rotar · Click der: Desplazar",
   "hud.pov_cinematic": "POV: CINEMATICA",
   "hud.cam_hint": "Camara cinematica (Shift+1..5)",
+  "hud.skycrane": "SKY-CRANE",
+  "hud.skycrane_hint": "Alternar cable y LiDAR del Sky-Crane",
   "hud.layers": "CAPAS TERRENO",
   "hud.layer.optical": "Optica",
   "hud.layer.slope": "Pendiente",

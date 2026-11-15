@@ -195,6 +195,8 @@ export const it: Record<Key, string> = {
   "hud.iso_hint": "WASD: Muovi · Rotella: Zoom · Tasto sx: Ruota · Tasto dx: Sposta",
   "hud.pov_cinematic": "POV: CINEMATICA",
   "hud.cam_hint": "Camera cinematica (Shift+1..5)",
+  "hud.skycrane": "SKY-CRANE",
+  "hud.skycrane_hint": "Attiva cavo e LiDAR dello Sky-Crane",
   "hud.layers": "LIVELLI TERRENO",
   "hud.layer.optical": "Ottico",
   "hud.layer.slope": "Pendenza",
