@@ -53,7 +53,7 @@ describe("GUARDIAN drone standoff rule (rescue scenario)", () => {
     const ctx = makeContext();
     const near = ruleCheck(act("dispatch", { unit_id: "drone-1", x: P.x + 5 + 10, z: P.z - 3, task: "goto" }), ctx);
     expect(near?.decision).toBe("deny");
-    expect(near?.reason).toMatch(/SOTELO.*standoff is 25 m/);
+    expect(near?.reason).toMatch(/SALERNO.*standoff is 25 m/);
     const onTop = ruleCheck(act("dispatch", { unit_id: "drone-1", x: P.x, z: P.z, task: "goto" }), ctx);
     expect(onTop?.decision).toBe("deny");
   });
@@ -135,24 +135,24 @@ describe("get_crew_status and deploy_rescue_robot", () => {
     (await tool("get_crew_status").run({ where: "all", ...args }, ctx, "BASE")) as { count: number; crew: Row[]; error?: string };
 
   it("finds one member by any spelling and reports location, status and distance to base", async () => {
-    const out = await run({ name: "yaconis" });
+    const out = await run({ name: "diaz-cano" });
     expect(out.crew).toHaveLength(1);
-    expect(out.crew[0]).toMatchObject({ name: "YACONIS", assignment: "science_expedition", location: "in_pit", status: "incapacitated" });
+    expect(out.crew[0]).toMatchObject({ name: "DIAZ-CANO", assignment: "science_expedition", location: "in_pit", status: "incapacitated" });
     expect(out.crew[0].distance_to_base_m).toBeGreaterThan(1000);
-    expect((await run({ name: "Díaz Cano" })).crew[0].name).toBe("DIAZ-CANO");
-    expect((await run({ name: "crew-2" })).crew[0].name).toBe("SOTELO");
+    expect((await run({ name: "Sotelo" })).crew[0].name).toBe("SOTELO");
+    expect((await run({ name: "crew-2" })).crew[0].name).toBe("SALERNO");
   });
 
   it("filters by base and expedition", async () => {
     const ctx = makeContext();
-    expect((await run({ where: "base" }, ctx)).crew.map((c) => c.name)).toEqual(["DIAZ-CANO", "SALERNO"]);
-    expect((await run({ where: "expedition" }, ctx)).crew.map((c) => c.name)).toEqual(["SOTELO", "YACONIS"]);
+    expect((await run({ where: "base" }, ctx)).crew.map((c) => c.name)).toEqual(["SOTELO", "YACONIS"]);
+    expect((await run({ where: "expedition" }, ctx)).crew.map((c) => c.name)).toEqual(["SALERNO", "DIAZ-CANO"]);
     expect((await run({}, ctx)).count).toBe(4);
   });
 
   it("reports the vehicle a member rides in and rejects unknown names", async () => {
     const ctx = makeContext({ crew: [member("crew-3", 5, 5, "rescue_vehicle", "evacuating", "rescue-1")] });
-    expect((await run({ name: "YACONIS" }, ctx)).crew[0]).toMatchObject({ rides_in: "rescue-1", status: "evacuating" });
+    expect((await run({ name: "DIAZ-CANO" }, ctx)).crew[0]).toMatchObject({ rides_in: "rescue-1", status: "evacuating" });
     expect((await run({ name: "Smith" })).error).toMatch(/Unknown crew member/);
   });
 
@@ -163,7 +163,7 @@ describe("get_crew_status and deploy_rescue_robot", () => {
     expect(proposed.args).toMatchObject({ carrier_id: "rescue-1", target_id: "crew-3" });
     const v = ruleCheck(proposed, ctx);
     expect(v?.decision).toBe("ask_human");
-    expect(v?.reason).toMatch(/YACONIS.*incapacitated, in_pit/);
+    expect(v?.reason).toMatch(/DIAZ-CANO.*incapacitated, in_pit/);
   });
 
   it("denies a missing casualty, a wrong unit kind and a carrier that is too far", async () => {
@@ -198,9 +198,9 @@ describe("buildContext crew sanitizing", () => {
     );
     expect(ctx.rescue_active).toBe(true);
     expect(ctx.crew).toEqual([
-      { id: "crew-1", name: "DIAZ-CANO", assignment: "base", x: 1, z: 2, location: "base", status: "nominal" },
-      { id: "crew-3", name: "YACONIS", assignment: "science_expedition", x: 5, z: 6, location: "in_pit", status: "incapacitated" },
-      { id: "crew-4", name: "SALERNO", assignment: "base", x: 3, z: 4, location: "base", status: "nominal", unit_id: "rover-1" },
+      { id: "crew-1", name: "SOTELO", assignment: "base", x: 1, z: 2, location: "base", status: "nominal" },
+      { id: "crew-3", name: "DIAZ-CANO", assignment: "science_expedition", x: 5, z: 6, location: "in_pit", status: "incapacitated" },
+      { id: "crew-4", name: "YACONIS", assignment: "base", x: 3, z: 4, location: "base", status: "nominal", unit_id: "rover-1" },
     ]);
   });
 });

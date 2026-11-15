@@ -22,7 +22,7 @@ const EVENTS: Record<string, number> = {
 
 const ctx: NarrationCtx = {
   eventT: (id) => EVENTS[id] ?? null,
-  pos: (id) => (id === "pit" || id === "YACONIS" || id === "SOTELO" ? { x: 1420, z: 648 } : { x: 1400, z: 640 }),
+  pos: (id) => (id === "pit" || id === "DIAZ-CANO" || id === "SALERNO" ? { x: 1420, z: 648 } : { x: 1400, z: 640 }),
   tau: (t) => 0.5 + t / 40,
   coords: (x, z) => `${x},${z}`,
   standoffM: 25,
@@ -59,7 +59,7 @@ describe("buildNarration", () => {
     expect(get("drones_launch")).toContain('"standoff_m":25');
     expect(get("rescue1_dispatch")).toContain('"eta_s":66');
     expect(get("robot_deploy")).toContain('"robot_eta_s":16');
-    expect(get("base_decision")).toContain('"coords_yaconis":"1420,648"');
+    expect(get("base_decision")).toContain('"coords_diazcano":"1420,648"');
     expect(get("pod_trajectory")).toContain('"impact_m":32');
     expect(get("storm_onset")).toContain("tau_a");
     expect(get("convoy_departure")).toContain("base_eta_min");

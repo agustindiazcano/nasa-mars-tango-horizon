@@ -165,7 +165,7 @@ describe("RescueScenario", () => {
     expect(Math.hypot(mid.x - RESCUE_SITE.x, mid.z - RESCUE_SITE.z)).toBeLessThan(1);
   });
 
-  it("drops YACONIS into the pit and leaves him lying on the floor until he is loaded", () => {
+  it("drops DIAZ-CANO into the pit and leaves him lying on the floor until he is loaded", () => {
     const s = make();
     s.seekTo(40);
     expect(s.getEntityPosition("crew-3")!.y).toBeCloseTo(100, 6);
@@ -246,7 +246,7 @@ describe("RescueScenario", () => {
     }
   });
 
-  it("boards SOTELO and ends with rescue-1 departing with both aboard", () => {
+  it("boards SALERNO and ends with rescue-1 departing with both aboard", () => {
     const s = make();
     s.seekTo(178);
     expect(s.view.crew["crew-3"].location).toBe("rescue_vehicle");
@@ -266,27 +266,27 @@ describe("RescueScenario", () => {
   it("reports the four callsigns with location and status, and accepts names as entity ids", () => {
     const s = make();
     const idle = s.getCrewSnapshots();
-    expect(idle.map((c) => c.name)).toEqual(["DIAZ-CANO", "SALERNO", "SOTELO", "YACONIS"]);
-    expect(idle.find((c) => c.name === "YACONIS")).toMatchObject({ location: "in_rover", unit_id: "rover-1", status: "nominal" });
+    expect(idle.map((c) => c.name)).toEqual(["SOTELO", "YACONIS", "SALERNO", "DIAZ-CANO"]);
+    expect(idle.find((c) => c.name === "DIAZ-CANO")).toMatchObject({ location: "in_rover", unit_id: "rover-1", status: "nominal" });
     s.seekTo(100);
     const snaps = s.getCrewSnapshots();
-    const yaconis = snaps.find((c) => c.name === "YACONIS")!;
-    expect(yaconis).toMatchObject({ id: "crew-3", location: "in_pit", status: "incapacitated" });
-    expect(snaps.find((c) => c.name === "SOTELO")).toMatchObject({ location: "traverse", status: "nominal" });
-    expect(snaps.find((c) => c.name === "SALERNO")).toMatchObject({ location: "base", assignment: "base" });
-    expect(s.getEntityPosition("YACONIS")!.toArray()).toEqual(s.getEntityPosition("crew-3")!.toArray());
-    expect(s.getEntityPosition("Sotelo")).not.toBeNull();
+    const diazcano = snaps.find((c) => c.name === "DIAZ-CANO")!;
+    expect(diazcano).toMatchObject({ id: "crew-3", location: "in_pit", status: "incapacitated" });
+    expect(snaps.find((c) => c.name === "SALERNO")).toMatchObject({ location: "traverse", status: "nominal" });
+    expect(snaps.find((c) => c.name === "YACONIS")).toMatchObject({ location: "base", assignment: "base" });
+    expect(s.getEntityPosition("DIAZ-CANO")!.toArray()).toEqual(s.getEntityPosition("crew-3")!.toArray());
+    expect(s.getEntityPosition("Salerno")).not.toBeNull();
     s.seekTo(160);
-    expect(s.getCrewSnapshots().find((c) => c.name === "YACONIS")).toMatchObject({ location: "traverse", status: "evacuating" });
+    expect(s.getCrewSnapshots().find((c) => c.name === "DIAZ-CANO")).toMatchObject({ location: "traverse", status: "evacuating" });
     s.seekTo(178);
-    expect(s.getCrewSnapshots().find((c) => c.name === "YACONIS")).toMatchObject({ location: "rescue_vehicle", unit_id: "rescue-1" });
+    expect(s.getCrewSnapshots().find((c) => c.name === "DIAZ-CANO")).toMatchObject({ location: "rescue_vehicle", unit_id: "rescue-1" });
   });
 
   it("uses callsigns in event texts", () => {
     const s = make();
     s.seekTo(60);
     const fall = s.events.find((e) => e.id === "crew3_fall")!;
-    expect(fall.text).toContain("YACONIS");
+    expect(fall.text).toContain("DIAZ-CANO");
     expect(fall.text).not.toContain("crew-3");
   });
 });

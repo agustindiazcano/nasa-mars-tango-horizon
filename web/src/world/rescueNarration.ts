@@ -24,7 +24,7 @@ export interface XZ {
 export interface NarrationCtx {
   /** Scenario time (s) of an event, or null when the event does not exist. */
   eventT(id: string): number | null;
-  /** World position of an entity (`YACONIS`, `rescue-1`, ...) at scenario time `tS`. */
+  /** World position of an entity (`DIAZ-CANO`, `rescue-1`, ...) at scenario time `tS`. */
   pos(id: string, tS: number): XZ | null;
   /** Dust opacity at scenario time `tS`. */
   tau(tS: number): number;
@@ -74,9 +74,9 @@ export const NARRATION: readonly Spec[] = [
     after: "base_decision",
     delayS: 0.5,
     params: (c, t) => {
-      const s = c.pos("SOTELO", t) ?? FALLBACK;
-      const y = c.pos("YACONIS", t) ?? FALLBACK;
-      return { coords_sotelo: c.coords(s.x, s.z), coords_yaconis: c.coords(y.x, y.z) };
+      const s = c.pos("SALERNO", t) ?? FALLBACK;
+      const y = c.pos("DIAZ-CANO", t) ?? FALLBACK;
+      return { coords_salerno: c.coords(s.x, s.z), coords_diazcano: c.coords(y.x, y.z) };
     },
   },
   {
@@ -98,8 +98,8 @@ export const NARRATION: readonly Spec[] = [
     after: "rescue1_dispatch",
     delayS: 2.5,
     params: (c, t) => {
-      const y = c.pos("YACONIS", t) ?? FALLBACK;
-      return { pod_km: km(dist(LAUNCHER_PRIMARY_COORD, y)), impact_m: POD_IMPACT_OFFSET_M, coords_yaconis: c.coords(y.x, y.z) };
+      const y = c.pos("DIAZ-CANO", t) ?? FALLBACK;
+      return { pod_km: km(dist(LAUNCHER_PRIMARY_COORD, y)), impact_m: POD_IMPACT_OFFSET_M, coords_diazcano: c.coords(y.x, y.z) };
     },
   },
   { id: "ask_human", agent: "BASE", after: "ask_human", delayS: 0.5 },

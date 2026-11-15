@@ -466,7 +466,7 @@ export async function offlineReply(
   const trace: TraceEvent[] = [];
   const lang = ctx.lang;
 
-  // 0. Crew roster: "who is on the expedition", "where is Sotelo", "how is Yaconis", rescue orders (plan 22)
+  // 0. Crew roster: "who is on the expedition", "where is Salerno", "how is Diaz-Cano", rescue orders (plan 22)
   const qa = stripAccents(q);
   const namedCrew = findCrewInText(text);
   const crewWhere = CREW_WHERE_RE.test(qa);
@@ -529,7 +529,7 @@ export async function offlineReply(
     const casualty =
       namedCrew[0] ??
       CREW_ROSTER.find((m) => ctx.crew?.some((c) => c.id === m.id && c.status === "incapacitated")) ??
-      findCrew("YACONIS")!;
+      findCrew("DIAZ-CANO")!;
     const snap = ctx.crew?.find((c) => c.id === casualty.id);
     if (!snap) {
       return {

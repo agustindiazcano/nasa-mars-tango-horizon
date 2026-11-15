@@ -159,7 +159,7 @@ export class MissionStore {
   env: EnvState = createInitialEnv();
 
   fleet: UnitSnapshot[] = [];
-  /** The four astronauts by callsign (DIAZ-CANO, SALERNO, SOTELO, YACONIS). */
+  /** The four astronauts by callsign (SOTELO, YACONIS, SALERNO, DIAZ-CANO). */
   crew: CrewSnapshot[] = initialCrewSnapshots(BASE_ORIGIN, fleetStartPos("rover-1"));
   alerts: HudAlert[] = [];
   trace: TraceEvent[] = [];

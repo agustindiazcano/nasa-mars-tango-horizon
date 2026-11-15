@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { CREW4_START, CREW_ROSTER, type CrewId } from "@th/shared";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
-/** `crew-1` (DIAZ-CANO) is the player astronaut (`AstronautProc`); the others are scripted entities of this module. */
+/** `crew-1` (SOTELO) is the player astronaut (`AstronautProc`); the others are scripted entities of this module. */
 export type CrewPose = "idle" | "walk" | "lying" | "hidden";
 
 interface CrewMember {

@@ -17,7 +17,7 @@ export function crewOf(ctx: MissionContext): CrewSnapshot[] {
   return [
     {
       id: "crew-1",
-      name: "DIAZ-CANO",
+      name: "SOTELO",
       assignment: "base",
       x: ctx.astronaut.x,
       z: ctx.astronaut.z,
@@ -45,7 +45,7 @@ export function crewBrief(ctx?: MissionContext): string {
     const now = c ? `, now ${c.location}, ${c.status}` : "";
     return `${m.name} (${CREW_ROLE[m.roleKey] ?? m.roleKey}; assigned to ${m.assignment === "base" ? "the base" : "the science expedition"}${now})`;
   });
-  return `Crew in operation: ${people.join("; ")}. Refer to people by callsign only (DIAZ-CANO, SALERNO, SOTELO, YACONIS), never by index or "crew-N". Use get_crew_status for live positions.`;
+  return `Crew in operation: ${people.join("; ")}. Refer to people by callsign only (SOTELO, YACONIS, SALERNO, DIAZ-CANO), never by index or "crew-N". Use get_crew_status for live positions.`;
 }
 
 /**

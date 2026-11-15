@@ -107,7 +107,7 @@ const T_DRAG = T_WINCH + RESCUE_SKILL_DURATION_S.winch; // 152: drags the casual
 const T_DRAG_END = 168; // casualty and robot are inside the bay
 const T_RAMP_CLOSE = 170;
 const T_DEPART = 174;
-const T_C2_WALK = 150; // SOTELO walks to rescue-1
+const T_C2_WALK = 150; // SALERNO walks to rescue-1
 const T_C2_BOARD = 164;
 
 const TAU_BASE = 0.48;
@@ -312,7 +312,7 @@ function computeView(t: number): RescueView {
           : lerp(cruise, 0.35, smooth(seg(t, DRONE_GROUNDING_T_S, DRONE_GROUNDING_T_S + 4)));
   }
 
-  // crew-2 (SOTELO): works near rover-1, goes to the pit rim after the fall, then walks to rescue-1 and boards
+  // crew-2 (SALERNO): works near rover-1, goes to the pit rim after the fall, then walks to rescue-1 and boards
   const c2a = 0.5 * t;
   const c2Work = { x: ROVER1.x + 3 * Math.cos(0.5 * T_FALL), z: ROVER1.z + 3 * Math.sin(0.5 * T_FALL) };
   const traverse = { location: "traverse" as CrewLocation, status: "nominal" as CrewStatus, yOffset: 0, inPit: false, visible: true };
@@ -345,7 +345,7 @@ function computeView(t: number): RescueView {
     crew2 = { x: rescue1.x, z: rescue1.z, yaw: rescue1.yaw, pose: "hidden", location: "rescue_vehicle", status: "nominal", unit_id: "rescue-1", yOffset: 0, inPit: false, visible: false };
   }
 
-  // crew-3 (YACONIS): walks around the pit, falls in and lies unconscious on the floor, is hooked by the robot,
+  // crew-3 (DIAZ-CANO): walks around the pit, falls in and lies unconscious on the floor, is hooked by the robot,
   // dragged on the ground up the ramp and across the terrain, and loaded into the bay of rescue-1.
   const c3 = crew3Circle(Math.min(t, T_FAULT));
   const rimR = RESCUE_PIT.radiusM + 0.8;
@@ -539,7 +539,7 @@ export class RescueScenario {
 
   /** World position of an entity, or null for an unknown id. `y` is terrain height plus altitude or pit offset. */
   getEntityPosition(rawId: string): THREE.Vector3 | null {
-    // Crew entities accept both ids ("crew-3") and callsigns ("YACONIS").
+    // Crew entities accept both ids ("crew-3") and callsigns ("DIAZ-CANO").
     const id = findCrew(rawId)?.id ?? rawId;
     const v = this.view;
     const h = (x: number, z: number) => this.deps.heightAt(x, z);

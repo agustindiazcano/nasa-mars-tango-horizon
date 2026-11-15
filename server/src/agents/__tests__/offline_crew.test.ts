@@ -41,31 +41,31 @@ function ctxOf(lang: MissionContext["lang"], overrides: Partial<MissionContext> 
 
 describe("offline crew roster queries (EN/ES/FR/DE/IT)", () => {
   const cases: { lang: MissionContext["lang"]; text: string; has: string[]; hasNot?: string[] }[] = [
-    { lang: "en", text: "Who is on the science expedition?", has: ["SOTELO", "YACONIS"], hasNot: ["SALERNO", "DIAZ-CANO"] },
-    { lang: "es", text: "¿Quiénes están en la expedición científica?", has: ["SOTELO", "YACONIS", "Expedición científica"], hasNot: ["SALERNO"] },
-    { lang: "fr", text: "Qui est dans l'expédition scientifique ?", has: ["SOTELO", "YACONIS"], hasNot: ["SALERNO"] },
-    { lang: "de", text: "Wer ist in der Expedition?", has: ["SOTELO", "YACONIS"], hasNot: ["SALERNO"] },
-    { lang: "it", text: "Chi è nella spedizione?", has: ["SOTELO", "YACONIS"], hasNot: ["SALERNO"] },
-    { lang: "en", text: "Who is at the base?", has: ["DIAZ-CANO", "SALERNO"], hasNot: ["YACONIS"] },
-    { lang: "es", text: "¿Quiénes están en la base?", has: ["DIAZ-CANO", "SALERNO"], hasNot: ["SOTELO"] },
-    { lang: "fr", text: "Qui est à la base ?", has: ["DIAZ-CANO", "SALERNO"], hasNot: ["SOTELO"] },
-    { lang: "de", text: "Wer ist an der Basis?", has: ["DIAZ-CANO", "SALERNO"], hasNot: ["SOTELO"] },
-    { lang: "it", text: "Chi è alla base?", has: ["DIAZ-CANO", "SALERNO"], hasNot: ["SOTELO"] },
-    { lang: "en", text: "Where is Sotelo?", has: ["SOTELO", "on the traverse"], hasNot: ["YACONIS"] },
-    { lang: "es", text: "¿Dónde está Salerno?", has: ["SALERNO", "en la base"], hasNot: ["SOTELO"] },
-    { lang: "fr", text: "Où est Sotelo ?", has: ["SOTELO", "en traversée"] },
-    { lang: "de", text: "Wo ist Díaz-Cano?", has: ["DIAZ-CANO", "an der Basis"] },
-    { lang: "it", text: "Dov'è Yaconis?", has: ["YACONIS", "nel pozzo"] },
-    { lang: "en", text: "How is Yaconis?", has: ["YACONIS", "in the pit", "incapacitated"] },
-    { lang: "es", text: "¿Cómo está Yaconis?", has: ["YACONIS", "en el pozo", "incapacitado"] },
-    { lang: "fr", text: "Comment va Yaconis ?", has: ["YACONIS", "dans le puits"] },
-    { lang: "de", text: "Wie geht es Yaconis?", has: ["YACONIS", "im Schacht"] },
-    { lang: "it", text: "Come sta Yaconis?", has: ["YACONIS", "nel pozzo"] },
-    { lang: "en", text: "Status of the astronauts", has: ["DIAZ-CANO", "SALERNO", "SOTELO", "YACONIS"] },
-    { lang: "es", text: "Estado de los astronautas", has: ["DIAZ-CANO", "SALERNO", "SOTELO", "YACONIS", "Tripulación"] },
-    { lang: "fr", text: "État des astronautes", has: ["DIAZ-CANO", "YACONIS"] },
-    { lang: "de", text: "Status der Astronauten", has: ["DIAZ-CANO", "YACONIS"] },
-    { lang: "it", text: "Stato degli astronauti", has: ["DIAZ-CANO", "YACONIS"] },
+    { lang: "en", text: "Who is on the science expedition?", has: ["SALERNO", "DIAZ-CANO"], hasNot: ["YACONIS", "SOTELO"] },
+    { lang: "es", text: "¿Quiénes están en la expedición científica?", has: ["SALERNO", "DIAZ-CANO", "Expedición científica"], hasNot: ["YACONIS"] },
+    { lang: "fr", text: "Qui est dans l'expédition scientifique ?", has: ["SALERNO", "DIAZ-CANO"], hasNot: ["YACONIS"] },
+    { lang: "de", text: "Wer ist in der Expedition?", has: ["SALERNO", "DIAZ-CANO"], hasNot: ["YACONIS"] },
+    { lang: "it", text: "Chi è nella spedizione?", has: ["SALERNO", "DIAZ-CANO"], hasNot: ["YACONIS"] },
+    { lang: "en", text: "Who is at the base?", has: ["SOTELO", "YACONIS"], hasNot: ["DIAZ-CANO"] },
+    { lang: "es", text: "¿Quiénes están en la base?", has: ["SOTELO", "YACONIS"], hasNot: ["SALERNO"] },
+    { lang: "fr", text: "Qui est à la base ?", has: ["SOTELO", "YACONIS"], hasNot: ["SALERNO"] },
+    { lang: "de", text: "Wer ist an der Basis?", has: ["SOTELO", "YACONIS"], hasNot: ["SALERNO"] },
+    { lang: "it", text: "Chi è alla base?", has: ["SOTELO", "YACONIS"], hasNot: ["SALERNO"] },
+    { lang: "en", text: "Where is Salerno?", has: ["SALERNO", "on the traverse"], hasNot: ["DIAZ-CANO"] },
+    { lang: "es", text: "¿Dónde está Yaconis?", has: ["YACONIS", "en la base"], hasNot: ["SALERNO"] },
+    { lang: "fr", text: "Où est Salerno ?", has: ["SALERNO", "en traversée"] },
+    { lang: "de", text: "Wo ist Sotelo?", has: ["SOTELO", "an der Basis"] },
+    { lang: "it", text: "Dov'è Diaz-Cano?", has: ["DIAZ-CANO", "nel pozzo"] },
+    { lang: "en", text: "How is Diaz-Cano?", has: ["DIAZ-CANO", "in the pit", "incapacitated"] },
+    { lang: "es", text: "¿Cómo está Diaz-Cano?", has: ["DIAZ-CANO", "en el pozo", "incapacitado"] },
+    { lang: "fr", text: "Comment va Diaz-Cano ?", has: ["DIAZ-CANO", "dans le puits"] },
+    { lang: "de", text: "Wie geht es Diaz-Cano?", has: ["DIAZ-CANO", "im Schacht"] },
+    { lang: "it", text: "Come sta Diaz-Cano?", has: ["DIAZ-CANO", "nel pozzo"] },
+    { lang: "en", text: "Status of the astronauts", has: ["SOTELO", "YACONIS", "SALERNO", "DIAZ-CANO"] },
+    { lang: "es", text: "Estado de los astronautas", has: ["SOTELO", "YACONIS", "SALERNO", "DIAZ-CANO", "Tripulación"] },
+    { lang: "fr", text: "État des astronautes", has: ["SOTELO", "DIAZ-CANO"] },
+    { lang: "de", text: "Status der Astronauten", has: ["SOTELO", "DIAZ-CANO"] },
+    { lang: "it", text: "Stato degli astronauti", has: ["SOTELO", "DIAZ-CANO"] },
   ];
 
   for (const c of cases) {
@@ -87,13 +87,13 @@ describe("offline crew roster queries (EN/ES/FR/DE/IT)", () => {
 
 describe("offline rescue orders", () => {
   it("rescues a named astronaut: dispatches rescue-1, two overwatch drones and asks before the robot", async () => {
-    const out = await offlineReply("Rescata a Yaconis", ctxOf("es"));
+    const out = await offlineReply("Rescata a Diaz-Cano", ctxOf("es"));
     const types = out.actions.map((a) => a.type);
     expect(types).toContain("dispatch");
     expect(types.filter((t) => t === "dispatch_overwatch")).toHaveLength(2);
     const robot = out.actions.find((a) => a.type === "deploy_rescue_robot");
     expect(robot?.verdict?.decision).toBe("ask_human");
-    expect(out.speech).toContain("YACONIS");
+    expect(out.speech).toContain("DIAZ-CANO");
   });
 
   it("deploys the rescue robot to the incapacitated astronaut when no name is given", async () => {
@@ -104,7 +104,7 @@ describe("offline rescue orders", () => {
 
   it("sends overwatch drones that keep the 25 m standoff from every crew member", async () => {
     const ctx = ctxOf("en");
-    const out = await offlineReply("Send both drones to overwatch Yaconis", ctx);
+    const out = await offlineReply("Send both drones to overwatch Diaz-Cano", ctx);
     const wps = out.actions.filter((a) => a.type === "dispatch_overwatch");
     expect(wps).toHaveLength(2);
     for (const a of wps) {
@@ -124,9 +124,9 @@ describe("offline rescue orders", () => {
 
   it("answers in each language", async () => {
     for (const [lang, text, word] of [
-      ["fr", "Secours pour Yaconis", "actions approuvées"],
-      ["de", "Rette Yaconis", "Aktionen genehmigt"],
-      ["it", "Soccorri Yaconis", "azioni approvate"],
+      ["fr", "Secours pour Diaz-Cano", "actions approuvées"],
+      ["de", "Rette Diaz-Cano", "Aktionen genehmigt"],
+      ["it", "Soccorri Diaz-Cano", "azioni approvate"],
     ] as const) {
       const out = await offlineReply(text, ctxOf(lang));
       expect(out.speech, text).toContain(word);

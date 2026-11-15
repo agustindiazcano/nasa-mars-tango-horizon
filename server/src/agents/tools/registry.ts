@@ -709,14 +709,14 @@ export const TOOLS: ToolDef[] = [
       name: z
         .string()
         .optional()
-        .describe("Optional crew callsign or id in any spelling ('Sotelo', 'díaz cano', 'crew-3'); omit to list everyone"),
+        .describe("Optional crew callsign or id in any spelling ('Salerno', 'sotelo', 'crew-3'); omit to list everyone"),
       where: z
         .enum(["base", "expedition", "all"])
         .default("all")
         .describe("base = currently at the base; expedition = assigned to the science expedition; all = everyone"),
     }),
     description:
-      "The four astronauts by callsign (DIAZ-CANO, SALERNO, SOTELO, YACONIS): assignment (base | science_expedition), location (base | traverse | in_pit | rescue_vehicle | in_rover), status (nominal | incapacitated | evacuating | recovering), x, z, distance to the base, the fleet unit each rides in, and terrain slope. Always refer to people by callsign.",
+      "The four astronauts by callsign (SOTELO, YACONIS, SALERNO, DIAZ-CANO): assignment (base | science_expedition), location (base | traverse | in_pit | rescue_vehicle | in_rover), status (nominal | incapacitated | evacuating | recovering), x, z, distance to the base, the fleet unit each rides in, and terrain slope. Always refer to people by callsign.",
     run: (a, ctx) => {
       const asked = a.name ? findCrew(a.name) : null;
       if (a.name && !asked) return { error: `Unknown crew member "${a.name}"`, roster: CREW_ROSTER.map((m) => m.name) };
@@ -744,7 +744,7 @@ export const TOOLS: ToolDef[] = [
     effect: true,
     schema: z.object({
       unit_id: z.string().default("drone-1").describe("Drone unit id ('drone-1' or 'drone-2')"),
-      target_id: z.string().optional().describe("Crew callsign or id to watch (e.g. 'YACONIS'); the drone orbits it, never on top of it"),
+      target_id: z.string().optional().describe("Crew callsign or id to watch (e.g. 'DIAZ-CANO'); the drone orbits it, never on top of it"),
       x: z.number().optional().describe("Orbit center X when no target_id is given"),
       z: z.number().optional().describe("Orbit center Z when no target_id is given"),
       radius_m: z
@@ -802,7 +802,7 @@ export const TOOLS: ToolDef[] = [
     effect: true,
     schema: z.object({
       unit_id: z.string().default("rescue-bot-1").describe("Rescue robot unit id"),
-      target_id: z.string().default("YACONIS").describe("Callsign or id of the casualty"),
+      target_id: z.string().default("DIAZ-CANO").describe("Callsign or id of the casualty"),
     }),
     description:
       "Deploys the rescue robot from its carrier rescue-1 to the casualty (winch arm, tether and stretcher). GUARDIAN requires the carrier within 40 m of the casualty and human confirmation before the robot approaches an injured crew member.",
