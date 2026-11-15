@@ -1,5 +1,7 @@
 # Plan: `web-test-3d/` — Standalone Procedural 3D Harness for Backend, Voice, Agents & Phone Pointer
 
+> **Status:** Implemented and merged into `web/` (task `B22`). Every reference to `web-test-3d/` below is the former directory name of the current `web/` workspace; the "zero collision with `web/`" constraint no longer applies.
+
 > **Goal:** A self-contained Vite + Three.js procedural 3D harness in `web-test-3d/` (zero collision with `web/`) that connects directly to `@th/shared` and `server/` (`/api/agent/voice`, `/api/agent/run`, `/api/agent/vision`, `/api/tts`, `/ws/remote`) so all backend systems, voice commands, multi-agent hierarchy, `GUARDIAN` safety checks, procedural astronauts/robots, EVA rescue scenarios, and the mobile phone pointer/PTT can be tested end-to-end immediately.
 
 ---

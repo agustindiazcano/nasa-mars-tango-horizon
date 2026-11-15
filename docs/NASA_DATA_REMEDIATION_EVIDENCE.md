@@ -56,13 +56,13 @@ DAN file inspection: 1,567 records total; 377 inside the 4 km crop by x/z bounds
 
 Baseline main `8a18b17` includes PR #14. Branch `fix/nasa-historical-replay` adds typed validation of five files and deterministic exact-sample playback with explicit rates, pause, seek, reset and end-of-series handling. Every consumed variable has units, category and processing; every sample has its epoch or labelled aggregate bin. Wind nulls remain unavailable. Mission Earth-link defaults are design assumptions.
 
-Targeted command `npx vitest run src/agents/__tests__/historicalSeries.test.ts --root server`: 17 passed. Frontend `npm run typecheck --workspace web-test-3d`: passed. Tests cover exact arrays, radiation peak, epochs, missing data, invalid arrays/units and replay lifecycle/frame partition invariance.
+Targeted command `npx vitest run src/agents/__tests__/historicalSeries.test.ts --root server`: 17 passed. Frontend `npm run typecheck --workspace web`: passed. Tests cover exact arrays, radiation peak, epochs, missing data, invalid arrays/units and replay lifecycle/frame partition invariance.
 
 Browser inventory was retried: no apps/browsers; native pipe unavailable (os error 2). No visual result is claimed. Full CI is linked from PR #15: https://github.com/agustindiazcano/nasa-mars-tango-horizon/pull/15 . No new source acquisition or production deployment.
 
 ## P2/P3 lifecycle and identity follow-up
 
-Baseline main `8e61b4c` includes PR #15, verified merged through GitHub. Active runtime remains `web-test-3d`; B22/B23 are unchanged. Untracked `.claude/` content is preserved.
+Baseline main `8e61b4c` includes PR #15, verified merged through GitHub. Active runtime remains `web`; B22/B23 are unchanged. Untracked `.claude/` content is preserved.
 
 Implemented bounded retries, cancellation, stale-generation protection, pinned metadata/DEM identity, explicit startup states and client/server rejection. Terrain commit is idempotent; reset remains document reload. Shared footprint/contact placement covers base modules and actual rover wheels, including launcher origins.
 

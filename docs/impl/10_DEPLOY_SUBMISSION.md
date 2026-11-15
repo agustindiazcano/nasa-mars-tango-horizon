@@ -36,8 +36,8 @@ fi
 
 ## Frontend Deployment on Vercel (`vercel.json`)
 
-1. Root `vercel.json` currently builds `web-test-3d/dist` (with `publicDir: "../web/public"` so static NASA terrain and model assets are served from `/data/*`) while `web/` is completed by the frontend team:
-   - `buildCommand`: `npm -w shared run build && npm -w web-test-3d run build` (switch to `npm -w web run build` and `outputDirectory: "web/dist"` when `web/` is merged in **B15**).
+1. Root `vercel.json` currently builds `web/dist` (with `publicDir: "../web/public"` so static NASA terrain and model assets are served from `/data/*`) while `web/` is completed by the frontend team:
+   - `buildCommand`: `npm -w shared run build && npm -w web run build` (switch to `npm -w web run build` and `outputDirectory: "web/dist"` when `web/` is merged in **B15**).
    - `rewrites`: `/remote` -> `/remote.html`.
 2. Set `VITE_API_URL=https://tangohorizon-api-yuhr7hkc7q-uc.a.run.app` in Vercel Project Settings (no API keys are ever placed in Vercel).
 3. In frontend `src/`, all `/api/*` `fetch` calls prefix `import.meta.env.VITE_API_URL ?? ""` and WebSocket `/ws/remote` connects to `(import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/^http/, "ws") : `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}`) + "/ws/remote"`. When `VITE_API_URL` is empty (local Vite dev proxy or Cloud Run mirror), it uses same-origin paths automatically.
