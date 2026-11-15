@@ -1,7 +1,7 @@
 import { formatCoordinates } from "../world/terrainValidation";
 import { ASR_LOCALE, fmt, getLang, LANG_NAME, LANGS, onLangChange, setLang, t } from "../core/i18n";
 import { C, leakTimeline } from "../core/physics";
-import type { AlertLevel, ArmSkillId, LayerId, PanelId } from "../core/types";
+import type { AlertLevel, ArmSkillId, LayerId, PanelId, TraceEvent, VotingTraceDetail } from "../core/types";
 import {
   exportSessionJson,
   exportSessionMarkdown,
@@ -13,6 +13,14 @@ import type { VoiceController } from "../voice/voiceController";
 import { BASE_MODULES } from "../world/baseProc";
 import type { TerrainProc } from "../world/terrainProc";
 import type { DeckButton } from "./demoDeck";
+
+function escapeHtml(raw: string): string {
+  return raw
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 export interface HudActions {
   togglePov(): void;
@@ -489,6 +497,70 @@ export class TacticalHud {
     this.renderModal();
   }
 
+  private renderVotingCard(tr: TraceEvent, s: MissionStore): string {
+    const v = (tr.detail ?? {}) as Partial<VotingTraceDetail>;
+    const finalDec = v.finalDecision ?? "ask_human";
+    const decLabel =
+      finalDec === "allow"
+        ? t("agents.vote_allow")
+        : finalDec === "deny"
+          ? t("agents.vote_deny")
+          : t("agents.vote_ask_human");
+    const tally = v.tally ?? { allow: 0, deny: 0, ask_human: 0, valid: 0 };
+    const votersHtml = (v.voters ?? [])
+      .map((voter) => {
+        const badgeCls = voter.status === "ok" && voter.vote ? voter.vote : "err";
+        const badgeText =
+          voter.status === "ok" && voter.vote
+            ? voter.vote === "allow"
+              ? t("agents.vote_allow")
+              : voter.vote === "deny"
+                ? t("agents.vote_deny")
+                : t("agents.vote_ask_human")
+            : voter.status.toUpperCase();
+        const conf = voter.confidence !== null && voter.confidence !== undefined ? `${Math.round(voter.confidence * 100)}%` : "--";
+        const detailText = voter.rationale || voter.error || "";
+        return `
+          <div class="esc-voter-row">
+            <span class="esc-voter-id"><b>${escapeHtml(voter.voter)}</b> · ${escapeHtml(voter.model)} (${escapeHtml(voter.provider)})</span>
+            <span class="esc-vote-pill ${badgeCls}">${escapeHtml(badgeText)} ${conf} · ${voter.latency_ms} ms</span>
+            ${detailText ? `<div class="esc-voter-rationale">${escapeHtml(detailText)}</div>` : ""}
+          </div>
+        `;
+      })
+      .join("");
+
+    let controlsHtml = "";
+    if (finalDec === "ask_human") {
+      const pendingIdx = v.actionType ? s.findPendingActionIndex(v.actionType) : -1;
+      controlsHtml =
+        pendingIdx !== -1
+          ? `
+            <div class="btn-row" style="margin-top:6px;">
+              <button class="hud-btn" data-pointable data-confirm="${pendingIdx}">${t("agents.confirm")}</button>
+              <button class="hud-btn danger" data-pointable data-cancel="${pendingIdx}">${t("agents.cancel")}</button>
+            </div>
+          `
+          : `<div class="esc-vote-resolved">${t("agents.resolved")}</div>`;
+    }
+
+    return `
+      <div class="esc-vote-card vote-${finalDec}">
+        <div class="esc-vote-hdr">
+          <span><b>${t("agents.esc_vote")}</b> · ${escapeHtml(v.actionType ?? "")}</span>
+          <span class="esc-vote-pill ${finalDec}">${escapeHtml(decLabel)}</span>
+        </div>
+        <div class="esc-vote-meta">
+          <span>${escapeHtml(v.consensus ?? "")} (${tally.allow}A/${tally.deny}D/${tally.ask_human}H)</span>
+          <span>${v.latency_ms ?? 0} ms</span>
+        </div>
+        ${v.triggers?.length ? `<div class="esc-vote-triggers">Triggers: ${escapeHtml(v.triggers.join(", "))}</div>` : ""}
+        ${votersHtml}
+        ${controlsHtml}
+      </div>
+    `;
+  }
+
   private renderModal(): void {
     const s = this.store;
     if (this.roverModalOpen) {
@@ -554,15 +626,18 @@ export class TacticalHud {
 
       const traceHtml = s.trace
         .map((tr) => {
+          if (tr.kind === "voting") {
+            return this.renderVotingCard(tr, s);
+          }
           let cls = "trace-item";
-          let summary = JSON.stringify(tr.detail);
+          let summary = escapeHtml(JSON.stringify(tr.detail));
           if (tr.kind === "verdict") {
             const act = tr.detail as { type?: string; verdict?: { decision?: string; reason?: string } };
             const dec = act?.verdict?.decision ?? "allow";
             cls += ` verdict-${dec}`;
-            summary = `${act.type} -> <b>${dec.toUpperCase()}</b> (${act.verdict?.reason ?? ""})`;
+            summary = `${escapeHtml(String(act.type ?? ""))} -> <b>${escapeHtml(dec.toUpperCase())}</b> (${escapeHtml(act.verdict?.reason ?? "")})`;
           }
-          return `<div class="${cls}"><b>${tr.agent}</b> [${tr.kind}]: ${summary}</div>`;
+          return `<div class="${cls}"><b>${escapeHtml(tr.agent)}</b> [${escapeHtml(tr.kind)}]: ${summary}</div>`;
         })
         .join("");
 

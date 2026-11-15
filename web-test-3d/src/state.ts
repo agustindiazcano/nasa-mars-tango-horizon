@@ -383,11 +383,18 @@ export class MissionStore {
     this.notify();
   }
 
+  findPendingActionIndex(actionType: string): number {
+    return this.pendingActions.findIndex((a) => a.type === actionType && a.verdict?.decision === "ask_human");
+  }
+
   confirmPendingAction(index: number, approved: boolean): void {
     const [a] = this.pendingActions.splice(index, 1);
     if (!a) return;
     if (approved) {
-      this.executeApprovedAction({ ...a, verdict: { decision: "allow", reason: "Crew confirmed", by: "judge" } });
+      this.executeApprovedAction({
+        ...a,
+        verdict: { decision: "allow", reason: "Crew confirmed", by: a.verdict?.by ?? "judge" },
+      });
       this.pushAlert("info", `Crew confirmed: ${a.type}`);
     } else {
       this.pushAlert("info", `Crew cancelled: ${a.type}`);

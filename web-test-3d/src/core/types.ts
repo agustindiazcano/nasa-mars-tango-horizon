@@ -61,7 +61,7 @@ export interface UnitSnapshot {
 export interface Verdict {
   decision: "allow" | "deny" | "ask_human";
   reason: string;
-  by: "rules" | "judge";
+  by: "rules" | "judge" | "voting";
 }
 
 export interface Action {
@@ -71,10 +71,51 @@ export interface Action {
   verdict?: Verdict;
 }
 
+export type VoteDecision = "allow" | "deny" | "ask_human";
+
+export interface VoterResult {
+  voter: string;
+  model: string;
+  provider: "vertex" | "gemini" | "meta";
+  vote: VoteDecision | null;
+  confidence: number | null;
+  rationale: string;
+  latency_ms: number;
+  status: "ok" | "timeout" | "error";
+  error?: string;
+}
+
+export interface VotingTally {
+  allow: number;
+  deny: number;
+  ask_human: number;
+  valid: number;
+}
+
+export type VotingConsensus =
+  | "unanimous"
+  | "majority"
+  | "asymmetric_safety_override"
+  | "split"
+  | "degraded_unanimous"
+  | "degraded_split"
+  | "quorum_failed";
+
+export interface VotingTraceDetail {
+  actionType: string;
+  triggers: string[];
+  voters: VoterResult[];
+  tally: VotingTally;
+  consensus: VotingConsensus;
+  finalDecision: VoteDecision;
+  reason: string;
+  latency_ms: number;
+}
+
 export interface TraceEvent {
   t: number;
   agent: string;
-  kind: "delegate" | "tool" | "verdict" | "say";
+  kind: "delegate" | "tool" | "verdict" | "voting" | "say";
   detail: unknown;
 }
 
