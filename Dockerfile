@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY shared/package.json shared/
 COPY server/package.json server/
-COPY web-test-3d/package.json web-test-3d/
+COPY web/package.json web/
 RUN npm ci
 COPY tsconfig.base.json ./
 COPY shared shared
@@ -19,7 +19,7 @@ COPY --from=build /app/shared/dist shared/dist
 COPY --from=build /app/server/package.json server/
 COPY --from=build /app/server/dist server/dist
 COPY --from=build /app/server/corpus server/corpus
-COPY --from=build /app/web-test-3d/package.json web-test-3d/
+COPY --from=build /app/web/package.json web/
 COPY web/public/data web/public/data
 RUN npm ci --omit=dev --workspace=@th/shared --workspace=@th/server
 EXPOSE 8080

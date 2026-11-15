@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCoordinates, validateTerrain } from "../../../../web-test-3d/src/world/terrainValidation";
+import { formatCoordinates, validateTerrain } from "../../../../web/src/world/terrainValidation";
 
 const meta = { height_px: 2048, size_m: 4000, product_id: "HiRISE", z_min_m: -4300, z_max_m: -3500, center_lat: -4.745, center_lon_e: 137.4 };
 describe("frontend terrain input contract", () => {

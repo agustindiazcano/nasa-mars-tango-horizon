@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isVisionQuestion } from "./visionIntent";
 
-describe("visionIntent (web-test-3d)", () => {
+describe("visionIntent (web)", () => {
   const visionQueries = [
     "What do you see?",
     "what does the rover see",

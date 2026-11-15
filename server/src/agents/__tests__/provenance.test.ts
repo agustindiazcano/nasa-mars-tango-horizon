@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { formatProvenanceUrl, parseProvenanceManifest } from "../../../../web-test-3d/src/data/provenance.js";
+import { formatProvenanceUrl, parseProvenanceManifest } from "../../../../web/src/data/provenance.js";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const PUBLIC_DIR = path.join(REPO_ROOT, "web", "public");

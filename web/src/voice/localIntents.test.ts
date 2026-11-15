@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { LOCAL_INTENTS, matchLocalIntent, type LocalIntentId } from "./localIntents";
 
-describe("localIntents (web-test-3d)", () => {
+describe("localIntents (web)", () => {
   it("defines all 6 critical local intent categories", () => {
     expect(LOCAL_INTENTS.map((d) => d.id)).toEqual([
       "emergency",

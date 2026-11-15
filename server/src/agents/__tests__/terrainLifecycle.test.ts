@@ -1,11 +1,11 @@
-import { FleetUnit } from "../../../../web-test-3d/src/world/fleetProc";
+import { FleetUnit } from "../../../../web/src/world/fleetProc";
 import * as THREE from "three";
-import { TerrainProc } from "../../../../web-test-3d/src/world/terrainProc";
+import { TerrainProc } from "../../../../web/src/world/terrainProc";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { READY_TERRAIN, terrainMatches, normalizeTerrainMetadata, TERRAIN_META_SHA256 } from "@th/shared";
-import { TerrainLoader, sha256 } from "../../../../web-test-3d/src/world/terrainLoader";
-import { groundPlacement, footprintContacts } from "../../../../web-test-3d/src/world/groundPlacement";
+import { TerrainLoader, sha256 } from "../../../../web/src/world/terrainLoader";
+import { groundPlacement, footprintContacts } from "../../../../web/src/world/groundPlacement";
 import { buildContext, registerAgentRoutes } from "../routes.js";
 import { terrainIdentity } from "../tools/terrainData.js";
 import Fastify from "fastify";

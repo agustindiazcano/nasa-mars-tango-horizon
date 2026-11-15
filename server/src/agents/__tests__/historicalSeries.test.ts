@@ -2,8 +2,8 @@
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { en, es, fr, de, it as itDict } from "../../../../shared/src/i18n/index.js";
-import { ARCHIVE_IDS, parseHistoricalSeries, SampleReplay } from "../../../../web-test-3d/src/data/historicalSeries";
-import { MissionStore } from "../../../../web-test-3d/src/state";
+import { ARCHIVE_IDS, parseHistoricalSeries, SampleReplay } from "../../../../web/src/data/historicalSeries";
+import { MissionStore } from "../../../../web/src/state";
 function asset(id: string): Record<string, unknown> {
   return JSON.parse(readFileSync(fileURLToPath(new URL(`../../../../web/public/data/env/${id}.json`, import.meta.url)), "utf8"));
 }

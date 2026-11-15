@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { matchLocalIntent, type LocalIntentId } from "../../../../web-test-3d/src/voice/localIntents.js";
-import { isVisionQuestion, parseVisionIntent } from "../../../../web-test-3d/src/voice/visionIntent.js";
+import { matchLocalIntent, type LocalIntentId } from "../../../../web/src/voice/localIntents.js";
+import { isVisionQuestion, parseVisionIntent } from "../../../../web/src/voice/visionIntent.js";
 
 const LOCAL_INTENT_CASES: Array<[string, LocalIntentId | null]> = [
   ["emergencia", "emergency"],
