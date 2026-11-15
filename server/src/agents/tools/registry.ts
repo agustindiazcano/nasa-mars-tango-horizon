@@ -4,6 +4,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   decide,
   directTransmission,
+  evaluateCrewBiomed,
   leakTimeline,
   metabolicRateW,
   o2KgPerHour,
@@ -241,6 +242,15 @@ export const TOOLS: ToolDef[] = [
       ctx.leak_diameter_m > 0
         ? leakTimeline(ctx.suit.suit_pressure_pa ?? 29600, ctx.leak_diameter_m)
         : { leak: false },
+  }),
+  def({
+    name: "evaluate_crew_biomed",
+    server: "suit",
+    effect: false,
+    schema: z.object({}),
+    description:
+      "Evaluates deterministic EVA biomedical trends (CO2 hypercapnia, core temp/PSI, SpO2 hypoxia, cardiac drift), time-to-breach, composite Early Warning Score (green/amber/red), and NASA-STD-3001 vs personal baseline thresholds. Decision support advisory only.",
+    run: (_a, ctx) => evaluateCrewBiomed(ctx),
   }),
 
   // --- mcp-environment ---------------------------------------------------
