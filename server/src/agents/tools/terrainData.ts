@@ -614,8 +614,8 @@ export function lidarScanAt(x: number, z: number, maxSlopeDeg = 22): {
 
 export function hydrationAt(x: number, z: number) {
   return {
-    weh_pct: Number(sampleFloatBilinear(state.hydrationWeh, state.mapN, x, z).toFixed(2)),
-    uncertainty_pct: Number(sampleFloatBilinear(state.hydrationUnc, state.mapN, x, z).toFixed(2)),
+    hydration_index: Number(sampleFloatBilinear(state.hydrationWeh, state.mapN, x, z).toFixed(2)),
+    uncertainty_index: Number(sampleFloatBilinear(state.hydrationUnc, state.mapN, x, z).toFixed(2)),
     slope_deg: slopeAt(x, z),
     source: state.hydrationFromFiles ? "hydration_model_v1" : "synthetic_fallback",
   };
@@ -627,8 +627,8 @@ export function rankSampleSites(k = 3, fromX = 0, fromZ = 0) {
     x: number;
     z: number;
     distance_m: number;
-    weh_pct: number;
-    uncertainty_pct: number;
+    hydration_index: number;
+    uncertainty_index: number;
     slope_deg: number;
     sky_view_factor: number;
     score: number;
@@ -648,13 +648,13 @@ export function rankSampleSites(k = 3, fromX = 0, fromZ = 0) {
       if (sl > 20) continue;
       const hyd = hydrationAt(x, z);
       const svf = svfAt(x, z);
-      const score = hyd.weh_pct - 0.5 * hyd.uncertainty_pct - 0.02 * sl;
+      const score = hyd.hydration_index - 0.5 * hyd.uncertainty_index - 0.02 * sl;
       candidates.push({
         x: Math.round(x),
         z: Math.round(z),
         distance_m: Math.round(dist),
-        weh_pct: hyd.weh_pct,
-        uncertainty_pct: hyd.uncertainty_pct,
+        hydration_index: hyd.hydration_index,
+        uncertainty_index: hyd.uncertainty_index,
         slope_deg: sl,
         sky_view_factor: svf,
         score,
@@ -677,13 +677,13 @@ export function rankSampleSites(k = 3, fromX = 0, fromZ = 0) {
       x: s.x,
       z: s.z,
       distance_m: s.distance_m,
-      weh_pct: s.weh_pct,
-      uncertainty_pct: s.uncertainty_pct,
+      hydration_index: s.hydration_index,
+      uncertainty_index: s.uncertainty_index,
       slope_deg: s.slope_deg,
       sky_view_factor: s.sky_view_factor,
     })),
     source: state.hydrationFromFiles ? "hydration_model_v1" : "synthetic_fallback",
-    note: "Near-surface bound mineral hydration (WEH), not liquid water or shallow ice.",
+    note: "Estimated hydration index (dimensionless passive neutron ratio), not calibrated water abundance.",
   };
 }
 
@@ -729,8 +729,8 @@ export function getStormForecastData(): {
   if (state.stormForecast?.length) {
     return {
       forecast: state.stormForecast,
-      source: "rems_storm_nowcaster",
-      disclaimer: "Short-range statistical nowcast at Gale Crater only; does not model global storm physics.",
+      source: "historical_rems_storm_nowcaster_sol_2079",
+      disclaimer: "Historical prediction initialized at sol 2079; not a current mission forecast. Does not model global storm physics.",
     };
   }
   return {
@@ -739,8 +739,8 @@ export function getStormForecastData(): {
       { horizonSol: 2, q10: 0.72, q50: 1.25, q90: 2.15 },
       { horizonSol: 3, q10: 0.88, q50: 1.65, q90: 2.75 },
     ],
-    source: "rems_climatology_fallback",
-    disclaimer: "Short-range statistical nowcast at Gale Crater only; does not model global storm physics.",
+    source: "design_forecast_fallback",
+    disclaimer: "Synthetic design forecast; not an observed or current NASA forecast.",
   };
 }
 

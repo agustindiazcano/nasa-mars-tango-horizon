@@ -1,0 +1,42 @@
+{
+  "source_url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/hirise/controlled/dtm/PSP_009149_1750_PSP_009294_1750/DTEEC_009149_1750_009294_1750_U01.tif",
+  "stac_url": "https://stac.astrogeology.usgs.gov/api/collections/mro_hirise_socet_dtms/items/DTEEC_009149_1750_009294_1750_U01",
+  "crs": "PROJCS[\"Mars (2015) - Sphere / Ocentric / Equirectangular, clon = 0\",GEOGCS[\"Mars (2015) - Sphere / Ocentric\",DATUM[\"Mars (2015) - Sphere\",SPHEROID[\"Mars (2015) - Sphere\",3396190,0,AUTHORITY[\"IAU\",\"49900\"]],AUTHORITY[\"IAU\",\"49900\"]],PRIMEM[\"Reference Meridian\",0,AUTHORITY[\"IAU\",\"49900\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"IAU\",\"49900\"]],PROJECTION[\"Equirectangular\"],PARAMETER[\"standard_parallel_1\",0],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"IAU\",\"49910\"]]",
+  "transform": [
+    1.0117467945795113,
+    0.0,
+    8141577.187319504,
+    0.0,
+    -1.0117467945795113,
+    -277179.16358980455,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "nodata": -3.4028226550889045e+38,
+  "scales": [
+    1.0
+  ],
+  "offsets": [
+    0.0
+  ],
+  "source_bounds": [
+    8141577.187319504,
+    -291815.09272019175,
+    8148405.466436122,
+    -277179.16358980455
+  ],
+  "source_shape": [
+    14466,
+    6749
+  ],
+  "processed_sha256": "3d303465fe9d5261d6ac107a60b8a54819df43aa964a70249f213bc14c3bc39a",
+  "method": "build_terrain.py boundless bilinear crop; full 2048-square comparison",
+  "residual_m": {
+    "min": -0.006069246156584995,
+    "max": 0.006069540459066047,
+    "mean": 1.7829561383386197e-06,
+    "rmse": 0.003478272586029784
+  },
+  "vertical_datum": "Not established by CRS alone; CTX discrepancy unresolved"
+}

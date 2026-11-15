@@ -37,6 +37,10 @@ export interface AstronautSnapshot {
 }
 
 export interface EnvironmentSnapshot {
+  data_category?: "design" | "observation" | "derived";
+  radiation_quantity?: "absorbed_dose_silicon";
+  storm_source?: string;
+  rad_source?: string;
   pressure_pa: number;
   air_temp_k: number;
   ground_temp_k?: number;

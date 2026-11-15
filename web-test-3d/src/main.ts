@@ -1,4 +1,5 @@
 import "./hud/hud.css";
+import { installHistoricalArchive } from "./hud/historicalArchive";
 import { inject } from "@vercel/analytics";
 import * as THREE from "three";
 import { apiUrl } from "./api";
@@ -38,9 +39,37 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+async function boot(): Promise<void> {
 const store = new MissionStore();
 const terrain = new TerrainProc(scene);
-void terrain.tryLoadRealDem("/data/terrain");
+const loading = document.createElement("div");
+loading.setAttribute("role", "status");
+loading.style.cssText = "position:fixed;inset:0;z-index:10000;background:#07111e;color:white;display:grid;place-content:center;font:18px monospace;padding:32px";
+document.body.append(loading);
+terrain.mesh.visible = false;
+terrain.markersGroup.visible = false;
+let loaded = false;
+while (!loaded) {
+  for (let attempt = 1; attempt <= 3 && !loaded; attempt++) {
+    loading.textContent = `Loading HiRISE terrain (attempt ${attempt}/3). Mission controls wait for validated terrain.`;
+    loaded = await terrain.tryLoadRealDem("/data/terrain");
+    if (!loaded && attempt < 3) await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+  }
+  if (!loaded) {
+    loading.textContent = `Terrain unavailable: ${terrain.loadError}.`;
+    const retry = document.createElement("button");
+    retry.textContent = "Retry terrain download";
+    loading.append(retry);
+    await new Promise<void>(resolve => retry.addEventListener("click", () => resolve(), { once: true }));
+  }
+}
+loading.textContent = "Loading HiRISE orthoimage";
+try { await terrain.loadOptical(); }
+catch { store.pushAlert("warn", "Orthoimage unavailable; optical colors are a design approximation"); }
+terrain.mesh.visible = true;
+terrain.markersGroup.visible = true;
+loading.remove();
+installHistoricalArchive();
 
 const skyDust = new SkyDust(scene);
 const astronaut = new AstronautProc(terrain, camera, canvas);
@@ -310,10 +339,10 @@ function startScenario(id: "storm" | "sep2017" | "leak"): void {
   store.activeScenario = id;
   store.scenarioElapsedS = 0;
   if (id === "storm") {
-    store.env.storm_source = "REMS MSL 2018 Global Dust Storm (Sol 2080)";
+    store.env.storm_source = "Design dust storm (synthetic opacity curve)";
     store.pushAlert("warn", `Dust storm approaching: tau rising, drones grounding at tau >= ${AIRCRAFT_GROUNDING_TAU}`, "WEATHER-RAD");
   } else if (id === "sep2017") {
-    store.env.rad_source = "RAD MSL Real SEP Event (Sep 2017)";
+    store.env.rad_source = "Design radiation event (synthetic absorbed dose)";
     store.setLayer("radiation");
     // Find lowest SVF sheltered ridge spot within 300 m
     let bestX = astronaut.pos.x;
@@ -457,7 +486,7 @@ function stepSimulation(dt: number): void {
       store.env.sun_elev_deg = 54 - bell * 18;
       if (u >= 1) {
         store.activeScenario = "none";
-        store.env.storm_source = "REMS MSL baseline (Clear Sol)";
+        store.env.storm_source = "Design clear atmosphere";
       }
     } else if (store.activeScenario === "sep2017") {
       const u = Math.min(1, store.scenarioElapsedS / 45);
@@ -465,7 +494,7 @@ function stepSimulation(dt: number): void {
       store.env.dose_rate_ugy_h = 9.8 + flare * 135;
       if (u >= 1) {
         store.activeScenario = "none";
-        store.env.rad_source = "RAD MSL quiet baseline";
+        store.env.rad_source = "Design quiet absorbed dose";
       }
     } else if (store.activeScenario === "leak") {
       if (!leakEscalated && store.scenarioElapsedS >= 2.0) {
@@ -546,3 +575,6 @@ function animate(now: number): void {
 }
 
 requestAnimationFrame(animate);
+
+}
+void boot();

@@ -400,8 +400,8 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
       const vein = await execRead("detect_veins", { waypoint_id: "wp-1" }, ctx, caller, trace);
       return {
         speech: es
-          ? `Candidato a veta (p=${vein.vein_probability}); composición requiere espectrómetro. Mejor sitio hidratación (${top?.x ?? 480}, ${top?.z ?? 320}) con ${top?.weh_pct ?? 5.1}% WEH.`
-          : `Vein candidate (p=${vein.vein_probability}); composition needs spectrometer. Top hydration site (${top?.x ?? 480}, ${top?.z ?? 320}) at ${top?.weh_pct ?? 5.1}% WEH.`,
+          ? `Candidato a veta (p=${vein.vein_probability}); composición requiere espectrómetro. Mejor sitio hidratación (${top?.x ?? 480}, ${top?.z ?? 320}) con ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`
+          : `Vein candidate (p=${vein.vein_probability}); composition needs spectrometer. Top hydration site (${top?.x ?? 480}, ${top?.z ?? 320}) at ${top?.hydration_index ?? 5.1} hydration index (dimensionless).`,
         actions,
         trace,
         route,
@@ -410,8 +410,8 @@ export async function offlineReply(text: string, ctx: MissionContext): Promise<O
     proposeAction("set_layer", { layer: "hydration" }, ctx, caller, actions, trace);
     return {
       speech: es
-        ? `Mejor sitio (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.weh_pct ?? 5.1}% WEH ± ${top?.uncertainty_pct ?? 0.6}%, pendiente ${top?.slope_deg ?? 4}° (hidratación mineral).`
-        : `Top site (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.weh_pct ?? 5.1}% WEH ± ${top?.uncertainty_pct ?? 0.6}%, slope ${top?.slope_deg ?? 4}° (bound mineral hydration).`,
+        ? `Mejor sitio (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, pendiente ${top?.slope_deg ?? 4}° (hidratación mineral).`
+        : `Top site (${top?.x ?? 480}, ${top?.z ?? 320}): ${top?.hydration_index ?? 5.1} hydration index (dimensionless) ± ${top?.uncertainty_index ?? 0.6}, slope ${top?.slope_deg ?? 4}° (bound mineral hydration).`,
       actions,
       trace,
       route,

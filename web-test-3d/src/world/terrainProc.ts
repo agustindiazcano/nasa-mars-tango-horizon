@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { validateTerrain } from "./terrainValidation";
 import { mulberry32, terrainFromThermalClass, type RouteGrid } from "../core/physics";
 import type { LayerId } from "../core/types";
 
@@ -56,6 +57,7 @@ export class TerrainProc {
   private thermal = new Uint8Array(256 * 256);
   private hydration = new Float32Array(256 * 256);
   private textures: Record<LayerId, THREE.DataTexture>;
+  private realOptical: THREE.Texture | null = null;
   private material: THREE.MeshStandardMaterial;
   private routeLine: THREE.Line | null = null;
   private beaconsGroup = new THREE.Group();
@@ -91,17 +93,20 @@ export class TerrainProc {
     scene.add(this.markersGroup);
   }
 
-  /** Attempts to load real NASA/USGS HiRISE height_2048.u16 if served; keeps procedural fallback otherwise. */
+  loadError = "";
+
+  /** Each asset has a 60 s deadline. Startup retries three times, then requires manual retry. */
   async tryLoadRealDem(base = "/data/terrain"): Promise<boolean> {
     try {
-      const metaRes = await fetch(`${base}/meta.json`, { signal: AbortSignal.timeout(2500) });
-      if (!metaRes.ok) return false;
+      const metaRes = await fetch(`${base}/meta.json`, { signal: AbortSignal.timeout(60000) });
+      if (!metaRes.ok) throw new Error(`Metadata HTTP ${metaRes.status}`);
       const meta = (await metaRes.json()) as TerrainMeta;
-      const u16Res = await fetch(`${base}/height_2048.u16`, { signal: AbortSignal.timeout(6000) });
-      if (!u16Res.ok) return false;
+      validateTerrain(meta, this.sizeM);
+      const u16Res = await fetch(`${base}/height_2048.u16`, { signal: AbortSignal.timeout(60000) });
+      if (!u16Res.ok) throw new Error(`Height HTTP ${u16Res.status}`);
       const raw = new Uint16Array(await u16Res.arrayBuffer());
       const srcN = meta.height_px;
-      if (raw.length < srcN * srcN) return false;
+      if (raw.length !== srcN * srcN) throw new Error("Incorrect DEM byte length");
       const mid = (meta.z_min_m + meta.z_max_m) / 2;
       const span = meta.z_max_m - meta.z_min_m;
       const n = this.gridN;
@@ -117,15 +122,28 @@ export class TerrainProc {
       this.recomputeDerivedFields();
       this.applyHeightsToGeometry(this.mesh.geometry);
       this.refreshTextures();
-      this.refreshMarkerHeights();
+      this.markersGroup.clear();
+      this.buildMarkers();
       return true;
-    } catch {
+    } catch (error) {
+      this.loadError = error instanceof Error ? error.message : String(error);
       return false;
     }
   }
 
+  async loadOptical(): Promise<void> {
+    const response = await fetch("/data/terrain/ortho_4096.webp", { signal: AbortSignal.timeout(60000) });
+    if (!response.ok) throw new Error(`Orthoimage HTTP ${response.status}`);
+    const url = URL.createObjectURL(await response.blob());
+    try { this.realOptical = await new THREE.TextureLoader().loadAsync(url); }
+    finally { URL.revokeObjectURL(url); }
+    this.realOptical.colorSpace = THREE.SRGBColorSpace;
+    // PlaneGeometry rotated -90 degrees maps north (negative z) to v=1.
+    this.setLayer("optical");
+  }
+
   setLayer(layer: LayerId): void {
-    this.material.map = this.textures[layer];
+    this.material.map = layer === "optical" && this.realOptical ? this.realOptical : this.textures[layer];
     this.material.needsUpdate = true;
   }
 
@@ -490,13 +508,7 @@ export class TerrainProc {
     this.markersGroup.add(line);
   }
 
-  private refreshMarkerHeights(): void {
-    for (const child of this.markersGroup.children) {
-      if (child.name.startsWith("station:")) {
-        child.position.y = this.heightAt(child.position.x, child.position.z);
-      }
-    }
-  }
+
 }
 
 export function makeSpriteLabel(text: string, color = "#35e0ff"): THREE.Sprite {

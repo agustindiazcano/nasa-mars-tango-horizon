@@ -170,7 +170,7 @@ export const TOOLS: ToolDef[] = [
     server: "terrain",
     effect: false,
     schema: z.object(xz),
-    description: "Predicted near-surface bound mineral hydration (WEH wt%) and uncertainty at a point.",
+    description: "Estimated hydration index (dimensionless passive neutron ratio) and uncertainty at a point; not calibrated water abundance.",
     run: (a) => hydrationAt(a.x, a.z),
   }),
   def({
@@ -249,7 +249,7 @@ export const TOOLS: ToolDef[] = [
     server: "environment",
     effect: false,
     schema: z.object({}),
-    description: "Surface pressure, air temperature, dust opacity tau, wind speed, radiation dose rate, and air density (REMS & RAD).",
+    description: "Mission surface pressure, temperature, opacity, wind, absorbed dose rate and density. Respect data_category and source fields: design values are not NASA observations.",
     run: (_a, ctx) => ({
       ...ctx.env,
       air_density_kg_m3: Number(surfaceDensity(ctx.env.pressure_pa, ctx.env.air_temp_k).toFixed(5)),
@@ -265,8 +265,8 @@ export const TOOLS: ToolDef[] = [
       if (ctx.storm_forecast?.length) {
         return {
           forecast: ctx.storm_forecast,
-          source: "context_storm_nowcaster",
-          disclaimer: "Short-range statistical nowcast at Gale Crater only.",
+          source: "mission_context_forecast",
+          disclaimer: "Mission context prediction; source epoch is not verified. Do not attribute it to current NASA observations.",
         };
       }
       return getStormForecastData();
