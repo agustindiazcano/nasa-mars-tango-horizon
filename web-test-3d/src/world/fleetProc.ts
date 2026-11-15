@@ -1,4 +1,4 @@
-import { footprintContacts, groundPlacement } from "./groundPlacement";
+import { groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "../core/physics";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "../core/types";
@@ -112,15 +112,20 @@ export class FleetUnit {
       const hBehind = this.terrain.heightAt(o.position.x - fwdX * 1.2, o.position.z - fwdZ * 1.2);
       o.rotation.x = Math.atan2(hBehind - hAhead, 2.4) * 0.65;
 
-      // Wheel bottoms are y=0 (wheel centers 0.32 m, radius 0.32 m).
-      const contacts = footprintContacts(1.4, 2.4).map(p => {
-        const v = new THREE.Vector3(p.x, p.y, p.z).applyEuler(o.rotation);
-        return { x: v.x, y: v.y, z: v.z };
-      });
-      o.position.y = groundPlacement((x, z) => this.terrain.heightAt(x, z), o.position.x, o.position.z, contacts).y;
+      this.placeOnGround();
       const wheelSpin = distMoved / 0.32;
       for (const w of this.wheels) w.rotation.x += wheelSpin;
     }
+  }
+
+  placeOnGround(): void {
+    const o = this.object;
+    const contacts = this.wheels.map(wheel => {
+      // Geometry radius is 0.32 m; retain each model's wheel track and wheelbase.
+      const center = wheel.position.clone().applyEuler(o.rotation);
+      return { x: center.x, y: center.y - 0.32, z: center.z };
+    });
+    o.position.y = groundPlacement((x, z) => this.terrain.heightAt(x, z), o.position.x, o.position.z, contacts).y;
   }
 
   snapshot(): UnitSnapshot {
@@ -358,7 +363,7 @@ export class FleetProc {
   private createUnit(spec: UnitSpec): FleetUnit {
     const g = new THREE.Group();
     g.name = `unit:${spec.id}`;
-    const y = spec.flies ? this.terrain.heightAt(spec.startX, spec.startZ) + (spec.altitude ?? 14) : groundPlacement((x, z) => this.terrain.heightAt(x, z), spec.startX, spec.startZ, footprintContacts(1.4, 2.4)).y;
+    const y = this.terrain.heightAt(spec.startX, spec.startZ) + (spec.flies ? spec.altitude ?? 14 : 0);
     g.position.set(spec.startX, y, spec.startZ);
 
     const unit = new FleetUnit(spec, g, this.terrain);
@@ -496,6 +501,7 @@ export class FleetProc {
     label.scale.set(6.5, 1.25, 1);
     g.add(label);
 
+    if (!spec.flies) unit.placeOnGround();
     return unit;
   }
 
