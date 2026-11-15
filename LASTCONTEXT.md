@@ -4,23 +4,19 @@
 
 ## Summary of work done
 
-- Reviewed and squash-merged PR #28 (`2ff2db9`, by Milagros-Sotelo): NASA insignias on astronaut and vehicles (`nasaInsignia.ts`), FPS-independent limb relaxation, HUD i18n in EN/ES/FR/DE/IT (129 new keys, 366 per dictionary), narrow-screen fleet/map layout, and `/api/agent/vision` returning HTTP 503 instead of a fabricated description.
-- Migrated the frontend (`B22`): `web/public/` moved into `web-test-3d/`, then `web-test-3d/` renamed to `web/` (workspace `@th/web`). Branch `chore/migrate-web-test-3d-to-web`, three commits: workspace move + references, docs rename, status files.
-
-## Files touched
-
-- Root `package.json` (workspace `web`, `dev:test3d` renamed to `dev:web`), `package-lock.json` (stale `web-test-3d` entry removed), `Dockerfile`, `vercel.json` (`web/dist`), `web/package.json`, `web/vite.config.ts` (`publicDir: ./public`).
-- Server tests that import frontend modules now point to `../../../../web/src/...`.
-- `AGENTS.md`, `README.md`, `README_ES.md` and `docs/` use `web/`. `docs/WEB_TEST_3D_PLAN.md` keeps the old name with a "historical" status note.
+- Squash-merged PR #28 (`2ff2db9`, NASA insignias, FPS-independent limb relaxation, HUD i18n in 5 languages, vision 503 instead of fabricated text).
+- Migrated the frontend `web-test-3d/` to `web/` (`B22`, PR #29, merged): workspace `@th/web`, `dev:test3d` renamed to `dev:web`, Dockerfile, `vercel.json`, lockfile and docs updated.
+- Deployed: Cloud Run `tangohorizon-api` revision `00027` (`deploy.sh`, health OK, `ALLOWED_ORIGINS` includes `tangohorizon.vercel.app`) and Vercel production from `main` (new `nasa-insignia.png` served).
+- Reconciled `F1`–`F15` against `web/src` in `PENDING_FRONT.md` (9 done, 6 partial) and fixed `localIntents.test.ts` (9 categories). Branch `chore/reconcile-pending-front`.
 
 ## Decisions made
 
-- Removed the canned `rover-2` sign/injection demo (PR #28): it was a test fixture, not restored.
-- Moved `web/public` into `web-test-3d` and renamed the folder, instead of copying code into `web/`: git records renames and no code needs reconciling.
+- The `rover-2` sign/injection canned demo removed by PR #28 stays removed (it was a test fixture).
+- Vercel serves the frontend and Cloud Run serves the API only: CDN for the large 3D assets, and Cloud Run needs one fixed instance for WebSocket rooms. The Dockerfile builds no frontend; the `web/dist` mirror in `server/src/index.ts` stays inactive. Written into `AGENTS.md`.
+- Reconciliation is based on code presence in `web/src`, not on visual checks (those stay under `B37`).
+- CI was not awaited for PR #29 at the user's request; it passed afterwards.
 
 ## Where the work was left
 
-- Verified locally: `tsc --noEmit` in `web` and `server`, `web` build, 36 server tests that import frontend code, `web` tests (152 pass, 1 fail).
-- `web` test `localIntents.test.ts:6` fails (expects 6 categories, implementation has 9). Existed before this migration; tracked in `B23`.
-- Branch is not pushed and no PR is open yet. Full CI (`test-shared`, `test-server`, `build`) has not run on it.
-- Local servers on `:5174` and `:8080` were stopped for the move; restart with `npm run dev:web`.
+- `chore/reconcile-pending-front` has the test fix plus the status-file commits; not pushed, no PR yet.
+- The `submission` tag is not created: it needs an end-to-end check of the deployed app first.
