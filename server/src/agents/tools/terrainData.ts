@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { READY_TERRAIN, TERRAIN_HEIGHT_SHA256, TERRAIN_META_SHA256 } from "@th/shared";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -299,7 +301,9 @@ function loadTerrainFromDisk(): LoadedTerrain {
   if (!root) return buildSyntheticTerrain();
 
   try {
-    const metaRaw = JSON.parse(readFileSync(path.join(root, "terrain/meta.json"), "utf8")) as Partial<TerrainMeta>;
+    const metaBytes = readFileSync(path.join(root, "terrain/meta.json"));
+    if (createHash("sha256").update(metaBytes).digest("hex") !== TERRAIN_META_SHA256) throw new Error("Terrain metadata identity mismatch");
+    const metaRaw = JSON.parse(metaBytes.toString("utf8")) as Partial<TerrainMeta>;
     const sizeM = metaRaw.size_m ?? 4000;
     const heightPx = metaRaw.height_px ?? 2048;
     const zMin = metaRaw.z_min_m ?? -4520;
@@ -308,6 +312,7 @@ function loadTerrainFromDisk(): LoadedTerrain {
 
     const u16Buf = readFileSync(path.join(root, "terrain/height_2048.u16"));
     const expectedCount = heightPx * heightPx;
+    if (u16Buf.length !== expectedCount * 2 || createHash("sha256").update(u16Buf).digest("hex") !== TERRAIN_HEIGHT_SHA256) throw new Error("Terrain height identity mismatch");
     const heightsM = new Float32Array(expectedCount);
     const span = zMax - zMin;
     for (let i = 0; i < expectedCount && i * 2 + 1 < u16Buf.length; i++) {
@@ -443,6 +448,7 @@ function loadTerrainFromDisk(): LoadedTerrain {
 
 const state: LoadedTerrain = loadTerrainFromDisk();
 
+export const terrainIdentity = { ...READY_TERRAIN, status: state.meta.synthetic ? "error" as const : "ready" as const };
 export const meta: TerrainMeta = state.meta;
 export const grid: Grid = state.grid;
 
