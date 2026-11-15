@@ -46,6 +46,8 @@ export interface RescueRobotModel {
   /** Contact points in group-local coordinates for terrain placement. */
   contactPoints: { x: number; y: number; z: number }[];
   applyPose(pose: RescuePose): void;
+  /** Hides the procedural body and boom (a GLB provides them); the winch tether and hook stay. */
+  hideBody(): void;
   /** Tether tip (hook) in group-local coordinates. */
   hook: THREE.Object3D;
 }
@@ -90,6 +92,7 @@ export function buildRescueRobotModel(): RescueRobotModel {
   boomPivot.position.set(0, 0.7, -0.35);
   g.add(boomPivot);
   const BOOM_LEN = 1.4;
+  const bodyParts: THREE.Object3D[] = [...g.children];
   const boom = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, BOOM_LEN), accent);
   boom.position.z = -BOOM_LEN / 2;
   boom.castShadow = true;
@@ -127,7 +130,11 @@ export function buildRescueRobotModel(): RescueRobotModel {
 
   const contactPoints: { x: number; y: number; z: number }[] = [];
   for (const x of [-0.52, 0.52]) for (const z of [-0.7, 0, 0.7]) contactPoints.push({ x, y: 0, z });
-  return { group: g, contactPoints, applyPose, hook };
+  const hideBody = (): void => {
+    for (const p of bodyParts) p.visible = false;
+    boomPivot.visible = false;
+  };
+  return { group: g, contactPoints, applyPose, hook, hideBody };
 }
 
 /** Time-stepped skill sequencer that mirrors the `SkillRunner` pattern of the manipulator arm. */
