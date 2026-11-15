@@ -1,7 +1,13 @@
 import { formatCoordinates } from "../world/terrainValidation";
-import { fmt, getLang, LANG_NAME, LANGS, onLangChange, setLang, t } from "../core/i18n";
+import { ASR_LOCALE, fmt, getLang, LANG_NAME, LANGS, onLangChange, setLang, t } from "../core/i18n";
 import { C, leakTimeline } from "../core/physics";
 import type { AlertLevel, ArmSkillId, LayerId, PanelId } from "../core/types";
+import {
+  exportSessionJson,
+  exportSessionMarkdown,
+  type ChatSessionManager,
+  type SavedChatSession,
+} from "../data/sessionStore";
 import type { MissionStore } from "../state";
 import type { VoiceController } from "../voice/voiceController";
 import { BASE_MODULES } from "../world/baseProc";
@@ -18,6 +24,28 @@ export interface HudActions {
   recenterRemote(): void;
   setRemoteInvert(invX: boolean, invY: boolean): void;
   onToggleDeck(): void;
+  sessions?: ChatSessionManager;
+}
+
+function escapeHtml(raw: string): string {
+  return raw
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function downloadTextFile(filename: string, content: string, mimeType: string): void {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export class TacticalHud {
@@ -36,6 +64,8 @@ export class TacticalHud {
   private voiceInput!: HTMLInputElement;
   private invX = false;
   private invY = false;
+  private lastModalPanel: PanelId = "none";
+  private sessionsRenderKey = "";
 
   constructor(
     private store: MissionStore,
@@ -69,7 +99,12 @@ export class TacticalHud {
     this.buildBottomStatic();
 
     this.store.subscribe(() => this.renderDynamic());
+    this.actions.sessions?.subscribe(() => {
+      this.sessionsRenderKey = "";
+      this.renderDynamic();
+    });
     onLangChange(() => {
+      this.sessionsRenderKey = "";
       this.buildBottomStatic();
       this.renderDynamic();
     });
@@ -148,6 +183,7 @@ export class TacticalHud {
       { panel: "health", key: "menu.health" },
       { panel: "base", key: "menu.base" },
       { panel: "provenance", key: "menu.provenance" },
+      { panel: "sessions", key: "menu.sessions" },
     ];
     const menuHtml = menuItems
       .map(
@@ -190,6 +226,16 @@ export class TacticalHud {
         <input id="voice-input" type="text" placeholder="${t("voice.placeholder")}" />
         <button class="hud-btn" data-pointable id="btn-send">${t("voice.send")}</button>
         <span id="base-proc-badge" class="pill warn" style="display:none;">${t("voice.processing")}</span>
+      </div>
+
+      <div class="comms-bar">
+        <span id="comms-session-meta" class="comms-meta"></span>
+        <div class="btn-row">
+          <button class="hud-btn" data-pointable id="btn-session-new">${t("comms.new_session")}</button>
+          <button class="hud-btn" data-pointable id="btn-session-picker">${t("comms.sessions")}</button>
+          <button class="hud-btn" data-pointable id="btn-export-json">${t("comms.export_json")}</button>
+          <button class="hud-btn" data-pointable id="btn-export-md">${t("comms.export_md")}</button>
+        </div>
       </div>
 
       <div id="transcript-box" class="transcript-box"></div>
@@ -252,6 +298,53 @@ export class TacticalHud {
     this.voiceInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") sendOrder();
     });
+
+    document.getElementById("btn-session-new")!.addEventListener("click", () => {
+      this.actions.sessions?.newSession();
+    });
+    document.getElementById("btn-session-picker")!.addEventListener("click", () => {
+      this.roverModalOpen = false;
+      this.store.setPanel(this.store.panel === "sessions" ? "none" : "sessions");
+      void this.actions.sessions?.refreshList();
+    });
+    document.getElementById("btn-export-json")!.addEventListener("click", () => {
+      this.exportActiveSession("json");
+    });
+    document.getElementById("btn-export-md")!.addEventListener("click", () => {
+      this.exportActiveSession("md");
+    });
+  }
+
+  private exportActiveSession(format: "json" | "md"): void {
+    const active = this.actions.sessions?.getActiveSession() ?? this.buildFallbackSessionSnapshot();
+    if (format === "json") {
+      downloadTextFile(`${active.id}.json`, exportSessionJson(active), "application/json");
+    } else {
+      downloadTextFile(`${active.id}.md`, exportSessionMarkdown(active), "text/markdown");
+    }
+  }
+
+  private buildFallbackSessionSnapshot(): SavedChatSession {
+    const now = Date.now();
+    return {
+      id: `sess-${now}`,
+      title: "EVA session",
+      lang: getLang(),
+      scenario: this.store.activeScenario,
+      createdAt: now,
+      updatedAt: now,
+      entries: this.store.transcripts
+        .filter((tr) => tr.final)
+        .map((tr, idx) => ({
+          id: tr.id ?? `tx-${idx}`,
+          who: tr.who,
+          text: tr.text,
+          ts: tr.ts,
+          metS: tr.metS ?? Math.round(this.store.metS),
+          ...(tr.route?.length ? { route: tr.route } : {}),
+          ...(typeof tr.latencyMs === "number" ? { latencyMs: tr.latencyMs } : {}),
+        })),
+    };
   }
 
   renderDynamic(): void {
@@ -364,13 +457,24 @@ export class TacticalHud {
     const procBadge = document.getElementById("base-proc-badge");
     if (procBadge) procBadge.style.display = s.baseProcessing ? "inline-block" : "none";
 
+    const sessionMeta = document.getElementById("comms-session-meta");
+    if (sessionMeta) {
+      const active = this.actions.sessions?.getActiveSession();
+      if (active) {
+        const countLabel = t("comms.entries", { n: active.entries.length });
+        sessionMeta.textContent = `${active.title} · ${active.lang.toUpperCase()} · ${countLabel}`;
+      } else {
+        sessionMeta.textContent = "";
+      }
+    }
+
     const txBox = document.getElementById("transcript-box");
     if (txBox) {
       txBox.innerHTML = s.transcripts
         .slice(-4)
         .map(
           (tr) =>
-            `<div><b style="color:${tr.who === "you" ? "#ffb800" : "#35e0ff"}">${tr.who.toUpperCase()}:</b> ${tr.text}</div>`,
+            `<div><b style="color:${tr.who === "you" ? "#ffb800" : "#35e0ff"}">${tr.who.toUpperCase()}:</b> ${escapeHtml(tr.text)}</div>`,
         )
         .join("");
       txBox.scrollTop = txBox.scrollHeight;
@@ -388,6 +492,7 @@ export class TacticalHud {
   private renderModal(): void {
     const s = this.store;
     if (this.roverModalOpen) {
+      this.lastModalPanel = "none";
       this.modalEl.style.display = "block";
       this.modalEl.innerHTML = `
         <div class="panel-hdr">
@@ -418,6 +523,7 @@ export class TacticalHud {
     }
 
     if (s.panel === "none") {
+      this.lastModalPanel = "none";
       this.modalEl.style.display = "none";
       return;
     }
@@ -586,6 +692,123 @@ export class TacticalHud {
           <tbody>${rows}</tbody>
         </table>
       `;
+    } else if (s.panel === "sessions") {
+      const mgr = this.actions.sessions;
+      const active = mgr?.getActiveSession() ?? this.buildFallbackSessionSnapshot();
+      const saved = mgr?.getSessionsSnapshot() ?? [];
+      const activeLang = getLang();
+      const renderKey = [
+        activeLang,
+        active.id,
+        active.updatedAt,
+        active.entries.length,
+        saved.map((item) => `${item.id}:${item.updatedAt}:${item.entries.length}`).join(","),
+      ].join("|");
+
+      if (this.lastModalPanel === "sessions" && this.sessionsRenderKey === renderKey) {
+        return;
+      }
+      this.sessionsRenderKey = renderKey;
+      this.lastModalPanel = "sessions";
+
+      const langMismatchBanner =
+        active.entries.length > 0 && active.lang !== activeLang
+          ? `<div class="alert-banner" style="border-color:var(--warn); background:rgba(255,184,0,0.14); margin-bottom:8px;">${escapeHtml(t("comms.lang_mismatch", { lang: active.lang.toUpperCase() }))}</div>`
+          : "";
+
+      const entriesHtml =
+        active.entries.length === 0
+          ? `<div style="opacity:0.75;">${escapeHtml(t("comms.transcript_empty"))}</div>`
+          : active.entries
+              .map((e) => {
+                const badges: string[] = [`MET ${Math.round(e.metS)}s`];
+                if (e.route?.length) badges.push(escapeHtml(e.route.join("->")));
+                if (typeof e.latencyMs === "number") badges.push(`${Math.round(e.latencyMs)} ms`);
+                return `
+                  <div class="session-entry-row">
+                    <div>
+                      <b style="color:${e.who === "you" ? "#ffb800" : "#35e0ff"}">${e.who.toUpperCase()}</b>
+                      <span style="opacity:0.7; font-size:10px; margin-left:6px;">${badges.join(" · ")}</span>
+                    </div>
+                    <div>${escapeHtml(e.text)}</div>
+                  </div>
+                `;
+              })
+              .join("");
+
+      const savedHtml =
+        saved.length === 0
+          ? `<div style="opacity:0.75; font-size:11px;">${escapeHtml(t("comms.empty"))}</div>`
+          : saved
+              .map((sess) => {
+                const isActive = sess.id === active.id;
+                const dateStr = new Date(sess.updatedAt).toLocaleString(ASR_LOCALE[activeLang]);
+                return `
+                  <div class="session-card ${isActive ? "active" : ""}">
+                    <div>
+                      <div style="font-weight:700; color:#fff;">${escapeHtml(sess.title)}</div>
+                      <div class="session-card-meta">
+                        ${isActive ? `<span class="pill">${escapeHtml(t("comms.active"))}</span>` : ""}
+                        <span class="pill">${escapeHtml(sess.scenario.toUpperCase())}</span>
+                        <span class="pill">${escapeHtml(sess.lang.toUpperCase())}</span>
+                        <span>${escapeHtml(t("comms.entries", { n: sess.entries.length }))}</span>
+                        <span>· ${escapeHtml(dateStr)}</span>
+                      </div>
+                    </div>
+                    <div class="btn-row">
+                      <button class="hud-btn" data-pointable data-load-session="${escapeHtml(sess.id)}">${escapeHtml(t("comms.load"))}</button>
+                      <button class="hud-btn danger" data-pointable data-del-session="${escapeHtml(sess.id)}">${escapeHtml(t("comms.delete"))}</button>
+                    </div>
+                  </div>
+                `;
+              })
+              .join("");
+
+      this.modalEl.innerHTML = `
+        ${closeHdr(t("comms.title"))}
+        <div class="btn-row" style="justify-content:space-between; margin-bottom:8px;">
+          <div>
+            <b>${escapeHtml(active.title)}</b>
+            <span class="pill" style="margin-left:6px;">${escapeHtml(active.scenario.toUpperCase())}</span>
+            <span class="pill">${escapeHtml(active.lang.toUpperCase())}</span>
+          </div>
+          <div class="btn-row">
+            <button class="hud-btn" data-pointable id="modal-session-new">${escapeHtml(t("comms.new_session"))}</button>
+            <button class="hud-btn" data-pointable id="modal-export-json">${escapeHtml(t("comms.export_json"))}</button>
+            <button class="hud-btn" data-pointable id="modal-export-md">${escapeHtml(t("comms.export_md"))}</button>
+          </div>
+        </div>
+        ${langMismatchBanner}
+        <div class="session-entries">${entriesHtml}</div>
+        <div class="panel-hdr"><span>${escapeHtml(t("comms.saved_sessions", { n: saved.length }))}</span></div>
+        <div class="session-list">${savedHtml}</div>
+      `;
+
+      this.modalEl.querySelector("#modal-session-new")?.addEventListener("click", () => {
+        this.actions.sessions?.newSession();
+      });
+      this.modalEl.querySelector("#modal-export-json")?.addEventListener("click", () => {
+        this.exportActiveSession("json");
+      });
+      this.modalEl.querySelector("#modal-export-md")?.addEventListener("click", () => {
+        this.exportActiveSession("md");
+      });
+      this.modalEl.querySelectorAll<HTMLButtonElement>("[data-load-session]").forEach((b) => {
+        b.addEventListener("click", () => {
+          const id = b.dataset.loadSession;
+          if (id) void this.actions.sessions?.loadSession(id);
+        });
+      });
+      this.modalEl.querySelectorAll<HTMLButtonElement>("[data-del-session]").forEach((b) => {
+        b.addEventListener("click", () => {
+          const id = b.dataset.delSession;
+          if (id) void this.actions.sessions?.deleteSession(id);
+        });
+      });
+    }
+
+    if (s.panel !== "sessions") {
+      this.lastModalPanel = s.panel;
     }
 
     this.modalEl.querySelector("#modal-close")?.addEventListener("click", () => s.setPanel("none"));
