@@ -1,3 +1,4 @@
+import type { TerrainIdentity } from "../terrainContract.js";
 import type { Lang } from "../i18n/index.js";
 
 /** Fleet unit archetypes supported across terrain, flight, and manipulation tasks. */
@@ -73,6 +74,7 @@ export interface HudSnapshot {
  * on every `/api/agent/*` request. The browser remains the single source of truth.
  */
 export interface MissionContext {
+  terrain?: TerrainIdentity;
   lang: Lang;
   met_s: number;
   astronaut: AstronautSnapshot;

@@ -4,3 +4,5 @@ export * from "./i18n/index.js";
 export * from "./types/mission.js";
 export * from "./types/suit.js";
 export * from "./physics/index.js";
+
+export * from "./terrainContract.js";

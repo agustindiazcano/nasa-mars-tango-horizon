@@ -1,3 +1,4 @@
+import { terrainMatches, type TerrainIdentity } from "@th/shared";
 import { apiUrl } from "../api";
 import { ASR_LOCALE, getLang, onLangChange, t } from "../core/i18n";
 import { C } from "../core/physics";
@@ -117,13 +118,26 @@ export class VoiceController {
         }),
         signal: AbortSignal.timeout(70000),
       });
+      if (res.status === 409) {
+        this.lastReply = "Terrain unavailable or incompatible. Reload and verify server assets.";
+        this.store.pushAlert("crit", this.lastReply);
+        this.store.pushTranscript("base", this.lastReply, true);
+        return;
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const out = (await res.json()) as {
+        terrain?: TerrainIdentity;
         speech: string;
         actions?: Action[];
         trace?: TraceEvent[];
         route?: string[];
       };
+      if (!terrainMatches(out.terrain) || !terrainMatches(this.store.terrain)) {
+        this.lastReply = "Terrain identity missing or incompatible; agent result discarded.";
+        this.store.pushAlert("crit", this.lastReply);
+        this.store.pushTranscript("base", this.lastReply, true);
+        return;
+      }
       this.store.lastAgentLatencyMs = Math.round(performance.now() - reqStart);
       if (out.trace) this.store.setTrace(out.trace, out.route ?? []);
       if (out.actions?.length) this.store.applyActions(out.actions);

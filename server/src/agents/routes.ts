@@ -1,3 +1,5 @@
+import { terrainMatches } from "@th/shared";
+import { terrainIdentity } from "./tools/terrainData.js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { config } from "../config.js";
@@ -101,6 +103,7 @@ export function buildContext(raw: any, lang: Lang): MissionContext {
     return n === undefined ? {} : { [key]: n };
   };
   return {
+    terrain: terrainMatches(c.terrain) ? c.terrain : undefined,
     lang,
     met_s: num(c.met_s, 0),
     astronaut: {
@@ -144,25 +147,30 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
 
     const t0 = Date.now();
     const ctx = buildContext(b.data.context, b.data.lang);
+    if (!terrainMatches(ctx.terrain) || !terrainMatches(terrainIdentity)) {
+      return reply.code(409).send({ error: "terrain_mismatch", speech: "Terrain unavailable or incompatible. Reload the client and verify server assets.", actions: [], terrain: terrainIdentity });
+    }
+
+
 
     if (!llmAvailable()) {
       const res = await offlineReply(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, route: res.route, offline: true }, "/api/agent/voice");
-      return { ...res, offline: true, latency_ms };
+      return { terrain: terrainIdentity, ...res, offline: true, latency_ms };
     }
 
     try {
       const r = await handleVoice(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, route: r.route, offline: false }, "/api/agent/voice");
-      return { speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, route: r.route, offline: false, latency_ms };
+      return { terrain: terrainIdentity, speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, route: r.route, offline: false, latency_ms };
     } catch (err) {
       req.log.error(err);
       const res = await offlineReply(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
       req.log.warn({ latency_ms, route: res.route, offline: true }, "/api/agent/voice fell back to offline rules");
-      return { ...res, offline: true, latency_ms };
+      return { terrain: terrainIdentity, ...res, offline: true, latency_ms };
     }
   });
 
@@ -171,6 +179,11 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
     if (!b.success) return reply.code(400).send({ error: "bad request" });
 
     const ctx = buildContext(b.data.context, b.data.lang);
+    if (!terrainMatches(ctx.terrain) || !terrainMatches(terrainIdentity)) {
+      return reply.code(409).send({ error: "terrain_mismatch", speech: "Terrain unavailable or incompatible. Reload the client and verify server assets.", actions: [], terrain: terrainIdentity });
+    }
+
+
     const spec = getAgentSpec(b.data.agent, ctx);
     if (!spec) return reply.code(400).send({ error: "unknown agent" });
 
@@ -178,20 +191,20 @@ export async function registerAgentRoutes(app: FastifyInstance): Promise<void> {
     if (!llmAvailable()) {
       const res = await offlineReply(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
-      return { speech: res.speech, actions: res.actions, trace: res.trace, offline: true, latency_ms };
+      return { terrain: terrainIdentity, speech: res.speech, actions: res.actions, trace: res.trace, offline: true, latency_ms };
     }
 
     try {
       const r = await runAgent(spec, b.data.text, ctx);
       const latency_ms = Date.now() - t0;
       req.log.info({ latency_ms, agent: spec.name }, "/api/agent/run");
-      return { speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, offline: false, latency_ms };
+      return { terrain: terrainIdentity, speech: plainSpeech(r.text), actions: r.actions, trace: r.trace, offline: false, latency_ms };
     } catch (err) {
       req.log.error(err);
       const res = await offlineReply(b.data.text, ctx);
       const latency_ms = Date.now() - t0;
       req.log.warn({ latency_ms, agent: spec.name, offline: true }, "/api/agent/run fell back to offline rules");
-      return { speech: res.speech, actions: res.actions, trace: res.trace, offline: true, latency_ms };
+      return { terrain: terrainIdentity, speech: res.speech, actions: res.actions, trace: res.trace, offline: true, latency_ms };
     }
   });
 

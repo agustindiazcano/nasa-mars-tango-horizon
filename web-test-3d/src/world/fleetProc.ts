@@ -1,3 +1,4 @@
+import { groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "../core/physics";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "../core/types";
@@ -103,7 +104,7 @@ export class FleetUnit {
         this.lidarCone.visible = !this.grounded;
       }
     } else {
-      o.position.y = ground;
+
       // Pitch gently with terrain gradient
       const fwdX = Math.sin(o.rotation.y);
       const fwdZ = Math.cos(o.rotation.y);
@@ -111,9 +112,20 @@ export class FleetUnit {
       const hBehind = this.terrain.heightAt(o.position.x - fwdX * 1.2, o.position.z - fwdZ * 1.2);
       o.rotation.x = Math.atan2(hBehind - hAhead, 2.4) * 0.65;
 
+      this.placeOnGround();
       const wheelSpin = distMoved / 0.32;
       for (const w of this.wheels) w.rotation.x += wheelSpin;
     }
+  }
+
+  placeOnGround(): void {
+    const o = this.object;
+    const contacts = this.wheels.map(wheel => {
+      // Geometry radius is 0.32 m; retain each model's wheel track and wheelbase.
+      const center = wheel.position.clone().applyEuler(o.rotation);
+      return { x: center.x, y: center.y - 0.32, z: center.z };
+    });
+    o.position.y = groundPlacement((x, z) => this.terrain.heightAt(x, z), o.position.x, o.position.z, contacts).y;
   }
 
   snapshot(): UnitSnapshot {
@@ -489,6 +501,7 @@ export class FleetProc {
     label.scale.set(6.5, 1.25, 1);
     g.add(label);
 
+    if (!spec.flies) unit.placeOnGround();
     return unit;
   }
 

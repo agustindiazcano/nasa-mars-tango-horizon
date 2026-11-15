@@ -1,3 +1,4 @@
+import type { TerrainIdentity } from "@th/shared";
 import { ASR_LOCALE, getLang, type Lang } from "./core/i18n";
 import { C, directTransmission } from "./core/physics";
 import type {
@@ -35,6 +36,7 @@ export interface TranscriptLine {
 }
 
 export class MissionStore {
+  terrain?: TerrainIdentity;
   metS = 1420; // 00:23:40 into EVA
   simScale = 1;
   povMode: "1st" | "3rd" = "1st";
@@ -153,6 +155,7 @@ export class MissionStore {
   toContext(): MissionContext {
     const lang: Lang = getLang();
     return {
+      terrain: this.terrain,
       lang: ASR_LOCALE[lang],
       met_s: Math.round(this.metS),
       astronaut: {
