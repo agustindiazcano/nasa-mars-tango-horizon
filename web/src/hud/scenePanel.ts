@@ -18,7 +18,7 @@ function clock(s: number): string {
 /**
  * Panel to pick a recorded scene, play it, run the whole presentation and record it. It is standalone DOM
  * (not part of the HUD innerHTML) so HUD re-renders never reset it, and it fades out during a take when the HUD is hidden.
- * Links: `?present=1` opens the panel, `?autoplay=1` also starts the full presentation after loading.
+ * Key P toggles the panel. Links: `?present=1` opens the panel, `?autoplay=1` also starts the full presentation after loading.
  */
 export class ScenePanel {
   private root: HTMLElement;
@@ -41,6 +41,13 @@ export class ScenePanel {
     this.root.className = "scene-panel";
     parent.appendChild(this.root);
     this.root.addEventListener("click", (e) => this.onClick(e));
+    // P toggles the presentation panel (ignored while typing in a field or with a modifier key).
+    window.addEventListener("keydown", (e) => {
+      if (e.code !== "KeyP" || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      this.toggle();
+    });
     onLangChange(() => {
       this.lastKey = "";
       this.update();
