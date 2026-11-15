@@ -13,8 +13,30 @@ To drive decision-making without physical hallucinations, the system pairs a hie
 
 **Live Demo (3D Simulator):** [https://tangohorizon.vercel.app](https://tangohorizon.vercel.app) · **Showcase & Editorial Portal (`site/`):** [https://tangohorizon-site.vercel.app](https://tangohorizon-site.vercel.app)
 
+## Gallery
+
+Screenshots of the running simulator (Gale Crater, CONAE base, Starship site and the cooperative rescue scenario).
+
+| | |
+|---|---|
+| ![Aerial view of the CONAE base: modules, annexes, solar field and antennas](docs/media/base-aerial.jpg) | ![Starship at the launch pad on the real HiRISE terrain](docs/media/starship-pad.jpg) |
+| *Aerial view of the CONAE base: modules, annexes, solar field and antennas* | *Starship at the launch pad on the real HiRISE terrain* |
+| ![The Starship complex seen from the base](docs/media/starship-distance.jpg) | ![Animated astronaut walking to the immobilized rover, with the orchestrator chat](docs/media/astronauts-walking.jpg) |
+| *The Starship complex seen from the base* | *Animated astronaut walking to the immobilized rover, with the orchestrator chat* |
+| ![Casualty at the pit rim while the BASE agent narrates the rescue](docs/media/rescue-casualty-pit.jpg) | ![Rescue robot working inside the pit, seen from the rim, with agent chat](docs/media/rescue-robot-pit.jpg) |
+| *Casualty at the pit rim while the BASE agent narrates the rescue* | *Rescue robot working inside the pit, seen from the rim, with agent chat* |
+| ![The pit under the dust storm during departure](docs/media/rescue-storm-pit.jpg) | ![HUD: crew roster, life support and storm forecast with Go/No-Go verdict](docs/media/hud-crew-forecast.jpg) |
+| *The pit under the dust storm during departure* | *HUD: crew roster, life support and storm forecast with Go/No-Go verdict* |
+| ![NASA-style tactical map of Gale Crater with contours and fleet positions](docs/media/nasa-map.jpg) | ![Model lab: rescue robot with stretcher and manipulator arm](docs/media/model-lab-rescue-robot.jpg) |
+| *NASA-style tactical map of Gale Crater with contours and fleet positions* | *Model lab: rescue robot with stretcher and manipulator arm* |
+| ![Model lab: astronaut with CONAE shoulder patch](docs/media/model-lab-astronaut.jpg) | ![Model lab: pressurized rover](docs/media/model-lab-rover.jpg) |
+| *Model lab: astronaut with CONAE shoulder patch* | *Model lab: pressurized rover* |
+
+Interactive model lab: [https://tangohorizon.vercel.app/models.html](https://tangohorizon.vercel.app/models.html)
+
 ## Index
 
+- [Gallery](#gallery)
 - [Team: Tango Horizon (Buenos Aires, Argentina)](#team-tango-horizon-buenos-aires-argentina)
 - [Core Features & Operational Capabilities](#core-features--operational-capabilities)
 - [System Architecture & Multi-Agent Runtime](#system-architecture--multi-agent-runtime)

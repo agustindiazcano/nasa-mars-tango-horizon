@@ -13,8 +13,30 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
 
 **Demo en vivo (Simulador 3D):** [https://tangohorizon.vercel.app](https://tangohorizon.vercel.app) · **Portal Editorial y Showcase (`site/`):** [https://tangohorizon-site.vercel.app](https://tangohorizon-site.vercel.app)
 
+## Galería
+
+Capturas del simulador en funcionamiento (Gale Crater, base CONAE, sitio de la Starship y escenario de rescate cooperativo).
+
+| | |
+|---|---|
+| ![Vista aérea de la base CONAE: módulos, anexos, campo solar y antenas](docs/media/base-aerial.jpg) | ![Starship en la plataforma de lanzamiento sobre el terreno HiRISE real](docs/media/starship-pad.jpg) |
+| *Vista aérea de la base CONAE: módulos, anexos, campo solar y antenas* | *Starship en la plataforma de lanzamiento sobre el terreno HiRISE real* |
+| ![El complejo de la Starship visto desde la base](docs/media/starship-distance.jpg) | ![Astronauta animado caminando hacia el rover inmovilizado, con el chat del orquestador](docs/media/astronauts-walking.jpg) |
+| *El complejo de la Starship visto desde la base* | *Astronauta animado caminando hacia el rover inmovilizado, con el chat del orquestador* |
+| ![Astronauta herido junto al borde del pozo mientras el agente BASE narra el rescate](docs/media/rescue-casualty-pit.jpg) | ![Robot de rescate trabajando dentro del pozo, visto desde el borde, con el chat de agentes](docs/media/rescue-robot-pit.jpg) |
+| *Astronauta herido junto al borde del pozo mientras el agente BASE narra el rescate* | *Robot de rescate trabajando dentro del pozo, visto desde el borde, con el chat de agentes* |
+| ![El pozo bajo la tormenta de polvo durante la partida](docs/media/rescue-storm-pit.jpg) | ![HUD: nómina de la tripulación, soporte vital y pronóstico de tormenta con veredicto Go/No-Go](docs/media/hud-crew-forecast.jpg) |
+| *El pozo bajo la tormenta de polvo durante la partida* | *HUD: nómina de la tripulación, soporte vital y pronóstico de tormenta con veredicto Go/No-Go* |
+| ![Mapa táctico estilo NASA de Gale Crater con curvas de nivel y posiciones de la flota](docs/media/nasa-map.jpg) | ![Laboratorio de modelos: robot de rescate con camilla y brazo manipulador](docs/media/model-lab-rescue-robot.jpg) |
+| *Mapa táctico estilo NASA de Gale Crater con curvas de nivel y posiciones de la flota* | *Laboratorio de modelos: robot de rescate con camilla y brazo manipulador* |
+| ![Laboratorio de modelos: astronauta con parche CONAE en el hombro](docs/media/model-lab-astronaut.jpg) | ![Laboratorio de modelos: rover presurizado](docs/media/model-lab-rover.jpg) |
+| *Laboratorio de modelos: astronauta con parche CONAE en el hombro* | *Laboratorio de modelos: rover presurizado* |
+
+Laboratorio de modelos interactivo: [https://tangohorizon.vercel.app/models.html](https://tangohorizon.vercel.app/models.html)
+
 ## Índice
 
+- [Galería](#galería)
 - [Equipo: Tango Horizon (Buenos Aires, Argentina)](#equipo-tango-horizon-buenos-aires-argentina)
 - [Funcionalidades Principales y Capacidades Operativas](#funcionalidades-principales-y-capacidades-operativas)
 - [Arquitectura del Sistema y Runtime Multi-Agente](#arquitectura-del-sistema-y-runtime-multi-agente)
