@@ -1,7 +1,9 @@
 import {
+  CREW_ROSTER,
   MAX_FDIR_WINDOW_SAMPLES,
   terrainMatches,
   type CrewProfile,
+  type CrewSnapshot,
   type DonkiAlert,
   type EnvTelemetrySample,
   type FleetUnitHealth,
@@ -23,7 +25,6 @@ import { normalizeAudioBase64, transcribeAudioDetailed, transcribeAudioWithLLM }
 import { startMcpServers } from "./tools/mcp.js";
 import {
   normalizeLang,
-  type CrewSnapshot,
   type FleetUnitSnapshot,
   type Lang,
   type MissionContext,
@@ -180,24 +181,28 @@ function sanitizeFleet(raw: unknown): FleetUnitSnapshot[] {
   return out;
 }
 
-const MAX_CREW = 8;
-const CREW_STATUS = new Set(["active", "idle", "injured", "boarded"]);
+const CREW_STATUSES = new Set(["nominal", "incapacitated", "evacuating", "recovering"]);
+const CREW_LOCATIONS = new Set(["base", "traverse", "in_pit", "rescue_vehicle", "in_rover"]);
 
+/** Keeps only the four roster members; name and assignment always come from the roster, never from the client. */
 function sanitizeCrew(raw: unknown): CrewSnapshot[] {
   if (!Array.isArray(raw)) return [];
   const out: CrewSnapshot[] = [];
   for (const m of raw) {
-    if (out.length >= MAX_CREW) break;
     if (!m || typeof m !== "object") continue;
-    const { id, x, z, status, in_pit } = m as Record<string, unknown>;
-    if (typeof id !== "string" || !/^crew-\d{1,2}$/.test(id)) continue;
+    const { id, x, z, status, location, unit_id } = m as Record<string, unknown>;
+    const member = typeof id === "string" ? CREW_ROSTER.find((c) => c.id === id) : undefined;
+    if (!member || out.some((c) => c.id === member.id)) continue;
     if (!isNum(x) || !isNum(z)) continue;
     out.push({
-      id,
+      id: member.id,
+      name: member.name,
+      assignment: member.assignment,
       x,
       z,
-      status: typeof status === "string" && CREW_STATUS.has(status) ? (status as CrewSnapshot["status"]) : "active",
-      ...(in_pit === true ? { in_pit: true } : {}),
+      location: typeof location === "string" && CREW_LOCATIONS.has(location) ? (location as CrewSnapshot["location"]) : "base",
+      status: typeof status === "string" && CREW_STATUSES.has(status) ? (status as CrewSnapshot["status"]) : "nominal",
+      ...(typeof unit_id === "string" && unit_id.length <= 40 ? { unit_id } : {}),
     });
   }
   return out;

@@ -6,13 +6,18 @@ vi.mock("../../llm/provider.js", () => ({
   chat: vi.fn(),
 }));
 
-import { RESCUE_SITE } from "@th/shared";
+import { CREW_ROSTER, RESCUE_SITE, type CrewLocation, type CrewSnapshot, type CrewStatus } from "@th/shared";
 import { review, ruleCheck } from "../guardian.js";
 import { buildContext } from "../routes.js";
 import { TOOLS } from "../tools/registry.js";
 import { DRONE_CREW_STANDOFF_M } from "../unitCapabilities.js";
 
 const P = RESCUE_SITE;
+
+function member(id: string, x: number, z: number, location: CrewLocation, status: CrewStatus = "nominal", unit_id?: string): CrewSnapshot {
+  const m = CREW_ROSTER.find((c) => c.id === id)!;
+  return { id: m.id, name: m.name, assignment: m.assignment, x, z, location, status, ...(unit_id ? { unit_id } : {}) };
+}
 
 function makeContext(overrides: Partial<MissionContext> = {}): MissionContext {
   return {
@@ -24,10 +29,10 @@ function makeContext(overrides: Partial<MissionContext> = {}): MissionContext {
     env: { pressure_pa: 750, air_temp_k: 220, tau: 0.5, wind_ms: 6, dose_rate_ugy_h: 10 },
     rescue_active: true,
     crew: [
-      { id: "crew-1", x: 218, z: -470, status: "active" },
-      { id: "crew-2", x: P.x + 5, z: P.z - 3, status: "active" },
-      { id: "crew-3", x: P.x + 0.7, z: P.z + 0.7, status: "injured", in_pit: true },
-      { id: "crew-4", x: 218, z: -488, status: "idle" },
+      member("crew-1", 218, -470, "base"),
+      member("crew-2", P.x + 5, P.z - 3, "traverse"),
+      member("crew-3", P.x + 0.7, P.z + 0.7, "in_pit", "incapacitated"),
+      member("crew-4", 218, -488, "base"),
     ],
     fleet: [
       { id: "rescue-1", kind: "rescue", x: P.x - 13, z: P.z - 12, battery: 0.9, busy: false },
@@ -48,7 +53,7 @@ describe("GUARDIAN drone standoff rule (rescue scenario)", () => {
     const ctx = makeContext();
     const near = ruleCheck(act("dispatch", { unit_id: "drone-1", x: P.x + 5 + 10, z: P.z - 3, task: "goto" }), ctx);
     expect(near?.decision).toBe("deny");
-    expect(near?.reason).toMatch(/crew-2.*standoff is 25 m/);
+    expect(near?.reason).toMatch(/SOTELO.*standoff is 25 m/);
     const onTop = ruleCheck(act("dispatch", { unit_id: "drone-1", x: P.x, z: P.z, task: "goto" }), ctx);
     expect(onTop?.decision).toBe("deny");
   });
@@ -89,7 +94,7 @@ describe("dispatch_overwatch tool and rule", () => {
     for (const a of [a1, a2]) {
       for (const c of ctx.crew!) {
         const d = Math.hypot((a.args.x as number) - c.x, (a.args.z as number) - c.z);
-        expect(d, `${a.args.unit_id} vs ${c.id}`).toBeGreaterThanOrEqual(DRONE_CREW_STANDOFF_M);
+        expect(d, `${a.args.unit_id} vs ${c.name}`).toBeGreaterThanOrEqual(DRONE_CREW_STANDOFF_M);
       }
       expect(ruleCheck(a, ctx)?.decision).not.toBe("deny");
     }
@@ -125,18 +130,30 @@ describe("dispatch_overwatch tool and rule", () => {
 });
 
 describe("get_crew_status and deploy_rescue_robot", () => {
-  it("lists crew with status and the nearest unit", async () => {
-    const ctx = makeContext();
-    const out = (await tool("get_crew_status").run({ crew_id: "crew-3" }, ctx, "BASE")) as {
-      rescue_active: boolean;
-      crew: { id: string; status: string; in_pit: boolean; nearest_unit?: string }[];
-    };
-    expect(out.rescue_active).toBe(true);
+  type Row = { name: string; assignment: string; location: string; status: string; distance_to_base_m: number; rides_in?: string };
+  const run = async (args: Record<string, unknown>, ctx = makeContext()) =>
+    (await tool("get_crew_status").run({ where: "all", ...args }, ctx, "BASE")) as { count: number; crew: Row[]; error?: string };
+
+  it("finds one member by any spelling and reports location, status and distance to base", async () => {
+    const out = await run({ name: "yaconis" });
     expect(out.crew).toHaveLength(1);
-    expect(out.crew[0]).toMatchObject({ id: "crew-3", status: "injured", in_pit: true });
-    expect(out.crew[0].nearest_unit).toBeTruthy();
-    const all = (await tool("get_crew_status").run({}, ctx, "BASE")) as { crew: unknown[] };
-    expect(all.crew).toHaveLength(4);
+    expect(out.crew[0]).toMatchObject({ name: "YACONIS", assignment: "science_expedition", location: "in_pit", status: "incapacitated" });
+    expect(out.crew[0].distance_to_base_m).toBeGreaterThan(1000);
+    expect((await run({ name: "Díaz Cano" })).crew[0].name).toBe("DIAZ-CANO");
+    expect((await run({ name: "crew-2" })).crew[0].name).toBe("SOTELO");
+  });
+
+  it("filters by base and expedition", async () => {
+    const ctx = makeContext();
+    expect((await run({ where: "base" }, ctx)).crew.map((c) => c.name)).toEqual(["DIAZ-CANO", "SALERNO"]);
+    expect((await run({ where: "expedition" }, ctx)).crew.map((c) => c.name)).toEqual(["SOTELO", "YACONIS"]);
+    expect((await run({}, ctx)).count).toBe(4);
+  });
+
+  it("reports the vehicle a member rides in and rejects unknown names", async () => {
+    const ctx = makeContext({ crew: [member("crew-3", 5, 5, "rescue_vehicle", "evacuating", "rescue-1")] });
+    expect((await run({ name: "YACONIS" }, ctx)).crew[0]).toMatchObject({ rides_in: "rescue-1", status: "evacuating" });
+    expect((await run({ name: "Smith" })).error).toMatch(/Unknown crew member/);
   });
 
   it("asks the human before the robot approaches the casualty", async () => {
@@ -146,7 +163,7 @@ describe("get_crew_status and deploy_rescue_robot", () => {
     expect(proposed.args).toMatchObject({ carrier_id: "rescue-1", target_id: "crew-3" });
     const v = ruleCheck(proposed, ctx);
     expect(v?.decision).toBe("ask_human");
-    expect(v?.reason).toMatch(/in pit/);
+    expect(v?.reason).toMatch(/YACONIS.*incapacitated, in_pit/);
   });
 
   it("denies a missing casualty, a wrong unit kind and a carrier that is too far", async () => {
@@ -164,15 +181,16 @@ describe("get_crew_status and deploy_rescue_robot", () => {
 });
 
 describe("buildContext crew sanitizing", () => {
-  it("keeps valid crew entries and the rescue flag, drops malformed ones", () => {
+  it("keeps roster members, takes name and assignment from the roster, drops malformed entries", () => {
     const ctx = buildContext(
       {
         crew: [
-          { id: "crew-1", x: 1, z: 2, status: "active" },
-          { id: "crew-3", x: 5, z: 6, status: "injured", in_pit: true },
+          { id: "crew-1", name: "HACKED", x: 1, z: 2, location: "base", status: "nominal" },
+          { id: "crew-3", x: 5, z: 6, status: "incapacitated", location: "in_pit" },
           { id: "evil", x: 1, z: 1 },
           { id: "crew-2", x: "NaN", z: 1 },
-          { id: "crew-4", x: 3, z: 4, status: "bogus" },
+          { id: "crew-4", x: 3, z: 4, status: "bogus", location: "moon", unit_id: "rover-1" },
+          { id: "crew-4", x: 9, z: 9 },
         ],
         rescue_active: true,
       },
@@ -180,9 +198,9 @@ describe("buildContext crew sanitizing", () => {
     );
     expect(ctx.rescue_active).toBe(true);
     expect(ctx.crew).toEqual([
-      { id: "crew-1", x: 1, z: 2, status: "active" },
-      { id: "crew-3", x: 5, z: 6, status: "injured", in_pit: true },
-      { id: "crew-4", x: 3, z: 4, status: "active" },
+      { id: "crew-1", name: "DIAZ-CANO", assignment: "base", x: 1, z: 2, location: "base", status: "nominal" },
+      { id: "crew-3", name: "YACONIS", assignment: "science_expedition", x: 5, z: 6, location: "in_pit", status: "incapacitated" },
+      { id: "crew-4", name: "SALERNO", assignment: "base", x: 3, z: 4, location: "base", status: "nominal", unit_id: "rover-1" },
     ]);
   });
 });

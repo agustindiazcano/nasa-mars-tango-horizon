@@ -16,7 +16,9 @@ import {
   decide,
   directTransmission,
   ENV_LIMITS,
+  CREW_ROSTER,
   evaluateComponentHealth,
+  findCrew,
   evaluateCrewBiomed,
   LAUNCHER_PRIMARY_COORD,
   leakTimeline,
@@ -704,28 +706,36 @@ export const TOOLS: ToolDef[] = [
     server: "fleet",
     effect: false,
     schema: z.object({
-      crew_id: z.string().optional().describe("Optional crew id ('crew-1'..'crew-4'); omit to list the whole crew"),
+      name: z
+        .string()
+        .optional()
+        .describe("Optional crew callsign or id in any spelling ('Sotelo', 'díaz cano', 'crew-3'); omit to list everyone"),
+      where: z
+        .enum(["base", "expedition", "all"])
+        .default("all")
+        .describe("base = currently at the base; expedition = assigned to the science expedition; all = everyone"),
     }),
     description:
-      "Position, status (active|idle|injured|boarded), pit flag, terrain slope and distance to the nearest fleet unit for each crew member (crew-1 is the player astronaut).",
+      "The four astronauts by callsign (DIAZ-CANO, SALERNO, SOTELO, YACONIS): assignment (base | science_expedition), location (base | traverse | in_pit | rescue_vehicle | in_rover), status (nominal | incapacitated | evacuating | recovering), x, z, distance to the base, the fleet unit each rides in, and terrain slope. Always refer to people by callsign.",
     run: (a, ctx) => {
+      const asked = a.name ? findCrew(a.name) : null;
+      if (a.name && !asked) return { error: `Unknown crew member "${a.name}"`, roster: CREW_ROSTER.map((m) => m.name) };
       const rows = crewOf(ctx)
-        .filter((c) => !a.crew_id || c.id === a.crew_id)
-        .map((c) => {
-          const nearest = ctx.fleet
-            .map((u) => ({ id: u.id, d: Math.hypot(u.x - c.x, u.z - c.z) }))
-            .sort((p, q) => p.d - q.d)[0];
-          return {
-            id: c.id,
-            x: Number(c.x.toFixed(1)),
-            z: Number(c.z.toFixed(1)),
-            status: c.status,
-            in_pit: c.in_pit === true,
-            slope_deg: slopeAt(c.x, c.z),
-            ...(nearest ? { nearest_unit: nearest.id, nearest_unit_distance_m: Number(nearest.d.toFixed(1)) } : {}),
-          };
-        });
-      return { rescue_active: ctx.rescue_active === true, crew: rows };
+        .filter((c) => !asked || c.id === asked.id)
+        .filter((c) => (a.where === "base" ? c.location === "base" : a.where === "expedition" ? c.assignment === "science_expedition" : true))
+        .map((c) => ({
+          name: c.name,
+          id: c.id,
+          assignment: c.assignment,
+          location: c.location,
+          status: c.status,
+          x: Number(c.x.toFixed(1)),
+          z: Number(c.z.toFixed(1)),
+          distance_to_base_m: Number(Math.hypot(c.x - BASE_ORIGIN.x, c.z - BASE_ORIGIN.z).toFixed(1)),
+          ...(c.unit_id ? { rides_in: c.unit_id } : {}),
+          slope_deg: slopeAt(c.x, c.z),
+        }));
+      return { rescue_active: ctx.rescue_active === true, count: rows.length, crew: rows };
     },
   }),
   def({
@@ -734,7 +744,7 @@ export const TOOLS: ToolDef[] = [
     effect: true,
     schema: z.object({
       unit_id: z.string().default("drone-1").describe("Drone unit id ('drone-1' or 'drone-2')"),
-      target_id: z.string().optional().describe("Crew id to watch (e.g. 'crew-3'); the drone orbits it, never on top of it"),
+      target_id: z.string().optional().describe("Crew callsign or id to watch (e.g. 'YACONIS'); the drone orbits it, never on top of it"),
       x: z.number().optional().describe("Orbit center X when no target_id is given"),
       z: z.number().optional().describe("Orbit center Z when no target_id is given"),
       radius_m: z
@@ -753,7 +763,8 @@ export const TOOLS: ToolDef[] = [
     description: `Sends an overwatch drone to orbit a crew member or a point at ${OVERWATCH_RADIUS_MIN_M}-${OVERWATCH_RADIUS_MAX_M} m radius and ${OVERWATCH_ALT_MIN_M}-${OVERWATCH_ALT_MAX_M} m altitude, always at least ${DRONE_CREW_STANDOFF_M} m horizontally from every crew member; drone-1 and drone-2 take opposite sides. The tool picks the orbit entry waypoint; GUARDIAN re-checks it.`,
     run: (a, ctx, caller) => {
       const crew = crewOf(ctx);
-      const target = a.target_id ? crew.find((c) => c.id === a.target_id) : undefined;
+      const targetId = a.target_id ? findCrew(a.target_id)?.id : undefined;
+      const target = targetId ? crew.find((c) => c.id === targetId) : undefined;
       const cx = target?.x ?? a.x ?? ctx.astronaut.x;
       const cz = target?.z ?? a.z ?? ctx.astronaut.z;
       const baseBearing = a.unit_id === "drone-2" ? 180 : 0;
@@ -771,7 +782,7 @@ export const TOOLS: ToolDef[] = [
         type: "dispatch_overwatch",
         args: {
           unit_id: a.unit_id,
-          ...(a.target_id ? { target_id: a.target_id } : {}),
+          ...(target ? { target_id: target.id, target_name: target.name } : {}),
           center_x: Number(cx.toFixed(1)),
           center_z: Number(cz.toFixed(1)),
           radius_m: a.radius_m,
@@ -791,18 +802,20 @@ export const TOOLS: ToolDef[] = [
     effect: true,
     schema: z.object({
       unit_id: z.string().default("rescue-bot-1").describe("Rescue robot unit id"),
-      target_id: z.string().default("crew-3").describe("Crew id of the casualty"),
+      target_id: z.string().default("YACONIS").describe("Callsign or id of the casualty"),
     }),
     description:
       "Deploys the rescue robot from its carrier rescue-1 to the casualty (winch arm, tether and stretcher). GUARDIAN requires the carrier within 40 m of the casualty and human confirmation before the robot approaches an injured crew member.",
     run: (a, ctx, caller) => {
-      const target = crewOf(ctx).find((c) => c.id === a.target_id);
+      const member = findCrew(a.target_id);
+      const target = member ? crewOf(ctx).find((c) => c.id === member.id) : undefined;
       return {
         type: "deploy_rescue_robot",
         args: {
           unit_id: a.unit_id,
           carrier_id: "rescue-1",
-          target_id: a.target_id,
+          target_id: member?.id ?? a.target_id,
+          ...(member ? { target_name: member.name } : {}),
           ...(target ? { x: Number(target.x.toFixed(1)), z: Number(target.z.toFixed(1)) } : {}),
         },
         proposedBy: caller,

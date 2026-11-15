@@ -1,5 +1,6 @@
 import type {
   CrewProfile,
+  CrewSnapshot,
   DonkiAlert,
   EnvTelemetrySample,
   FleetUnitHealth,
@@ -10,6 +11,8 @@ import type {
   VitalsSample,
 } from "@th/shared";
 import type { z } from "zod";
+
+export type { CrewSnapshot };
 
 export type Lang = "en" | "es" | "fr" | "de" | "it";
 
@@ -49,14 +52,6 @@ export interface FleetUnitSnapshot {
   z: number;
   battery: number;
   busy: boolean;
-}
-
-export interface CrewSnapshot {
-  id: string;
-  x: number;
-  z: number;
-  status: "active" | "idle" | "injured" | "boarded";
-  in_pit?: boolean;
 }
 
 export interface VisionTargetMarker {

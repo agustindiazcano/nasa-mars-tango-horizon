@@ -263,8 +263,9 @@ export function formatBaseInput(text: string, ctx: MissionContext): string {
   const targets = ctx.targets?.length
     ? ctx.targets.map((t) => `${t.id}(${t.kind},${t.distance_m}m)`).join(", ")
     : "none";
+  const crewTag = ctx.crew?.length ? `; crew=${ctx.crew.map((c) => `${c.name}(${c.location},${c.status})`).join(", ")}` : "";
   const sepTag = ctx.donki_alert?.active_sep ? ", donki_sep=active" : "";
-  return `${text}\n[Mission snapshot: fleet=${fleet}; targets=${targets}; env tau=${ctx.env.tau}, wind_ms=${ctx.env.wind_ms}, dose_ugy_h=${ctx.env.dose_rate_ugy_h}${sepTag}]`;
+  return `${text}\n[Mission snapshot: fleet=${fleet}; targets=${targets}${crewTag}; env tau=${ctx.env.tau}, wind_ms=${ctx.env.wind_ms}, dose_ugy_h=${ctx.env.dose_rate_ugy_h}${sepTag}]`;
 }
 
 /** True when a leak is active, no pod is on the way yet and the agent reply has no launch_pod: run the deterministic protocol. */

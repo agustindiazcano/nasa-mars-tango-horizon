@@ -1,3 +1,4 @@
+import { CREW_ROSTER } from "@th/shared";
 import type { CrewSnapshot, MissionContext } from "./types.js";
 
 /** Overwatch drones hold at least this horizontal distance from every crew member (design assumption). */
@@ -13,7 +14,38 @@ export const RESCUE_ROBOT_MAX_CARRIER_DIST_M = 40;
 /** Crew positions from the snapshot; falls back to the astronaut as `crew-1` when the client sent none. */
 export function crewOf(ctx: MissionContext): CrewSnapshot[] {
   if (ctx.crew?.length) return ctx.crew;
-  return [{ id: "crew-1", x: ctx.astronaut.x, z: ctx.astronaut.z, status: "active" }];
+  return [
+    {
+      id: "crew-1",
+      name: "DIAZ-CANO",
+      assignment: "base",
+      x: ctx.astronaut.x,
+      z: ctx.astronaut.z,
+      location: "base",
+      status: "nominal",
+    },
+  ];
+}
+
+const CREW_ROLE: Record<string, string> = {
+  "crew.role.eva_lead": "EVA lead, player astronaut",
+  "crew.role.base_ops": "base operations",
+  "crew.role.driver": "expedition driver",
+  "crew.role.geologist": "expedition geologist",
+};
+
+/**
+ * Roster block for every agent system prompt: the four astronauts by callsign with their live location and status.
+ * Agents and spoken replies must name people by callsign, never as "crew-3" or "astronaut 3".
+ */
+export function crewBrief(ctx?: MissionContext): string {
+  const live = new Map((ctx?.crew ?? []).map((c) => [c.id, c]));
+  const people = CREW_ROSTER.map((m) => {
+    const c = live.get(m.id);
+    const now = c ? `, now ${c.location}, ${c.status}` : "";
+    return `${m.name} (${CREW_ROLE[m.roleKey] ?? m.roleKey}; assigned to ${m.assignment === "base" ? "the base" : "the science expedition"}${now})`;
+  });
+  return `Crew in operation: ${people.join("; ")}. Refer to people by callsign only (DIAZ-CANO, SALERNO, SOTELO, YACONIS), never by index or "crew-N". Use get_crew_status for live positions.`;
 }
 
 /**

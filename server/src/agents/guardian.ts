@@ -1,4 +1,4 @@
-import { computeEnvGradients, ENV_LIMITS, evaluateComponentHealth, surfaceDensity } from "@th/shared";
+import { computeEnvGradients, findCrew, ENV_LIMITS, evaluateComponentHealth, surfaceDensity } from "@th/shared";
 import { z } from "zod";
 import { chat, llmAvailable } from "../llm/provider.js";
 import { slopeAt } from "./tools/terrainData.js";
@@ -60,11 +60,13 @@ function aircraftDeny(unit: { id: string; kind: string; battery: number }, what:
 
 /** Deny reason when a drone waypoint lies within the standoff radius of any crew member, else null. */
 function crewStandoffDeny(x: number, z: number, ctx: MissionContext): string | null {
+  let nearest: { name: string; d: number } | null = null;
   for (const c of crewOf(ctx)) {
     const d = Math.hypot(x - c.x, z - c.z);
-    if (d < DRONE_CREW_STANDOFF_M) {
-      return `Drone waypoint (${Math.round(x)}, ${Math.round(z)}) is ${d.toFixed(0)} m from ${c.id}; overwatch standoff is ${DRONE_CREW_STANDOFF_M} m`;
-    }
+    if (!nearest || d < nearest.d) nearest = { name: c.name, d };
+  }
+  if (nearest && nearest.d < DRONE_CREW_STANDOFF_M) {
+    return `Drone waypoint (${Math.round(x)}, ${Math.round(z)}) is ${nearest.d.toFixed(0)} m from ${nearest.name}; overwatch standoff is ${DRONE_CREW_STANDOFF_M} m`;
   }
   return null;
 }
@@ -262,7 +264,7 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
       // Closest approach of the orbit circle to a crew member is | distance to center - radius |.
       const gap = Math.abs(Math.hypot(c.x - center_x, c.z - center_z) - radius_m);
       if (gap < DRONE_CREW_STANDOFF_M) {
-        return deny(`Orbit passes ${gap.toFixed(0)} m from ${c.id}; overwatch standoff is ${DRONE_CREW_STANDOFF_M} m`);
+        return deny(`Orbit passes ${gap.toFixed(0)} m from ${c.name}; overwatch standoff is ${DRONE_CREW_STANDOFF_M} m`);
       }
     }
   }
@@ -281,18 +283,19 @@ export function ruleCheck(a: Action, ctx: MissionContext): Verdict | null {
     if (unit.battery < 0.1) return deny(`Battery of ${unit_id} is below 10%`);
     const mobFault = fleetMobilityFaultDeny(unit_id, ctx);
     if (mobFault) return deny(mobFault);
-    const casualty = ctx.crew?.find((c) => c.id === target_id);
+    const member = findCrew(String(target_id ?? ""));
+    const casualty = member ? ctx.crew?.find((c) => c.id === member.id) : undefined;
     if (!casualty || !Number.isFinite(x) || !Number.isFinite(z)) return deny(`Crew member ${target_id} not found`);
-    if (casualty.status === "boarded") return deny(`${target_id} is already aboard`);
+    if (casualty.location === "rescue_vehicle") return deny(`${casualty.name} is already aboard`);
     const carrier = ctx.fleet.find((u) => u.id === (carrier_id ?? "rescue-1"));
     if (!carrier) return deny(`Carrier ${carrier_id ?? "rescue-1"} does not exist`);
     const dCarrier = Math.hypot(carrier.x - casualty.x, carrier.z - casualty.z);
     if (dCarrier > RESCUE_ROBOT_MAX_CARRIER_DIST_M) {
-      return deny(`${carrier.id} is ${dCarrier.toFixed(0)} m from ${target_id}; the robot deploys within ${RESCUE_ROBOT_MAX_CARRIER_DIST_M} m`);
+      return deny(`${carrier.id} is ${dCarrier.toFixed(0)} m from ${casualty.name}; the robot deploys within ${RESCUE_ROBOT_MAX_CARRIER_DIST_M} m`);
     }
     return {
       decision: "ask_human",
-      reason: `Rescue robot ${unit_id} will approach ${target_id} (${casualty.status}${casualty.in_pit ? ", in pit" : ""}); crew confirmation required`,
+      reason: `Rescue robot ${unit_id} will approach ${casualty.name} (${casualty.status}, ${casualty.location}); crew confirmation required`,
       by: "rules",
     };
   }
