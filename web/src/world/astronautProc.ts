@@ -10,8 +10,9 @@ export class AstronautProc {
   readonly group = new THREE.Group();
   readonly helmetCamera = new THREE.PerspectiveCamera(62, 512 / 384, 0.25, 2500);
   readonly pos = new THREE.Vector3(ASTRONAUT_START.x, 0, ASTRONAUT_START.z);
-  yaw = 0.65;
-  pitch = -0.04;
+  /** Faces the main complex with the launch pad skyline to its right (see `ASTRONAUT_START`). */
+  yaw = -0.95;
+  pitch = 0.04;
   speed = 0;
   gradePct = 0;
   povMode: PovMode = "1st";
