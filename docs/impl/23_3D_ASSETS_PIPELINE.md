@@ -4,13 +4,14 @@
 
 **Read first:** `AGENTS.md`, `docs/impl/22_RESCUE_SCENARIO_AND_BASE_REVISION.md` (section 2 lists the models the rescue scenario waits for), `web/src/world/nasaModels.ts` (GLB loader with Draco).
 
-## 1. What was delivered (`3d-mars-assets/`, 920 MB, 17 files)
+## 1. What was delivered (`3d-mars-assets/`, 19 files)
 
 | File | Size | Triangles | Notes |
 |---|---|---|---|
 | `astronaut-animated.glb` | 22 MB | 38.8 k | Skinned, 66 joints, 8 clips: `Running`, `Walking`, `Dead`, `Fall_Dead_from_Abdominal_Injury`, `Idle_11`, `Sit_and_Doze_Off`, `Step_to_Sit_Transition`, `walking_2_inplace`. Textures are 15 MB of PNG. Height 1.7 m, origin at the feet. For the simulator. |
 | `astronaut.glb` | 40 MB | 1.06 M | Single rigid mesh, no skeleton. Bounding box centered at the origin (1.9 m tall). For close-ups. |
 | `antenna`, `solar-panel`, `building-1..3`, `building-connector`, `rocket`, `rover-1`, `rover-2`, `rescue-rover`, `rescue-robot-astronaut`, `asset-1..4` | 58 to 65 MB each | 1.86 to 1.99 M each | One mesh and three small JPEG textures each. The weight is geometry, not textures. `asset-1..4` have unknown content and must be identified by rendering. |
+| `rescue-robot-without-astronaut`, `conae-base-mars` | 58 to 59 MB | 1.9 M each | Added after the first delivery: the rescue robot without its passenger, and a whole compact base complex seen from above (hero asset, bbox about 0.98 x 0.26 x 0.92). |
 
 Raw files stay out of git (920 MB): `/3d-mars-assets/` is ignored. Only optimized outputs are committed.
 
@@ -20,6 +21,7 @@ Raw files stay out of git (920 MB): `/3d-mars-assets/` is ignored. Only optimize
 |---|---|---|---|
 | Props, vehicles, buildings | 25 to 50 k (hero pieces such as `rocket` up to 80 k) | 2 MB each (hero 3 MB) | 1024 px WebP (hero 2048 px) |
 | Animated astronaut | keep 38.8 k, keep skin and clips | 4 MB | 1024 px WebP, no PNG |
+| Base complex `conae-base-mars` (hero) | 100 k | 4 MB | 2048 px WebP |
 | Rigid astronaut (close-up) | 80 to 120 k | 5 MB | 2048 px WebP |
 | All new models together | | 30 MB | |
 
@@ -61,4 +63,13 @@ Not part of this task, to avoid conflicts with the rescue implementation (`crewP
 - The model lab opens every model without console errors; the animated astronaut plays all 8 clips.
 - The rigid astronaut animates procedurally in the lab without visible tearing at the main joints, or the fallback is documented.
 - `tsc --noEmit`, unit tests for the pure helpers and the `web` build pass; the simulator still loads (no regression in the existing GLB loading).
-- Provenance: each model recorded in `web/public/data/provenance.json` as supplied by the team (licence and original generator to be confirmed by the team).
+- Provenance: each model recorded in `web/public/data/provenance.json` with `"license": "Created by the project owner; all rights held by the owner; personal use"`. All models were created by the project owner, so no third-party attribution is added.
+
+## 8. Running the optimizer
+
+```
+cd tools/assets && npm install
+node --max-old-space-size=8000 optimize.mjs [inputDir] [outputDir] [model ...]
+```
+
+`inputDir` defaults to `$TH_RAW_ASSETS_DIR`, then `../../3d-mars-assets`; `outputDir` defaults to `web/public/models`. Naming models re-runs only those and merges them into `manifest.json`. Simplification uses the meshoptimizer attribute-aware simplifier with the `Permissive` flag: without it the scans stall at about 2x the target because every UV seam locks its vertices.

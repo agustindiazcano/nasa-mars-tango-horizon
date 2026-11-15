@@ -496,5 +496,252 @@
     "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%202020%20Perseverance%20Rover/Mars%202020%20Perseverance%20Rover.glb",
     "transform": "Copied binary glTF (.glb) asset from NASA-3D-Resources repository without geometry modification",
     "retrieved": "2026-11-14"
+  },
+  "models/antenna.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "antenna",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,904,556 to 40,000 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/asset-1.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "asset-1",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,881,282 to 39,970 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/asset-2.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "asset-2",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,930,571 to 39,990 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/asset-3.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "asset-3",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,988,753 to 40,000 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/asset-4.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "asset-4",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,895,153 to 39,998 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/astronaut.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "astronaut",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,063,480 to 99,984 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/astronaut-animated.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "astronaut-animated",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Geometry, skin and 8 animation clips kept as supplied; textures re-encoded to 1024 px WebP, meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/building-1.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "building-1",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,940,646 to 39,958 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/building-2.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "building-2",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,954,555 to 39,998 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/building-3.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "building-3",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,894,759 to 39,992 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/building-connector.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "building-connector",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,932,725 to 39,991 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/conae-base-mars.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "conae-base-mars",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,934,699 to 99,995 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/rescue-robot-astronaut.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "rescue-robot-astronaut",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,880,693 to 39,988 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/rescue-robot-without-astronaut.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "rescue-robot-without-astronaut",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,890,782 to 39,988 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/rescue-rover.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "rescue-rover",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,858,404 to 39,980 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/rocket.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "rocket",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,938,421 to 80,000 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/rover-1.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "rover-1",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,862,183 to 39,980 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/rover-2.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "rover-2",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,869,780 to 39,993 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/solar-panel.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "solar-panel",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,961,190 to 40,000 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
   }
 }
