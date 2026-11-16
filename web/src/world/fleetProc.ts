@@ -11,6 +11,9 @@ import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
 import { buildRescueRobotModel, type RescuePose, type RescueRobotModel } from "./rescueRobotProc";
 
+// Existing landed root clearance; ground-anchored drone GLBs must cancel this offset.
+const DRONE_LANDED_ROOT_HEIGHT_M = 0.35;
+
 export interface FleetTarget {
   id: string;
   kind: string;
@@ -136,7 +139,7 @@ export class FleetUnit {
     const ground = this.terrain.heightAt(o.position.x, o.position.z);
     if (this.spec.flies) {
       const alt = this.targetAltitude ?? this.spec.altitude ?? 14;
-      const targetY = this.grounded ? ground + 0.35 : ground + alt;
+      const targetY = this.grounded ? ground + DRONE_LANDED_ROOT_HEIGHT_M : ground + alt;
       o.position.y += (targetY - o.position.y) * Math.min(1, dt * 3);
       for (let i = 0; i < this.rotors.length; i++) {
         const spin = this.grounded ? 0.5 : i % 2 === 0 ? 28 : -28;
@@ -641,10 +644,10 @@ export class FleetProc {
       if (!drone) continue;
       const m = await models.spawn("drone-new");
       if (!m) continue;
-      // The drone object origin is its centre: lift the ground-anchored GLB by half its height.
+      // Keep the GLB bottom on the terrain when the existing flight root lands at 0.35 m.
       const group = new THREE.Group();
       group.name = `glb:${droneId}`;
-      m.object.position.y = -m.size.y / 2;
+      m.object.position.y = -DRONE_LANDED_ROOT_HEIGHT_M;
       group.add(m.object);
       if (drone.proceduralGroup) drone.proceduralGroup.visible = false;
       drone.object.add(group);
