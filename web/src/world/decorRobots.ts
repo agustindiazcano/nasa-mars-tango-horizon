@@ -7,7 +7,7 @@ import { mulberry32 } from "./noise";
 import { weatherObject } from "./weathering";
 
 /**
- * Small decorative ground robots around the base (the team's `rover.glb` at robot scale). They are scenery:
+ * Small decorative ground robots around the base (the team's `rover-new.glb` at robot scale). They are scenery:
  * most stand still at different headings, a few patrol a short back-and-forth line at walking pace.
  */
 export interface DecorPlacement {
@@ -99,13 +99,14 @@ export class DecorRobots {
 
   private async load(): Promise<void> {
     try {
-      const gltf = await getGltfLoader().loadAsync("/models/rover.glb");
+      const gltf = await getGltfLoader().loadAsync("/models/rover-new.glb");
       weatherObject(gltf.scene, { dust: 0.6, scratches: 0.85, tileM: 0.9 });
       const probe = new THREE.Box3().setFromObject(gltf.scene);
       const span = Math.max(probe.getSize(new THREE.Vector3()).x, probe.getSize(new THREE.Vector3()).z, 0.001);
       for (const place of this.placements) {
         const inner = cloneSkinned(gltf.scene) as THREE.Group;
         const scale = place.lengthM / span;
+        inner.rotation.y = Math.PI / 2; // authored front on -X, robots drive along +Z
         inner.scale.setScalar(scale);
         inner.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(inner);
@@ -124,7 +125,7 @@ export class DecorRobots {
         this.apply(wrap, place, 0);
       }
     } catch (err) {
-      console.warn("Decorative robots unavailable (rover.glb failed to load)", err);
+      console.warn("Decorative robots unavailable (rover-new.glb failed to load)", err);
     }
   }
 

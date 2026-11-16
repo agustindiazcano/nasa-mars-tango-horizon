@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "@th/shared";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "@th/shared";
 import { ManipulatorArm, SkillRunner } from "./manipulatorArm";
-import { extractIngenuityRotorPivots, loadNormalizedNasaGlb, type RotorPivot } from "./nasaModels";
+import { loadNormalizedNasaGlb, type RotorPivot } from "./nasaModels";
 import { models, type ModelId, type SpawnedModel } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
@@ -630,8 +630,8 @@ export class FleetProc {
 
   private async attachNasaGlbModels(): Promise<void> {
     await Promise.all([
-      this.swapVehicle("rover-1", "rover-1"),
-      this.swapVehicle("rover-2", "rover-2"),
+      this.swapVehicle("rover-1", "model-2"),
+      this.swapVehicle("rover-2", "rover-new"),
       this.swapVehicle("rescue-1", "rescue-rover", { forwardShiftM: 1.3 }),
       this.swapVehicle("rescue-bot-1", "rescue-robot-without-astronaut"),
     ]);
@@ -639,37 +639,17 @@ export class FleetProc {
     for (const droneId of ["drone-1", "drone-2"]) {
       const drone = this.units.get(droneId);
       if (!drone) continue;
-      try {
-        const { group } = await loadNormalizedNasaGlb("/models/ingenuity.glb", {
-          targetMaxSpanM: 2.0,
-          anchor: "center",
-        });
-        group.name = `glb:${droneId}`;
-
-        // The atlas insignia is outside this GLB's mapped UVs; mark its fixed body.
-        group.updateMatrixWorld(true);
-        let body: THREE.Mesh | undefined;
-        group.traverse((obj) => {
-          if (obj instanceof THREE.Mesh && !Array.isArray(obj.material) && obj.material.name === "foil_silver") {
-            body = obj;
-          }
-        });
-        if (body) {
-          // The unattached wrapper is in drone-local coordinates at this point.
-          const bounds = new THREE.Box3().setFromObject(body);
-          const center = bounds.getCenter(new THREE.Vector3());
-          const size = bounds.getSize(new THREE.Vector3());
-          const insignia = createNasaInsignia(Math.min(size.x, size.y) * 0.55);
-          insignia.position.set(center.x, center.y, bounds.max.z + 0.002);
-          group.add(insignia);
-        }
-
-        if (drone.proceduralGroup) drone.proceduralGroup.visible = false;
-        drone.object.add(group);
-        drone.rotorPivots = extractIngenuityRotorPivots(group);
-      } catch (err) {
-        console.warn(`Failed to load /models/ingenuity.glb for ${droneId}; keeping procedural mesh`, err);
-      }
+      const m = await models.spawn("drone-new");
+      if (!m) continue;
+      // The drone object origin is its centre: lift the ground-anchored GLB by half its height.
+      const group = new THREE.Group();
+      group.name = `glb:${droneId}`;
+      m.object.position.y = -m.size.y / 2;
+      group.add(m.object);
+      if (drone.proceduralGroup) drone.proceduralGroup.visible = false;
+      drone.object.add(group);
+      // The single-mesh GLB has no separate rotor nodes, so no rotor pivots spin.
+      drone.rotorPivots = [];
     }
 
     try {

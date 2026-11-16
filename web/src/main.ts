@@ -144,7 +144,7 @@ const crew = new CrewProc(scene, terrain);
 const litter = new RescueLitter(scene);
 const rescueRocks = rescuePitRockOptions();
 const rocks = new RocksProc(scene, terrain, { extraClusters: rescueRocks.clusters, extraExclusions: rescueRocks.exclusions });
-// Decorative ground robots (the team rover.glb at robot scale, procedurally weathered).
+// Decorative ground robots (the team rover-new.glb at robot scale, procedurally weathered).
 const decor = new DecorRobots(scene, terrain, {
   avoid: rocks.placements.filter((r) => r.tier !== "small").map((r) => ({ x: r.x, z: r.z, r: Math.max(r.sx, r.sz) })),
 });
