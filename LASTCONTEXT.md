@@ -4,14 +4,14 @@
 
 ## Work done
 
-- Audited launcher-1/2 after the owner requested cannon pod exit height and direction checks. Used the isolated B29 worktree on branch `fix/launcher-pod-origin`; root checkout edits were preserved.
-- Both modules use life-support-cannon scaled to a 6 m maximum span. Manifest dimensions imply about 2.963 m height; `mod.height` is 2.96 m. The current origin `[wx, wz, placement.y + mod.height]` is at the horizontal module center and approximately the model roof, not a measured muzzle point.
-- `PodBallistics.launch` passes a fixed elevation of pi/4 to `aimDelivery`, which solves the heading toward the target with drag/wind compensation. Neither model yaw nor a barrel axis constrains that velocity. Physics coordinates are [world x, world z, elevation]; conversion to Three.js is correct.
-- Both launcher origins are populated, but main.ts constructs PodBallistics with only the first one. The second launcher is not selected by the current delivery path.
-- Inspected the GLB JSON: a single mesh node, no muzzle marker and no animation. No offset, barrel axis or aiming articulation was invented. No simulator code changed because the correct muzzle cannot be established from the bounding box.
-- Production from PR #55 was already verified Ready on Vercel in the preceding turn; PR #56 merged its verification record. Browser and Windows native control were unavailable, so no live visual acceptance is claimed.
+- Checked model-2/rover-1 and rover-new/rover-2 in the isolated B29 worktree, branch `fix/rover-forward-audit`. Root checkout changes were preserved.
+- Both MODEL_SPECS entries already use yaw pi/2. ModelLibrary applies this yaw to the inner GLB once before measuring and grounding; spawn and swapVehicle preserve it. This maps the documented authored -X front onto the +Z movement convention.
+- Fleet movement uses atan2(dx, dz), consistent with +Z forward. Fixed a waypoint-arrival edge case: heading now updates before either movement branch, including the final step; zero-distance waypoints retain their heading.
+- Rescue scenario poses also use atan2(dx, dz). rover-1 is parked at the expedition site in that scenario; rover-2 is not driven by its scripted timeline.
+- No tests or builds were launched, per owner instruction. git diff --check passed. Browser/Windows control was unavailable in this session context; no live visual acceptance is claimed.
 
 ## Files touched and decisions
 
-- Updated `PENDING.md`, `PENDING_FRONT.md` and `LASTCONTEXT.md` in a separate status commit with the cannon audit findings.
-- No tests were launched, following the owner's instruction. No next task was started. The existing instruction authorizes immediate PR merge without waiting for CI.
+- `web/src/world/fleetProc.ts`: waypoint heading correction in its own source commit.
+- `PENDING.md`, `PENDING_FRONT.md`, `LASTCONTEXT.md`: status update in its own commit.
+- Kept the existing catalogue yaw without adding a second rotation. Owner authorization permits immediate PR merge without waiting for CI. No next task was started.
