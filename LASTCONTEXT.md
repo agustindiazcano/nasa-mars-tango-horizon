@@ -1,18 +1,18 @@
 # Last context
 
-**Date:** 2026-11-15
+**Date:** 2026-11-15 (Argentina)
 
-## Model replacement (branch `feat/replace-nasa-buildings`)
+## Work done
 
-- Compressed 8 raw scans (`3d-replace`, 56-60 MB each) with `tools/assets/optimize.mjs` to about 0.6-0.8 MB each (40k triangles): `circle-building-1`, `circle-building-2`, `life-support-cannon`, `model-1`, `model-2`, `rockets`, `rover-new`, `drone-new`.
-- Removed `asset-1` (greenhouse), `asset-2` (lab), `asset-3` (shelter), `rover-1`, `rover-2`, `rover`, `ingenuity` GLBs, their manifest entries and their provenance entries.
-- Every base module now has a GLB (no procedural-only module): lab/airlock = `circle-building-1`, greenhouse/compute = `circle-building-2`, shelter/eclss/battery = `rockets`, comms = `antenna`, launchers = `life-support-cannon`, fission = `building-3`. The white box stays only as hidden click target and load fallback. `model-1` (rocket pair) is a display piece near the garage.
-- `rover-1` uses `model-2`, `rover-2` and the decorative robots use `rover-new`, `drone-1`/`drone-2` use `drone-new`. Rover scans face -X, so `MODEL_SPECS` has a `yaw` of 90 degrees.
-- Module footprints and heights follow the scaled model box (`BASE_MODULES` and `BASE_MODULE_FOOTPRINTS`); lab and greenhouse were sized to the old footprints to keep the slope and overlap tests valid.
-- README banner and `site/` logo now use the new mission patch.
+- Inspected merge #55 at `26846f117f44ad8437eae49f9d9a5ac5efcc9c26`. Existing GitHub build, shared tests and server tests had succeeded when inspected. No tests were launched in this session; the owner requested immediate merge/deployment without waiting for CI.
+- Confirmed Vercel production deployment `dpl_AG4MzqYFVLsjZNhPiW9wxDBeLzPX` is Ready and aliased to `https://tangohorizon.vercel.app`. The production page, `/models/drone-new.glb` and `/models/model-1.glb` returned HTTP 200.
+- Used isolated worktree `C:/projects/projects-github-agustindiazcano/tango-horizon-b29`, branch `task/b29-live-model-verification`. Root checkout edits and untracked files were preserved.
+- Installed worktree dependencies and built shared types to start `npm run dev:web` with backend PORT=8081. Browser inventory had no browsers; both browser and Windows control reported the native pipe unavailable. No visual acceptance is claimed.
+- Reviewed the code: model-1 is placed at base offset (-78, 34), yaw 0.4 radians; drone-new explicitly has no rotor pivots. Position alone does not establish clearance.
+- Proposed real-geometry rotor options: separate existing blade geometry and set shaft pivots in Blender, or re-export the original source with independent rotor nodes/animation. Neither option was implemented without a suitable editable asset.
 
-## Notes
+## Files touched and decisions
 
-- `drone-new` is one mesh with no rotor nodes: the drone rotors no longer spin.
-- Visual checks done in the browser model lab and the base overview; flight, rescue scenes and cannon pod launches were not re-checked live.
-- The root checkout has uncommitted work from another session (insignia textures, procedural decor robots, `conae-logo.png`); this branch does not touch it.
+- Updated only `PENDING.md`, `PENDING_FRONT.md` and `LASTCONTEXT.md` in a status-only commit.
+- Kept simulator geometry unchanged because visual control was unavailable. Production already contains PR #55; no duplicate deployment was needed.
+- The owner authorized merging this task PR immediately. No next task was started.

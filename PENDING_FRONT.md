@@ -52,3 +52,5 @@ Status from a code audit of `web/src`. "Done" means the code exists; live visual
 ## NASA data audit priority
 
 - 🟢 F16: Runtime remediation in `web/` (`B32`–`B36`, `B25`) is code-complete and verified under Node/Vitest (explicit DEM startup/lifecycle, flat `BASE_ORIGIN` and `@th/shared` `MISSION_SITES`, `8x8` adaptive LOD mesh over `height_2048.u16`, real `1024px` terrain rasters + 377 `in_scene` DAN points, `hydration_index` units, `N`/`S` coordinates, CTX/HiRISE datum audit, and dynamic Provenance modal). Remaining work is live browser DOM/WebGL visual verification (tracked under `B37`).
+
+- B29: Production model assets from PR #55 are available. Live WebGL checks of S0-S7 and rocket-pair clearance remain pending because browser/Windows control was unavailable. See `PENDING.md`.
