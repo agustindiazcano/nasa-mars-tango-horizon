@@ -56,3 +56,5 @@ Status from a code audit of `web/src`. "Done" means the code exists; live visual
 - B29: Production model assets from PR #55 are available. Cannon code audit found no muzzle anchor or barrel/trajectory alignment; live WebGL checks of cannon exits, S0-S7 and rocket-pair clearance remain pending because browser/Windows control was unavailable. See `PENDING.md`.
 
 - B29 rover audit: model-2/rover-1 and rover-new/rover-2 use +90-degree catalogue yaw once at load. Movement behavior is unchanged; the out-of-scope waypoint change was reverted. Live visual acceptance remains open.
+
+- B29 drone anchoring: drone-new now offsets its ground-anchored bottom by the existing 0.35 m landed root clearance, replacing the half-height offset that buried it by about 0.105 m on level terrain. Live slope/contact verification remains pending.
