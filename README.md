@@ -206,7 +206,7 @@ The knowledge engine ([`server/src/agents/tools/knowledge.ts`](server/src/agents
 | **NASA CCMC DONKI** | `SEP`, `CMEAnalysis` & `WSAEnlilSimulations` APIs | Provides heliospheric space-weather alerts and coronal mass ejection arrival windows at Mars (`donki_alert`), gating outward EVA dispatch in `GUARDIAN`. |
 | **Mars 2020 Perseverance — MOXIE** | PDS Atmospheres `mars2020_moxie` (Sols 0–659 $\text{O}_2$ production logs) | Models habitat ISRU solid-oxide electrolysis ($\text{CO}_2 \to \text{O}_2$) rates and compressor/SOXE fault signatures (`ISRU-MOX-01`) in `MAINTENANCE`. |
 | **NASA OCHMO, NTRS & Standards** | `NASA-STD-3001` Vol. 1 & 2, `OCHMO-TB-004`, `AMCL`, `MEDPRAT`, `Mars-GRAM`, `MCD v5.2` | Forms the 1,002-chunk in-memory BM25 RAG corpus (`server/corpus/chunks.json`) cited by `SUIT.HEALTH`, `WEATHER-RAD`, `EVA-PLANNER`, and `MAINTENANCE`. |
-| **NASA 3D Resources & Custom GLBs** | `ingenuity.glb`, `mro.glb`, `rover.glb` + 16 meshopt-compressed mission GLBs | Renders authentic NASA spacecraft/rovers alongside the habitat complex, Starship launch pad, solar arrays, antennas, rescue vehicles, and animated 4-astronaut crew. |
+| **NASA 3D Resources & Custom GLBs** | `mro.glb` + 24 meshopt-compressed mission GLBs | Renders authentic NASA spacecraft/rovers alongside the habitat complex, Starship launch pad, solar arrays, antennas, rescue vehicles, and animated 4-astronaut crew. |
 
 <!-- BEGIN AUTO:DATA -->
 Tracked runtime assets in `web/public/data/provenance.json` (**57 entries**; SHA-256 checksums and CRS transforms recorded in the manifest):
@@ -231,13 +231,8 @@ Tracked runtime assets in `web/public/data/provenance.json` (**57 entries**; SHA
 | `terrain/hydration_meta.json` | Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC) | `tango-horizon-hydration-v1` | 2026-11-14 · [link](https://pds-geosciences.wustl.edu/msl/msl-m-dan-3_4-rdr-v1/msldan_1000/data/) |
 | `terrain/hydration_sites.json` | Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC) | `tango-horizon-hydration-v1-sites` | 2026-11-14 · [link](https://pds-geosciences.wustl.edu/msl/msl-m-dan-3_4-rdr-v1/msldan_1000/data/) |
 | `veins/manifest.json` | Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS) | `tango-horizon-veins-v1` | 2026-11-14 · [link](https://mars.nasa.gov/api/v1/raw_image_items/) |
-| `models/ingenuity.glb` | NASA 3D Resources (Ingenuity Mars Helicopter) | `ingenuity` | 2026-11-14 · [link](https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Ingenuity%20Mars%20Helicopter/Ingenuity%20Mars%20Helicopter.glb) |
 | `models/mro.glb` | NASA 3D Resources (Mars Reconnaissance Orbiter) | `mro` | 2026-11-14 · [link](https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A)/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A).glb) |
-| `models/rover.glb` | NASA 3D Resources (Mars 2020 Perseverance Rover, MSL/Curiosity-class chassis) | `rover` | 2026-11-14 · [link](https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%202020%20Perseverance%20Rover/Mars%202020%20Perseverance%20Rover.glb) |
 | `models/antenna.glb` | Project owner (original 3D model) | `antenna` | 2026-11-15 · local pipeline |
-| `models/asset-1.glb` | Project owner (original 3D model) | `asset-1` | 2026-11-15 · local pipeline |
-| `models/asset-2.glb` | Project owner (original 3D model) | `asset-2` | 2026-11-15 · local pipeline |
-| `models/asset-3.glb` | Project owner (original 3D model) | `asset-3` | 2026-11-15 · local pipeline |
 | `models/asset-4.glb` | Project owner (original 3D model) | `asset-4` | 2026-11-15 · local pipeline |
 | `models/astronaut.glb` | Project owner (original 3D model) | `astronaut` | 2026-11-15 · local pipeline |
 | `models/astronaut-animated.glb` | Project owner (original 3D model) | `astronaut-animated` | 2026-11-15 · local pipeline |
@@ -248,10 +243,16 @@ Tracked runtime assets in `web/public/data/provenance.json` (**57 entries**; SHA
 | `models/conae-base-mars.glb` | Project owner (original 3D model) | `conae-base-mars` | 2026-11-15 · local pipeline |
 | `models/rescue-robot-astronaut.glb` | Project owner (original 3D model) | `rescue-robot-astronaut` | 2026-11-15 · local pipeline |
 | `models/rescue-robot-without-astronaut.glb` | Project owner (original 3D model) | `rescue-robot-without-astronaut` | 2026-11-15 · local pipeline |
+| `models/circle-building-1.glb` | Project owner (original 3D model) | `circle-building-1` | 2026-11-15 · local pipeline |
+| `models/circle-building-2.glb` | Project owner (original 3D model) | `circle-building-2` | 2026-11-15 · local pipeline |
+| `models/drone-new.glb` | Project owner (original 3D model) | `drone-new` | 2026-11-15 · local pipeline |
+| `models/life-support-cannon.glb` | Project owner (original 3D model) | `life-support-cannon` | 2026-11-15 · local pipeline |
+| `models/model-1.glb` | Project owner (original 3D model) | `model-1` | 2026-11-15 · local pipeline |
+| `models/model-2.glb` | Project owner (original 3D model) | `model-2` | 2026-11-15 · local pipeline |
+| `models/rockets.glb` | Project owner (original 3D model) | `rockets` | 2026-11-15 · local pipeline |
+| `models/rover-new.glb` | Project owner (original 3D model) | `rover-new` | 2026-11-15 · local pipeline |
 | `models/rescue-rover.glb` | Project owner (original 3D model) | `rescue-rover` | 2026-11-15 · local pipeline |
 | `models/rocket.glb` | Project owner (original 3D model) | `rocket` | 2026-11-15 · local pipeline |
-| `models/rover-1.glb` | Project owner (original 3D model) | `rover-1` | 2026-11-15 · local pipeline |
-| `models/rover-2.glb` | Project owner (original 3D model) | `rover-2` | 2026-11-15 · local pipeline |
 | `models/solar-panel.glb` | Project owner (original 3D model) | `solar-panel` | 2026-11-15 · local pipeline |
 | `models/manifest.json` | Generated by tools/assets/optimize.mjs | `models-manifest` | 2026-11-15 · local pipeline |
 | `veins/*_DXXX.jpg` (8 frames) | NASA/JPL-Caltech/MSSS (MSL Curiosity Raw Images API) | MSL Mastcam/MAHLI Sols 170–1190 | 2026-11-14 |

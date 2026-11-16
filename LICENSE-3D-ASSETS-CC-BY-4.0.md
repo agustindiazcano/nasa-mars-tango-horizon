@@ -2,7 +2,7 @@
 
 Copyright (c) 2026 Agustin Diaz-Cano, Baltazar Salerno, Milagros Sotelo, and Federico Yaconis (Team Tango Horizon).
 
-All original 3D models created by **Team Tango Horizon** located in `web/public/models/*.glb` (listed in `web/public/models/manifest.json`: `antenna.glb`, `asset-1.glb`, `asset-2.glb`, `asset-3.glb`, `asset-4.glb`, `astronaut.glb`, `astronaut-animated.glb`, `building-1.glb`, `building-2.glb`, `building-3.glb`, `building-connector.glb`, `conae-base-mars.glb`, `rescue-robot-astronaut.glb`, `rescue-robot-without-astronaut.glb`, `rescue-rover.glb`, `rocket.glb`, `rover-1.glb`, `rover-2.glb`, and `solar-panel.glb`) are **free to use** and licensed under the **Creative Commons Attribution 4.0 International (CC BY 4.0)** license:
+All original 3D models created by **Team Tango Horizon** located in `web/public/models/*.glb` (listed in `web/public/models/manifest.json`: `antenna.glb`, `asset-4.glb`, `astronaut.glb`, `astronaut-animated.glb`, `building-1.glb`, `building-2.glb`, `building-3.glb`, `building-connector.glb`, `circle-building-1.glb`, `circle-building-2.glb`, `life-support-cannon.glb`, `model-1.glb`, `model-2.glb`, `rockets.glb`, `rover-new.glb`, `conae-base-mars.glb`, `drone-new.glb`, `rescue-robot-astronaut.glb`, `rescue-robot-without-astronaut.glb`, `rescue-rover.glb`, `rocket.glb`, and `solar-panel.glb`) are **free to use** and licensed under the **Creative Commons Attribution 4.0 International (CC BY 4.0)** license:
 
 <https://creativecommons.org/licenses/by/4.0/legalcode>
 
@@ -17,7 +17,7 @@ Under the following terms:
 
 ## Third-Party NASA 3D Resources Notice
 
-Upstream spacecraft/rover models sourced from [NASA 3D Resources](https://github.com/nasa/NASA-3D-Resources) (`ingenuity.glb`, `mro.glb`, `rover.glb`) remain governed by NASA's open media and public-domain terms.
+Upstream spacecraft/rover models sourced from [NASA 3D Resources](https://github.com/nasa/NASA-3D-Resources) (`mro.glb`) remain governed by NASA's open media and public-domain terms.
 
 ## Software Codebase License
 
