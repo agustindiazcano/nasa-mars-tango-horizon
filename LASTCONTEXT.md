@@ -4,15 +4,14 @@
 
 ## Work done
 
-- Inspected merge #55 at `26846f117f44ad8437eae49f9d9a5ac5efcc9c26`. Existing GitHub build, shared tests and server tests had succeeded when inspected. No tests were launched in this session; the owner requested immediate merge/deployment without waiting for CI.
-- Confirmed Vercel production deployment `dpl_AG4MzqYFVLsjZNhPiW9wxDBeLzPX` is Ready and aliased to `https://tangohorizon.vercel.app`. The production page, `/models/drone-new.glb` and `/models/model-1.glb` returned HTTP 200.
-- Used isolated worktree `C:/projects/projects-github-agustindiazcano/tango-horizon-b29`, branch `task/b29-live-model-verification`. Root checkout edits and untracked files were preserved.
-- Installed worktree dependencies and built shared types to start `npm run dev:web` with backend PORT=8081. Browser inventory had no browsers; both browser and Windows control reported the native pipe unavailable. No visual acceptance is claimed.
-- Reviewed the code: model-1 is placed at base offset (-78, 34), yaw 0.4 radians; drone-new explicitly has no rotor pivots. Position alone does not establish clearance.
-- Proposed real-geometry rotor options: separate existing blade geometry and set shaft pivots in Blender, or re-export the original source with independent rotor nodes/animation. Neither option was implemented without a suitable editable asset.
+- Audited launcher-1/2 after the owner requested cannon pod exit height and direction checks. Used the isolated B29 worktree on branch `fix/launcher-pod-origin`; root checkout edits were preserved.
+- Both modules use life-support-cannon scaled to a 6 m maximum span. Manifest dimensions imply about 2.963 m height; `mod.height` is 2.96 m. The current origin `[wx, wz, placement.y + mod.height]` is at the horizontal module center and approximately the model roof, not a measured muzzle point.
+- `PodBallistics.launch` passes a fixed elevation of pi/4 to `aimDelivery`, which solves the heading toward the target with drag/wind compensation. Neither model yaw nor a barrel axis constrains that velocity. Physics coordinates are [world x, world z, elevation]; conversion to Three.js is correct.
+- Both launcher origins are populated, but main.ts constructs PodBallistics with only the first one. The second launcher is not selected by the current delivery path.
+- Inspected the GLB JSON: a single mesh node, no muzzle marker and no animation. No offset, barrel axis or aiming articulation was invented. No simulator code changed because the correct muzzle cannot be established from the bounding box.
+- Production from PR #55 was already verified Ready on Vercel in the preceding turn; PR #56 merged its verification record. Browser and Windows native control were unavailable, so no live visual acceptance is claimed.
 
 ## Files touched and decisions
 
-- Updated only `PENDING.md`, `PENDING_FRONT.md` and `LASTCONTEXT.md` in a status-only commit.
-- Kept simulator geometry unchanged because visual control was unavailable. Production already contains PR #55; no duplicate deployment was needed.
-- The owner authorized merging this task PR immediately. No next task was started.
+- Updated `PENDING.md`, `PENDING_FRONT.md` and `LASTCONTEXT.md` in a separate status commit with the cannon audit findings.
+- No tests were launched, following the owner's instruction. No next task was started. The existing instruction authorizes immediate PR merge without waiting for CI.
