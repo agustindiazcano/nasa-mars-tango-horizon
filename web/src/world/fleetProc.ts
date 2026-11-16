@@ -113,8 +113,6 @@ export class FleetUnit {
       const dz = target.z - o.position.z;
       const d = Math.hypot(dx, dz);
       const step = this.spec.speed * dt;
-      // Face every displacement, including the final step into a waypoint.
-      if (d > 1e-6) o.rotation.y = Math.atan2(dx, dz);
       if (d <= step) {
         o.position.x = target.x;
         o.position.z = target.z;
@@ -129,6 +127,7 @@ export class FleetUnit {
       } else {
         o.position.x += (dx / d) * step;
         o.position.z += (dz / d) * step;
+        o.rotation.y = Math.atan2(dx, dz);
         distMoved = step;
       }
       this.battery = Math.max(0.02, this.battery - dt * 0.00025);

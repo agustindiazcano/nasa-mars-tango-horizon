@@ -4,14 +4,13 @@
 
 ## Work done
 
-- Checked model-2/rover-1 and rover-new/rover-2 in the isolated B29 worktree, branch `fix/rover-forward-audit`. Root checkout changes were preserved.
-- Both MODEL_SPECS entries already use yaw pi/2. ModelLibrary applies this yaw to the inner GLB once before measuring and grounding; spawn and swapVehicle preserve it. This maps the documented authored -X front onto the +Z movement convention.
-- Fleet movement uses atan2(dx, dz), consistent with +Z forward. Fixed a waypoint-arrival edge case: heading now updates before either movement branch, including the final step; zero-distance waypoints retain their heading.
-- Rescue scenario poses also use atan2(dx, dz). rover-1 is parked at the expedition site in that scenario; rover-2 is not driven by its scripted timeline.
-- No tests or builds were launched, per owner instruction. git diff --check passed. Browser/Windows control was unavailable in this session context; no live visual acceptance is claimed.
+- Owner clarified that this task is limited to visual 3D model replacement and requested urgent deployment without tests.
+- Reverted source commit c280dc2 from PR #58, restoring the existing movement behavior. The waypoint logic change exceeded the visual-only scope.
+- Preserved the model replacements from PR #55, including model-2/rover-1 and rover-new/rover-2 with their existing +90-degree MODEL_SPECS yaw.
+- Used the isolated B29 worktree; root checkout changes and untracked assets from another session were not touched.
 
 ## Files touched and decisions
 
-- `web/src/world/fleetProc.ts`: waypoint heading correction in its own source commit.
-- `PENDING.md`, `PENDING_FRONT.md`, `LASTCONTEXT.md`: status update in its own commit.
-- Kept the existing catalogue yaw without adding a second rotation. Owner authorization permits immediate PR merge without waiting for CI. No next task was started.
+- `web/src/world/fleetProc.ts`: restored pre-PR #58 movement logic in a dedicated revert commit.
+- `PENDING.md`, `PENDING_FRONT.md`, `LASTCONTEXT.md`: corrected the status record in a separate commit.
+- No tests, builds or visual probes were run in this correction. Owner authorized immediate PR merge and production deployment. No next task was started.
