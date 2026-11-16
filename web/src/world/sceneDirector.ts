@@ -51,9 +51,9 @@ export const SCENES: readonly SceneDef[] = [
     startS: 0,
     durationS: 18,
     segments: [
-      // Slow orbit around the stack on the pad (about 170 m tall), then a low wide shot with the tower.
-      { fromS: 0, kind: "orbit", target: "launch-site", radius: 260, height: 60, speed: 0.1, lookAboveM: 90 },
-      { fromS: 10, kind: "aerial", target: "launch-site", offset: { x: 150, y: 25, z: -190 }, lookAboveM: 110 },
+      // Slow orbit around the rockets on the pad (about 42 m wide), then a low wide shot.
+      { fromS: 0, kind: "orbit", target: "launch-site", radius: 75, height: 22, speed: 0.1, lookAboveM: 8 },
+      { fromS: 10, kind: "aerial", target: "launch-site", offset: { x: 55, y: 12, z: -70 }, lookAboveM: 8 },
     ],
   },
   {
@@ -63,8 +63,8 @@ export const SCENES: readonly SceneDef[] = [
     durationS: 20,
     segments: [
       { fromS: 0, kind: "orbit", target: "base", radius: 95, height: 60, speed: 0.07, lookAboveM: 2 },
-      // From the base apron toward the Starship on its pad, 1.1 km east-north-east.
-      { fromS: 12, kind: "aerial", target: "launch-site", offset: { x: -960, y: 48, z: 500 }, lookAboveM: 95 },
+      // From the base apron toward the rockets on their pad, 1.1 km east-north-east.
+      { fromS: 12, kind: "aerial", target: "launch-site", offset: { x: -320, y: 40, z: 170 }, lookAboveM: 8 },
     ],
   },
   {

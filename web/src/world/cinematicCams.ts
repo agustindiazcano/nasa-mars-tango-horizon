@@ -73,12 +73,12 @@ export function cinematicShot(id: CinematicCamId, ctx: CinematicContext): Cinema
       break;
     }
     case 3:
-      px = LAUNCH_SITE_COORD.x - 300;
-      pz = LAUNCH_SITE_COORD.z + 220;
-      aglY = 55;
+      px = LAUNCH_SITE_COORD.x - 90;
+      pz = LAUNCH_SITE_COORD.z + 70;
+      aglY = 28;
       tx = LAUNCH_SITE_COORD.x;
       tz = LAUNCH_SITE_COORD.z;
-      tAgl = 60;
+      tAgl = 8;
       break;
     case 4: {
       const a = ctx.timeS * 0.05;

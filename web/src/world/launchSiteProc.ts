@@ -1,24 +1,11 @@
 import { LAUNCH_SITE_COORD } from "@th/shared";
 import * as THREE from "three";
 import { models } from "./modelLibrary";
-import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
-
-/** Super Heavy booster (70 m) + Starship upper stage (52 m); both 9 m in diameter. */
-export const LAUNCH_VEHICLE = {
-  radiusM: 4.5,
-  boosterHeightM: 70,
-  shipBarrelHeightM: 34,
-  shipNoseHeightM: 17,
-} as const;
+import type { TerrainProc } from "./terrainProc";
 
 const PAD_RADIUS_M = 64;
-const MOUNT_HEIGHT_M = 20;
-const MOUNT_DECK_M = 4;
-const TOWER_HEIGHT_M = 165;
-const TOWER_WIDTH_M = 7;
-const TOWER_OFFSET_X_M = 34;
-/** The vehicle, mount and tower are built 1.4x real size so the complex reads from over a kilometre away. */
-const COMPLEX_SCALE = 1.4;
+/** The `rockets` GLB ships at 14 m; the pad display scales it so it reads from several hundred metres. */
+const ROCKETS_PAD_SCALE = 3;
 
 type Vec3 = [number, number, number];
 
@@ -78,7 +65,7 @@ function makeScorchedPadTexture(): THREE.CanvasTexture {
   return tex;
 }
 
-/** Large, far-visible Starship-class launch complex: pad, launch mount, tower with chopsticks, tanks, bunker. */
+/** Launch pad with the generic `rockets` model, tank farm, control bunker and floodlights. */
 export class LaunchSiteProc {
   readonly group = new THREE.Group();
   readonly padY: number;
@@ -86,7 +73,6 @@ export class LaunchSiteProc {
   readonly worldZ = LAUNCH_SITE_COORD.z;
   private beacons: THREE.Mesh[] = [];
   private target: THREE.Object3D = this.group;
-  private procStack: THREE.Object3D | null = null;
 
   constructor(scene: THREE.Scene, private terrain: TerrainProc) {
     this.group.name = "launch-site";
@@ -110,28 +96,13 @@ export class LaunchSiteProc {
     this.group.position.set(cx, this.padY, cz);
 
     this.buildPad(hMin);
-    const complex = new THREE.Group();
-    complex.name = "launch-complex";
-    complex.scale.setScalar(COMPLEX_SCALE);
-    this.group.add(complex);
-    this.target = complex;
-    this.buildMount();
-    this.buildVehicle(MOUNT_HEIGHT_M + MOUNT_DECK_M);
-    // The `rocket` GLB replaces the procedural stack once loaded; the stack stays as fallback.
-    void models.attach("rocket", complex, this.procStack, (m) => {
-      m.object.position.set(0, MOUNT_HEIGHT_M + MOUNT_DECK_M, 0);
+    void models.attach("rockets", this.group, null, (m) => {
+      m.object.scale.multiplyScalar(ROCKETS_PAD_SCALE);
+      m.object.position.set(0, 0, 0);
       this.keepVisibleInHaze(m.object);
     });
-    this.buildTower();
-    this.target = this.group;
     this.buildTankFarm();
     this.buildBunkerAndLights();
-
-    const label = makeSpriteLabel("STARSHIP LAUNCH SITE", "#ffb36b");
-    (label.material as THREE.SpriteMaterial).fog = false;
-    label.position.set(0, TOWER_HEIGHT_M * COMPLEX_SCALE + 34, 0);
-    label.scale.set(120, 22.5, 1);
-    this.group.add(label);
 
     this.keepVisibleInHaze(this.group);
     scene.add(this.group);
@@ -174,184 +145,6 @@ export class LaunchSiteProc {
     );
     deck.rotation.x = -Math.PI / 2;
     this.add(deck, [0, 0, 0]);
-  }
-
-  /** Orbital launch mount: elevated ring deck on six legs over the flame trench. */
-  private buildMount(): void {
-    const legMat = this.std(0x7b828a, 0.55, 0.4);
-    for (let k = 0; k < 6; k++) {
-      const a = (k / 6) * Math.PI * 2 + Math.PI / 6;
-      const leg = new THREE.Mesh(new THREE.BoxGeometry(3.2, MOUNT_HEIGHT_M, 3.2), legMat);
-      this.add(leg, [Math.cos(a) * 17, MOUNT_HEIGHT_M / 2, Math.sin(a) * 17]);
-    }
-    const shape = new THREE.Shape().absarc(0, 0, 23, 0, Math.PI * 2, false);
-    shape.holes.push(new THREE.Path().absarc(0, 0, 8.5, 0, Math.PI * 2, true));
-    const deckGeo = new THREE.ExtrudeGeometry(shape, { depth: MOUNT_DECK_M, bevelEnabled: false, curveSegments: 48 });
-    deckGeo.rotateX(-Math.PI / 2);
-    const deck = new THREE.Mesh(deckGeo, this.std(0x9aa1a8, 0.5, 0.45));
-    this.add(deck, [0, MOUNT_HEIGHT_M, 0]);
-
-    // Hold-down clamp ring
-    const clamp = new THREE.Mesh(new THREE.TorusGeometry(6.2, 0.7, 8, 32), this.std(0x32363b, 0.6, 0.6));
-    clamp.rotation.x = Math.PI / 2;
-    this.add(clamp, [0, MOUNT_HEIGHT_M + MOUNT_DECK_M + 0.8, 0]);
-  }
-
-  /** Super Heavy + Starship stack standing on the mount. */
-  private buildVehicle(baseY: number): void {
-    const { radiusM: R, boosterHeightM, shipBarrelHeightM, shipNoseHeightM } = LAUNCH_VEHICLE;
-    const steel = this.std(0xe9edf0, 0.34, 0.28);
-    const dark = this.std(0x111315, 0.7, 0.15);
-    const weld = this.std(0x8d949b, 0.5, 0.3);
-    const stack = new THREE.Group();
-    stack.position.y = baseY;
-    this.target.add(stack);
-    this.procStack = stack;
-
-    // Booster, engine skirt, interstage band
-    const booster = new THREE.Mesh(new THREE.CylinderGeometry(R, R, boosterHeightM, 40), steel);
-    this.add(booster, [0, boosterHeightM / 2, 0], stack);
-    const skirt = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.12, R + 0.4, 3.2, 40), this.std(0x2a2d31, 0.6, 0.4));
-    this.add(skirt, [0, 1.6, 0], stack);
-    const interstage = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.06, R + 0.06, 6, 40), this.std(0xc3c8cd, 0.4, 0.3));
-    this.add(interstage, [0, boosterHeightM - 3, 0], stack);
-
-    // Raptor cluster: 3 inner + 10 middle + 20 outer
-    const engineGeo = new THREE.CylinderGeometry(0.28, 0.62, 2.4, 12);
-    const engines = new THREE.InstancedMesh(engineGeo, this.std(0x15171a, 0.5, 0.6), 33);
-    const m = new THREE.Matrix4();
-    let e = 0;
-    const place = (x: number, z: number): void => {
-      m.makeTranslation(x, -1.0, z);
-      engines.setMatrixAt(e++, m);
-    };
-    for (let k = 0; k < 3; k++) place(Math.cos((k / 3) * Math.PI * 2) * 0.95, Math.sin((k / 3) * Math.PI * 2) * 0.95);
-    for (let k = 0; k < 10; k++) place(Math.cos((k / 10) * Math.PI * 2) * 2.1, Math.sin((k / 10) * Math.PI * 2) * 2.1);
-    for (let k = 0; k < 20; k++) place(Math.cos((k / 20) * Math.PI * 2) * 3.35, Math.sin((k / 20) * Math.PI * 2) * 3.35);
-    engines.instanceMatrix.needsUpdate = true;
-    stack.add(engines);
-
-    // Grid fins on the upper booster
-    for (let k = 0; k < 4; k++) {
-      const a = (k / 4) * Math.PI * 2 + Math.PI / 4;
-      const fin = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.35, 2.4), dark);
-      fin.position.set(Math.cos(a) * (R + 1.6), boosterHeightM - 8, Math.sin(a) * (R + 1.6));
-      fin.rotation.y = -a;
-      stack.add(fin);
-    }
-
-    // Ship: barrel + ogive nose
-    const shipBase = boosterHeightM;
-    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(R, R, shipBarrelHeightM, 40), steel);
-    this.add(barrel, [0, shipBase + shipBarrelHeightM / 2, 0], stack);
-
-    const rho = (R * R + shipNoseHeightM * shipNoseHeightM) / (2 * R);
-    const profile: THREE.Vector2[] = [];
-    for (let k = 0; k <= 24; k++) {
-      const y = (k / 24) * shipNoseHeightM;
-      const r = Math.sqrt(Math.max(0, rho * rho - (shipNoseHeightM - y) ** 2)) + R - rho;
-      profile.push(new THREE.Vector2(Math.max(r, 0.02), y));
-    }
-    const nose = new THREE.Mesh(new THREE.LatheGeometry(profile, 40), steel);
-    this.add(nose, [0, shipBase + shipBarrelHeightM, 0], stack);
-
-    // Heat-shield tile side faces Mars Base Alpha (west-south-west of the pad): theta center -1.08 rad
-    const tileStart = -1.08 - Math.PI / 2;
-    const tileBarrel = new THREE.Mesh(
-      new THREE.CylinderGeometry(R + 0.07, R + 0.07, shipBarrelHeightM, 40, 1, true, tileStart, Math.PI),
-      dark,
-    );
-    this.add(tileBarrel, [0, shipBase + shipBarrelHeightM / 2, 0], stack);
-    const noseProfile = profile.map((p) => new THREE.Vector2(p.x + 0.07, p.y));
-    const tileNose = new THREE.Mesh(new THREE.LatheGeometry(noseProfile, 40, tileStart, Math.PI), dark);
-    this.add(tileNose, [0, shipBase + shipBarrelHeightM, 0], stack);
-
-    // Flaps: forward pair near the nose, aft pair at the ship base
-    const flapDark = this.std(0x1b1d20, 0.6, 0.2);
-    for (const side of [-1, 1]) {
-      const fwd = new THREE.Mesh(new THREE.BoxGeometry(0.5, 6.5, 2.4), flapDark);
-      fwd.position.set(0, shipBase + shipBarrelHeightM + 3, side * (R + 0.9));
-      stack.add(fwd);
-      const aft = new THREE.Mesh(new THREE.BoxGeometry(0.6, 9.5, 3.8), flapDark);
-      aft.position.set(0, shipBase + 5.6, side * (R + 1.3));
-      stack.add(aft);
-    }
-
-    // Weld seams every ~1.9 m for scale and realism
-    const seamCount = Math.floor((boosterHeightM + shipBarrelHeightM) / 1.9);
-    const seams = new THREE.InstancedMesh(new THREE.CylinderGeometry(R + 0.1, R + 0.1, 0.1, 40, 1, true), weld, seamCount);
-    for (let k = 0; k < seamCount; k++) {
-      m.makeTranslation(0, 4 + k * 1.9, 0);
-      seams.setMatrixAt(k, m);
-    }
-    seams.instanceMatrix.needsUpdate = true;
-    stack.add(seams);
-  }
-
-  /** Lattice launch tower with two catch arms ("chopsticks") reaching the booster. */
-  private buildTower(): void {
-    const tower = new THREE.Group();
-    tower.position.x = TOWER_OFFSET_X_M;
-    this.target.add(tower);
-
-    const half = TOWER_WIDTH_M / 2;
-    const segH = 8;
-    const segs = Math.floor(TOWER_HEIGHT_M / segH);
-    const corners: [number, number][] = [
-      [-half, -half],
-      [half, -half],
-      [half, half],
-      [-half, half],
-    ];
-    const beams: { a: THREE.Vector3; b: THREE.Vector3; w: number }[] = [];
-    for (const [x, z] of corners) beams.push({ a: new THREE.Vector3(x, 0, z), b: new THREE.Vector3(x, segs * segH, z), w: 1.1 });
-    for (let s = 0; s <= segs; s++) {
-      for (let c = 0; c < 4; c++) {
-        const [x0, z0] = corners[c];
-        const [x1, z1] = corners[(c + 1) % 4];
-        beams.push({ a: new THREE.Vector3(x0, s * segH, z0), b: new THREE.Vector3(x1, s * segH, z1), w: 0.4 });
-        if (s < segs) {
-          const flip = (s + c) % 2 === 0;
-          beams.push({
-            a: new THREE.Vector3(flip ? x0 : x1, s * segH, flip ? z0 : z1),
-            b: new THREE.Vector3(flip ? x1 : x0, (s + 1) * segH, flip ? z1 : z0),
-            w: 0.34,
-          });
-        }
-      }
-    }
-    const lattice = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), this.std(0xb5b9bd, 0.5, 0.45), beams.length);
-    const up = new THREE.Vector3(0, 1, 0);
-    const dummy = new THREE.Object3D();
-    beams.forEach((bm, i) => {
-      const dir = bm.b.clone().sub(bm.a);
-      const len = dir.length();
-      dummy.position.copy(bm.a).addScaledVector(dir, 0.5);
-      dummy.quaternion.setFromUnitVectors(up, dir.normalize());
-      dummy.scale.set(bm.w, len, bm.w);
-      dummy.updateMatrix();
-      lattice.setMatrixAt(i, dummy.matrix);
-    });
-    lattice.instanceMatrix.needsUpdate = true;
-    tower.add(lattice);
-
-    // Chopstick carriage and arms reaching toward the booster axis
-    const carriageY = MOUNT_HEIGHT_M + MOUNT_DECK_M + 62;
-    const armMat = this.std(0x8c9298, 0.5, 0.45);
-    const carriage = new THREE.Mesh(new THREE.BoxGeometry(TOWER_WIDTH_M + 3, 6, TOWER_WIDTH_M + 3), armMat);
-    this.add(carriage, [0, carriageY, 0], tower);
-    const reach = TOWER_OFFSET_X_M - LAUNCH_VEHICLE.radiusM - 1.4;
-    for (const side of [-1, 1]) {
-      const arm = new THREE.Mesh(new THREE.BoxGeometry(reach, 3.2, 2.2), armMat);
-      this.add(arm, [-(half + 1.5 + reach / 2), carriageY, side * (LAUNCH_VEHICLE.radiusM + 1.6)], tower);
-      const pad = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.8, 4.4), this.std(0x2b2e32, 0.7, 0.3));
-      this.add(pad, [-(half + 1.5 + reach) + 0.4, carriageY, side * (LAUNCH_VEHICLE.radiusM - 0.2)], tower);
-    }
-
-    // Lightning mast and top beacon
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.4, 22, 8), this.std(0xd4d8dc, 0.4, 0.5));
-    this.add(mast, [0, TOWER_HEIGHT_M + 11, 0], tower);
-    this.addBeacon([TOWER_OFFSET_X_M, TOWER_HEIGHT_M + 22.5, 0], 2.0);
   }
 
   /** Cryogenic propellant farm: vertical LOX/CH4 tanks and two spheres west of the pad. */
