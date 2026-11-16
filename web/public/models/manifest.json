@@ -1,6 +1,6 @@
 {
  "version": 1,
- "totalBytes": 18201256,
+ "totalBytes": 18487104,
  "models": {
   "antenna": {
    "file": "antenna.glb",
@@ -79,7 +79,7 @@
   "astronaut": {
    "file": "astronaut.glb",
    "role": "rigid-astronaut",
-   "bytes": 2429048,
+   "bytes": 2457068,
    "triangles": 99984,
    "triangleBudget": 100000,
    "byteBudget": 5242880,
@@ -116,7 +116,7 @@
   "astronaut-animated": {
    "file": "astronaut-animated.glb",
    "role": "animated-astronaut",
-   "bytes": 1755472,
+   "bytes": 1818668,
    "triangles": 38767,
    "triangleBudget": 38767,
    "byteBudget": 4194304,
@@ -199,7 +199,7 @@
   "building-2": {
    "file": "building-2.glb",
    "role": "prop",
-   "bytes": 640156,
+   "bytes": 662408,
    "triangles": 39998,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -236,7 +236,7 @@
   "building-3": {
    "file": "building-3.glb",
    "role": "prop",
-   "bytes": 561740,
+   "bytes": 582080,
    "triangles": 39992,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -273,7 +273,7 @@
   "building-connector": {
    "file": "building-connector.glb",
    "role": "prop",
-   "bytes": 491896,
+   "bytes": 509544,
    "triangles": 39991,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -384,7 +384,7 @@
   "conae-base-mars": {
    "file": "conae-base-mars.glb",
    "role": "hero",
-   "bytes": 996372,
+   "bytes": 1050336,
    "triangles": 99995,
    "triangleBudget": 100000,
    "byteBudget": 4194304,
@@ -569,7 +569,7 @@
   "rescue-robot-astronaut": {
    "file": "rescue-robot-astronaut.glb",
    "role": "prop",
-   "bytes": 709636,
+   "bytes": 728912,
    "triangles": 39988,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -606,7 +606,7 @@
   "rescue-robot-without-astronaut": {
    "file": "rescue-robot-without-astronaut.glb",
    "role": "prop",
-   "bytes": 669552,
+   "bytes": 690324,
    "triangles": 39988,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -680,7 +680,7 @@
   "rocket": {
    "file": "rocket.glb",
    "role": "hero",
-   "bytes": 830352,
+   "bytes": 870732,
    "triangles": 80000,
    "triangleBudget": 80000,
    "byteBudget": 3145728,

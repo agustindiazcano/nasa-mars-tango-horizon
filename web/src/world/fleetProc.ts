@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "@th/shared";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "@th/shared";
 import { ManipulatorArm, SkillRunner } from "./manipulatorArm";
-import { loadNormalizedNasaGlb, type RotorPivot } from "./nasaModels";
+import type { RotorPivot } from "./nasaModels";
 import { models, type ModelId, type SpawnedModel } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
@@ -631,6 +631,43 @@ export class FleetProc {
     this.orbiterGroup.rotation.y = Math.atan2(nextX - x, nextZ - z);
   }
 
+  private buildProceduralOrbiter(): THREE.Group {
+    const g = new THREE.Group();
+    g.name = "proc:mro";
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xd99b2e, roughness: 0.3, metalness: 0.85 });
+    const busMat = new THREE.MeshStandardMaterial({ color: 0xd0d6dc, roughness: 0.45, metalness: 0.5 });
+    const dishMat = new THREE.MeshStandardMaterial({ color: 0xf0f4f8, roughness: 0.35, metalness: 0.25, side: THREE.DoubleSide });
+    const solarMat = new THREE.MeshStandardMaterial({ color: 0x16325c, roughness: 0.28, metalness: 0.72 });
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x22272e, roughness: 0.65, metalness: 0.4 });
+
+    const bus = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 4.4, 6), goldMat);
+    g.add(bus);
+
+    const dish = new THREE.Mesh(new THREE.SphereGeometry(4.2, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.38), dishMat);
+    dish.rotation.x = Math.PI;
+    dish.position.y = 4.2;
+    g.add(dish);
+    const feed = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 2.4, 8), darkMat);
+    feed.position.y = 3.6;
+    g.add(feed);
+
+    const scope = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 2.8, 16), busMat);
+    scope.position.set(0, -2.6, 0.8);
+    g.add(scope);
+
+    for (const side of [-1, 1]) {
+      const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 15.0, 8), darkMat);
+      boom.rotation.z = Math.PI / 2;
+      boom.position.set(side * 8.5, 0.3, 0);
+      g.add(boom);
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(12.5, 0.14, 3.8), solarMat);
+      wing.position.set(side * 10.2, 0.3, 0);
+      g.add(wing);
+    }
+
+    return g;
+  }
+
   private async attachNasaGlbModels(): Promise<void> {
     await Promise.all([
       this.swapVehicle("rover-1", "model-2"),
@@ -655,22 +692,13 @@ export class FleetProc {
       drone.rotorPivots = [];
     }
 
-    try {
-      const { group, size } = await loadNormalizedNasaGlb("/models/mro.glb", {
-        targetMaxSpanM: 34,
-        anchor: "center",
-        castShadow: false,
-      });
-      group.name = "glb:mro";
-      this.orbiterGroup.add(group);
-      const lbl = makeSpriteLabel("MRO ORBITER", "#35e0ff");
-      lbl.position.y = size.y * 0.65 + 4;
-      lbl.scale.set(28, 5.2, 1);
-      this.orbiterGroup.add(lbl);
-      this.updateOrbiter(0);
-    } catch (err) {
-      console.warn("Failed to load /models/mro.glb", err);
-    }
+    const orbiter = this.buildProceduralOrbiter();
+    this.orbiterGroup.add(orbiter);
+    const lbl = makeSpriteLabel("MARS RELAY ORBITER", "#35e0ff");
+    lbl.position.y = 9.5;
+    lbl.scale.set(28, 5.2, 1);
+    this.orbiterGroup.add(lbl);
+    this.updateOrbiter(0);
   }
 
   /**

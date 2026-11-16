@@ -21,8 +21,8 @@ export type Side = "left" | "right";
 /** Patches are 2:3 (height:width), the usual flag patch proportion. */
 export const PATCH_ASPECT = 2 / 3;
 export const DEFAULT_PATCH_WIDTH_M = 0.09;
-export const CONAE_LOGO_URL = "/textures/conae-logo.png";
-/** Astronaut's right shoulder carries the flag, the left one the agency patch. */
+export const CONAE_LOGO_URL = "/textures/tango-horizon-insignia.png";
+/** Astronaut's right shoulder carries the flag, the left one the Tango Horizon mission patch. */
 export const PATCH_FOR_SIDE: Record<Side, ShoulderPatchKind> = { right: "flag", left: "conae" };
 
 export const FLAG_BLUE = "#74ACDF";
@@ -235,7 +235,7 @@ function drawFlagTexture(): THREE.CanvasTexture | null {
   return finishTexture(canvas);
 }
 
-/** Generic placeholder only: a navy roundel with the word CONAE, not the agency logo. */
+/** Generic placeholder only: a navy roundel with the words TANGO HORIZON. */
 function drawConaePlaceholderTexture(): THREE.CanvasTexture | null {
   const c = makeCanvas();
   if (!c) return null;
@@ -259,8 +259,8 @@ function drawConaePlaceholderTexture(): THREE.CanvasTexture | null {
   ctx.fillStyle = "#FFFFFF";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `bold ${Math.round(r * 0.4)}px Rajdhani, Arial, sans-serif`;
-  ctx.fillText("CONAE", cx, cy);
+  ctx.font = `bold ${Math.round(r * 0.28)}px Rajdhani, Arial, sans-serif`;
+  ctx.fillText("TANGO HORIZON", cx, cy);
   addFabricNoise(ctx);
   drawBorder(ctx, "#E8EEF6", "#74ACDF");
   ctx.restore();
