@@ -30,7 +30,6 @@ export type ModelId =
   | "rescue-robot-astronaut"
   | "rescue-robot-without-astronaut"
   | "rescue-rover"
-  | "rocket"
   | "solar-panel";
 
 /** `maxSpan` fits the largest bounding-box side, the others fit one axis (x width, y height, z length). */
@@ -72,7 +71,6 @@ export const MODEL_SPECS: Readonly<Record<ModelId, ModelSpec>> = {
   "asset-4": { size: { axis: "maxSpan", metres: 7 }, priority: 2 },
   "solar-panel": { size: { axis: "maxSpan", metres: 5.5 }, priority: 2 },
   antenna: { size: { axis: "y", metres: 9 }, priority: 2 },
-  rocket: { size: { axis: "y", metres: 121 }, priority: 3 },
   astronaut: { size: { axis: "y", metres: 1.9 }, priority: 4 },
 };
 

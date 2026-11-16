@@ -13,26 +13,6 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
 
 **Demo en vivo (Simulador 3D):** [https://tangohorizon.vercel.app](https://tangohorizon.vercel.app) · **Portal Editorial y Showcase (`site/`):** [https://tangohorizon-site.vercel.app](https://tangohorizon-site.vercel.app)
 
-## Galería
-
-Capturas del simulador en funcionamiento (Gale Crater, base CONAE, sitio de la Starship y escenario de rescate cooperativo).
-
-| | |
-|---|---|
-| ![Vista aérea de la base CONAE: módulos, anexos, campo solar y antenas](docs/media/base-aerial.jpg) | ![Starship en la plataforma de lanzamiento sobre el terreno HiRISE real](docs/media/starship-pad.jpg) |
-| *Vista aérea de la base CONAE: módulos, anexos, campo solar y antenas* | *Starship en la plataforma de lanzamiento sobre el terreno HiRISE real* |
-| ![El complejo de la Starship visto desde la base](docs/media/starship-distance.jpg) | ![Astronauta animado caminando hacia el rover inmovilizado, con el chat del orquestador](docs/media/astronauts-walking.jpg) |
-| *El complejo de la Starship visto desde la base* | *Astronauta animado caminando hacia el rover inmovilizado, con el chat del orquestador* |
-| ![Astronauta herido junto al borde del pozo mientras el agente BASE narra el rescate](docs/media/rescue-casualty-pit.jpg) | ![Robot de rescate trabajando dentro del pozo, visto desde el borde, con el chat de agentes](docs/media/rescue-robot-pit.jpg) |
-| *Astronauta herido junto al borde del pozo mientras el agente BASE narra el rescate* | *Robot de rescate trabajando dentro del pozo, visto desde el borde, con el chat de agentes* |
-| ![El pozo bajo la tormenta de polvo durante la partida](docs/media/rescue-storm-pit.jpg) | ![HUD: nómina de la tripulación, soporte vital y pronóstico de tormenta con veredicto Go/No-Go](docs/media/hud-crew-forecast.jpg) |
-| *El pozo bajo la tormenta de polvo durante la partida* | *HUD: nómina de la tripulación, soporte vital y pronóstico de tormenta con veredicto Go/No-Go* |
-| ![Mapa táctico estilo NASA de Gale Crater con curvas de nivel y posiciones de la flota](docs/media/nasa-map.jpg) | ![Laboratorio de modelos: robot de rescate con camilla y brazo manipulador](docs/media/model-lab-rescue-robot.jpg) |
-| *Mapa táctico estilo NASA de Gale Crater con curvas de nivel y posiciones de la flota* | *Laboratorio de modelos: robot de rescate con camilla y brazo manipulador* |
-| ![Laboratorio de modelos: astronauta con parche CONAE en el hombro](docs/media/model-lab-astronaut.jpg) | ![Laboratorio de modelos: rover presurizado](docs/media/model-lab-rover.jpg) |
-| *Laboratorio de modelos: astronauta con parche CONAE en el hombro* | *Laboratorio de modelos: rover presurizado* |
-
-Laboratorio de modelos interactivo: [https://tangohorizon.vercel.app/models.html](https://tangohorizon.vercel.app/models.html)
 
 ## Índice
 
@@ -76,7 +56,7 @@ Laboratorio de modelos interactivo: [https://tangohorizon.vercel.app/models.html
 - **Visión Multimodal por Cámaras (`capture_vision` y `/api/agent/vision`):** El astronauta puede consultar qué ve la cámara de su casco o la cámara de cualquier rover o dron; el sistema captura el cuadro activo y analiza afloramientos o riesgos con modelos de visión (`gemini-4-argon` / `muse-wonder-1.0`).
 - **RAG Predictivo sobre Estándares Aeroespaciales (`<2 ms` BM25):** Búsqueda en memoria sobre `1,002` fragmentos de `NASA-STD-3001` (Vol. 1 y 2), briefs de `OCHMO`, `AMCL`, `MEDPRAT`, `Mars-GRAM`, `MCD`, `MSL RAD` y `MOXIE` con citas exactas de `(documento, página)`.
 - **3 Modelos Propios de Machine Learning Científico:** Entrenados offline y validados sobre datos reales de NASA PDS: **Hydration Prospector** (hidratación mineral subsuperficial H/OH con MSL DAN + CRISM + THEMIS), **Storm Nowcaster** (pronóstico por cuantiles a 1–3 soles de opacidad de polvo con mareas de presión REMS) y **Mineral Vein Detector** (clasificador y mapa de calor por parches con Meta `DINOv2-small` congelado sobre fotos reales de Curiosity Mastcam/MAHLI).
-- **Mapa Cartográfico Estilo USGS/NASA y 6 Capas de Terreno:** Capas 3D interactivas (`Óptica HiRISE`, `Clase Térmica THEMIS`, `Pendiente`, `Sky View Factor`, `Dosis de Radiación`, `Hidratación DAN/CRISM + Incertidumbre`) y panel cartográfico estilo NASA/USGS con tintes hipsométricos, sombreado de relieve, curvas de nivel, grilla lat/lon, complejo de base y Starship, estaciones científicas, flota y los cuatro astronautas por callsign.
+- **Mapa Cartográfico Estilo USGS/NASA y 6 Capas de Terreno:** Capas 3D interactivas (`Óptica HiRISE`, `Clase Térmica THEMIS`, `Pendiente`, `Sky View Factor`, `Dosis de Radiación`, `Hidratación DAN/CRISM + Incertidumbre`) y panel cartográfico estilo NASA/USGS con tintes hipsométricos, sombreado de relieve, curvas de nivel, grilla lat/lon, complejo de base y plataforma de cohetes, estaciones científicas, flota y los cuatro astronautas por callsign.
 - **Celular como Puntero Láser y Transceptor PTT (`/remote`):** Al escanear un código QR, el giroscopio del teléfono actúa como puntero láser 3D sobre el HUD y micrófono Push-to-Talk por `/ws/remote` con vibración háptica en alertas críticas.
 
 ## Arquitectura del Sistema y Runtime Multi-Agente

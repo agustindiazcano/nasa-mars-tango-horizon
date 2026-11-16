@@ -44,7 +44,7 @@
 
 ---
 
-### `[2:30 – 3:00]` 5. Cierre *(En pantalla: Escena `S7` — Regreso a la esclusa de la base y despegue de Starship)*
+### `[2:30 – 3:00]` 5. Cierre *(En pantalla: Escena `S7` — Regreso a la esclusa de la base y vista de los cohetes en su plataforma)*
 > "En menos de cuatro minutos de operación coordinada, Cassini ingresa a la esclusa presurizada de la base (`S7`).
 >
 > Datos reales de 9 fuentes de la NASA y el USGS, física determinista, 3 modelos de Machine Learning entrenados a medida, robótica con cinemática real y una arquitectura multi-agente con seguridad verificada lista para operar manos libres en Marte.
@@ -91,7 +91,7 @@
 
 ---
 
-### `[2:30 – 3:00]` 5. Closing *(On screen: Scene `S7` — Return to base airlock and Starship ascent)*
+### `[2:30 – 3:00]` 5. Closing *(On screen: Scene `S7` — Return to base airlock and rockets on their pad)*
 > "Within minutes of coordinated autonomous operation, Cassini is safely inside the habitat airlock (`S7`).
 >
 > Real data from 9 NASA and USGS sources, deterministic physics, 3 custom-trained ML models, analytic inverse-kinematics robotics, and a verified multi-agent architecture built for hands-free operations on Mars.

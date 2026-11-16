@@ -4,14 +4,16 @@
 
 ## Work done
 
-- Corrected visual anchoring of drone-new for drone-1 and drone-2 in the isolated B29 worktree, branch `fix/drone-model-ground-anchor`. Root checkout edits were preserved.
-- Existing flight roots land at terrain + 0.35 m. The replacement GLB was shifted down by half its height (about 0.455 m from its manifest at 2 m span), burying its bottom by about 0.105 m on level terrain.
-- The GLB now shifts down by the existing landed root clearance of 0.35 m. The same constant names the unchanged root clearance and the model offset. No movement, flight altitudes, scenario timing or rotor geometry changed.
-- drone-1 and drone-2 retain 14 m and 16 m flight root altitudes. This is an anchor correction, not a claim that airborne drones should touch the ground.
-- No tests, builds or browser probes were launched. Live visual acceptance was unavailable; the correction establishes zero bottom offset at settled landing on level ground, not full landing-gear contact over arbitrary slopes.
+- Removed the Starship from the project: `rocket.glb` and its manifest/`ModelId`/spec entries, the procedural stack, launch mount, tower and label in `launchSiteProc.ts`, the two Starship README screenshots, and every text mention (i18n, docs, README, `site/` data).
+- The launch pad at `LAUNCH_SITE_COORD` now shows the generic `rockets` GLB (14 m catalogue size, scaled x3 on the pad). Pad slab, tank farm, bunker and floodlights stay.
+- Scene `S0` is now "Rockets at the pad" (i18n key unchanged). `S0`/`S1` camera shots and `CAM-3` were moved to the smaller model scale.
+- Removed the simulator gallery (screenshots table) from `README.md` and `README_ES.md`. Image files in `docs/media/` (except the two Starship ones) stay in the repo.
+- Owner requested PR, merge and Vercel deployment without tests or CI (urgent). Only `tsc --noEmit` on `web/` was run.
 
-## Files touched and decisions
+## Files touched
 
-- `web/src/world/fleetProc.ts`: visual model anchor correction in its own commit.
-- `PENDING.md`, `PENDING_FRONT.md`, `LASTCONTEXT.md`: status update in a separate commit.
-- Owner authorization requests immediate PR merge and Vercel deployment. No next task was started.
+`web/src/world/launchSiteProc.ts`, `sceneDirector.ts`, `cinematicCams.ts`, `modelLibrary.ts`, `__tests__/modelLibrary.test.ts`, `web/public/models/manifest.json`, `shared/src/i18n/*.ts`, `shared/src/physics/sites.ts`, READMEs, `docs/`, `site/src/data/`.
+
+## State
+
+Live visual check of the pad with the `rockets` model (scale, ground contact, S0/S1/CAM-3 framing) was not done.

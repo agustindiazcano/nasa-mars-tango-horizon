@@ -204,7 +204,7 @@ export const fr: Record<Key, string> = {
   "scene.state.playing": "REC",
   "scene.state.paused": "En pause",
   "scene.state.done": "Terminée",
-  "scene.s0": "Starship sur son pas de tir",
+  "scene.s0": "Fusées sur leur pas de tir",
   "scene.s1": "Vue aérienne de la base",
   "scene.s2": "Où se trouve chacun",
   "scene.s3": "Gros plan de l’accident",

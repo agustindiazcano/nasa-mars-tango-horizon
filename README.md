@@ -13,26 +13,6 @@ To drive decision-making without physical hallucinations, the system pairs a hie
 
 **Live Demo (3D Simulator):** [https://tangohorizon.vercel.app](https://tangohorizon.vercel.app) · **Showcase & Editorial Portal (`site/`):** [https://tangohorizon-site.vercel.app](https://tangohorizon-site.vercel.app)
 
-## Gallery
-
-Screenshots of the running simulator (Gale Crater, CONAE base, Starship site and the cooperative rescue scenario).
-
-| | |
-|---|---|
-| ![Aerial view of the CONAE base: modules, annexes, solar field and antennas](docs/media/base-aerial.jpg) | ![Starship at the launch pad on the real HiRISE terrain](docs/media/starship-pad.jpg) |
-| *Aerial view of the CONAE base: modules, annexes, solar field and antennas* | *Starship at the launch pad on the real HiRISE terrain* |
-| ![The Starship complex seen from the base](docs/media/starship-distance.jpg) | ![Animated astronaut walking to the immobilized rover, with the orchestrator chat](docs/media/astronauts-walking.jpg) |
-| *The Starship complex seen from the base* | *Animated astronaut walking to the immobilized rover, with the orchestrator chat* |
-| ![Casualty at the pit rim while the BASE agent narrates the rescue](docs/media/rescue-casualty-pit.jpg) | ![Rescue robot working inside the pit, seen from the rim, with agent chat](docs/media/rescue-robot-pit.jpg) |
-| *Casualty at the pit rim while the BASE agent narrates the rescue* | *Rescue robot working inside the pit, seen from the rim, with agent chat* |
-| ![The pit under the dust storm during departure](docs/media/rescue-storm-pit.jpg) | ![HUD: crew roster, life support and storm forecast with Go/No-Go verdict](docs/media/hud-crew-forecast.jpg) |
-| *The pit under the dust storm during departure* | *HUD: crew roster, life support and storm forecast with Go/No-Go verdict* |
-| ![NASA-style tactical map of Gale Crater with contours and fleet positions](docs/media/nasa-map.jpg) | ![Model lab: rescue robot with stretcher and manipulator arm](docs/media/model-lab-rescue-robot.jpg) |
-| *NASA-style tactical map of Gale Crater with contours and fleet positions* | *Model lab: rescue robot with stretcher and manipulator arm* |
-| ![Model lab: astronaut with CONAE shoulder patch](docs/media/model-lab-astronaut.jpg) | ![Model lab: pressurized rover](docs/media/model-lab-rover.jpg) |
-| *Model lab: astronaut with CONAE shoulder patch* | *Model lab: pressurized rover* |
-
-Interactive model lab: [https://tangohorizon.vercel.app/models.html](https://tangohorizon.vercel.app/models.html)
 
 ## Index
 
@@ -79,7 +59,7 @@ Interactive model lab: [https://tangohorizon.vercel.app/models.html](https://tan
 - **Multimodal Camera Vision (`capture_vision` & `/api/agent/vision`):** Crew members can ask what their helmet camera or any rover/drone camera sees; the system captures the active viewport or offscreen vehicle camera frame and analyzes geological features or hazards with vision LLMs (`gemini-4-argon` / `muse-wonder-1.0`).
 - **Predictive RAG over Aerospace Standards (`<2 ms` BM25):** In-memory retrieval across `1,002` chunks of `NASA-STD-3001` (Vol. 1 & 2), `OCHMO` briefs, `AMCL`, `MEDPRAT`, `Mars-GRAM`, `MCD`, `MSL RAD`, and `MOXIE` with exact `(document, page)` citations for biomedical early warning, FDIR fault recovery, and weather/radiation aborts.
 - **3 Custom-Trained Scientific ML Models:** Offline-trained, cross-validated models on real NASA PDS datasets: **Hydration Prospector** (subsurface H/OH mineral hydration from MSL DAN + CRISM + THEMIS), **Storm Nowcaster** (1–3 sol dust opacity quantile forecast from MSL REMS pressure tides), and **Mineral Vein Detector** (frozen Meta `DINOv2-small` patch classifier/heatmap on real Curiosity Mastcam/MAHLI frames).
-- **USGS/NASA-Style Cartographic Map & 6 Terrain Layers:** Interactive 3D terrain overlays (`Optical HiRISE`, `THEMIS Thermal Class`, `Slope`, `Sky View Factor`, `Radiation Dose`, `DAN/CRISM Hydration + Uncertainty`) plus a full-screen NASA/USGS planetary cartography map showing hypsometric tint, hillshade, contour lines, lat/lon graticule, base/Starship launch complex, science sites, fleet units, and all four crew callsigns.
+- **USGS/NASA-Style Cartographic Map & 6 Terrain Layers:** Interactive 3D terrain overlays (`Optical HiRISE`, `THEMIS Thermal Class`, `Slope`, `Sky View Factor`, `Radiation Dose`, `DAN/CRISM Hydration + Uncertainty`) plus a full-screen NASA/USGS planetary cartography map showing hypsometric tint, hillshade, contour lines, lat/lon graticule, base/launch pad, science sites, fleet units, and all four crew callsigns.
 - **QR Smartphone Laser Pointer & PTT Remote (`/remote`):** Pairing a phone via QR code turns its gyroscope (`DeviceOrientation`) into a low-latency 3D HUD laser pointer and Push-to-Talk radio handset over `/ws/remote` with haptic vibration on critical alerts.
 
 ## System Architecture & Multi-Agent Runtime
@@ -171,7 +151,7 @@ The knowledge engine ([`server/src/agents/tools/knowledge.ts`](server/src/agents
 
 ### Autonomous 4-Astronaut Crew Rescue Scenario
 
-- **Cast & Base Layout:** Four astronauts operate from the main habitat complex (`conae-base-mars`, solar array field, antenna farm, and Starship launch complex at `LAUNCH_SITE_COORD`): **`SOTELO`** and **`YACONIS`** at base control, while **`SALERNO`** (driver) and **`DIAZ-CANO`** (geologist) conduct a science traverse $1.5\text{–}2.5\text{ km}$ away at `RESCUE_SITE` aboard pressurized rover **`rover-1`**.
+- **Cast & Base Layout:** Four astronauts operate from the main habitat complex (`conae-base-mars`, solar array field, antenna farm, and rocket launch pad at `LAUNCH_SITE_COORD`): **`SOTELO`** and **`YACONIS`** at base control, while **`SALERNO`** (driver) and **`DIAZ-CANO`** (geologist) conduct a science traverse $1.5\text{–}2.5\text{ km}$ away at `RESCUE_SITE` aboard pressurized rover **`rover-1`**.
 - **Crisis & Autonomous Multi-Agent Response:**
   1. `rover-1` suffers a critical wheel actuator fault (`RVR-MOB-01`), isolated by `MAINTENANCE`.
   2. While sampling near a natural sinkhole pit (`RESCUE_PIT`), `DIAZ-CANO` falls into the shaft and is incapacitated (`SUIT.HEALTH` triggers a critical biomedical alert).
@@ -206,7 +186,7 @@ The knowledge engine ([`server/src/agents/tools/knowledge.ts`](server/src/agents
 | **NASA CCMC DONKI** | `SEP`, `CMEAnalysis` & `WSAEnlilSimulations` APIs | Provides heliospheric space-weather alerts and coronal mass ejection arrival windows at Mars (`donki_alert`), gating outward EVA dispatch in `GUARDIAN`. |
 | **Mars 2020 Perseverance — MOXIE** | PDS Atmospheres `mars2020_moxie` (Sols 0–659 $\text{O}_2$ production logs) | Models habitat ISRU solid-oxide electrolysis ($\text{CO}_2 \to \text{O}_2$) rates and compressor/SOXE fault signatures (`ISRU-MOX-01`) in `MAINTENANCE`. |
 | **NASA OCHMO, NTRS & Standards** | `NASA-STD-3001` Vol. 1 & 2, `OCHMO-TB-004`, `AMCL`, `MEDPRAT`, `Mars-GRAM`, `MCD v5.2` | Forms the 1,002-chunk in-memory BM25 RAG corpus (`server/corpus/chunks.json`) cited by `SUIT.HEALTH`, `WEATHER-RAD`, `EVA-PLANNER`, and `MAINTENANCE`. |
-| **NASA 3D Resources & Custom GLBs** | `mro.glb` + 24 meshopt-compressed mission GLBs | Renders authentic NASA spacecraft/rovers alongside the habitat complex, Starship launch pad, solar arrays, antennas, rescue vehicles, and animated 4-astronaut crew. |
+| **NASA 3D Resources & Custom GLBs** | `mro.glb` + 24 meshopt-compressed mission GLBs | Renders authentic NASA spacecraft/rovers alongside the habitat complex, rocket launch pad, solar arrays, antennas, rescue vehicles, and animated 4-astronaut crew. |
 
 <!-- BEGIN AUTO:DATA -->
 Tracked runtime assets in `web/public/data/provenance.json` (**57 entries**; SHA-256 checksums and CRS transforms recorded in the manifest):

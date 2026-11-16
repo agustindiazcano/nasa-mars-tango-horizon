@@ -75,7 +75,7 @@ export const AIRLOCK_COORD: Readonly<Coord2D> = {
 
 /**
  * Initial EVA astronaut spawn coordinate, south-west of the main complex. From here the base is ahead and the
- * Starship on the launch pad (`LAUNCH_SITE_COORD`) rises behind it: the sight line to 40 m above the pad clears the
+ * Rockets on the launch pad (`LAUNCH_SITE_COORD`) rises behind it: the sight line to 40 m above the pad clears the
  * real DEM (min clearance 2 m), 3.5 deg ground slope.
  */
 export const ASTRONAUT_START: Readonly<Coord2D> = {
@@ -102,7 +102,7 @@ export const LAUNCHER_PRIMARY_COORD: Readonly<Coord2D> = {
 };
 
 /**
- * Starship-class launch complex center (world m). About 1.1 km east-south-east of `BASE_ORIGIN`, chosen on the
+ * Launch pad center (world m). About 1.1 km east-south-east of `BASE_ORIGIN`, chosen on the
  * real HiRISE DEM as a <7 deg, <7 m relief area within a 70 m radius with line of sight to the base.
  */
 export const LAUNCH_SITE_COORD: Readonly<Coord2D> = { x: 1202, z: -1022 };

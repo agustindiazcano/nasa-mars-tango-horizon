@@ -890,8 +890,8 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     badgeLabel: { en: 'Free to Use · CC BY 4.0', es: 'Uso Libre · CC BY 4.0' },
     accent: '#fdba74',
     description: {
-      en: 'Original habitats, Starship-class rocket, animated & static astronauts, rescue robot, rescue rover, reconnaissance rovers, solar panels, antenna, and base modules created by Team Tango Horizon and optimized with meshoptimizer.',
-      es: 'Hábitats originales, cohete clase Starship, astronautas animados y estáticos, robot de rescate, rover de rescate, rovers de reconocimiento, paneles solares, antena y módulos base creados por Team Tango Horizon y optimizados con meshoptimizer.',
+      en: 'Original habitats, generic rockets, animated & static astronauts, rescue robot, rescue rover, reconnaissance rovers, solar panels, antenna, and base modules created by Team Tango Horizon and optimized with meshoptimizer.',
+      es: 'Hábitats originales, cohetes genéricos, astronautas animados y estáticos, robot de rescate, rover de rescate, rovers de reconocimiento, paneles solares, antena y módulos base creados por Team Tango Horizon y optimizados con meshoptimizer.',
     },
     operationalRole: {
       en: 'Free to use under Creative Commons Attribution 4.0 International (CC BY 4.0) for personal, educational, commercial, and illustration uses with attribution to Team Tango Horizon.',

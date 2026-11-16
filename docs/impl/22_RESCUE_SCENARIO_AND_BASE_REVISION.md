@@ -1,6 +1,6 @@
 # 22. Crew rescue scenario, four-astronaut crew and base revision (plan)
 
-**Goal:** a scripted, AI-driven rescue on the real Gale Crater terrain: two astronauts on a science traverse far from the base, a rover failure, an astronaut incapacitated in a pit, a dust storm that cuts visibility, and an autonomous response (`BASE` + `GUARDIAN`) that dispatches a rescue rover, overwatch drones and a rescue robot. The same work revises the base layout (solar field, antennas, launch complex with Starship) and the fleet naming.
+**Goal:** a scripted, AI-driven rescue on the real Gale Crater terrain: two astronauts on a science traverse far from the base, a rover failure, an astronaut incapacitated in a pit, a dust storm that cuts visibility, and an autonomous response (`BASE` + `GUARDIAN`) that dispatches a rescue rover, overwatch drones and a rescue robot. The same work revises the base layout (solar field, antennas, launch pad with the `rockets` model) and the fleet naming.
 
 **Read first:** `AGENTS.md`, `docs/impl/09_SCENARIOS_WORLD.md`, `docs/impl/13_STORM_NOWCASTER.md`, `docs/impl/08_AGENTS_TOOLS_MCP_GUARDIAN.md`.
 **Status:** plan. Procedural placeholders are used until the user supplies the GLB models listed in section 2.
@@ -29,7 +29,7 @@
 | 4 astronaut GLB models (rigged if possible) | `crew-1..4` | Current procedural astronaut, tinted per crew member |
 | Solar panel GLB | Solar field of the base | Procedural flat panel array |
 | Antenna GLB | Comms/antenna farm | Existing `comms` module primitive |
-| Starship and launch-base GLBs | Launch complex at `LAUNCH_SITE_COORD` | Existing procedural complex in `launchSiteProc.ts` |
+| `rockets` GLB | Launch pad at `LAUNCH_SITE_COORD` | Pad in `launchSiteProc.ts` |
 | Rescue robot GLB | `rescue-bot-1` | Procedural robot (chassis, winch arm, stretcher) |
 
 Intake rules: GLBs go to `web/public/models/`, are loaded with `loadNormalizedNasaGlb` (target size and anchor per model), and each keeps a procedural fallback so the scene never breaks if a file is missing. Record source and license of every model in `web/public/data/provenance.json`.
@@ -90,7 +90,7 @@ Current modules (`web/src/world/baseProc.ts`): `hab-1`, `airlock`, `compute`, `l
 | 1 | Solar field: replace the single `solar` primitive by a row array of panel GLBs, south-facing, with spacing for shadows | Under 5 deg slope, outside the 100 m `fission` keep-out and the 15 m pod keep-out |
 | 2 | Antenna farm: dish and mast GLBs near `comms`, line of sight to the sky, away from the launch path | Keep a 50 m clearance from walkways |
 | 3 | Garage and landing apron for `rover-1`, `rescue-1`, `rescue-bot-1` and drones, next to the airlock | One 12 m by 8 m apron per vehicle |
-| 4 | Launch base with Starship GLB at `LAUNCH_SITE_COORD`, road to the base | Blast safety radius ring on the minimap, no crew inside |
+| 4 | Launch pad with `rockets` GLB at `LAUNCH_SITE_COORD`, road to the base | Blast safety radius ring on the minimap, no crew inside |
 | 5 | Re-run the flat-terrain scan for any module that moves; update `BASE_MODULES` offsets and `shared/src/physics/sites.ts` | `sites.test.ts` checks distance and relief on the real DEM |
 
 Positions are decided after the models arrive (footprints change) and are validated with the DEM scan, not placed by hand.
@@ -105,7 +105,7 @@ Positions are decided after the models arrive (footprints change) and are valida
 | P4 | Crew module: 4 crew entities, swap-in of GLBs, crew positions in `MissionContext` | `web/src/world/crewProc.ts`, `state.ts` | astronaut GLBs |
 | P5 | Scenario runner with the timeline above (extend `startScenario`) and HUD summary card | `web/src/main.ts`, `web/src/hud/hud.ts`, new `rescueScenario.ts` | P1, P2, P3 |
 | P6 | Agent tools and guard rules: `get_crew_status`, `dispatch_overwatch`, `deploy_rescue_robot`; drone standoff rule in `GUARDIAN` | `server/src/agents/tools/registry.ts`, `guardian.ts`, `offline.ts` | P5 |
-| P7 | Base layout revision with solar, antenna and launch models | `baseProc.ts`, `launchSiteProc.ts`, `sites.ts` | solar, antenna, Starship GLBs |
+| P7 | Base layout revision with solar, antenna and launch models | `baseProc.ts`, `launchSiteProc.ts`, `sites.ts` | solar, antenna, rockets GLBs |
 | P9 | Scene panel with scene selector, Play/Pause/Restart, HUD-hide toggle and the camera shot table (section 3.1) | `web/src/hud/scenePanel.ts`, `web/src/world/sceneDirector.ts` | P5 |
 | P8 | Offline deterministic path so the scenario runs with `AGENTS_OFFLINE=1`, plus tests | `server/src/agents/offline.ts`, `web/src/**/*.test.ts` | P6 |
 
