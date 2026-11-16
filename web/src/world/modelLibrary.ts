@@ -11,9 +11,6 @@ import { getGltfLoader } from "./nasaModels";
 
 export type ModelId =
   | "antenna"
-  | "asset-1"
-  | "asset-2"
-  | "asset-3"
   | "asset-4"
   | "astronaut"
   | "astronaut-animated"
@@ -21,13 +18,19 @@ export type ModelId =
   | "building-2"
   | "building-3"
   | "building-connector"
+  | "circle-building-1"
+  | "circle-building-2"
   | "conae-base-mars"
+  | "drone-new"
+  | "life-support-cannon"
+  | "model-1"
+  | "model-2"
+  | "rockets"
+  | "rover-new"
   | "rescue-robot-astronaut"
   | "rescue-robot-without-astronaut"
   | "rescue-rover"
   | "rocket"
-  | "rover-1"
-  | "rover-2"
   | "solar-panel";
 
 /** `maxSpan` fits the largest bounding-box side, the others fit one axis (x width, y height, z length). */
@@ -37,21 +40,32 @@ export type SizeRule = { axis: "maxSpan" | "x" | "y" | "z"; metres: number };
 export interface ModelSpec {
   size: SizeRule;
   priority: number;
+  /** Rotation about +Y (radians) that turns the authored front onto +Z; the size rule applies after it. */
+  yaw?: number;
+}
+
+/** Bounding-box size after the spec yaw (a quarter turn swaps x and z). */
+export function orientedSize(size: readonly [number, number, number], yaw = 0): [number, number, number] {
+  return Math.abs(Math.sin(yaw)) > 0.5 ? [size[2], size[1], size[0]] : [size[0], size[1], size[2]];
 }
 
 /** Design sizes in metres; the GLBs ship normalized to about 1 unit, so each role defines its real-world scale. */
 export const MODEL_SPECS: Readonly<Record<ModelId, ModelSpec>> = {
   "conae-base-mars": { size: { axis: "maxSpan", metres: 26 }, priority: 0 },
   "astronaut-animated": { size: { axis: "y", metres: 1.75 }, priority: 0 },
-  "asset-1": { size: { axis: "maxSpan", metres: 18 }, priority: 1 },
-  "asset-2": { size: { axis: "maxSpan", metres: 14 }, priority: 1 },
-  "asset-3": { size: { axis: "maxSpan", metres: 14 }, priority: 1 },
+  "circle-building-1": { size: { axis: "maxSpan", metres: 14 }, priority: 1 },
+  "circle-building-2": { size: { axis: "maxSpan", metres: 18 }, priority: 1 },
+  rockets: { size: { axis: "maxSpan", metres: 14 }, priority: 1 },
+  "life-support-cannon": { size: { axis: "maxSpan", metres: 8 }, priority: 1 },
+  "drone-new": { size: { axis: "maxSpan", metres: 2 }, priority: 2 },
+  "model-1": { size: { axis: "y", metres: 14 }, priority: 2 },
+  // Authored with the front on -X (cab / arm): a +90 degree yaw turns it onto +Z like the other vehicles.
+  "model-2": { size: { axis: "z", metres: 5.6 }, priority: 1, yaw: Math.PI / 2 },
+  "rover-new": { size: { axis: "z", metres: 4.2 }, priority: 1, yaw: Math.PI / 2 },
   "building-1": { size: { axis: "maxSpan", metres: 20 }, priority: 1 },
   "building-2": { size: { axis: "maxSpan", metres: 12 }, priority: 1 },
   "building-3": { size: { axis: "maxSpan", metres: 10 }, priority: 1 },
   "building-connector": { size: { axis: "maxSpan", metres: 7 }, priority: 1 },
-  "rover-1": { size: { axis: "z", metres: 5.6 }, priority: 1 },
-  "rover-2": { size: { axis: "z", metres: 5.6 }, priority: 1 },
   "rescue-rover": { size: { axis: "z", metres: 4.4 }, priority: 1 },
   "rescue-robot-without-astronaut": { size: { axis: "z", metres: 2 }, priority: 1 },
   "rescue-robot-astronaut": { size: { axis: "z", metres: 2.6 }, priority: 2 },
@@ -98,10 +112,17 @@ export function rotatedFootprint(size: readonly [number, number, number], scale:
 }
 
 /** Footprint in metres of a catalogued model from the manifest box and its `MODEL_SPECS` rule. */
-export function modelFootprint(id: ModelId, manifest: ModelManifest, yaw = 0): { width: number; depth: number; height: number } {
+export function modelFootprint(
+  id: ModelId,
+  manifest: ModelManifest,
+  yaw = 0,
+  /** Target size in metres on the spec axis, when a module scales the model away from its catalogue size. */
+  metres?: number,
+): { width: number; depth: number; height: number } {
   const e = manifest.models[id];
-  const size = e.boundingBox.size as [number, number, number];
-  const scale = scaleForRule(size, MODEL_SPECS[id].size);
+  const size = orientedSize(e.boundingBox.size as [number, number, number], MODEL_SPECS[id].yaw);
+  const rule = metres ? { ...MODEL_SPECS[id].size, metres } : MODEL_SPECS[id].size;
+  const scale = scaleForRule(size, rule);
   const f = rotatedFootprint(size, scale, yaw);
   return { ...f, height: size[1] * scale };
 }
@@ -233,7 +254,9 @@ export class ModelLibrary {
     const gltf = await getGltfLoader().loadAsync(`/models/${entry.file}`);
     this.loadedBytes += entry.bytes;
     const inner = gltf.scene;
-    const scale = scaleForRule(entry.boundingBox.size as [number, number, number], MODEL_SPECS[id].size);
+    const yaw = MODEL_SPECS[id].yaw ?? 0;
+    const scale = scaleForRule(orientedSize(entry.boundingBox.size as [number, number, number], yaw), MODEL_SPECS[id].size);
+    inner.rotation.y = yaw;
     inner.scale.multiplyScalar(scale);
     inner.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(inner);

@@ -59,9 +59,6 @@ export const SIMULATOR_URL = 'https://tangohorizon.vercel.app';
 
 export const CUSTOM_3D_MODELS_LIST: string[] = [
   'antenna.glb',
-  'asset-1.glb',
-  'asset-2.glb',
-  'asset-3.glb',
   'asset-4.glb',
   'astronaut.glb',
   'astronaut-animated.glb',
@@ -70,30 +67,26 @@ export const CUSTOM_3D_MODELS_LIST: string[] = [
   'building-3.glb',
   'building-connector.glb',
   'conae-base-mars.glb',
+  'drone-new.glb',
   'rescue-robot-astronaut.glb',
   'rescue-robot-without-astronaut.glb',
   'rescue-rover.glb',
   'rocket.glb',
-  'rover-1.glb',
-  'rover-2.glb',
+  'circle-building-1.glb',
+  'circle-building-2.glb',
+  'life-support-cannon.glb',
+  'model-1.glb',
+  'model-2.glb',
+  'rockets.glb',
+  'rover-new.glb',
   'solar-panel.glb',
 ];
 
 export const NASA_3D_MODELS_LIST: { file: string; name: string; url: string }[] = [
   {
-    file: 'ingenuity.glb',
-    name: 'Ingenuity Mars Helicopter',
-    url: 'https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Ingenuity%20Mars%20Helicopter/Ingenuity%20Mars%20Helicopter.glb',
-  },
-  {
     file: 'mro.glb',
     name: 'Mars Reconnaissance Orbiter (MRO)',
     url: 'https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A)/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A).glb',
-  },
-  {
-    file: 'rover.glb',
-    name: 'Mars 2020 Perseverance / MSL-Class Chassis',
-    url: 'https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%202020%20Perseverance%20Rover/Mars%202020%20Perseverance%20Rover.glb',
   },
 ];
 
@@ -911,17 +904,17 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     id: 'nasa-3d-resources',
     category: 'models-3d',
     title: {
-      en: 'NASA 3D Resources (Ingenuity, MRO, Perseverance / MSL Chassis)',
-      es: 'Recursos 3D de NASA (Ingenuity, MRO, Chasis Perseverance / MSL)',
+      en: 'NASA 3D Resources (Mars Reconnaissance Orbiter)',
+      es: 'Recursos 3D de NASA (Mars Reconnaissance Orbiter)',
     },
     provider: 'NASA Science / NASA 3D Resources',
-    productId: 'ingenuity.glb · mro.glb · rover.glb',
+    productId: 'mro.glb',
     badge: 'verified-nasa',
     badgeLabel: { en: 'NASA Media Guidelines', es: 'Directrices NASA Media' },
     accent: '#fdba74',
     description: {
-      en: 'Official NASA 3D spacecraft and robotic explorer models (Ingenuity Mars Helicopter, Mars Reconnaissance Orbiter, and Mars 2020/MSL chassis) integrated into the 3D Gale Crater scene.',
-      es: 'Modelos 3D oficiales de NASA (helicóptero Ingenuity, orbitador MRO y rover clase Mars 2020/MSL) integrados en la escena 3D del Cráter Gale.',
+      en: 'Official NASA 3D spacecraft model (Mars Reconnaissance Orbiter) integrated into the 3D Gale Crater scene.',
+      es: 'Modelo 3D oficial de NASA (orbitador MRO) integrados en la escena 3D del Cráter Gale.',
     },
     operationalRole: {
       en: 'Renders authentic NASA flight & surface hardware alongside Team Tango Horizon habitat and rescue vehicles; remains governed by NASA media usage guidelines.',
@@ -930,16 +923,8 @@ export const SOURCE_ENTRIES: SourceEntry[] = [
     primaryUrl: 'https://github.com/nasa/NASA-3D-Resources',
     secondaryLinks: [
       {
-        label: { en: 'ingenuity.glb (Raw)', es: 'ingenuity.glb (Raw)' },
-        url: 'https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Ingenuity%20Mars%20Helicopter/Ingenuity%20Mars%20Helicopter.glb',
-      },
-      {
         label: { en: 'mro.glb (Raw)', es: 'mro.glb (Raw)' },
         url: 'https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A)/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A).glb',
-      },
-      {
-        label: { en: 'rover.glb (Raw)', es: 'rover.glb (Raw)' },
-        url: 'https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%202020%20Perseverance%20Rover/Mars%202020%20Perseverance%20Rover.glb',
       },
     ],
     tags: ['NASA 3D', 'Ingenuity', 'MRO', 'Rover', 'GLB'],
@@ -1308,8 +1293,8 @@ export function getSourcesPageCopy() {
       es: 'Modelos 3D Team Tango Horizon — Uso Libre bajo CC BY 4.0',
     },
     licenseBoxBody: {
-      en: 'All custom Team Tango Horizon GLB models listed below are free to use under Creative Commons Attribution 4.0 International (CC BY 4.0) for personal, educational, commercial, and illustration uses (with attribution to Team Tango Horizon). Official NASA 3D Resources (ingenuity.glb, mro.glb, rover.glb) remain governed by NASA media guidelines.',
-      es: 'Todos los modelos GLB originales de Team Tango Horizon listados abajo son libres de usar bajo Creative Commons Atribución 4.0 Internacional (CC BY 4.0) para usos personales, educativos, comerciales e ilustración (con atribución a Team Tango Horizon). Los activos de NASA 3D Resources (ingenuity.glb, mro.glb, rover.glb) se rigen por las directrices de medios de NASA.',
+      en: 'All custom Team Tango Horizon GLB models listed below are free to use under Creative Commons Attribution 4.0 International (CC BY 4.0) for personal, educational, commercial, and illustration uses (with attribution to Team Tango Horizon). Official NASA 3D Resources (mro.glb) remain governed by NASA media guidelines.',
+      es: 'Todos los modelos GLB originales de Team Tango Horizon listados abajo son libres de usar bajo Creative Commons Atribución 4.0 Internacional (CC BY 4.0) para usos personales, educativos, comerciales e ilustración (con atribución a Team Tango Horizon). Los activos de NASA 3D Resources (mro.glb) se rigen por las directrices de medios de NASA.',
     },
     licenseCta: {
       en: 'Read CC BY 4.0 License',

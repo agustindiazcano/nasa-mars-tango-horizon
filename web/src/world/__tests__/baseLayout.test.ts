@@ -26,7 +26,7 @@ describe("base modules vs shared footprints", () => {
   it("keeps every model-backed module footprint within 5% of the scaled model box", () => {
     for (const mod of BASE_MODULES) {
       if (!mod.model) continue;
-      const f = modelFootprint(mod.model, manifest, mod.modelYaw ?? 0);
+      const f = modelFootprint(mod.model, manifest, mod.modelYaw ?? 0, mod.modelMetres);
       expect(Math.abs(f.width - mod.footprint[0]) / mod.footprint[0], `${mod.id} width`).toBeLessThan(0.05);
       expect(Math.abs(f.depth - mod.footprint[1]) / mod.footprint[1], `${mod.id} depth`).toBeLessThan(0.05);
       expect(Math.abs(f.height - mod.height) / mod.height, `${mod.id} height`).toBeLessThan(0.05);

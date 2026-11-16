@@ -1,7 +1,7 @@
 import { BASE_ORIGIN } from "@th/shared";
 import { footprintGridContacts, groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
-import { models, type ModelId } from "./modelLibrary";
+import { MODEL_SPECS, models, type ModelId } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
 export interface BaseModuleSpec {
@@ -30,6 +30,8 @@ export interface BaseModuleSpec {
   /** Optimized GLB that replaces the procedural box; the box stays as the fallback and the click target. */
   model?: ModelId;
   modelYaw?: number;
+  /** Target size in metres on the model's `MODEL_SPECS` axis; defaults to the catalogue size. */
+  modelMetres?: number;
   specs: { key: string; value: string; source: string; assumption?: boolean }[];
 }
 
@@ -53,9 +55,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "EVA Airlock & Suit Port",
     kind: "airlock",
     offset: [-17, 0],
-    footprint: [4.5, 4],
-    height: 3.2,
+    footprint: [4.94, 5.0],
+    height: 2.11,
     color: 0x35e0ff,
+    model: "circle-building-1",
+    modelMetres: 5,
     specs: [
       { key: "Depress time", value: "12 min", source: "NTRS Exploration EVA Brief" },
       { key: "Prebreathe", value: "40 min", source: "NASA-STD-3001 Vol. 2" },
@@ -66,9 +70,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Local AI Compute Node",
     kind: "compute",
     offset: [17, 0],
-    footprint: [4, 4],
-    height: 3.0,
+    footprint: [4.93, 5.0],
+    height: 2.14,
     color: 0x5c8eff,
+    model: "circle-building-2",
+    modelMetres: 5,
     specs: [
       { key: "Orchestrator", value: "BASE + MCP + GUARDIAN", source: "Tango Horizon Architecture" },
       { key: "Link mode", value: "Local (<2 s)", source: "Measured in runtime" },
@@ -79,10 +85,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Geoscience Lab",
     kind: "lab",
     offset: [3, -24],
-    footprint: [14, 8.5],
-    height: 8.3,
+    footprint: [8.4, 8.5],
+    height: 3.59,
     color: 0xd6dfe8,
-    model: "asset-2",
+    model: "circle-building-1",
+    modelMetres: 8.5,
     specs: [{ key: "Instruments", value: "XRD / Raman / Mass Spec", source: "Design choice", assumption: true }],
   },
   {
@@ -101,11 +108,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Hydroponic Greenhouse",
     kind: "greenhouse",
     offset: [-28, -24],
-    footprint: [18, 11.4],
-    height: 6.5,
+    footprint: [11.24, 11.4],
+    height: 4.87,
     color: 0x45d97b,
-    model: "asset-1",
-    modelYaw: Math.PI / 2,
+    model: "circle-building-2",
+    modelMetres: 11.4,
     specs: [{ key: "Growing area", value: "64 m^2", source: "ISS Veggie / APH scaled", assumption: true }],
   },
   {
@@ -113,9 +120,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "ECLSS & Water",
     kind: "eclss",
     offset: [22, -18],
-    footprint: [5.5, 4.5],
-    height: 3.4,
+    footprint: [6.0, 3.06],
+    height: 2.95,
     color: 0x4ec4e8,
+    model: "rockets",
+    modelMetres: 6,
     specs: [
       { key: "O2 demand", value: "0.84 kg/person/day", source: "NASA-STD-3001 Vol. 2" },
       { key: "Water recovery", value: "98%", source: "ISS WRS NTRS Report" },
@@ -150,9 +159,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Battery Bank",
     kind: "battery",
     offset: [22, -34],
-    footprint: [6, 4],
-    height: 2.4,
+    footprint: [6.0, 3.06],
+    height: 2.95,
     color: 0x35e0ff,
+    model: "rockets",
+    modelMetres: 6,
     specs: [{ key: "Capacity", value: "420 kWh", source: "Design choice", assumption: true }],
   },
   {
@@ -160,9 +171,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Fission Surface Power (100 m Keep-Out)",
     kind: "fission",
     offset: [220, -40],
-    footprint: [5, 5],
-    height: 6.0,
+    footprint: [6.0, 5.13],
+    height: 2.23,
     color: 0xffb800,
+    model: "building-3",
+    modelMetres: 6,
     specs: [
       { key: "Rated power", value: "40 kWe storm-proof", source: "NASA Fission Surface Power (NTRS)" },
       { key: "Keep-out radius", value: "100 m", source: "Safety exclusion", assumption: true },
@@ -184,9 +197,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Comms Relay Tower",
     kind: "comms",
     offset: [28, 12],
-    footprint: [3, 3],
-    height: 16.0,
+    footprint: [7.36, 7.01],
+    height: 9.0,
     color: 0xf2f5f8,
+    model: "antenna",
+    modelMetres: 9,
     specs: [{ key: "Uplink", value: "MRO / TGO UHF + X-band", source: "NASA Mars Relay Network" }],
   },
   {
@@ -194,9 +209,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Pod Launcher Tower 1",
     kind: "launcher",
     offset: [55, 24],
-    footprint: [4, 4],
-    height: 8.5,
+    footprint: [6.0, 5.95],
+    height: 2.96,
     color: 0xff623b,
+    model: "life-support-cannon",
+    modelMetres: 6,
     specs: [
       { key: "Muzzle speed", value: "90 m/s max (6 m tube)", source: "Design choice", assumption: true },
       { key: "Peak launch load", value: "69 g", source: "Computed: launchLoadG(90, 6)" },
@@ -207,9 +224,11 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Pod Launcher Tower 2",
     kind: "launcher",
     offset: [65, 24],
-    footprint: [4, 4],
-    height: 8.5,
+    footprint: [6.0, 5.95],
+    height: 2.96,
     color: 0xff623b,
+    model: "life-support-cannon",
+    modelMetres: 6,
     specs: [
       { key: "Max vacuum range", value: "2183 m", source: "Computed: maxRangeVacuum(90)" },
       { key: "Payload", value: "3 kg O2 / Battery / Patch", source: "Design choice", assumption: true },
@@ -220,10 +239,10 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     name: "Radiation Storm Shelter",
     kind: "shelter",
     offset: [-31, 7],
-    footprint: [14, 5],
-    height: 3.8,
+    footprint: [14.0, 7.13],
+    height: 6.89,
     color: 0xc2956b,
-    model: "asset-3",
+    model: "rockets",
     specs: [{ key: "Regolith shielding", value: "45 g/cm^2", source: "NASA-STD-3001 Vol. 1" }],
   },
 ];
@@ -253,14 +272,7 @@ export class BaseProc {
         metalness: mod.kind === "solar" ? 0.65 : 0.25,
       });
 
-      if (!mod.model && (mod.kind === "habitat" || mod.kind === "lab" || mod.kind === "greenhouse")) {
-        mesh = new THREE.Mesh(
-          new THREE.CylinderGeometry(mod.footprint[1] * 0.5, mod.footprint[1] * 0.5, mod.footprint[0], 16),
-          mat,
-        );
-        mesh.rotation.z = Math.PI / 2;
-        mesh.position.y = mod.footprint[1] * 0.42;
-      } else if (mod.kind === "solar") {
+      if (mod.kind === "solar") {
         mesh = new THREE.Mesh(new THREE.BoxGeometry(mod.footprint[0], 0.35, mod.footprint[1]), mat);
         mesh.position.y = 0.9;
       } else if (mod.kind === "comms") {
@@ -272,6 +284,7 @@ export class BaseProc {
         );
         dish.position.y = mod.height;
         dish.rotation.x = 0.6;
+        dish.userData.procFallback = true;
         mGroup.add(dish);
       } else if (mod.kind === "launcher") {
         mesh = new THREE.Mesh(new THREE.BoxGeometry(mod.footprint[0], 2.2, mod.footprint[1]), mat);
@@ -282,6 +295,7 @@ export class BaseProc {
         );
         rail.position.y = 4.2;
         rail.rotation.z = -0.35;
+        rail.userData.procFallback = true;
         mGroup.add(rail);
 
       } else if (mod.kind === "fission") {
@@ -326,7 +340,7 @@ export class BaseProc {
         footprintGridContacts(mod.footprint[0], mod.footprint[1], localBounds.min.y, 2));
       mGroup.position.y = placement.y;
       mGroup.userData.contactClearanceM = placement.clearanceM;
-      if (mod.kind === "launcher") this.launcherOrigins.push([wx, wz, placement.y + 5.5]);
+      if (mod.kind === "launcher") this.launcherOrigins.push([wx, wz, placement.y + mod.height]);
       this.selectableMeshes.push(mesh);
 
       const lbl = makeSpriteLabel(mod.id.toUpperCase(), mod.kind === "fission" ? "#ffb800" : "#35e0ff");
@@ -350,6 +364,9 @@ export class BaseProc {
       void models.attach(mod.model, mGroup, mesh, (m) => {
         m.object.position.y = bottomY;
         m.object.rotation.y = mod.modelYaw ?? 0;
+        if (mod.modelMetres) m.object.scale.setScalar(mod.modelMetres / MODEL_SPECS[mod.model!].size.metres);
+        // The GLB replaces the procedural parts too (comms dish, launcher rail); the keep-out ring stays.
+        for (const c of mGroup.children) if (c.userData.procFallback) c.visible = false;
       });
     }
     if (mod.kind === "solar") void this.buildSolarField(mGroup, mesh, terrain);
@@ -413,6 +430,12 @@ export class BaseProc {
       }),
     );
     if (antennas) this.extras.add(antennas);
+    // New rocket pair parked beside the garage as a display piece.
+    const pair = at(-78, 34);
+    void models.attach("model-1", this.extras, null, (m) => {
+      m.object.position.copy(pair);
+      m.object.rotation.y = 0.4;
+    });
     const dp = at(-52, 31);
     void models.attach("rescue-robot-astronaut", this.extras, null, (m) => {
       m.object.position.copy(dp);

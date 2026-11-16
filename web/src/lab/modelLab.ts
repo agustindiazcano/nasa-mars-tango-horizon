@@ -343,7 +343,7 @@ async function main(): Promise<void> {
   $("selfcheck").addEventListener("click", () => void selfCheck());
 
   (window as unknown as { __lab: unknown }).__lab = { selectModel, selfCheck, renderContactSheet, setTab, errors, ctx };
-  await selectModel(names.includes("rover-1") ? "rover-1" : names[0]);
+  await selectModel(names.includes("rover-new") ? "rover-new" : names[0]);
 }
 
 void main().catch((e) => log(`init: ${String(e)}`));
