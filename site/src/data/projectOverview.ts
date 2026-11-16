@@ -345,8 +345,8 @@ export const MULTI_AGENT_TIERS: MultiAgentTier[] = [
     },
     accent: '#fb7185',
     role: {
-      en: 'Strategic brain of the habitat/Starship complex (conae-base-mars). Prioritizes crew survival over science, reads live LiDAR and environmental telemetry, triggers autonomous rescue protocols, and delegates specialized analysis to the 5 domain specialists and robotic fleet.',
-      es: 'Cerebro estratégico del complejo base/Starship (conae-base-mars). Prioriza la supervivencia de la tripulación sobre la ciencia, lee LiDAR y telemetría ambiental en vivo, dispara protocolos autónomos de rescate y delega análisis a los 5 especialistas y a la flota robótica.',
+      en: 'Strategic brain of the habitat/launch pad complex (conae-base-mars). Prioritizes crew survival over science, reads live LiDAR and environmental telemetry, triggers autonomous rescue protocols, and delegates specialized analysis to the 5 domain specialists and robotic fleet.',
+      es: 'Cerebro estratégico del complejo base/plataforma de cohetes (conae-base-mars). Prioriza la supervivencia de la tripulación sobre la ciencia, lee LiDAR y telemetría ambiental en vivo, dispara protocolos autónomos de rescate y delega análisis a los 5 especialistas y a la flota robótica.',
     },
   },
   {

@@ -1,6 +1,6 @@
 # 24. Optimized models in the simulator, base design, natural pit, NASA-style map (plan)
 
-**Goal:** the optimized GLBs from plan 23 (`web/public/models/`, 19 files, 15.8 MB) become the visible world of the simulator; the rescue pit looks like a natural sinkhole; the astronaut can ask for a realistic NASA-style map with the position of everything; the Starship is visible behind the base and in a recorded scene.
+**Goal:** the optimized GLBs from plan 23 (`web/public/models/`, 19 files, 15.8 MB) become the visible world of the simulator; the rescue pit looks like a natural sinkhole; the astronaut can ask for a realistic NASA-style map with the position of everything; the rockets pad is visible near the base and in a recorded scene.
 
 **Read first:** `AGENTS.md`, plans 22 (rescue) and 23 (assets), `web/public/models/manifest.json`, `web/src/world/nasaModels.ts`.
 **Owner decisions (2026-11-15):** all models are created by the project owner (personal use, all rights held). "Rover" means a large transport or uncrewed vehicle. The injured astronaut is DIAZ-CANO; SALERNO is the other expedition member; SOTELO and YACONIS are at the base. The pit is a designed natural-looking sinkhole, not a real DEM feature.
@@ -20,7 +20,7 @@
 | `asset-1` (inflatable habitat cluster), `asset-2` (lab with ramp and NASA logo), `asset-3` (twin domes with corridor), `building-1` (landing pad with long module), `building-2` (geodesic dome), `building-3` (round hub), `building-connector` (tube) | Base modules and annexes arranged around the main complex; the existing selectable module cards map to them |
 | `asset-4` and `solar-panel` | Solar field (instanced) |
 | `antenna` | Antenna farm (instanced, 2 to 3 units) |
-| `rocket` | Starship at the launch complex, visible from the base |
+| `rockets` | Generic rocket pair on the launch pad, visible from the base |
 
 Every model keeps its procedural fallback (existing primitives) when a file fails to load. Models load asynchronously and in priority order (base and crew first), with instancing for repeated pieces.
 
@@ -28,7 +28,7 @@ Every model keeps its procedural fallback (existing primitives) when a file fail
 
 - A model library (`web/src/world/modelLibrary.ts`) built on `getGltfLoader()` and `manifest.json`: normalize scale (real height where known, otherwise target size in metres per role), anchor to the ground, clone with shared geometry and materials, cache.
 - Base layout redesign in `web/src/world/baseProc.ts` and `shared/src/physics/sites.ts`: place the models on flat ground (below 5 deg), keep the fission keep-out (100 m), the pod keep-out (15 m), the launcher positions and the airlock and spawn points; keep module ids selectable with their technical cards; update `BASE_MODULE_FOOTPRINTS` (rocks keep clear of them) and the tests (`terrainLodAndContact`, `sites`).
-- Launch complex: the `rocket` model on the pad in `launchSiteProc.ts`; make it visible in the background of the base (S1 base aerial and a base ground shot) and add a scene `S0` "Starship at the pad" to the scene table (`sceneDirector.ts`) plus a CAM shot.
+- Launch complex: the `rockets` model on the pad in `launchSiteProc.ts`; make it visible in the background of the base (S1 base aerial and a base ground shot) and add a scene `S0` "Rockets at the pad" to the scene table (`sceneDirector.ts`) plus a CAM shot.
 - Fleet: swap the procedural units for the models listed above, keeping `FleetProc` hooks (`placeUnit`, pitch, ramp, bay) working with the new meshes (bay and ramp positions measured from the model bounding boxes).
 - Crew: `crewProc.ts` uses `astronaut-animated` with an `AnimationMixer` and a small state machine (idle, walk, run, fall, lying), driven by the rescue scenario poses; the player astronaut keeps the first-person controller and uses the model in third person.
 - Visual check in the browser for the base aerial, the launch site, the rescue scenes S3, S5 and S6, with a before/after of the frame rate.
