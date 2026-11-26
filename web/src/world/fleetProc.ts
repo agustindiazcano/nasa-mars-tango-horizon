@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "@th/shared";
 import type { ArmSkillId, UnitKind, UnitSnapshot } from "@th/shared";
 import { ManipulatorArm, SkillRunner } from "./manipulatorArm";
-import type { RotorPivot } from "./nasaModels";
+import { collectDroneRotorPivots, type RotorPivot } from "./nasaModels";
 import { models, type ModelId, type SpawnedModel } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
@@ -146,8 +146,9 @@ export class FleetUnit {
         this.rotors[i].rotation.y += spin * dt;
       }
       for (let i = 0; i < this.rotorPivots.length; i++) {
-        const spin = this.grounded ? 0.5 : i % 2 === 0 ? 32 : -32;
         const rp = this.rotorPivots[i];
+        const sense = rp.dir ?? (i % 2 === 0 ? 1 : -1);
+        const spin = this.grounded ? 0.5 * sense : 32 * sense;
         rp.pivot.rotation[rp.axis] += spin * dt;
       }
       if (this.lidarCone) {
@@ -688,8 +689,8 @@ export class FleetProc {
       group.add(m.object);
       if (drone.proceduralGroup) drone.proceduralGroup.visible = false;
       drone.object.add(group);
-      // The single-mesh GLB has no separate rotor nodes, so no rotor pivots spin.
-      drone.rotorPivots = [];
+      // The GLB carries eight rotor nodes (two layers on each of the four arms) that spin about their shafts.
+      drone.rotorPivots = collectDroneRotorPivots(m.object);
     }
 
     const orbiter = this.buildProceduralOrbiter();

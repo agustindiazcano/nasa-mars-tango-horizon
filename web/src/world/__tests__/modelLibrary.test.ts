@@ -58,6 +58,7 @@ describe("manifest and size table", () => {
       expect(Math.max(f.width, f.depth, f.height), id).toBeLessThan(130);
     }
     expect(modelFootprint("astronaut-animated", manifest).height).toBeCloseTo(1.75, 1);
+    expect(modelFootprint("rocket", manifest).height).toBeCloseTo(121, 0);
   });
 });
 

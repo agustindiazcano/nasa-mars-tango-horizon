@@ -1,3 +1,6 @@
+import type { LayerId } from "@th/shared";
+import { DEMO_SCENES, DECK_ORDER } from "../demo/demoScenes";
+import type { OverlayItem } from "../demo/overlays";
 import { clampAboveTerrain, type Vec3 } from "./cinematicCams";
 
 /**
@@ -42,18 +45,22 @@ export interface SceneDef {
   startS: number;
   durationS: number;
   segments: ShotSegment[];
+  /** Terrain layer shown during the scene (the presentation switches it on start). */
+  layer?: LayerId;
+  /** Explanatory overlays (cards, conversation, coordinates), keyed to scene-relative seconds. */
+  overlay?: readonly OverlayItem[];
 }
 
-export const SCENES: readonly SceneDef[] = [
+const CORE_SCENES: readonly SceneDef[] = [
   {
     id: "S0",
     nameKey: "scene.s0",
     startS: 0,
     durationS: 18,
     segments: [
-      // Slow orbit around the rockets on the pad (about 42 m wide), then a low wide shot.
-      { fromS: 0, kind: "orbit", target: "launch-site", radius: 75, height: 22, speed: 0.1, lookAboveM: 8 },
-      { fromS: 10, kind: "aerial", target: "launch-site", offset: { x: 55, y: 12, z: -70 }, lookAboveM: 8 },
+      // Slow orbit around the stack on the pad (about 170 m tall), then a low wide shot with the tower.
+      { fromS: 0, kind: "orbit", target: "launch-site", radius: 260, height: 60, speed: 0.1, lookAboveM: 90 },
+      { fromS: 10, kind: "aerial", target: "launch-site", offset: { x: 150, y: 25, z: -190 }, lookAboveM: 110 },
     ],
   },
   {
@@ -63,8 +70,8 @@ export const SCENES: readonly SceneDef[] = [
     durationS: 20,
     segments: [
       { fromS: 0, kind: "orbit", target: "base", radius: 95, height: 60, speed: 0.07, lookAboveM: 2 },
-      // From the base apron toward the rockets on their pad, 1.1 km east-north-east.
-      { fromS: 12, kind: "aerial", target: "launch-site", offset: { x: -320, y: 40, z: 170 }, lookAboveM: 8 },
+      // From the base apron toward the Starship on its pad, 1.1 km east-north-east.
+      { fromS: 12, kind: "aerial", target: "launch-site", offset: { x: -960, y: 48, z: 500 }, lookAboveM: 95 },
     ],
   },
   {
@@ -131,6 +138,9 @@ export const SCENES: readonly SceneDef[] = [
     segments: [{ fromS: 0, kind: "aerial", target: "rescue-1", offset: { x: 25, y: 6, z: 30 }, lookAboveM: 2 }],
   },
 ];
+
+/** Every scene: the original rescue takes followed by the explained-video scenes. */
+export const SCENES: readonly SceneDef[] = [...CORE_SCENES, ...DEMO_SCENES];
 
 export interface ShotPose {
   pos: Vec3;
@@ -237,7 +247,7 @@ export class SceneDirector {
   }
 
   /** Plays the given scenes (default: all) one after another, hard cut between them. */
-  playSequence(ids: readonly string[] = this.scenes.map((x) => x.id)): boolean {
+  playSequence(ids: readonly string[] = DECK_ORDER): boolean {
     const list = ids.filter((id) => this.scenes.some((x) => x.id === id));
     if (list.length === 0) return false;
     this.queue = list.slice(1);

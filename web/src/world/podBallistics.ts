@@ -27,6 +27,7 @@ export class PodBallistics {
   private activeDelivery: Delivery | null = null;
   private elapsedS = 0;
   private onLanded?: () => void;
+  private lastPos: THREE.Vector3 | null = null;
 
   constructor(
     scene: THREE.Scene,
@@ -39,6 +40,21 @@ export class PodBallistics {
       new THREE.MeshStandardMaterial({ color: 0xff623b, emissive: 0x441206, metalness: 0.4 }),
     );
     this.podMesh.add(capsule);
+    // Detail: nose cone, white band, rocket-orange base ring and four stabilizing fins.
+    const noseMat = new THREE.MeshStandardMaterial({ color: 0xe9eef2, metalness: 0.5, roughness: 0.4 });
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.45, 12), noseMat);
+    nose.position.y = 0.78;
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.345, 0.345, 0.12, 12), noseMat);
+    band.position.y = 0.2;
+    const finMat = new THREE.MeshStandardMaterial({ color: 0x2a2d31, metalness: 0.6, roughness: 0.5 });
+    for (let k = 0; k < 4; k++) {
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.36, 0.26), finMat);
+      const a = (k / 4) * Math.PI * 2;
+      fin.position.set(Math.cos(a) * 0.4, -0.4, Math.sin(a) * 0.4);
+      fin.rotation.y = -a;
+      this.podMesh.add(fin);
+    }
+    this.podMesh.add(nose, band);
 
     this.chuteMesh = new THREE.Mesh(
       new THREE.SphereGeometry(2.35, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.55),
@@ -61,6 +77,30 @@ export class PodBallistics {
     this.group.add(this.rangeRing);
 
     scene.add(this.group);
+  }
+
+  /** World position of the pod while it is shown (in flight or lying at the impact point), else null. */
+  position(): THREE.Vector3 | null {
+    return this.podMesh.visible ? this.podMesh.position.clone() : (this.lastPos?.clone() ?? null);
+  }
+
+  /** Hides the pod and clears the flight state (scene change or restart). */
+  reset(): void {
+    this.activeDelivery = null;
+    this.onLanded = undefined;
+    this.podMesh.visible = false;
+    this.chuteMesh.visible = false;
+    this.lastPos = null;
+    if (this.arcLine) {
+      this.group.remove(this.arcLine);
+      this.arcLine.geometry.dispose();
+      this.arcLine = null;
+    }
+  }
+
+  /** Hides the pod body once its payload has been opened. */
+  hidePod(): void {
+    this.podMesh.visible = false;
   }
 
   updateKeepoutRing(astroX: number, astroZ: number): void {
@@ -171,6 +211,7 @@ export class PodBallistics {
     }
 
     this.podMesh.position.set(state.p[0], state.p[2], state.p[1]);
+    this.lastPos = this.podMesh.position.clone();
     const deployed =
       this.activeDelivery.deployedAtS !== null && this.elapsedS >= this.activeDelivery.deployedAtS;
     this.chuteMesh.visible = deployed;

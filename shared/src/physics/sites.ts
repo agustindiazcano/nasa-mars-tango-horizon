@@ -75,7 +75,7 @@ export const AIRLOCK_COORD: Readonly<Coord2D> = {
 
 /**
  * Initial EVA astronaut spawn coordinate, south-west of the main complex. From here the base is ahead and the
- * Rockets on the launch pad (`LAUNCH_SITE_COORD`) rises behind it: the sight line to 40 m above the pad clears the
+ * Starship on the launch pad (`LAUNCH_SITE_COORD`) rises behind it: the sight line to 40 m above the pad clears the
  * real DEM (min clearance 2 m), 3.5 deg ground slope.
  */
 export const ASTRONAUT_START: Readonly<Coord2D> = {
@@ -102,7 +102,7 @@ export const LAUNCHER_PRIMARY_COORD: Readonly<Coord2D> = {
 };
 
 /**
- * Launch pad center (world m). About 1.1 km east-south-east of `BASE_ORIGIN`, chosen on the
+ * Starship-class launch complex center (world m). About 1.1 km east-south-east of `BASE_ORIGIN`, chosen on the
  * real HiRISE DEM as a <7 deg, <7 m relief area within a 70 m radius with line of sight to the base.
  */
 export const LAUNCH_SITE_COORD: Readonly<Coord2D> = { x: 1202, z: -1022 };
@@ -205,9 +205,9 @@ export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
   { id: "hab-1", offsetX: 0, offsetZ: 0, widthM: 26, depthM: 24.6 },
   { id: "airlock", offsetX: -17, offsetZ: 0, widthM: 4.94, depthM: 5.0 },
   { id: "compute", offsetX: 17, offsetZ: 0, widthM: 4.93, depthM: 5.0 },
-  { id: "lab", offsetX: 3, offsetZ: -24, widthM: 8.4, depthM: 8.5 },
+  { id: "lab", offsetX: 3, offsetZ: -24, widthM: 14, depthM: 8.5 },
   { id: "med", offsetX: 32, offsetZ: -6, widthM: 12, depthM: 11.3 },
-  { id: "greenhouse", offsetX: -28, offsetZ: -24, widthM: 11.24, depthM: 11.4 },
+  { id: "greenhouse", offsetX: -28, offsetZ: -24, widthM: 18, depthM: 11.45 },
   { id: "eclss", offsetX: 22, offsetZ: -18, widthM: 6.0, depthM: 3.06 },
   { id: "isru", offsetX: 36, offsetZ: -26, widthM: 10, depthM: 8.6 },
   { id: "solar", offsetX: 0, offsetZ: -52, widthM: 36, depthM: 13 },
@@ -217,7 +217,7 @@ export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
   { id: "comms", offsetX: 28, offsetZ: 12, widthM: 7.36, depthM: 7.01 },
   { id: "launcher-1", offsetX: 55, offsetZ: 24, widthM: 6.0, depthM: 5.95 },
   { id: "launcher-2", offsetX: 65, offsetZ: 24, widthM: 6.0, depthM: 5.95 },
-  { id: "shelter", offsetX: -31, offsetZ: 7, widthM: 14.0, depthM: 7.13 },
+  { id: "shelter", offsetX: -31, offsetZ: 7, widthM: 14, depthM: 4.97 },
   // Unselectable parts: antenna farm, garage display piece and the tube connectors to the lab and the medical bay.
   { id: "antenna-1", offsetX: 46, offsetZ: -6, widthM: 7.4, depthM: 7.1 },
   { id: "antenna-2", offsetX: 52, offsetZ: 7, widthM: 7.4, depthM: 7.1 },
