@@ -1,3 +1,7 @@
+**🏆 Ganador de la Categoría Impact - NASA Space Apps Challenge (Buenos Aires, más de 450 participantes)**
+
+**Tango Horizon:** proyecto del NASA Space Apps Challenge 2026 entre más de 450 participantes en Buenos Aires · [Página del proyecto](https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project) · [Universidad de Palermo: sede del NASA Space Apps Challenge](https://www.palermo.edu/ingenieria/2026/noviembre/up-sede-nasa-space-apps-challenge.html) · [Video de la Universidad de Palermo en Facebook](https://www.facebook.com/universidaddepalermo/videos/as%C3%AD-se-vivi%C3%B3-el-nasa-space-apps-challenge-en-la-upla-universidad-de-palermo-fue-/1829309231323121/) · [Reel de Instagram](https://www.instagram.com/reels/DgH_go-JCgu/) · [Publicación en X](https://x.com/udepalermo/status/2125210609981456661)
+
 <p align="center"><img src="docs/tango-horizon-banner.png" alt="Tango Horizon: AI Systems for EVA and Mars Exploration" width="100%" /></p>
 
 [![Read in English](https://img.shields.io/badge/Read%20in-English-0ea5e9?style=for-the-badge)](README.md)
@@ -16,7 +20,6 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
 
 ## Índice
 
-- [Galería](#galería)
 - [Equipo: Tango Horizon (Buenos Aires, Argentina)](#equipo-tango-horizon-buenos-aires-argentina)
 - [Funcionalidades Principales y Capacidades Operativas](#funcionalidades-principales-y-capacidades-operativas)
 - [Arquitectura del Sistema y Runtime Multi-Agente](#arquitectura-del-sistema-y-runtime-multi-agente)
@@ -25,7 +28,9 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
 - [Robótica Simulada, Autonomía de Flota y Rescate Cooperativo](#robótica-simulada-autonomía-de-flota-y-rescate-cooperativo)
 - [Real vs. Simulado vs. Supuestos de Diseño de Ingeniería](#real-vs-simulado-vs-supuestos-de-diseño-de-ingeniería)
 - [Datos de NASA y USGS Utilizados](#datos-de-nasa-y-usgs-utilizados)
+- [Modelos de Física Deterministas](#modelos-de-física-deterministas)
 - [Nuestros Modelos de ML y Validación Empírica](#nuestros-modelos-de-ml-y-validación-empírica)
+- [Limitaciones Conocidas](#limitaciones-conocidas)
 - [Enlaces del NASA Space Apps Challenge](#enlaces-del-nasa-space-apps-challenge)
 - [Uso de IA](#uso-de-ia)
 - [Tecnologías y Comandos de Ejecución Local](#tecnologías-y-comandos-de-ejecución-local)
@@ -34,6 +39,7 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
   - [`docs/slides/PRESENTATION_SCRIPT_3MIN.md`](docs/slides/PRESENTATION_SCRIPT_3MIN.md) — Guion de presentación y rescate en vivo de 3 minutos (ES / EN)
   - [`docs/slides/PRESENTATION_SCRIPT_30S.md`](docs/slides/PRESENTATION_SCRIPT_30S.md) — Guion de video de 30 segundos (ES / EN)
   - [`docs/slides/SLIDES.md`](docs/slides/SLIDES.md) — Estructura de las 10 diapositivas (Slides)
+  - [`docs/slides/TANGO_HORIZON_English.pptx`](docs/slides/TANGO_HORIZON_English.pptx) — Presentación en inglés (PowerPoint)
 - [Licencia](#licencia)
 
 ## Equipo: Tango Horizon (Buenos Aires, Argentina)
@@ -42,9 +48,6 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
 - **Baltazar Salerno:** Desarrollador Frontend · [GitHub](https://github.com/S-Baltazar)
 - **Milagros Sotelo:** Estudiante de Ingeniería en Sistemas ([UTN, FRBA](https://frba.utn.edu.ar/)) · [GitHub](https://github.com/Milagros-Sotelo)
 - **Federico Yaconis:** Desarrollador 3D y QA
-
-<details>
-<summary><strong>🔽 Desplegar Documentación Técnica Completa — Features, IA Multi-Agente, Voz, RAG, Robótica, Modelos ML y Datos NASA</strong></summary>
 
 ## Funcionalidades Principales y Capacidades Operativas
 
@@ -62,6 +65,21 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
 ## Arquitectura del Sistema y Runtime Multi-Agente
 
 Tango Horizon mantiene la simulación WebGL2 del navegador (`web/`) como única fuente de verdad del estado de la misión, enviando en cada orden un snapshot JSON `MissionContext` al servidor Fastify sin estado (`server/`), que ejecuta herramientas sobre seis servidores MCP en memoria (`InMemoryTransport`), el índice BM25 (`server/corpus/chunks.json`) y `GUARDIAN` antes de devolver las acciones aprobadas.
+
+```mermaid
+flowchart LR
+  CREW["Crew / Browser HUD (WebGL2 + Voice + Phone Pointer)"] -->|"MissionContext + PTT Audio / Text"| STT["/api/stt + localIntents.ts (<5 ms)"]
+  STT -->|"Spoken Order"| VOICE["SUIT.VOICE-EXEC (fast tier)"]
+  VOICE -->|"HUD & Suit Readout"| GUARD
+  VOICE -->|"ESCALATE (routes, fleet, weather, science, emergency)"| BASE["BASE Orchestrator (large tier)"]
+  BASE -->|"Delegate"| SPEC["SUIT.HEALTH | EVA-PLANNER | SCIENCE | WEATHER-RAD | MAINTENANCE | ROBOT.<id>"]
+  VOICE -.->|"Tools"| MCP
+  BASE -.->|"Tools"| MCP["In-Process MCP Servers (terrain, suit, environment, fleet, hud, knowledge/BM25)"]
+  SPEC -.->|"Tools"| MCP
+  MCP -->|"Proposed Actions"| GUARD["GUARDIAN: Rule Check -> LLM Judge -> 3-Model Voting"]
+  GUARD -->|"allow / ask_human / deny"| CREW
+  GUARD -->|"Radio Reply"| TTS["/api/tts (Cloud TTS Journey Voices)"]
+```
 
 ### Jerarquía de Agentes y Modelos LLM (Failover de 3 Proveedores + Cómputo Local en Base)
 
@@ -103,17 +121,44 @@ Tango Horizon mantiene la simulación WebGL2 del navegador (`web/`) como única 
 
 53 activos rastreados con suma de verificación SHA-256 y transformaciones CRS en [`web/public/data/provenance.json`](web/public/data/provenance.json), incluyendo MRO HiRISE DTM y ortoimagen, MRO CTX DEM, Mars Odyssey THEMIS IR, MSL Curiosity DAN, MRO CRISM MTRDR, MSL Curiosity REMS y opacidad Mastcam, MSL Curiosity RAD, imágenes crudas de Mastcam/MAHLI, NASA JPL Horizons, NASA DONKI, Perseverance MOXIE, estándares `NASA-STD-3001` / `OCHMO` y modelos 3D de NASA 3D Resources + activos propios optimizados con `meshoptimizer`. (Ver tabla completa auto-generada en [`README.md`](README.md#nasa--usgs-data-used)).
 
+## Modelos de Física Deterministas
+
+| Dominio | Formulación | Referencia / Base | Implementación |
+|---|---|---|---|
+| Tasa metabólica y demanda de O2/CO2 | `M = 1.5 W + k * [2.0(W + L)(L/W)^2 + eta(W + L)(1.5 v^2 + 0.35 v G)]` (`k = g_mars/g_earth`, piso en `1.5 W`, factor de Santee para `G < 0` en bajada) | Pandolf et al. (1977) + Santee et al. (2001) escalados por `g_mars/g_earth`; NASA-STD-3001 Vol 2 | [metabolic.ts](shared/src/physics/metabolic.ts) |
+| Fuga por orificio bloqueado y pO2 alveolar | `m_dot = C_d A P sqrt(gamma/(R T)) (2/(gamma+1))^((gamma+1)/(2(gamma-1)))`; `P_AO2 = P_suit - P_H2O - P_aCO2` | Flujo compresible en orificio bloqueado; NASA-STD-3001 Vol 2 Rev E (Armstrong 6.27 kPa, `P_AO2 = 8.0 kPa` con deterioro) | [suitLeak.ts](shared/src/physics/suitLeak.ts) |
+| Estado del PLSS a 1 Hz y telemetría del traje | Consumo de O2 primario/reserva a paso fijo, regulador de emergencia, depurador de CO2, RPM del ventilador, batería (Wh) y refrigerante (L) | NASA-STD-3001 Vol 2; límites de diseño Apollo/xEMU | [suitState.ts](shared/src/physics/suitState.ts), [suitTelemetry.ts](shared/src/physics/suitTelemetry.ts) |
+| Atmósfera marciana y extinción solar | `rho0 = P/(R_mars T)`, `rho(h) = rho0 exp(-h/H)`, cizalla logarítmica del viento `u(h)`, haz directo `exp(-tau/mu)` | MSL REMS; `mars_solar_toa = 589.2 W/m^2`; modelo solo de haz directo | [atmosphere.ts](shared/src/physics/atmosphere.ts), [solar.ts](shared/src/physics/solar.ts) |
+| Dosis de radiación por SVF geométrico y albedo | `D_dot = D_0 * svf`; retrodispersión de albedo `D_0 * (svf + beta * (1 - svf))` (`beta = 0.09`) | MSL-M-RAD-3-RDR-V1.0 (SwRI PDS-PPI); supuesto geométrico de SVF | [dose.ts](shared/src/physics/dose.ts) |
+| Cápsula balística RK4 y entrega con paracaídas | Gravedad 3D + arrastre atmosférico cuadrático + cizalla logarítmica del viento; apertura del paracaídas `< 120 m`; elipse de aterrizaje Monte Carlo | Modelo de diseño balístico/paracaídas para Marte (`g_mars = 3.711 m/s^2`, exclusión de `15 m` alrededor de la tripulación) | [ballistic.ts](shared/src/physics/ballistic.ts), [podDelivery.ts](shared/src/physics/podDelivery.ts) |
+| Go/no-go por tormenta y planificador de rutas EVA (A*) | A* sobre pendiente del DEM, energía térmica y pesos de radiación por SVF; `tau >= 1.8` deja en tierra al rotorcraft; límites de viento y dosis | Envolvente de vuelo de Ingenuity; límites EVA de OCHMO/RAD | [route.ts](shared/src/physics/route.ts), [stormDecision.ts](shared/src/physics/stormDecision.ts) |
+| EWS biomédico de la tripulación y tiempo a la ruptura | Subpuntajes ponderados 0-3 sobre `PICO2`, temperatura central, Physiological Strain Index, SpO2, FC, deriva cardíaca y margen de hipoxia | NASA-STD-3001 Vol 1/2 y OCHMO-TB-004 (solo asesoría) | [biomed.ts](shared/src/physics/biomed.ts) |
+| Detección de fallas de flota/PLSS/ISRU (FDIR) | Pendiente en ventana deslizante, z-score y vida útil remanente (`RUL`) en canales de ventilador, depurador, térmico, movilidad de rover, brazo y MOXIE | Umbrales de la envolvente de ingeniería FDIR | [fdir.ts](shared/src/physics/fdir.ts) |
+| Riesgo ambiental y de clima espacial | `dP/dt` diurno, chequeo de vuelo por densidad del aire, ETA de visibilidad por polvo, autonomía de batería y escalada por tormentas SEP de DONKI | MSL REMS + NASA DONKI WSA-Enlil | [envNowcast.ts](shared/src/physics/envNowcast.ts) |
+
+Las 44 constantes de ingeniería (18 valores publicados o estándar y 26 supuestos de diseño marcados `[design assumption]`) están en [`shared/src/physics/constants.ts`](shared/src/physics/constants.ts).
+
 ## Nuestros Modelos de ML y Validación Empírica
 
 1. **Hydration Prospector (`tango-horizon-hydration-v1`):** Ensamble `GradientBoostingRegressor` + intervalos conformales al 90 % entrenado sobre `n = 1,567` mediciones de neutrones de MSL DAN y predictores orbitales CRISM (`BD1900_2`, `SINDEX2`), THEMIS IR y CTX. Validación `GroupKFold` por bloques espaciales de 500 m: **Spearman = 0.5823**, **R² = 0.3638**, **MAE = 0.3695** (vs. baseline `0.4860`).
 2. **Storm Nowcaster (`rems_hgbr_quantile_v1`):** `HistGradientBoostingRegressor` por cuantiles (`q = 0.1, 0.5, 0.9`) + CQR sobre 28 variables de mareas barométricas y meteorología de MSL REMS (Año Marciano 34 retenido como conjunto de prueba). Verifica el aumento físico de la marea semidiurna `s2_amp` con el polvo (`Spearman = 0.6709`) y supera a la climatología estacional en los horizontes de +1, +2 y +3 soles (`Spearman = 0.765–0.796`).
 3. **Mineral Vein Detector (`tango-horizon-veins-v1`):** Extractor `facebook/dinov2-small` congelado (`dinov2-small-vits14`) + `LogisticRegression` validado por sol completo (`GroupKFold` sobre `n = 117` imágenes auditadas de Curiosity Mastcam/MAHLI en 22 soles): **ROC-AUC = 0.8453**, **PR-AUC = 0.7961**, **Precisión = 0.7941**, **Recall = 0.6585** (`p = 0.0020`).
 
-</details>
+## Limitaciones Conocidas
+
+- **Piso de resolución orbital y de superficie:** La malla cubre un recuadro de 4 km × 4 km del Cráter Gale anclado a DTM HiRISE de `1 m/px` (remuestreado a `2048 × 2048` de altura y `4096 × 4096` de ortoimagen), mientras que las entradas de hidratación CRISM (`18–36 m/px`), la geomorfometría CTX (`20 m/px`) y THEMIS IR (`100 m/px`) no resuelven afloramientos ni rocas menores a 20 m.
+- **Simplificación solar de haz directo y radiación planar:** `solar.ts` calcula la extinción de haz directo `exp(-tau / mu)` sin términos de dispersión difusa del cielo, y `dose.ts` combina tasas de dosis absorbida de silicio de MSL RAD con factores de visión de cielo (`SVF`) en celdas de 10 m, en lugar de transporte 3D completo en regolito con MCNPX.
+- **Indicador relativo de hidratación:** `tango-horizon-hydration-v1` predice la razón neta de cuentas térmicas a epitérmicas de MSL DAN (restado el fondo) a lo largo del recorrido de Curiosity; refleja la moderación de H/OH cercana a la superficie combinada con absorbentes de neutrones del suelo (Fe/Cl), no un % en peso absoluto de agua ni hielo somero.
+- **Nowcast de polvo de una sola estación:** `rems_hgbr_quantile_v1` infiere tendencias de polvo solo con la meteorología de superficie REMS del Cráter Gale; no simula el transporte global de polvo ni extrapola por encima de la opacidad del período de entrenamiento sin ampliar los intervalos de incertidumbre.
+- **Detección de vetas solo visual:** `tango-horizon-veins-v1` está calibrado para fotografías reales de Mastcam/MAHLI de la NASA (nunca renders 3D sintéticos) y detecta únicamente firmas visuales de vetas brillantes; la identificación elemental o mineral requiere LIBS activo (`ChemCam`) o XRD (`CheMin`).
+- **Alcance asesor biomédico y FDIR:** Las evaluaciones fisiológicas de `biomed.ts` y `SUIT.HEALTH` son asesorías de apoyo a la decisión ancladas a umbrales de `NASA-STD-3001`; nunca reemplazan el diagnóstico clínico de un cirujano de vuelo ni la autoridad de comando telemétrico.
 
 ## Enlaces del NASA Space Apps Challenge
 
 - **Equipo:** https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project
+- **Video de la Universidad de Palermo (Facebook):** https://www.facebook.com/universidaddepalermo/videos/as%C3%AD-se-vivi%C3%B3-el-nasa-space-apps-challenge-en-la-upla-universidad-de-palermo-fue-/1829309231323121/
+- **Reel de Instagram:** https://www.instagram.com/reels/DgH_go-JCgu/
+- **Publicación en X (Universidad de Palermo):** https://x.com/udepalermo/status/2125210609981456661
 - **Evento local — Sede [Universidad de Palermo](https://www.palermo.edu/) (Buenos Aires, Argentina):** https://www.spaceappschallenge.org/2026/local-events/buenos-aires/
 - **Desafío — Interplanetary Survival Guide: Martian Map:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
 - **Reglas (Términos y Condiciones para Participantes):** https://www.spaceappschallenge.org/legal/
