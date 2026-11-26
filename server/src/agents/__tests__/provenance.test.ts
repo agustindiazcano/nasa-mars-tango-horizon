@@ -76,7 +76,7 @@ describe("web/public data provenance manifest", () => {
     expect(manifest["terrain/hydration_unc_1024.png"]).toBeDefined();
     expect(manifest["veins/manifest.json"]).toBeDefined();
     expect(manifest["models/drone-new.glb"]).toBeDefined();
-    expect(manifest["models/mro.glb"]).toBeDefined();
+    expect(manifest["models/asset-4.glb"]).toBeDefined();
 
     for (const [key, entry] of Object.entries(manifest)) {
       expect(entry.source.length, `${key} source`).toBeGreaterThan(0);

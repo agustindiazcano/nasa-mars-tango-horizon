@@ -10,6 +10,8 @@
 - Restored `asset-1..3` (inflatable habitat, lab with ramp, twin domes) from history on branch `feat/restore-nasa-buildings`: greenhouse uses `asset-1`, lab `asset-2`, shelter `asset-3`; footprints back to 18x11.45, 14x8.5, 14x4.97 m. Checked in the model lab contact sheet and the aerial base view; no close-up shot of the three buildings yet. `provenance.test.ts` was already failing (stale `models/mro.glb` entry).
 - `tsc --noEmit` on `web/` and `modelLibrary.test.ts` pass. CI not run yet.
 
+- Merged `main` (site navbar iPhone glass styling, PR #62) into this branch.
+
 ## Files touched
 
 `web/src/world/*`, `web/public/models/*`, `shared/src/i18n/*.ts`, `shared/src/physics/sites.ts`, `docs/slides/*`, `docs/media/`, `docs/impl/24_*`.
