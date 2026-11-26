@@ -18,8 +18,8 @@
 > "En una operación real en Marte, este sistema corre en servidores locales dentro de la base. Para nuestra arquitectura multi-agente combinamos tres niveles de modelos en Google Cloud Vertex AI —**Gemini 4 Carbon** para el agente orquestador principal de la base, **Gemini 4 Argon** para los agentes especialistas y de visión, y **Gemini 4 Hydrogen** para respuestas rápidas de voz—, con failover automático hacia **Meta Muse** y voces neuronales de **Google Cloud TTS** con tonos de radio Apollo Quindar.
 >
 > Además, entrenamos **tres modelos de Machine Learning propios con datos reales de Curiosity**:
-> 1. **Hydration Prospector**, sobre 496 mediciones de neutrones DAN para encontrar agua subterránea;
-> 2. **Storm Nowcaster**, sobre 4.050 soles de presión atmosférica REMS para anticipar tormentas globales de polvo 3 soles antes; y
+> 1. **Hydration Prospector**, sobre 1,567 mediciones de neutrones DAN para encontrar agua subterránea;
+> 2. **Storm Nowcaster**, sobre 3.953 soles de presión atmosférica REMS para anticipar tormentas globales de polvo 3 soles antes; y
 > 3. **Vein Detector**, un modelo de visión con **DINOv2** sobre fotos reales Mastcam y MAHLI que detecta vetas minerales dejadas por agua antigua."
 
 ---
@@ -65,8 +65,8 @@
 > "In an actual Mars surface mission, this system runs on local base servers. For our multi-agent architecture, we combine three model tiers on Google Cloud Vertex AI—**Gemini 4 Carbon** for the main Base Orchestrator, **Gemini 4 Argon** for specialist and vision agents, and **Gemini 4 Hydrogen** for low-latency voice execution—backed by automatic failover to **Meta Muse** and **Google Cloud Neural TTS** with Apollo Quindar radio tones.
 >
 > On top of the agent hierarchy, we trained **three custom Machine Learning models on real Curiosity mission datasets**:
-> 1. **Hydration Prospector**, trained on 496 DAN neutron measurements to map subsurface water;
-> 2. **Storm Nowcaster**, trained on 4,050 sols of REMS atmospheric pressure to forecast dust storms 3 sols in advance; and
+> 1. **Hydration Prospector**, trained on 1,567 DAN neutron measurements to map subsurface water;
+> 2. **Storm Nowcaster**, trained on 3,953 sols of REMS atmospheric pressure to forecast dust storms 3 sols in advance; and
 > 3. **Vein Detector**, a **DINOv2** vision model trained on real Mastcam and MAHLI imagery that detects ancient groundwater mineral veins."
 
 ---
