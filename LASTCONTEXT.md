@@ -1,19 +1,18 @@
 # Last context
 
-**Date:** 2026-11-15 (Argentina)
+**Date:** 2026-11-26 (Argentina)
 
 ## Work done
 
-- Removed the Starship from the project: `rocket.glb` and its manifest/`ModelId`/spec entries, the procedural stack, launch mount, tower and label in `launchSiteProc.ts`, the two Starship README screenshots, and every text mention (i18n, docs, README, `site/` data).
-- The launch pad at `LAUNCH_SITE_COORD` now shows the generic `rockets` GLB (14 m catalogue size, scaled x3 on the pad). Pad slab, tank farm, bunker and floodlights stay.
-- Scene `S0` is now "Rockets at the pad" (i18n key unchanged). `S0`/`S1` camera shots and `CAM-3` were moved to the smaller model scale.
-- Removed the simulator gallery (screenshots table) from `README.md` and `README_ES.md`. Image files in `docs/media/` (except the two Starship ones) stay in the repo.
-- Owner requested PR, merge and Vercel deployment without tests or CI (urgent). Only `tsc --noEmit` on `web/` was run.
+- Restored the Starship (owner request): reverted `b758c44`, which brings back `rocket.glb`, its manifest/`ModelId`/spec entries, the procedural stack, launch mount, tower and label in `launchSiteProc.ts`, the original `S0`/`S1`/`CAM-3` framing and the "Starship" i18n strings. The `rockets` GLB is no longer used on the pad.
+- Restored `docs/media/starship-pad.jpg` and `starship-distance.jpg` from history.
+- Added slide 6 "Starship on Mars" to `docs/slides/TANGO_HORIZON_English.pptx` (now 8 slides). Eyebrow numbers, footer counters (`/08`) and timings were shifted; slide 5 now ends at 01:50.
+- `tsc --noEmit` on `web/` and `modelLibrary.test.ts` pass. CI not run yet.
 
 ## Files touched
 
-`web/src/world/launchSiteProc.ts`, `sceneDirector.ts`, `cinematicCams.ts`, `modelLibrary.ts`, `__tests__/modelLibrary.test.ts`, `web/public/models/manifest.json`, `shared/src/i18n/*.ts`, `shared/src/physics/sites.ts`, READMEs, `docs/`, `site/src/data/`.
+`web/src/world/*`, `web/public/models/*`, `shared/src/i18n/*.ts`, `shared/src/physics/sites.ts`, `docs/slides/*`, `docs/media/`, `docs/impl/24_*`.
 
 ## State
 
-Live visual check of the pad with the `rockets` model (scale, ground contact, S0/S1/CAM-3 framing) was not done.
+The new slide was not rendered (no PowerPoint/LibreOffice on this machine); check layout in PowerPoint. The live visual check of the pad was not done. Not updated: the Spanish script, `site/src/data/slidesDeck.ts` and the READMEs still say "rockets".
