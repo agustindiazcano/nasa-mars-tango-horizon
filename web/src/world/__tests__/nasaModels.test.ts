@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
-import { extractIngenuityRotorPivots } from "../nasaModels";
+import { collectDroneRotorPivots, extractIngenuityRotorPivots } from "../nasaModels";
 
 describe("extractIngenuityRotorPivots", () => {
   it("wraps coaxial rotors along the mast axis without altering world positions", () => {
@@ -43,5 +43,24 @@ describe("extractIngenuityRotorPivots", () => {
   it("returns empty array when rotor nodes are absent", () => {
     const empty = new THREE.Group();
     expect(extractIngenuityRotorPivots(empty)).toEqual([]);
+  });
+});
+
+describe("collectDroneRotorPivots", () => {
+  it("returns the eight shaft pivots with their spin sense and ignores other nodes", () => {
+    const root = new THREE.Group();
+    for (const corner of ["fl", "fr", "bl", "br"]) {
+      for (const layer of ["up", "low"]) {
+        const n = new THREE.Group();
+        n.name = `rotor_${corner}_${layer}`;
+        n.userData.spinDir = layer === "low" ? -1 : 1;
+        root.add(n);
+      }
+    }
+    root.add(new THREE.Group());
+    const pivots = collectDroneRotorPivots(root);
+    expect(pivots).toHaveLength(8);
+    expect(pivots.every((p) => p.axis === "y")).toBe(true);
+    expect(pivots.filter((p) => p.dir === -1)).toHaveLength(4);
   });
 });
