@@ -165,10 +165,10 @@ export class PodPayloadFx {
     }
 
     const specs: { name: string; mass: string; color: number; geo: THREE.BufferGeometry; rise: THREE.Vector3 }[] = [
-      { name: "O2 COPV", mass: "4.0 kg", color: 0x4aa8ff, geo: new THREE.CylinderGeometry(0.18, 0.18, 0.7, 16), rise: new THREE.Vector3(-1.5, 2.2, 0.6) },
-      { name: "LiOH scrubber", mass: "1.2 kg", color: 0x8ee6a0, geo: new THREE.BoxGeometry(0.5, 0.35, 0.35), rise: new THREE.Vector3(1.5, 2.4, 0.5) },
-      { name: "Battery", mass: "1.0 kg", color: 0xffd23f, geo: new THREE.BoxGeometry(0.4, 0.22, 0.3), rise: new THREE.Vector3(-0.8, 3.0, -1.4) },
-      { name: "Suit patch", mass: "0.35 kg", color: 0xf3ece3, geo: new THREE.CylinderGeometry(0.28, 0.28, 0.04, 20), rise: new THREE.Vector3(1.0, 3.3, -1.2) },
+      { name: "O2 COPV", mass: "4.0 kg", color: 0x4aa8ff, geo: new THREE.CylinderGeometry(0.18, 0.18, 0.7, 16), rise: new THREE.Vector3(-3.2, 2.4, 0.6) },
+      { name: "LiOH scrubber", mass: "1.2 kg", color: 0x8ee6a0, geo: new THREE.BoxGeometry(0.5, 0.35, 0.35), rise: new THREE.Vector3(3.2, 3.2, 0.5) },
+      { name: "Battery", mass: "1.0 kg", color: 0xffd23f, geo: new THREE.BoxGeometry(0.4, 0.22, 0.3), rise: new THREE.Vector3(-1.2, 4.0, -1.4) },
+      { name: "Suit patch", mass: "0.35 kg", color: 0xf3ece3, geo: new THREE.CylinderGeometry(0.28, 0.28, 0.04, 20), rise: new THREE.Vector3(1.4, 4.8, -1.2) },
     ];
     specs.forEach((s, n) => {
       const mesh = new THREE.Mesh(s.geo, new THREE.MeshStandardMaterial({ color: s.color, emissive: s.color, emissiveIntensity: 0.25, metalness: 0.3, roughness: 0.5 }));
