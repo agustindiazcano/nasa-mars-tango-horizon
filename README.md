@@ -1,3 +1,7 @@
+**🏆 Impact Category Winner - NASA Space Apps Challenge (Buenos Aires, 450+ participants)**
+
+**Tango Horizon:** NASA Space Apps Challenge 2026 project among 450+ participants in Buenos Aires · [Project page](https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project) · [Universidad de Palermo: NASA Space Apps Challenge host site](https://www.palermo.edu/ingenieria/2026/noviembre/up-sede-nasa-space-apps-challenge.html)
+
 <p align="center"><img src="docs/tango-horizon-banner.png" alt="Tango Horizon: AI Systems for EVA and Mars Exploration" width="100%" /></p>
 
 [![Leer en español](https://img.shields.io/badge/Leer%20en-espa%C3%B1ol-0ea5e9?style=for-the-badge)](README_ES.md)
@@ -16,7 +20,6 @@ To drive decision-making without physical hallucinations, the system pairs a hie
 
 ## Index
 
-- [Gallery](#gallery)
 - [Team: Tango Horizon (Buenos Aires, Argentina)](#team-tango-horizon-buenos-aires-argentina)
 - [Core Features & Operational Capabilities](#core-features--operational-capabilities)
 - [System Architecture & Multi-Agent Runtime](#system-architecture--multi-agent-runtime)
@@ -45,9 +48,6 @@ To drive decision-making without physical hallucinations, the system pairs a hie
 - **Baltazar Salerno:** Frontend Developer · [GitHub](https://github.com/S-Baltazar)
 - **Milagros Sotelo:** Systems Engineering Student ([UTN, FRBA](https://frba.utn.edu.ar/)) · [GitHub](https://github.com/Milagros-Sotelo)
 - **Federico Yaconis:** 3D Developer & QA
-
-<details>
-<summary><strong>🔽 Toggle Full Technical Documentation — Features, Multi-Agent AI, Voice, RAG, Robotics, ML Models & NASA Data</strong></summary>
 
 ## Core Features & Operational Capabilities
 
@@ -354,8 +354,6 @@ All three domain models are trained offline by Python scripts in [`tools/`](tool
 - **Single-Station Dust Nowcast:** `rems_hgbr_quantile_v1` infers dust trends solely from Gale Crater REMS surface meteorology and cannot simulate global dust transport or extrapolate above training-year opacity bounds without wider uncertainty intervals.
 - **Visual-Only Vein Detection:** `tango-horizon-veins-v1` is strictly calibrated for real NASA Mastcam/MAHLI photographs (never synthetic 3D renders) and detects visual bright-vein signatures only; elemental/mineral identification still requires active LIBS (`ChemCam`) or XRD (`CheMin`).
 - **Biomedical & FDIR Advisory Scope:** Crew physiological evaluations in `biomed.ts` and `SUIT.HEALTH` are decision-support advisories anchored to `NASA-STD-3001` thresholds and never replace flight-surgeon clinical diagnosis or telemetric command authority.
-
-</details>
 
 ## NASA Space Apps Challenge Links
 
