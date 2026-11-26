@@ -21,6 +21,10 @@ Goal: a 5 to 6 minute video (up to 10 minutes is acceptable) made of clean simul
 - The scripted voice exchange reuses the HUD transcript and agent chat (`store`, `AgentChat`) with fixed lines; fleet actions use `fleet.dispatchTo`.
 - Life-support demo: cannon fire effects, existing `PodBallistics.launch`, a pod detail model built in code (replaceable by an owner GLB), a landing and open-hatch animation of the four payload items, and the HUD life-support panel recovering after `sealSuitLeak`.
 
+## Status
+
+B31, B33-B39 are implemented (see `LASTCONTEXT.md`). Open: B32 (merge order), B40, recording and live checks (B41), optional upgrades (B42).
+
 ## Tasks
 
 | # | Priority | Task | Depends on |

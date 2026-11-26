@@ -147,8 +147,8 @@ export const SLIDES_DECK: SlideDeckItem[] = [
         es: 'Reconstrucción WebGL2 a 60 FPS de un sector de 4 km × 4 km en el Cráter Gale sobre DTM MRO HiRISE (1 m/px) y ortoimagen (0.25 m/px).',
       },
       {
-        en: '20-module Mars habitat complex, rocket launch pad, 4 EVA astronauts (SOTELO, YACONIS, SALERNO, DIAZ-CANO), and 7 autonomous rovers & rotorcraft.',
-        es: 'Complejo de hábitat marciano de 20 módulos, plataforma de cohetes, 4 astronautas EVA (SOTELO, YACONIS, SALERNO, DIAZ-CANO) y 7 rovers y aeronaves autónomas.',
+        en: '20-module Mars habitat complex, Starship launch complex, 4 EVA astronauts (SOTELO, YACONIS, SALERNO, DIAZ-CANO), and 7 autonomous rovers & rotorcraft.',
+        es: 'Complejo de hábitat marciano de 20 módulos, complejo de lanzamiento Starship, 4 astronautas EVA (SOTELO, YACONIS, SALERNO, DIAZ-CANO) y 7 rovers y aeronaves autónomas.',
       },
       {
         en: '100% hands-free 5-language voice interface, <2 ms in-memory BM25 RAG, 3 NASA PDS ML models, and 14 AI agents governed by 3-layer GUARDIAN safety.',
@@ -187,8 +187,8 @@ export const SLIDES_DECK: SlideDeckItem[] = [
             es: 'Emblema de Misión Tango Horizon',
           },
           caption: {
-            en: '20-Module Habitat · Rocket Pad · Gale Crater DEM',
-            es: 'Hábitat 20 Módulos · Plataforma de Cohetes · DEM Cráter Gale',
+            en: '20-Module Habitat · Starship Complex · Gale Crater DEM',
+            es: 'Hábitat 20 Módulos · Complejo Starship · DEM Cráter Gale',
           },
         },
       ],
@@ -951,8 +951,8 @@ export const SLIDES_DECK: SlideDeckItem[] = [
     speakerCue: {
       duration: '2:45 – 3:00',
       sceneRef: {
-        en: 'On screen: Scene S7 — Airlock entry, rocket launch pad & live links',
-        es: 'En pantalla: Escena S7 — Ingreso a esclusa, plataforma de cohetes y enlaces en vivo',
+        en: 'On screen: Scene S7 — Airlock entry, Starship launch complex & live links',
+        es: 'En pantalla: Escena S7 — Ingreso a esclusa, complejo de lanzamiento Starship y enlaces en vivo',
       },
       script: {
         en: 'Within minutes of coordinated autonomous operation, Cassini is safely inside the habitat airlock. Real data from 9 NASA and USGS sources, deterministic physics, 3 custom-trained ML models, analytic inverse-kinematics robotics, and verified multi-agent safety built for hands-free operations on Mars. This is Tango Horizon—thank you.',
