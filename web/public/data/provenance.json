@@ -774,5 +774,44 @@
     "license": "Created by the project owner; all rights held by the owner; personal use",
     "transform": "Simplified from 1,880,027 to 39,990 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
     "retrieved": "2026-11-15"
+  },
+  "models/asset-1.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "asset-1",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,881,282 to 39,970 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/asset-2.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "asset-2",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,930,571 to 39,990 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
+  },
+  "models/asset-3.glb": {
+    "source": "Project owner (original 3D model)",
+    "product_id": "asset-3",
+    "datasets": [
+      {
+        "id": "owner-created",
+        "description": "Original model created by the project owner; see license"
+      }
+    ],
+    "license": "Created by the project owner; all rights held by the owner; personal use",
+    "transform": "Simplified from 1,988,753 to 40,000 triangles with the meshoptimizer simplifier; textures re-encoded to WebP; meshopt quantization and compression (tools/assets/optimize.mjs)",
+    "retrieved": "2026-11-15"
   }
 }
