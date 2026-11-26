@@ -49,6 +49,11 @@ export class AgentChat implements NarrationSink {
     this.root.style.display = "none";
   }
 
+  /** Hides the log while an explained-video scene shows its own conversation overlay. */
+  setSuppressed(suppressed: boolean): void {
+    this.root.style.visibility = suppressed ? "hidden" : "visible";
+  }
+
   /** Call every frame: lifts the chat above the crew roster while the HUD is visible. */
   update(hudVisible: boolean): void {
     this.root.classList.toggle("hud-on", hudVisible);
