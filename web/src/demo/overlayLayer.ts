@@ -107,6 +107,21 @@ export class OverlayLayer {
         el.innerHTML = `<b>${esc(item.title)}</b>${item.detail ? `<span>${esc(item.detail)}</span>` : ""}`;
         this.root.appendChild(el);
         break;
+      case "decision":
+        el.innerHTML =
+          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div>` +
+          `<div class="ov-order">&ldquo;${esc(item.order)}&rdquo;</div><div class="ov-stages"></div><div class="ov-verdict"></div>`;
+        this.root.appendChild(el);
+        break;
+      case "grid":
+        el.innerHTML =
+          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-chips">` +
+          item.chips
+            .map((c, n) => `<div class="ov-chip" style="animation-delay:${0.6 + n * 0.45}s"><b>${esc(c.label)}</b><span>${esc(c.detail)}</span></div>`)
+            .join("") +
+          "</div>";
+        this.root.appendChild(el);
+        break;
       case "vitals":
         el.innerHTML = `<div class="ov-vhdr">${esc(item.title)}</div><div class="ov-vrows"></div><div class="ov-vevents"></div>`;
         this.root.appendChild(el);
@@ -120,6 +135,32 @@ export class OverlayLayer {
       const text = el.querySelector(".ov-text") as HTMLElement;
       const shown = typedText(item.text, tRel - item.fromS, item.who === "crew" ? 26 : 44);
       if (text.textContent !== shown) text.textContent = shown;
+    } else if (item.kind === "decision") {
+      const t = tRel - item.fromS;
+      const rows = item.stages
+        .filter((s) => t >= s.atS)
+        .map((s) => {
+          const votes = s.votes
+            ? `<span class="ov-votes">${s.votes.map((v) => `<i class="${v.approve ? "yes" : "no"}">${esc(v.model)} ${v.approve ? "approve" : "reject"}</i>`).join("")}</span>`
+            : "";
+          const mark = s.result === "fail" ? "&#10005;" : "&#10003;";
+          const cls = s.result === "fail" ? "fail" : s.votes?.some((v) => !v.approve) ? "warn" : "pass";
+          return `<div class="ov-stage ${cls}"><span class="ov-mark">${mark}</span><span class="ov-sname">${esc(s.name)}</span><span class="ov-sdet">${esc(s.detail)}</span>${votes}</div>`;
+        })
+        .join("");
+      const pending = item.stages.find((s) => t < s.atS);
+      const html = rows + (pending ? `<div class="ov-stage run"><span class="ov-mark">&#8230;</span><span class="ov-sname">${esc(pending.name)}</span><span class="ov-sdet">checking</span></div>` : "");
+      const stages = el.querySelector(".ov-stages") as HTMLElement;
+      if (stages.dataset.key !== html) {
+        stages.dataset.key = html;
+        stages.innerHTML = html;
+      }
+      const verdict = el.querySelector(".ov-verdict") as HTMLElement;
+      const vHtml = t >= item.verdict.atS ? `<div class="ov-stamp ${item.verdict.level}">${esc(item.verdict.text)}</div>` : "";
+      if (verdict.dataset.key !== vHtml) {
+        verdict.dataset.key = vHtml;
+        verdict.innerHTML = vHtml;
+      }
     } else if (item.kind === "vitals") {
       const v = vitalsAt(item.keys, tRel);
       const row = (label: string, value: string, level: "ok" | "warn" | "crit"): string =>
@@ -137,7 +178,10 @@ export class OverlayLayer {
         .map((e) => `<div class="ov-vevent">${esc(e.text)}</div>`)
         .join("");
       const evEl = el.querySelector(".ov-vevents") as HTMLElement;
-      if (evEl.innerHTML !== html) evEl.innerHTML = html;
+      if (evEl.dataset.key !== html) {
+        evEl.dataset.key = html;
+        evEl.innerHTML = html;
+      }
     }
   }
 }

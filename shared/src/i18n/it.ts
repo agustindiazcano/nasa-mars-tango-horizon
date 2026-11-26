@@ -222,6 +222,8 @@ export const it: Record<Key, string> = {
   "scene.m2": "Storm Nowcaster",
   "scene.m3": "Mineral Vein Detector",
   "scene.e1": "Chiusura",
+  "scene.g1": "Decisioni dell'IA e guardrail",
+  "scene.f1": "Tutto il resto",
   "scene.present": "PRESENTAZIONE",
   "scene.play_all": "Riproduci tutto",
   "scene.record_play_all": "Registra + riproduci tutto",

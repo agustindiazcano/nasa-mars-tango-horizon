@@ -75,6 +75,84 @@ const ARCHITECTURE: OverlayItem[] = [
   },
 ];
 
+
+const DECISIONS: OverlayItem[] = [
+  {
+    id: "d1",
+    kind: "decision",
+    fromS: 0.5,
+    toS: 18,
+    kicker: "AI DECISIONS AND GUARDRAILS 1 OF 3",
+    title: "An order that passes every gate",
+    order: "Launch the life-support pod to 32 m from DIAZ-CANO",
+    stages: [
+      { atS: 2, name: "Hard-limit rule check", detail: "Impact outside the 15 m crew keep-out", result: "pass" },
+      { atS: 4.5, name: "LLM safety judge", detail: "Matches crew intent, no untrusted instructions", result: "pass" },
+      { atS: 7.5, name: "3-model vote", detail: "Critical action: three providers decide", result: "vote", votes: [{ model: "Gemini Carbon", approve: true }, { model: "Gemini Argon", approve: true }, { model: "Muse Wonder", approve: true }] },
+    ],
+    verdict: { atS: 10.5, text: "ALLOW", level: "allow" },
+  },
+  {
+    id: "d2",
+    kind: "decision",
+    fromS: 18.5,
+    toS: 36,
+    kicker: "AI DECISIONS AND GUARDRAILS 2 OF 3",
+    title: "A hard limit blocks it before any model votes",
+    order: "Move the manipulator arm to 1.2 m from the crew member",
+    stages: [{ atS: 2.5, name: "Hard-limit rule check", detail: "Closer than the 2 m manipulator keep-out", result: "fail" }],
+    verdict: { atS: 5, text: "DENY", level: "deny" },
+  },
+  {
+    id: "d3",
+    kind: "decision",
+    fromS: 36.5,
+    toS: 54.5,
+    kicker: "AI DECISIONS AND GUARDRAILS 3 OF 3",
+    title: "One dissent hands the decision to a human",
+    order: "Send the rescue robot next to the injured crew member",
+    stages: [
+      { atS: 2, name: "Hard-limit rule check", detail: "Slope under 16 degrees, keep-outs respected", result: "pass" },
+      { atS: 4.5, name: "LLM safety judge", detail: "No injection, consistent with the mission", result: "pass" },
+      { atS: 7.5, name: "3-model vote", detail: "Asymmetric safety override: any reject escalates", result: "vote", votes: [{ model: "Gemini Carbon", approve: true }, { model: "Gemini Argon", approve: true }, { model: "Muse Wonder", approve: false }] },
+    ],
+    verdict: { atS: 11, text: "ASK HUMAN", level: "ask" },
+  },
+  {
+    id: "d-note",
+    kind: "lower",
+    fromS: 2,
+    toS: 54,
+    title: "Gemini 4 Carbon, Gemini 4 Argon and Meta Muse vote independently",
+    detail: "Cloud providers fail over automatically; the offline engine keeps the same rule check.",
+  },
+];
+
+const EVERYTHING: OverlayItem[] = [
+  {
+    id: "everything",
+    kind: "grid",
+    fromS: 0.5,
+    toS: 27,
+    kicker: "AND MORE",
+    title: "Everything else we built",
+    chips: [
+      { label: "Phone as pointer", detail: "QR-paired gyroscope laser pointer and push-to-talk" },
+      { label: "Multimodal vision", detail: "Rover camera frames read by a vision agent" },
+      { label: "4-DOF robot arm", detail: "Analytic inverse kinematics: drill, sample, photograph, hand over" },
+      { label: "Sky-Crane drones", detail: "Tether pendulum physics and LiDAR cone" },
+      { label: "GPS-denied navigation", detail: "Map-relative localization, UWB ranging, VIO, flash LiDAR" },
+      { label: "Route planning", detail: "A* over the 1 m HiRISE terrain by slope, energy and dose" },
+      { label: "NASA and USGS data", detail: "HiRISE, CTX, THEMIS, CRISM, DAN, REMS, RAD, DONKI, MOXIE" },
+      { label: "Predictive maintenance", detail: "FDIR trends and remaining useful life for suit and rovers" },
+      { label: "Weather and radiation", detail: "Dust, pressure tides and solar-storm alerts" },
+      { label: "Standards search", detail: "1,002 chunks of NASA documents in under 2 ms" },
+      { label: "Hands-free voice", detail: "5 languages, radio tones, neural speech" },
+      { label: "Offline fallback", detail: "Deterministic engine when every cloud model fails" },
+    ],
+  },
+];
+
 const VOICE_RESCUE: OverlayItem[] = [
   { id: "v-crew", kind: "voice", who: "crew", speaker: "DIAZ-CANO · VOICE", fromS: 7, toS: 24, text: "Base, DIAZ-CANO. I fell into the pit. My suit is leaking and I cannot climb out." },
   { id: "v-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 13.5, toS: 30, text: "Leak confirmed: suit pressure falling 0.12 kPa/s. Hypoxia in about 9 minutes." },
@@ -237,6 +315,25 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     overlay: ARCHITECTURE,
   },
   {
+    id: "G1",
+    nameKey: "scene.g1",
+    startS: 0,
+    durationS: 55,
+    segments: [
+      { fromS: 0, kind: "orbit", target: "base", radius: 110, height: 55, speed: 0.05, lookAboveM: 2 },
+      { fromS: 28, kind: "aerial", target: "rover-1", offset: { x: 18, y: 6, z: 16 }, lookAboveM: 1.2 },
+    ],
+    overlay: DECISIONS,
+  },
+  {
+    id: "F1",
+    nameKey: "scene.f1",
+    startS: 0,
+    durationS: 28,
+    segments: [{ fromS: 0, kind: "orbit", target: "base", radius: 140, height: 80, speed: 0.04, lookAboveM: 2 }],
+    overlay: EVERYTHING,
+  },
+  {
     id: "V1",
     nameKey: "scene.v1",
     startS: 48,
@@ -309,4 +406,4 @@ export const DEMO_SCENES: readonly SceneDef[] = [
 ];
 
 /** Scenes of the explained video in play order; the older takes stay selectable one by one. */
-export const DECK_ORDER: readonly string[] = ["C0", "P0", "A1", "V1", "L1", "H1", "M1", "M2", "M3", "S5", "S6", "S7", "E1"];
+export const DECK_ORDER: readonly string[] = ["C0", "P0", "A1", "G1", "V1", "L1", "H1", "F1", "M1", "M2", "M3", "S5", "S6", "S7", "E1"];

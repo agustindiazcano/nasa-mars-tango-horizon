@@ -220,6 +220,8 @@ export const en = {
   "scene.m2": "Storm Nowcaster",
   "scene.m3": "Mineral Vein Detector",
   "scene.e1": "Closing",
+  "scene.g1": "AI decisions and guardrails",
+  "scene.f1": "Everything else",
   "scene.present": "PRESENTATION",
   "scene.play_all": "Play all",
   "scene.record_play_all": "Record + play all",

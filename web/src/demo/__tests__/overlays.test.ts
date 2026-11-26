@@ -50,9 +50,9 @@ describe("explained-video scenes", () => {
     }
   });
 
-  it("plays about six minutes of footage", () => {
+  it("plays about seven minutes of footage", () => {
     const total = DECK_ORDER.reduce((sum, id) => sum + (SCENES.find((s) => s.id === id)?.durationS ?? 0), 0);
     expect(total).toBeGreaterThan(300);
-    expect(total).toBeLessThan(420);
+    expect(total).toBeLessThan(540);
   });
 });
