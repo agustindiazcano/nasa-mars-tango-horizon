@@ -1,4 +1,4 @@
-import { BASE_ORIGIN, LAUNCHER_PRIMARY_COORD, READY_TERRAIN } from "@th/shared";
+import { BASE_ORIGIN, LAUNCHER_PRIMARY_COORD, READY_TERRAIN, RESCUE_SITE } from "@th/shared";
 import "./hud/hud.css";
 import { createLoadingOverlay } from "./hud/loadingOverlay";
 import { installHistoricalArchive } from "./hud/historicalArchive";
@@ -35,6 +35,8 @@ import {
 import { formatCoordinates } from "./world/terrainValidation";
 import { ScenePanel } from "./hud/scenePanel";
 import { AgentChat } from "./hud/agentChat";
+import { CannonFx, PodPayloadFx } from "./demo/lifeSupportFx";
+import { OverlayLayer } from "./demo/overlayLayer";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
 import { SceneDirector } from "./world/sceneDirector";
 import { RescueLitter } from "./world/rescueLitter";
@@ -155,6 +157,40 @@ createSkyCraneToggle(() => {
 });
 const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [LAUNCHER_PRIMARY_COORD.x, LAUNCHER_PRIMARY_COORD.z, 6];
 const podBallistics = new PodBallistics(scene, terrain, podLauncherOrigin);
+const cannonFx = new CannonFx(scene);
+const podPayloadFx = new PodPayloadFx(scene, terrain);
+const overlayLayer = new OverlayLayer();
+/** The scripted life-support shot (scene `L1`) fires once per take, 4 s after the scene starts. */
+let lifeSupportShot = false;
+const LIFE_SUPPORT_FIRE_S = 4;
+const LIFE_SUPPORT_IMPACT_OFFSET_M = 32;
+
+function fireLifeSupportShot(): void {
+  lifeSupportShot = true;
+  const [lx, lz, ly] = podLauncherOrigin;
+  const ux = lx - RESCUE_SITE.x;
+  const uz = lz - RESCUE_SITE.z;
+  const n = Math.hypot(ux, uz) || 1;
+  const tx = RESCUE_SITE.x + (ux / n) * LIFE_SUPPORT_IMPACT_OFFSET_M;
+  const tz = RESCUE_SITE.z + (uz / n) * LIFE_SUPPORT_IMPACT_OFFSET_M;
+  const tele = podBallistics.launch(tx, tz, store.env.pressure_pa, store.env.air_temp_k, store.env.wind_ms, store.env.wind_dir_rad, () => {
+    podBallistics.hidePod();
+    podPayloadFx.deploy(tx, tz);
+  });
+  if (!tele) return;
+  store.podTelemetry = tele;
+  const dir = new THREE.Vector3(tx - lx, 0, tz - lz).normalize().multiplyScalar(Math.SQRT1_2);
+  dir.y = Math.SQRT1_2;
+  cannonFx.fire(new THREE.Vector3(lx, ly, lz).addScaledVector(dir, 3), dir);
+}
+
+function resetDemoEffects(): void {
+  lifeSupportShot = false;
+  overlayLayer.clear();
+  podBallistics.reset();
+  cannonFx.reset();
+  podPayloadFx.reset();
+}
 
 const fleet = new FleetProc(scene, terrain, (ev, skill) => {
   if (ev === "core_acquired" || ev === "sample_acquired") {
@@ -472,7 +508,9 @@ store.rescue = rescue;
 // Scene director: recorded takes of the rescue (plan 22, section 3.1). It seeks the scenario, drives the camera
 // and hands the clock to the normal simulation step by marking the rescue scenario as active.
 const sceneDirector = new SceneDirector(rescue, {
-  onStart: () => {
+  onStart: (scene) => {
+    resetDemoEffects();
+    if (scene.layer) store.setLayer(scene.layer);
     store.activeScenario = "rescue";
     store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
     store.simScale = 1;
@@ -811,8 +849,13 @@ function animate(now: number): void {
       astronaut: astronaut.pos,
     });
   }
+  if (!lifeSupportShot && sceneDirector.activeId === "L1" && sceneDirector.state === "playing" && sceneDirector.sceneTimeS >= LIFE_SUPPORT_FIRE_S) {
+    fireLifeSupportShot();
+  }
+  cannonFx.update(realDt);
+  podPayloadFx.update(realDt);
   const shot = sceneDirector.update(realDt, {
-    getPos: (id) => rescue.getEntityPosition(id),
+    getPos: (id) => (id === "pod" ? (podBallistics.position() ?? rescue.getEntityPosition("pit")) : rescue.getEntityPosition(id)),
     heightAt: (x, z) => terrain.heightAt(x, z),
   });
   if (shot) {
@@ -820,8 +863,10 @@ function animate(now: number): void {
     camera.lookAt(shot.target.x, shot.target.y, shot.target.z);
   }
   scenePanel.update();
+  overlayLayer.update(sceneDirector.state === "idle" ? undefined : sceneDirector.active?.overlay, sceneDirector.sceneTimeS);
   narrationFeeder.sync(rescue.elapsedS, store.activeScenario === "rescue");
   agentChat.update(store.hudVisible);
+  agentChat.setSuppressed(sceneDirector.state !== "idle" && (sceneDirector.active?.overlay?.length ?? 0) > 0);
   launchSite.update(now / 1000);
   decor.update(realDt);
   skyCrane.update(realDt, store.env.tau);

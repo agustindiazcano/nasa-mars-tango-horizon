@@ -58,9 +58,9 @@
 - **Metrics Table:**
   | Model | NASA Training Dataset | Architecture | Validation Metric |
   |---|---|---|---|
-  | **Hydration Prospector** | 496 Curiosity DAN neutron points + DEM/Thermal rasters | Ridge Regression Ensemble (`1024×1024` map + uncertainty) | Spatial GroupKFold **R² = 0.674** (`MAE = 0.506 wt%`) |
-  | **Storm Nowcaster** | 4,050 sols of Curiosity REMS pressure & Mastcam $\tau$ | Quantile Gradient Boosting (`q10`, `q50`, `q90`, 1–3 sols) | **MAE = 0.088–0.159** (captures Sol 2075 global storm) |
-  | **Mineral Vein Detector** | Real Curiosity Mastcam & MAHLI close-up rock frames | `DINOv2 ViT-S/14` (`384-d`) + Logistic Regression head | **ROC-AUC = 0.858**, **F1 = 0.788** |
+  | **Hydration Prospector** | 1,567 Curiosity DAN neutron points + CRISM/THEMIS/CTX rasters | `GradientBoostingRegressor` ensemble + 90% conformal intervals (`1024×1024` map + uncertainty) | 500 m spatial GroupKFold **Spearman = 0.5823**, **R² = 0.3638**, **MAE = 0.3695** (baseline `0.4860`) |
+  | **Storm Nowcaster** | 3,953 sols of Curiosity REMS barometric tides + Mastcam $	au$ | Quantile HistGradientBoosting (`q10`, `q50`, `q90`) + CQR, 1–3 sols | **Spearman = 0.765–0.796**; beats seasonal climatology; trend and early-warning indicator (does not beat persistence) |
+  | **Mineral Vein Detector** | 117 audited Curiosity Mastcam & MAHLI frames (22 sols) | `DINOv2-small` (`384-d`) + Logistic Regression head | **ROC-AUC = 0.8453**, **PR-AUC = 0.7961**, **F1 = 0.72** (precision 0.79, recall 0.66) |
 
 ---
 
@@ -84,7 +84,7 @@
 
 ## Slide 9 — Real vs. Simulated Breakdown & 9 NASA/USGS Data Sources (Datos Reales de la NASA vs. Simulación)
 - **2-Column Table:**
-  - **100% Real (54 Provenance Entries):** MOLA/HiRISE Gale Crater topography (`2048×2048` 16-bit DEM), 496 MSL DAN neutron points, 4,050 sols of REMS weather, MSL RAD radiation (`233 µGy/d`), Perseverance MOXIE (`5.37 g/h` $\text{O}_2$), NASA DONKI solar flares/CMEs, JPL Horizons ephemeris, NASA 3D GLTF meshes, and `NASA-STD-3001` medical corpus.
+  - **100% Real (SHA-256 Provenance Manifest):** MOLA/HiRISE Gale Crater topography (`2048×2048` 16-bit DEM), 1,567 MSL DAN neutron points, 3,953 sols of REMS weather, MSL RAD radiation (`233 µGy/d`), Perseverance MOXIE (`5.37 g/h` $\text{O}_2$), NASA DONKI solar flares/CMEs, JPL Horizons ephemeris, NASA 3D GLTF meshes, and `NASA-STD-3001` medical corpus.
   - **Deterministic Physics & Simulation:** Pandolf metabolic equation, choked-orifice suit depressurization, RK4 pod ballistics, A* pathfinding, 4-DOF analytic IK, Sky-Crane spring-pendulum, and 60 FPS WebGL2 shaders.
 
 ---

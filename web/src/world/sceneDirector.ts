@@ -1,3 +1,6 @@
+import type { LayerId } from "@th/shared";
+import { DEMO_SCENES, DECK_ORDER } from "../demo/demoScenes";
+import type { OverlayItem } from "../demo/overlays";
 import { clampAboveTerrain, type Vec3 } from "./cinematicCams";
 
 /**
@@ -42,9 +45,13 @@ export interface SceneDef {
   startS: number;
   durationS: number;
   segments: ShotSegment[];
+  /** Terrain layer shown during the scene (the presentation switches it on start). */
+  layer?: LayerId;
+  /** Explanatory overlays (cards, conversation, coordinates), keyed to scene-relative seconds. */
+  overlay?: readonly OverlayItem[];
 }
 
-export const SCENES: readonly SceneDef[] = [
+const CORE_SCENES: readonly SceneDef[] = [
   {
     id: "S0",
     nameKey: "scene.s0",
@@ -131,6 +138,9 @@ export const SCENES: readonly SceneDef[] = [
     segments: [{ fromS: 0, kind: "aerial", target: "rescue-1", offset: { x: 25, y: 6, z: 30 }, lookAboveM: 2 }],
   },
 ];
+
+/** Every scene: the original rescue takes followed by the explained-video scenes. */
+export const SCENES: readonly SceneDef[] = [...CORE_SCENES, ...DEMO_SCENES];
 
 export interface ShotPose {
   pos: Vec3;
@@ -237,7 +247,7 @@ export class SceneDirector {
   }
 
   /** Plays the given scenes (default: all) one after another, hard cut between them. */
-  playSequence(ids: readonly string[] = this.scenes.map((x) => x.id)): boolean {
+  playSequence(ids: readonly string[] = DECK_ORDER): boolean {
     const list = ids.filter((id) => this.scenes.some((x) => x.id === id));
     if (list.length === 0) return false;
     this.queue = list.slice(1);

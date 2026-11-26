@@ -10,6 +10,7 @@ import {
   initialCrewSnapshots,
   fleetStartPos,
   LAUNCH_SITE_COORD,
+  LAUNCHER_PRIMARY_COORD,
   pitOutlineRadiusAt,
   pitSurfaceOffsetAt,
   RESCUE_PIT,
@@ -558,6 +559,8 @@ export class RescueScenario {
       }
       case "launch-site":
         return ground(LAUNCH_SITE_COORD.x, LAUNCH_SITE_COORD.z);
+      case "launcher-1":
+        return ground(LAUNCHER_PRIMARY_COORD.x, LAUNCHER_PRIMARY_COORD.z, 3);
       case "pit":
       case "rescue-site":
         return ground(RESCUE_SITE.x, RESCUE_SITE.z);
