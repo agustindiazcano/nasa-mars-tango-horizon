@@ -1,6 +1,6 @@
 **🏆 Impact Category Winner - NASA Space Apps Challenge (Buenos Aires, 450+ participants)**
 
-**Tango Horizon:** NASA Space Apps Challenge 2026 project among 450+ participants in Buenos Aires · [Project page](https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project) · [Universidad de Palermo: NASA Space Apps Challenge host site](https://www.palermo.edu/ingenieria/2026/noviembre/up-sede-nasa-space-apps-challenge.html)
+**Tango Horizon:** NASA Space Apps Challenge 2026 project among 450+ participants in Buenos Aires · [Project page](https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project) · [Universidad de Palermo: NASA Space Apps Challenge host site](https://www.palermo.edu/ingenieria/2026/noviembre/up-sede-nasa-space-apps-challenge.html) · [Universidad de Palermo video on Facebook](https://www.facebook.com/universidaddepalermo/videos/as%C3%AD-se-vivi%C3%B3-el-nasa-space-apps-challenge-en-la-upla-universidad-de-palermo-fue-/1829309231323121/)
 
 <p align="center"><img src="docs/tango-horizon-banner.png" alt="Tango Horizon: AI Systems for EVA and Mars Exploration" width="100%" /></p>
 
@@ -361,6 +361,7 @@ All three domain models are trained offline by Python scripts in [`tools/`](tool
 ## NASA Space Apps Challenge Links
 
 - **Team:** https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project
+- **Universidad de Palermo video (Facebook):** https://www.facebook.com/universidaddepalermo/videos/as%C3%AD-se-vivi%C3%B3-el-nasa-space-apps-challenge-en-la-upla-universidad-de-palermo-fue-/1829309231323121/
 - **Local Event — [Universidad de Palermo](https://www.palermo.edu/) (Buenos Aires, Argentina) Node:** https://www.spaceappschallenge.org/2026/local-events/buenos-aires/
 - **Challenge — Interplanetary Survival Guide: Martian Map:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
 - **Rules (Participant Terms & Conditions):** https://www.spaceappschallenge.org/legal/
