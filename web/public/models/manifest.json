@@ -1,6 +1,6 @@
 {
  "version": 1,
- "totalBytes": 20154132,
+ "totalBytes": 20497784,
  "models": {
   "antenna": {
    "file": "antenna.glb",
@@ -532,7 +532,7 @@
   "drone-new": {
    "file": "drone-new.glb",
    "role": "prop",
-   "bytes": 661496,
+   "bytes": 1005148,
    "triangles": 39990,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
