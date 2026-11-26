@@ -40,6 +40,7 @@ To drive decision-making without physical hallucinations, the system pairs a hie
   - [`docs/slides/PRESENTATION_SCRIPT_3MIN.md`](docs/slides/PRESENTATION_SCRIPT_3MIN.md) — 3-minute presentation & live rescue script (ES / EN)
   - [`docs/slides/PRESENTATION_SCRIPT_30S.md`](docs/slides/PRESENTATION_SCRIPT_30S.md) — 30-second video script (ES / EN)
   - [`docs/slides/SLIDES.md`](docs/slides/SLIDES.md) — 10-slide presentation deck outline
+  - [`docs/slides/TANGO_HORIZON_English.pptx`](docs/slides/TANGO_HORIZON_English.pptx) — English slide deck (PowerPoint)
 - [License](#license)
 
 ## Team: Tango Horizon (Buenos Aires, Argentina)
@@ -151,7 +152,7 @@ The knowledge engine ([`server/src/agents/tools/knowledge.ts`](server/src/agents
 
 ### Autonomous 4-Astronaut Crew Rescue Scenario
 
-- **Cast & Base Layout:** Four astronauts operate from the main habitat complex (`conae-base-mars`, solar array field, antenna farm, and rocket launch pad at `LAUNCH_SITE_COORD`): **`SOTELO`** and **`YACONIS`** at base control, while **`SALERNO`** (driver) and **`DIAZ-CANO`** (geologist) conduct a science traverse $1.5\text{–}2.5\text{ km}$ away at `RESCUE_SITE` aboard pressurized rover **`rover-1`**.
+- **Cast & Base Layout:** Four astronauts operate from the main habitat complex (`conae-base-mars`, solar array field, antenna farm, and the Starship launch complex at `LAUNCH_SITE_COORD`): **`SOTELO`** and **`YACONIS`** at base control, while **`SALERNO`** (driver) and **`DIAZ-CANO`** (geologist) conduct a science traverse $1.5\text{–}2.5\text{ km}$ away at `RESCUE_SITE` aboard pressurized rover **`rover-1`**.
 - **Crisis & Autonomous Multi-Agent Response:**
   1. `rover-1` suffers a critical wheel actuator fault (`RVR-MOB-01`), isolated by `MAINTENANCE`.
   2. While sampling near a natural sinkhole pit (`RESCUE_PIT`), `DIAZ-CANO` falls into the shaft and is incapacitated (`SUIT.HEALTH` triggers a critical biomedical alert).
@@ -186,7 +187,7 @@ The knowledge engine ([`server/src/agents/tools/knowledge.ts`](server/src/agents
 | **NASA CCMC DONKI** | `SEP`, `CMEAnalysis` & `WSAEnlilSimulations` APIs | Provides heliospheric space-weather alerts and coronal mass ejection arrival windows at Mars (`donki_alert`), gating outward EVA dispatch in `GUARDIAN`. |
 | **Mars 2020 Perseverance — MOXIE** | PDS Atmospheres `mars2020_moxie` (Sols 0–659 $\text{O}_2$ production logs) | Models habitat ISRU solid-oxide electrolysis ($\text{CO}_2 \to \text{O}_2$) rates and compressor/SOXE fault signatures (`ISRU-MOX-01`) in `MAINTENANCE`. |
 | **NASA OCHMO, NTRS & Standards** | `NASA-STD-3001` Vol. 1 & 2, `OCHMO-TB-004`, `AMCL`, `MEDPRAT`, `Mars-GRAM`, `MCD v5.2` | Forms the 1,002-chunk in-memory BM25 RAG corpus (`server/corpus/chunks.json`) cited by `SUIT.HEALTH`, `WEATHER-RAD`, `EVA-PLANNER`, and `MAINTENANCE`. |
-| **NASA 3D Resources & Custom GLBs** | `mro.glb` + 24 meshopt-compressed mission GLBs | Renders authentic NASA spacecraft/rovers alongside the habitat complex, rocket launch pad, solar arrays, antennas, rescue vehicles, and animated 4-astronaut crew. |
+| **NASA 3D Resources & Custom GLBs** | 25 meshopt-compressed mission GLBs | Renders NASA-style rovers and habitat modules alongside the Starship launch complex, solar arrays, antennas, rescue vehicles, and animated 4-astronaut crew. |
 
 <!-- BEGIN AUTO:DATA -->
 Tracked runtime assets in `web/public/data/provenance.json` (**57 entries**; SHA-256 checksums and CRS transforms recorded in the manifest):
@@ -211,8 +212,10 @@ Tracked runtime assets in `web/public/data/provenance.json` (**57 entries**; SHA
 | `terrain/hydration_meta.json` | Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC) | `tango-horizon-hydration-v1` | 2026-11-14 · [link](https://pds-geosciences.wustl.edu/msl/msl-m-dan-3_4-rdr-v1/msldan_1000/data/) |
 | `terrain/hydration_sites.json` | Gradient Boosting ensemble (tango-horizon-hydration-v1) trained on MSL DAN passive neutron counts (PDS Geosciences MSL-M-DAN-3/4-RDR-V1.0) with MRO CRISM MTRDR (BD1900_2, SINDEX2), Mars Odyssey THEMIS IR (mc23_aeolis_nir, mc23_aeolis_dir), and MRO CTX DTM/DRG (USGS STAC) | `tango-horizon-hydration-v1-sites` | 2026-11-14 · [link](https://pds-geosciences.wustl.edu/msl/msl-m-dan-3_4-rdr-v1/msldan_1000/data/) |
 | `veins/manifest.json` | Own classifier (frozen DINOv2-small features + sol-grouped logistic regression) on MSL Mastcam/MAHLI images (NASA/JPL-Caltech/MSSS) | `tango-horizon-veins-v1` | 2026-11-14 · [link](https://mars.nasa.gov/api/v1/raw_image_items/) |
-| `models/mro.glb` | NASA 3D Resources (Mars Reconnaissance Orbiter) | `mro` | 2026-11-14 · [link](https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A)/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A).glb) |
 | `models/antenna.glb` | Project owner (original 3D model) | `antenna` | 2026-11-15 · local pipeline |
+| `models/asset-1.glb` | Project owner (original 3D model) | `asset-1` | 2026-11-15 · local pipeline |
+| `models/asset-2.glb` | Project owner (original 3D model) | `asset-2` | 2026-11-15 · local pipeline |
+| `models/asset-3.glb` | Project owner (original 3D model) | `asset-3` | 2026-11-15 · local pipeline |
 | `models/asset-4.glb` | Project owner (original 3D model) | `asset-4` | 2026-11-15 · local pipeline |
 | `models/astronaut.glb` | Project owner (original 3D model) | `astronaut` | 2026-11-15 · local pipeline |
 | `models/astronaut-animated.glb` | Project owner (original 3D model) | `astronaut-animated` | 2026-11-15 · local pipeline |

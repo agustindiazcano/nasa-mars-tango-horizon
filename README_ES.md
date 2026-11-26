@@ -39,6 +39,7 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
   - [`docs/slides/PRESENTATION_SCRIPT_3MIN.md`](docs/slides/PRESENTATION_SCRIPT_3MIN.md) — Guion de presentación y rescate en vivo de 3 minutos (ES / EN)
   - [`docs/slides/PRESENTATION_SCRIPT_30S.md`](docs/slides/PRESENTATION_SCRIPT_30S.md) — Guion de video de 30 segundos (ES / EN)
   - [`docs/slides/SLIDES.md`](docs/slides/SLIDES.md) — Estructura de las 10 diapositivas (Slides)
+  - [`docs/slides/TANGO_HORIZON_English.pptx`](docs/slides/TANGO_HORIZON_English.pptx) — Presentación en inglés (PowerPoint)
 - [Licencia](#licencia)
 
 ## Equipo: Tango Horizon (Buenos Aires, Argentina)
