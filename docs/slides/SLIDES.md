@@ -7,7 +7,7 @@
 ## Slide 1 — Title & Vision (Portada y Visión)
 - **Title:** **Tango Horizon** — Autonomous Multi-Agent Mars Surface Operations, Robotics & Climate Simulator
 - **Subtitle:** Hands-Free 5-Language Voice · Real NASA/USGS Gale Crater Cartography · Deterministic Physics · Predictive RAG · Custom ML
-- **Visual:** 3D wide shot of the 20-module Mars Base + Rocket Launch Pad over the Gale Crater DEM (`CAM-1` / `S1`).
+- **Visual:** 3D wide shot of the 20-module Mars Base + Starship Launch Complex over the Gale Crater DEM (`CAM-1` / `S1`).
 - **Key Tagline:** *"Not a game: a real-time 3D engineering, robotics, and bioastronautics simulation for crew safety on Mars."*
 
 ---
