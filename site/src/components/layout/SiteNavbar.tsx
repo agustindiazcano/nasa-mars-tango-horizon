@@ -130,7 +130,7 @@ export function SiteNavbar() {
                 style={
                   {
                     '--nav-accent': item.accent,
-                    borderRadius: '10px',
+                    borderRadius: '999px',
                     height: '38px',
                   } as React.CSSProperties
                 }
@@ -147,7 +147,7 @@ export function SiteNavbar() {
           <button
             type="button"
             className="site-lang-toggle site-lang-toggle--desktop"
-            style={{ borderRadius: '10px', height: '38px' }}
+            style={{ borderRadius: '999px', height: '38px' }}
             onClick={toggleLang}
             aria-label={langToggleAriaLabel}
             aria-pressed={lang === 'es'}
@@ -157,7 +157,7 @@ export function SiteNavbar() {
             <span className="site-lang-toggle__pills">
               <span
                 className={`site-lang-toggle__pill${lang === 'en' ? ' site-lang-toggle__pill--active' : ''}`}
-                style={{ borderRadius: '6px' }}
+                style={{ borderRadius: '999px' }}
               >
                 EN
               </span>
@@ -166,7 +166,7 @@ export function SiteNavbar() {
               </span>
               <span
                 className={`site-lang-toggle__pill${lang === 'es' ? ' site-lang-toggle__pill--active' : ''}`}
-                style={{ borderRadius: '6px' }}
+                style={{ borderRadius: '999px' }}
               >
                 ES
               </span>
@@ -178,7 +178,7 @@ export function SiteNavbar() {
             target="_blank"
             rel="noopener noreferrer"
             className="site-nav__cta"
-            style={{ borderRadius: '10px', height: '38px' }}
+            style={{ borderRadius: '999px', height: '38px' }}
           >
             <span>{pickLang(lang, { en: '3D Simulator ↗', es: 'Simulador 3D ↗' })}</span>
             <ExternalLink size={14} aria-hidden="true" />
@@ -187,7 +187,7 @@ export function SiteNavbar() {
           <button
             type="button"
             className="site-nav__menu-btn"
-            style={{ borderRadius: '10px', width: '38px', height: '38px' }}
+            style={{ borderRadius: '14px', width: '38px', height: '38px' }}
             onClick={() => setMobileOpen((prev) => !prev)}
             aria-expanded={mobileOpen}
             aria-controls="site-nav-mobile-drawer"
@@ -211,7 +211,7 @@ export function SiteNavbar() {
       <nav
         id="site-nav-mobile-drawer"
         className={`site-nav__drawer${mobileOpen ? ' site-nav__drawer--open' : ''}`}
-        style={{ borderRadius: '14px' }}
+        style={{ borderRadius: '20px' }}
         aria-label={pickLang(lang, {
           en: 'Mobile navigation',
           es: 'Navegación móvil',
@@ -225,7 +225,7 @@ export function SiteNavbar() {
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={`site-nav__drawer-link${active ? ' site-nav__drawer-link--active' : ''}`}
-              style={{ '--nav-accent': item.accent, borderRadius: '10px' } as React.CSSProperties}
+              style={{ '--nav-accent': item.accent, borderRadius: '14px' } as React.CSSProperties}
               aria-current={active ? 'page' : undefined}
             >
               <span>{pickLang(lang, item.label)}</span>

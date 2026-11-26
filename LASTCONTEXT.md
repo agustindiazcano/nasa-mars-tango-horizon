@@ -12,6 +12,8 @@
 - Explained video (plan 25): `web/src/demo/` overlay layer (cards, agent flow, scripted voice conversation, coordinates chip, lower thirds, scripted life-support panel) and nine new scenes `C0 P0 A1 V1 L1 H1 M1 M2 M3 E1` in `demoScenes.ts`; `Play all` now plays `DECK_ORDER` (about 6 min, `S0`-`S4` stay selectable). Scene `L1` fires the cannon at 4 s (flash, smoke), the pod flies about 34 s, opens and lifts its four payload items. ML metrics in slides and scripts now match the README. Script: `docs/slides/VIDEO_SCRIPT_6MIN.md`. Viewed live: `C0`, `A1`, `V1`, `L1`, `H1`, `M1`.
 - `tsc --noEmit` on `web/` and `modelLibrary.test.ts` pass. CI not run yet.
 
+- Merged `main` (site navbar iPhone glass styling, PR #62) into this branch.
+
 ## Files touched
 
 `web/src/world/*`, `web/public/models/*`, `shared/src/i18n/*.ts`, `shared/src/physics/sites.ts`, `docs/slides/*`, `docs/media/`, `docs/impl/24_*`.
