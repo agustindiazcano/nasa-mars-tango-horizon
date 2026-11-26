@@ -9,6 +9,8 @@
 - Added slide 6 "Starship on Mars" to `docs/slides/TANGO_HORIZON_English.pptx` (now 8 slides). Eyebrow numbers, footer counters (`/08`) and timings were shifted; slide 5 now ends at 01:50.
 - `tsc --noEmit` on `web/` and `modelLibrary.test.ts` pass. CI not run yet.
 
+- Merged `main` (site navbar iPhone glass styling, PR #62) into this branch.
+
 ## Files touched
 
 `web/src/world/*`, `web/public/models/*`, `shared/src/i18n/*.ts`, `shared/src/physics/sites.ts`, `docs/slides/*`, `docs/media/`, `docs/impl/24_*`.

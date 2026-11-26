@@ -476,13 +476,6 @@
     "notes": "garden-city (Sol 929, MAST_LEFT): Garden City reference outcrop: dense intersecting mineral veins (Sol 929) [p=0.973, vein_candidate]",
     "retrieved": "2026-11-14"
   },
-  "models/mro.glb": {
-    "source": "NASA 3D Resources (Mars Reconnaissance Orbiter)",
-    "product_id": "mro",
-    "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/master/3D%20Models/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A)/Mars%20Reconnaissance%20Orbiter%20(MRO)%20(A).glb",
-    "transform": "Copied binary glTF (.glb) asset from NASA-3D-Resources repository without geometry modification",
-    "retrieved": "2026-11-14"
-  },
   "models/antenna.glb": {
     "source": "Project owner (original 3D model)",
     "product_id": "antenna",
