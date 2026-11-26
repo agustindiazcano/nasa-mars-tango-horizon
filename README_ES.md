@@ -1,6 +1,6 @@
 **🏆 Ganador de la Categoría Impact - NASA Space Apps Challenge (Buenos Aires, más de 450 participantes)**
 
-**Tango Horizon:** proyecto del NASA Space Apps Challenge 2026 entre más de 450 participantes en Buenos Aires · [Página del proyecto](https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project) · [Universidad de Palermo: sede del NASA Space Apps Challenge](https://www.palermo.edu/ingenieria/2026/noviembre/up-sede-nasa-space-apps-challenge.html) · [Video de la Universidad de Palermo en Facebook](https://www.facebook.com/universidaddepalermo/videos/as%C3%AD-se-vivi%C3%B3-el-nasa-space-apps-challenge-en-la-upla-universidad-de-palermo-fue-/1829309231323121/) · [Reel de Instagram](https://www.instagram.com/reels/DgH_go-JCgu/)
+**Tango Horizon:** proyecto del NASA Space Apps Challenge 2026 entre más de 450 participantes en Buenos Aires · [Página del proyecto](https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project) · [Universidad de Palermo: sede del NASA Space Apps Challenge](https://www.palermo.edu/ingenieria/2026/noviembre/up-sede-nasa-space-apps-challenge.html) · [Video de la Universidad de Palermo en Facebook](https://www.facebook.com/universidaddepalermo/videos/as%C3%AD-se-vivi%C3%B3-el-nasa-space-apps-challenge-en-la-upla-universidad-de-palermo-fue-/1829309231323121/) · [Reel de Instagram](https://www.instagram.com/reels/DgH_go-JCgu/) · [Publicación en X](https://x.com/udepalermo/status/2125210609981456661)
 
 <p align="center"><img src="docs/tango-horizon-banner.png" alt="Tango Horizon: AI Systems for EVA and Mars Exploration" width="100%" /></p>
 
@@ -158,6 +158,7 @@ Las 44 constantes de ingeniería (18 valores publicados o estándar y 26 supuest
 - **Equipo:** https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project
 - **Video de la Universidad de Palermo (Facebook):** https://www.facebook.com/universidaddepalermo/videos/as%C3%AD-se-vivi%C3%B3-el-nasa-space-apps-challenge-en-la-upla-universidad-de-palermo-fue-/1829309231323121/
 - **Reel de Instagram:** https://www.instagram.com/reels/DgH_go-JCgu/
+- **Publicación en X (Universidad de Palermo):** https://x.com/udepalermo/status/2125210609981456661
 - **Evento local — Sede [Universidad de Palermo](https://www.palermo.edu/) (Buenos Aires, Argentina):** https://www.spaceappschallenge.org/2026/local-events/buenos-aires/
 - **Desafío — Interplanetary Survival Guide: Martian Map:** https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/
 - **Reglas (Términos y Condiciones para Participantes):** https://www.spaceappschallenge.org/legal/
