@@ -11,6 +11,8 @@
 - Drone rotors (`drone-new`): `tools/assets/split-drone-rotors.mjs` splits the fused scan mesh into a body plus eight `rotor_<corner>_<layer>` pivot nodes (two coaxial layers on each of four arms); `collectDroneRotorPivots` in `nasaModels.ts` feeds `fleetProc.ts`, which spins them (32 rad/s flying, 0.5 rad/s landed, alternating sense in `node.extras.spinDir`). The original blades are reused, no substitute rotors. A few tiny scan fragments near the hubs were not moved; GLB grew from 0.66 to 1.0 MB. Checked in the model lab with a rotated debug build and in the running app (8 pivots, correct senses); live spin not filmed.
 - `tsc --noEmit` on `web/` and `modelLibrary.test.ts` pass. CI not run yet.
 
+- Merged `main` (site navbar iPhone glass styling, PR #62) into this branch.
+
 ## Files touched
 
 `web/src/world/*`, `web/public/models/*`, `shared/src/i18n/*.ts`, `shared/src/physics/sites.ts`, `docs/slides/*`, `docs/media/`, `docs/impl/24_*`.
