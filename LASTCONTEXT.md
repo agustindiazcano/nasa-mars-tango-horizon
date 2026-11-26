@@ -1,18 +1,20 @@
 # Last context
 
-**Date:** 2026-11-21 (Argentina)
+**Date:** 2026-11-26 (Argentina)
 
 ## Work done
 
-- Cloned `nasa-mars-tango-horizon` into the workspace, installed dependencies in `site/`, and started the `@th/site` Next.js dev server (`http://localhost:3001`).
-- Updated the `site/` navbar (`SiteNavbar` and `.site-nav*` / `.site-lang-toggle` styles) to an iPhone-style Liquid Glass floating capsule: high-saturation backdrop blur (`blur(26px) saturate(190%) brightness(1.06)`), specular top-to-bottom highlight gradient, crisp translucent borders, inner top rim highlights, pill-shaped nav links/CTA/language toggle, and matching frosted glass mobile drawer.
-- Verified `npx tsc --noEmit` in `site/` (exit 0) and `http://localhost:3001` (HTTP 200).
+- Restored the Starship (owner request): reverted `b758c44`, which brings back `rocket.glb`, its manifest/`ModelId`/spec entries, the procedural stack, launch mount, tower and label in `launchSiteProc.ts`, the original `S0`/`S1`/`CAM-3` framing and the "Starship" i18n strings. The `rockets` GLB is no longer used on the pad.
+- Restored `docs/media/starship-pad.jpg` and `starship-distance.jpg` from history.
+- Added slide 6 "Starship on Mars" to `docs/slides/TANGO_HORIZON_English.pptx` (now 8 slides). Eyebrow numbers, footer counters (`/08`) and timings were shifted; slide 5 now ends at 01:50.
+- `tsc --noEmit` on `web/` and `modelLibrary.test.ts` pass. CI not run yet.
+
+- Merged `main` (site navbar iPhone glass styling, PR #62) into this branch.
 
 ## Files touched
 
-`site/src/app/globals.css`, `site/src/components/layout/SiteNavbar.tsx`.
+`web/src/world/*`, `web/public/models/*`, `shared/src/i18n/*.ts`, `shared/src/physics/sites.ts`, `docs/slides/*`, `docs/media/`, `docs/impl/24_*`.
 
 ## State
 
-- Branch `feat/site-iphone-glass-navbar` committed and pushed with a PR to `main`.
-- Local Next.js dev server for `site/` remains running on `http://localhost:3001`.
+The new slide was not rendered (no PowerPoint/LibreOffice on this machine); check layout in PowerPoint. The live visual check of the pad was not done. Not updated: the Spanish script, `site/src/data/slidesDeck.ts` and the READMEs still say "rockets".

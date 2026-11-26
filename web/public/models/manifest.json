@@ -1,6 +1,6 @@
 {
  "version": 1,
- "totalBytes": 17616372,
+ "totalBytes": 18487104,
  "models": {
   "antenna": {
    "file": "antenna.glb",
@@ -675,6 +675,43 @@
    "source": {
     "bytes": 57476540,
     "triangles": 1858404
+   }
+  },
+  "rocket": {
+   "file": "rocket.glb",
+   "role": "hero",
+   "bytes": 870732,
+   "triangles": 80000,
+   "triangleBudget": 80000,
+   "byteBudget": 3145728,
+   "boundingBox": {
+    "min": [
+     -0.189,
+     0,
+     -0.135
+    ],
+    "max": [
+     0.189,
+     0.976,
+     0.135
+    ],
+    "size": [
+     0.378,
+     0.976,
+     0.269
+    ]
+   },
+   "heightM": 0.976,
+   "heightIsReal": false,
+   "up": "+Y",
+   "front": "+Z",
+   "anchor": "unknown",
+   "skinned": false,
+   "joints": 0,
+   "animations": [],
+   "source": {
+    "bytes": 61265760,
+    "triangles": 1938421
    }
   },
   "rockets": {
