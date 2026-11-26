@@ -9,8 +9,10 @@ export interface NormalizedGlb {
 }
 
 export interface RotorPivot {
-  pivot: THREE.Group;
+  pivot: THREE.Object3D;
   axis: "x" | "y" | "z";
+  /** +1 or -1: spin sense, so neighbouring rotors and the two layers of a coaxial stack counter-rotate. */
+  dir?: 1 | -1;
 }
 
 let sharedLoader: GLTFLoader | null = null;
@@ -94,6 +96,19 @@ export async function loadNormalizedNasaGlb(
  * Wraps Ingenuity's coaxial rotor meshes (`rotors_01`, `rotors_02`) in mast-aligned
  * pivot groups so they spin cleanly around the rotor shaft axis.
  */
+/**
+ * Pivots of `drone-new`: the GLB ships eight `rotor_<corner>_<layer>` nodes whose origin is on the rotor shaft
+ * (see tools/assets/split-drone-rotors.mjs). The node extras carry the spin sense.
+ */
+export function collectDroneRotorPivots(root: THREE.Object3D): RotorPivot[] {
+  const pivots: RotorPivot[] = [];
+  root.traverse((o) => {
+    if (!/^rotor_(fl|fr|bl|br)_(up|low)$/.test(o.name)) return;
+    pivots.push({ pivot: o, axis: "y", dir: o.userData.spinDir === -1 ? -1 : 1 });
+  });
+  return pivots;
+}
+
 export function extractIngenuityRotorPivots(root: THREE.Object3D): RotorPivot[] {
   const r1 = root.getObjectByName("rotors_01");
   const r2 = root.getObjectByName("rotors_02");
