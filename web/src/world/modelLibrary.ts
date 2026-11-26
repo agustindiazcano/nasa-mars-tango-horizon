@@ -11,6 +11,9 @@ import { getGltfLoader } from "./nasaModels";
 
 export type ModelId =
   | "antenna"
+  | "asset-1"
+  | "asset-2"
+  | "asset-3"
   | "asset-4"
   | "astronaut"
   | "astronaut-animated"
@@ -69,6 +72,9 @@ export const MODEL_SPECS: Readonly<Record<ModelId, ModelSpec>> = {
   "rescue-rover": { size: { axis: "z", metres: 4.4 }, priority: 1 },
   "rescue-robot-without-astronaut": { size: { axis: "z", metres: 2 }, priority: 1 },
   "rescue-robot-astronaut": { size: { axis: "z", metres: 2.6 }, priority: 2 },
+  "asset-1": { size: { axis: "maxSpan", metres: 18 }, priority: 1 },
+  "asset-2": { size: { axis: "maxSpan", metres: 14 }, priority: 1 },
+  "asset-3": { size: { axis: "maxSpan", metres: 14 }, priority: 1 },
   "asset-4": { size: { axis: "maxSpan", metres: 7 }, priority: 2 },
   "solar-panel": { size: { axis: "maxSpan", metres: 5.5 }, priority: 2 },
   antenna: { size: { axis: "y", metres: 9 }, priority: 2 },
