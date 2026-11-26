@@ -17,7 +17,7 @@ const COVER: OverlayItem[] = [
     toS: 24,
     kicker: "NASA SPACE APPS CHALLENGE · BUENOS AIRES 2026",
     title: "TANGO HORIZON",
-    subtitle: "Multi-agent AI for crew safety on Mars, with hands-free voice control of every operation",
+    subtitle: "A team of AI agents that runs robots, rescues and health monitoring for astronauts on Mars, all controlled by voice",
     stats: [
       { value: "5", label: "LLMs (Gemini 4 ×3, Muse ×2)" },
       { value: "3", label: "custom ML models" },
@@ -216,13 +216,18 @@ const HEALTH: OverlayItem[] = [
     keys: [
       { atS: 6, o2Pct: 96, pao2Kpa: 13.1, co2Pa: 150, batteryWh: 800 },
       { atS: 16, o2Pct: 70, pao2Kpa: 11.8, co2Pa: 300, batteryWh: 790 },
-      { atS: 30, o2Pct: 41, pao2Kpa: 9.2, co2Pa: 520, batteryWh: 780 },
+      { atS: 24, o2Pct: 44, pao2Kpa: 9.0, co2Pa: 540, batteryWh: 785 },
+      { atS: 33, o2Pct: 27, pao2Kpa: 7.7, co2Pa: 700, batteryWh: 780 },
     ],
     events: [
       { atS: 12, text: "Early Warning Score 1: pressure trend" },
-      { atS: 22, text: "Early Warning Score 2: time to hypoxia 9 min" },
+      { atS: 18, text: "Early Warning Score 2: oxygen dropping" },
+      { atS: 24, text: "Early Warning Score 3: ALARM" },
     ],
   },
+  { id: "h-alarm", kind: "lower", level: "alert", fromS: 24, toS: 35, title: "ALARM: astronaut in danger", detail: "Pressure and SpO2 falling, hypoxia in about 9 minutes. BASE notified." },
+  { id: "h-agent", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 24.5, toS: 35, text: "Alarm raised: pressure and SpO2 are falling, hypoxia in about 9 minutes. Notifying BASE (NASA-STD-3001 limit exceeded)." },
+  { id: "h-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 29, toS: 35, text: "Rescue plan started: rescue vehicle, robot and drones dispatched." },
 ];
 
 const mlCard = (id: string, n: number, title: string, subtitle: string, bullets: string[], note: string): OverlayItem[] => [

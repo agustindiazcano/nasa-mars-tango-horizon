@@ -183,3 +183,7 @@
 .ov-chip { opacity: 0; animation: ovPop 0.5s ease-out forwards; border: 1px solid rgba(255, 179, 107, 0.4); background: rgba(255, 179, 107, 0.07); padding: 9px 12px; }
 .ov-chip b { display: block; font-size: 17px; color: var(--ok, #ffb36b); letter-spacing: 0.03em; }
 .ov-chip span { display: block; font-size: 14px; margin-top: 2px; line-height: 1.25; }
+
+.ov-lower.alert { border-left-color: var(--crit, #ff4d5e); background: rgba(60, 10, 16, 0.9); animation: ovIn 0.55s both, ovAlarm 0.9s 0.6s infinite; }
+.ov-lower.alert b { color: var(--crit, #ff4d5e); }
+@keyframes ovAlarm { 50% { box-shadow: 0 0 22px rgba(255, 77, 94, 0.75); } }

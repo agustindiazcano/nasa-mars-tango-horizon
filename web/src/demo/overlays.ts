@@ -53,6 +53,8 @@ export interface LowerItem extends Timed {
   kind: "lower";
   title: string;
   detail?: string;
+  /** `alert` draws the caption as a flashing red alarm. */
+  level?: "info" | "alert";
 }
 
 export interface VitalsKey {

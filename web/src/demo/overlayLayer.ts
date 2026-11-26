@@ -104,6 +104,7 @@ export class OverlayLayer {
         this.root.appendChild(el);
         break;
       case "lower":
+        if (item.level === "alert") el.classList.add("alert");
         el.innerHTML = `<b>${esc(item.title)}</b>${item.detail ? `<span>${esc(item.detail)}</span>` : ""}`;
         this.root.appendChild(el);
         break;
