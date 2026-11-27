@@ -86,7 +86,7 @@ export class OverlayLayer {
     this.root.className = "demo-overlay";
     this.brand = document.createElement("img");
     this.brand.className = "ov-brand";
-    this.brand.src = "/images/th-logo-192.jpg";
+    this.brand.src = "/images/th-patch.png";
     this.brand.alt = "Tango Horizon";
     this.brand.style.display = "none";
     this.root.appendChild(this.brand);
@@ -111,6 +111,7 @@ export class OverlayLayer {
     const active = items ? overlaysActiveAt(items, tRel) : [];
     const activeIds = new Set(active.map((i) => i.id));
     this.root.classList.toggle("has-graph", active.some((i) => i.kind === "graph"));
+    this.root.classList.toggle("has-logos", active.some((i) => i.kind === "logos"));
     for (const [id, v] of this.views) {
       if (activeIds.has(id) || v.leaving) continue;
       v.leaving = true;
@@ -227,6 +228,15 @@ export class OverlayLayer {
       case "image":
         el.classList.add(item.place ?? "top-right");
         el.innerHTML = `<img src="${esc(item.src)}" alt="${esc(item.caption)}" /><div class="ov-cap">${esc(item.caption)}</div>`;
+        this.root.appendChild(el);
+        break;
+      case "logos":
+        el.innerHTML =
+          `<div class="ov-logos-h">${esc(item.heading)}</div><div class="ov-logos-row">` +
+          item.logos
+            .map((l, n) => `<figure style="animation-delay:${0.6 + n * 0.25}s"><img src="${esc(l.src)}" alt="${esc(l.name)}" /><figcaption><b>${esc(l.name)}</b>${l.sub ? `<span>${esc(l.sub)}</span>` : ""}</figcaption></figure>`)
+            .join("") +
+          "</div>";
         this.root.appendChild(el);
         break;
       case "visor":

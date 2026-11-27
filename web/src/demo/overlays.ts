@@ -169,7 +169,14 @@ export interface ImageItem extends Timed {
   src: string;
   caption: string;
   /** Defaults to the top-right corner; `banner` centres a wide header picture at the top of the screen. */
-  place?: "top-right" | "mid-right" | "banner";
+  place?: "top-right" | "mid-right" | "banner" | "patch";
+}
+
+/** Row of partner logos with a heading, for the cover and the closing slide. */
+export interface LogosItem extends Timed {
+  kind: "logos";
+  heading: string;
+  logos: { src: string; name: string; sub?: string }[];
 }
 
 /** Helmet visor frame: vignette, reticle and a label, for point-of-view shots. */
@@ -192,7 +199,7 @@ export interface GlowItem extends Timed {
   side?: "left" | "right" | "above" | "below";
 }
 
-export type OverlayItem = GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
+export type OverlayItem = LogosItem | GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
 
 /** Items visible at `tRel` seconds after the scene start. */
 export function overlaysActiveAt(items: readonly OverlayItem[], tRel: number): OverlayItem[] {

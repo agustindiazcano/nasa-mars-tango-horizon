@@ -217,6 +217,8 @@ export const en = {
   "scene.l1": "Life-support launch",
   "scene.w1": "Voice order to drone",
   "scene.u1": "Helmet UI and voice demo",
+  "scene.k1": "Capabilities",
+  "scene.q1": "Predictive RAG",
   "scene.r1": "Rescue flow",
   "scene.l0": "Life-support flow",
   "scene.t1": "Storm alert, satellite view",

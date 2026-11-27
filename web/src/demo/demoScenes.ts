@@ -8,28 +8,45 @@ import type { OverlayItem } from "./overlays";
 
 const DIAZ_CANO = { label: "ASTRONAUT", lat: "4.7560° S", lon: "137.4241° E" } as const;
 
-const BANNER = (id: string, fromS: number, toS: number): OverlayItem => ({
+/** The Tango Horizon patch (project logo) at the top of the cover and the closing slide. */
+const PATCH = (id: string, fromS: number, toS: number): OverlayItem => ({
   id,
   kind: "image",
-  place: "banner",
+  place: "patch",
   fromS,
   toS,
-  src: "/images/th-banner.jpg",
+  src: "/images/th-patch.png",
   caption: "Tango Horizon: Mars Exploration",
 });
 
+/** Partner logos, cropped from the project banner and shown as a row with their names. */
+const SUPPORTERS = (id: string, fromS: number, toS: number): OverlayItem => ({
+  id,
+  kind: "logos",
+  fromS,
+  toS,
+  heading: "SUPPORTED BY",
+  logos: [
+    { src: "/images/logos/space-apps.png", name: "NASA Space Apps Challenge" },
+    { src: "/images/logos/nasa.png", name: "NASA" },
+    { src: "/images/logos/conae.png", name: "CONAE", sub: "Comisión Nacional de Actividades Espaciales" },
+    { src: "/images/logos/up.png", name: "Universidad de Palermo" },
+    { src: "/images/logos/ibm.png", name: "IBM" },
+  ],
+});
+
 const COVER: OverlayItem[] = [
-  BANNER("cover-banner", 0.3, 13.5),
+  PATCH("cover-patch", 0.3, 13.5),
+  SUPPORTERS("cover-logos", 1.5, 13.5),
   {
     id: "cover",
     kind: "card",
     side: "center",
     fromS: 0.5,
     toS: 13.5,
-    kicker: "NASA SPACE APPS CHALLENGE · BUENOS AIRES 2026",
-    icon: "planet",
-    title: "AI TEAM FOR MARS CREWS",
-    subtitle: "A team of AI agents that runs robots, rescues and health monitoring for astronauts on Mars, all controlled by voice",
+    kicker: "NASA SPACE APPS CHALLENGE · BUENOS AIRES 2026 · IMPACT CATEGORY WINNER",
+    title: "TANGO HORIZON: AI SYSTEMS FOR EVA AND MARS EXPLORATION",
+    subtitle: "A multi-agent AI system that coordinates operations and safety, monitors the suit and health of astronauts, and runs autonomous rescues on Mars",
     stats: [
       { value: "5", label: "LLMs (Gemini 4 ×3, Muse ×2)", icon: "brain" },
       { value: "3", label: "custom ML models", icon: "flask" },
@@ -37,7 +54,6 @@ const COVER: OverlayItem[] = [
       { value: "6", label: "MCP servers", icon: "layers" },
       { value: "5", label: "voice languages", icon: "globe" },
     ],
-    note: "Simulated robotics in a 3D digital twin of Gale Crater (Three.js, real NASA and USGS terrain) · Vertex AI · Fastify · Web Speech and Cloud TTS",
   },
 ];
 
@@ -58,6 +74,59 @@ const PROBLEM: OverlayItem[] = [
       "Suit leaks, dust storms and equipment faults leave no time to wait",
     ],
     note: "Goal: protect the crew with local autonomy.",
+  },
+];
+
+/** The full capability list, taken from the "Core Features" section of the README. */
+const CAPABILITIES: OverlayItem[] = [
+  {
+    id: "caps",
+    kind: "grid",
+    fromS: 0.5,
+    toS: 30,
+    kicker: "CAPABILITIES",
+    title: "Everything Tango Horizon does",
+    chips: [
+      { icon: "mic", label: "Hands-free voice", detail: "5 languages, local emergency intents under 5 ms, radio tones" },
+      { icon: "brain", label: "Multi-agent team", detail: "SUIT.VOICE-EXEC, BASE, five specialists and one agent per robot" },
+      { icon: "shield", label: "GUARDIAN safety", detail: "Hard rules, an AI judge and a three-model vote" },
+      { icon: "rescue", label: "Autonomous rescue", detail: "Started by voice or by suit, rover and storm alarms" },
+      { icon: "pod", label: "Life-support pod", detail: "8 kg ballistic pod: oxygen, CO2 scrubber and battery" },
+      { icon: "heart", label: "Astronaut health", detail: "Suit sensors, trends, time to breach and warning score" },
+      { icon: "book", label: "Predictive RAG", detail: "1,002 NASA chunks in under 2 ms, with page citations" },
+      { icon: "wrench", label: "Predictive maintenance", detail: "Fault codes and remaining useful life of suit, rovers and base" },
+      { icon: "satellite", label: "GPS-denied navigation", detail: "Map matching, UWB ranging, VIO and flash LiDAR" },
+      { icon: "eye", label: "Camera vision", detail: "Helmet, rover and drone cameras read by vision models" },
+      { icon: "flask", label: "3 custom ML models", detail: "Water, dust storms and mineral veins from NASA data" },
+      { icon: "map", label: "Map and 6 terrain layers", detail: "NASA and USGS style cartography; phone laser pointer" },
+    ],
+  },
+];
+
+/** Predictive use of the document search for health, maintenance and weather (README: Predictive Telemetry). */
+const PREDICTIVE_RAG: OverlayItem[] = [
+  {
+    id: "q-card",
+    kind: "card",
+    side: "left",
+    fromS: 0.5,
+    toS: 30,
+    kicker: "PREDICTIVE RAG",
+    icon: "book",
+    title: "Search that warns before the failure",
+    bullets: [
+      "Health: minutes to breach and a 0 to 3 warning score per astronaut",
+      "Maintenance: remaining useful life and fault codes for suit, rovers and base",
+      "Weather: pressure tides and dust ramps trigger early maneuvers",
+      "Each answer cites its NASA document and page",
+    ],
+    bulletIcons: ["heart", "wrench", "storm", "check"],
+    stats: [
+      { value: "1,002", label: "chunks", icon: "layers" },
+      { value: "15", label: "documents", icon: "book" },
+      { value: "<2 ms", label: "search", icon: "clock" },
+    ],
+    note: "Decision support advisory only; not a medical diagnosis.",
   },
 ];
 
@@ -535,7 +604,8 @@ const VEINS = mlCard(
 );
 
 const CLOSING: OverlayItem[] = [
-  BANNER("closing-banner", 0.3, 14),
+  PATCH("closing-patch", 0.3, 14),
+  SUPPORTERS("closing-logos", 1.5, 14),
   {
     id: "closing",
     kind: "card",
@@ -596,6 +666,25 @@ export const DEMO_SCENES: readonly SceneDef[] = [
       { fromS: 34, kind: "follow", target: "drone-1", offset: { x: 18, y: 7, z: 18 }, lookAboveM: 0 },
     ],
     overlay: VOICE_TO_DRONE,
+  },
+  {
+    id: "K1",
+    nameKey: "scene.k1",
+    startS: 0,
+    durationS: 30,
+    segments: [{ fromS: 0, kind: "orbit", target: "base", radius: 130, height: 60, speed: 0.05, lookAboveM: 2 }],
+    overlay: CAPABILITIES,
+  },
+  {
+    id: "Q1",
+    nameKey: "scene.q1",
+    startS: 0,
+    durationS: 30,
+    segments: [
+      { fromS: 0, kind: "orbit", target: "rover-1", radius: 16, height: 5, speed: 0.12, lookAboveM: 1.2 },
+      { fromS: 15, kind: "orbit", target: "base", radius: 90, height: 35, speed: 0.07, lookAboveM: 3 },
+    ],
+    overlay: PREDICTIVE_RAG,
   },
   {
     id: "U1",
@@ -744,4 +833,4 @@ export const DEMO_SCENES: readonly SceneDef[] = [
 ];
 
 /** Scenes of the explained video in play order; the older takes stay selectable one by one. */
-export const DECK_ORDER: readonly string[] = ["C0", "P0", "A1", "U1", "W1", "G1", "V1", "R1", "L0", "L1", "H1", "F1", "M1", "M2", "M3", "T1", "T2", "S5", "S6", "S7", "E1"];
+export const DECK_ORDER: readonly string[] = ["C0", "P0", "A1", "K1", "U1", "W1", "G1", "V1", "R1", "L0", "L1", "H1", "Q1", "M1", "M2", "M3", "T1", "T2", "S5", "S6", "S7", "E1"];
