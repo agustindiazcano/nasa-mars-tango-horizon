@@ -154,7 +154,12 @@ export function buildParachute(): Parachute {
   geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
   geo.setIndex(idx);
   geo.computeVertexNormals();
-  const fabric = makeFabric();
+  let fabric: ReturnType<typeof makeFabric> = null;
+  try {
+    fabric = makeFabric();
+  } catch {
+    fabric = null; // a canvas without the needed 2D features: the vertex colours keep the gore pattern
+  }
   const canopyMat = new THREE.MeshPhysicalMaterial({
     // With the fabric texture the vertex colours are not needed; without a DOM they keep the gore pattern.
     ...(fabric ? { map: fabric.map, bumpMap: fabric.bump, bumpScale: 1.2 } : { vertexColors: true }),

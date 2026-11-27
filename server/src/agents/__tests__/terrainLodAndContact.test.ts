@@ -123,7 +123,7 @@ describe("2048x2048 DEM parity and chunked adaptive LOD (B25)", () => {
 });
 
 describe("ground contact residuals < 0.05 m (B33)", () => {
-  it("seats all 16 base modules, ground fleet units, targets, and beacons within < 0.05 m", async () => {
+  it("seats all base modules, ground fleet units, targets, and beacons within < 0.05 m", async () => {
     stubBrowserEnv();
     const scene = new THREE.Scene();
     const terrain = new TerrainProc(scene);
