@@ -218,6 +218,8 @@ export const en = {
   "scene.w1": "Voice order to drone",
   "scene.r1": "Rescue flow",
   "scene.l0": "Life-support flow",
+  "scene.t1": "Storm alert, satellite view",
+  "scene.t2": "Storm, helmet view",
   "scene.h1": "Health monitoring",
   "scene.m1": "Hydration Prospector",
   "scene.m2": "Storm Nowcaster",

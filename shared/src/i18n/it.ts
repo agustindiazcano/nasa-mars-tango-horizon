@@ -220,6 +220,8 @@ export const it: Record<Key, string> = {
   "scene.w1": "Ordine vocale al drone",
   "scene.r1": "Flusso del salvataggio",
   "scene.l0": "Flusso del supporto vitale",
+  "scene.t1": "Allerta tempesta, vista satellitare",
+  "scene.t2": "Tempesta, vista dal casco",
   "scene.h1": "Monitoraggio della salute",
   "scene.m1": "Hydration Prospector",
   "scene.m2": "Storm Nowcaster",
