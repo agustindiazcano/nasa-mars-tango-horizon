@@ -325,3 +325,8 @@
 .ov-chip span { font-size: 16.5px; line-height: 1.25; margin-top: 3px; }
 .ov-ico-chip { width: 36px; height: 36px; }
 .ov-chips { gap: 14px; margin-top: 22px; }
+
+/* Voice chat bubbles overlap the HUD: dark translucent background so they stay readable */
+.ov-voice, .ov-glow { background: rgba(8, 12, 16, 0.72) !important; backdrop-filter: blur(6px) !important; -webkit-backdrop-filter: blur(6px) !important; }
+.ov-voice { border-radius: 3px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); }
+.ov-lower { background: rgba(8, 12, 16, 0.6) !important; }

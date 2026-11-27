@@ -39,7 +39,7 @@ import { CannonFx, PodPayloadFx } from "./demo/lifeSupportFx";
 import { OverlayLayer } from "./demo/overlayLayer";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
 import { SceneDirector } from "./world/sceneDirector";
-import { U1_CREW4, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_ORDER_S, u1Drone, u1Gaze, u1Walker } from "./world/uiTourScript";
+import { U1_CREW4, U1_ORDERS, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_GOAL, U1_ROVER2_ORDER_S, U1_ROVER2_WAIT, U1_TYPE_CPS, u1Drone, u1Gaze, u1TypeS, u1Walker } from "./world/uiTourScript";
 import { RescueLitter } from "./world/rescueLitter";
 import { PodBallistics } from "./world/podBallistics";
 import { RocksProc } from "./world/rocksProc";
@@ -167,7 +167,9 @@ let lifeSupportShot = false;
 let crew4Scripted = false;
 /** Scene `U1` (helmet UI tour): scripted walk of the player, drone and rover orders; undone when the scene ends. */
 let u1Active = false;
-const u1Flags = { rock: false, rover2: false };
+const u1Flags = { rock: false, rover2: false, stage: new Map<number, number>() };
+/** Rocks (medium and large) that the scripted walk must stay out of, with a margin for the body and the camera. */
+const u1Avoid = rocks.placements.filter((r) => r.tier !== "small").map((r) => ({ x: r.x, z: r.z, r: Math.max(r.sx, r.sz) + 1.6 }));
 const LIFE_SUPPORT_FIRE_S = 4;
 const LIFE_SUPPORT_IMPACT_OFFSET_M = 32;
 
@@ -526,6 +528,13 @@ const sceneDirector = new SceneDirector(rescue, {
       store.povMode = wantPov;
     }
     u1Flags.rock = u1Flags.rover2 = false;
+    u1Flags.stage.clear();
+    if (scene.id === "U1") {
+      store.baseProcessing = false;
+      store.loadTranscriptLines([]);
+      const w = U1_ROVER2_WAIT;
+      fleet.placeUnit("rover-2", w.x, w.z, Math.PI);
+    }
   },
 });
 // Scripted narration of the orchestrator agent (no model calls): values come from a probe copy of the scenario.
@@ -558,7 +567,7 @@ const scenePanel = new ScenePanel(sceneDirector, { setHudVisible: (v) => store.s
 /** Scene `U1`: moves the player, the second astronaut, the arm, the drone and the rover as a function of scene time. */
 function runHelmetTour(t: number, playing: boolean): void {
   u1Active = true;
-  const w = u1Walker(t);
+  const w = u1Walker(t, u1Avoid);
   astronaut.pos.set(w.x, terrain.heightAt(w.x, w.z), w.z);
   astronaut.yaw = w.yaw + Math.PI;
   crew.place("crew-4", U1_CREW4.x, U1_CREW4.z, Math.atan2(w.x - U1_CREW4.x, w.z - U1_CREW4.z), "idle");
@@ -571,8 +580,9 @@ function runHelmetTour(t: number, playing: boolean): void {
   }
   if (t >= U1_ROVER2_ORDER_S && !u1Flags.rover2) {
     u1Flags.rover2 = true;
-    fleet.dispatchTo("rover-2", BASE_ORIGIN.x + 46, BASE_ORIGIN.z + 36, "go_to");
+    fleet.dispatchTo("rover-2", U1_ROVER2_GOAL.x, U1_ROVER2_GOAL.z, "go_to");
   }
+  runHelmetOrders(t);
   const drone = fleet.get("drone-1");
   if (drone) {
     const start = fleetStartPos("drone-1");
@@ -583,7 +593,42 @@ function runHelmetTour(t: number, playing: boolean): void {
   }
 }
 
+/**
+ * The scripted orders as the live HUD shows them: the crew line types out in the transcript, the processing badge
+ * lights, the agent trace is filled, and the answer arrives. Stage per order: 1 typing, 2 processing, 3 answered.
+ */
+function runHelmetOrders(t: number): void {
+  U1_ORDERS.forEach((o, i) => {
+    if (t < o.atS) return;
+    const typed = Math.min(o.text.length, Math.floor((t - o.atS) * U1_TYPE_CPS));
+    const stage = u1Flags.stage.get(i) ?? 0;
+    const doneAt = o.atS + u1TypeS(o.text);
+    if (stage === 0 || (stage === 1 && typed > 0)) {
+      if (typed < o.text.length) {
+        store.pushTranscript("you", o.text.slice(0, typed) || "…", false);
+        u1Flags.stage.set(i, 1);
+        return;
+      }
+    }
+    if (t >= doneAt && stage < 2) {
+      store.pushTranscript("you", o.text, true);
+      store.baseProcessing = true;
+      store.setTrace(
+        o.trace.map((e, n) => ({ t: Math.round(store.metS) + n, agent: e.agent, kind: e.kind, detail: e.detail })),
+        o.route,
+      );
+      u1Flags.stage.set(i, 2);
+    }
+    if (t >= doneAt + 1.8 && (u1Flags.stage.get(i) ?? 0) < 3) {
+      store.baseProcessing = false;
+      store.pushTranscript("base", o.answer, true, { route: o.route });
+      u1Flags.stage.set(i, 3);
+    }
+  });
+}
+
 function endHelmetTour(): void {
+  store.baseProcessing = false;
   u1Active = false;
   fleet.stopAll();
   fleet.resetLiftedTarget();
