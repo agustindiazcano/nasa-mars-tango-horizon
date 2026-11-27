@@ -690,8 +690,7 @@ export class TacticalHud {
         const badge = t(`crew.assignment.${c.assignment}`);
         return `<div class="crew-row ${level}">
           <div class="crew-name"><span class="crew-dot"></span>${escapeHtml(c.name)}<span class="crew-badge">${escapeHtml(badge)}</span></div>
-          <div class="crew-line">${escapeHtml(t(`crew.location.${c.location}`))} · ${escapeHtml(t(`crew.status.${c.status}`))}</div>
-          <div class="crew-line">${escapeHtml(t("crew.dist", { m: fmt(d, 0) }))}</div>
+          <div class="crew-line"><span class="crew-where">${escapeHtml(t(`crew.location.${c.location}`))} · ${escapeHtml(t(`crew.status.${c.status}`))}</span><span class="crew-dist" title="${escapeHtml(t("crew.dist", { m: fmt(d, 0) }))}">${fmt(d, 0)} m</span></div>
         </div>`;
       })
       .join("");

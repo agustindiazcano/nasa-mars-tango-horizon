@@ -1,6 +1,6 @@
 import { LAUNCH_SITE_COORD } from "@th/shared";
 import * as THREE from "three";
-import { models } from "./modelLibrary";
+import { MODEL_SPECS, models } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
 /** Super Heavy booster (70 m) + Starship upper stage (52 m); both 9 m in diameter. */
@@ -110,6 +110,13 @@ export class LaunchSiteProc {
     this.group.position.set(cx, this.padY, cz);
 
     this.buildPad(hMin);
+    // The launch platform: the pad building with its long service module (the model that used to be the base garage).
+    void models.attach("building-1", this.group, null, (m) => {
+      m.object.scale.setScalar(38 / MODEL_SPECS["building-1"].size.metres);
+      m.object.position.set(-36, 0.2, 30);
+      m.object.rotation.y = 0.5;
+      this.keepVisibleInHaze(m.object);
+    });
     const complex = new THREE.Group();
     complex.name = "launch-complex";
     complex.scale.setScalar(COMPLEX_SCALE);
@@ -127,7 +134,7 @@ export class LaunchSiteProc {
     this.buildTankFarm();
     this.buildBunkerAndLights();
 
-    const label = makeSpriteLabel("STARSHIP LAUNCH SITE", "#ffb36b");
+    const label = makeSpriteLabel("ROCKET LAUNCH SITE", "#ffb36b");
     (label.material as THREE.SpriteMaterial).fog = false;
     label.position.set(0, TOWER_HEIGHT_M * COMPLEX_SCALE + 34, 0);
     label.scale.set(120, 22.5, 1);

@@ -90,6 +90,7 @@ export class ScreenRelay {
     const py = this.y * window.innerHeight;
     if (this.cursorEl) {
       this.cursorEl.style.transform = `translate(${px}px, ${py}px)`;
+      this.cursorEl.style.display = "block";
     }
     const target = document.elementFromPoint(px, py)?.closest("[data-pointable]") ?? null;
     if (target !== this.hovered) {

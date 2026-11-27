@@ -293,3 +293,72 @@
 .ov-ico-glow { width: 36px; height: 36px; color: var(--ok, #ffb36b); }
 
 .ov-graph-svg text.g-left { text-anchor: start; }
+
+/* Tango Horizon patch (the project logo) above cover and closing text */
+.ov-image.patch { left: 50%; top: 3vh; width: auto; padding: 0; border: 0; background: none; transform: translateX(-50%); animation-name: ovInBanner; }
+.ov-image.patch.out { animation-name: ovOutBanner; }
+.ov-image.patch img { height: 27vh; width: auto; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.6)); }
+.ov-image.patch .ov-cap { display: none; }
+.ov-brand { box-shadow: none; border-radius: 50%; width: 76px; height: 76px; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7)); }
+
+/* Partner logos row */
+.ov-logos { left: 50%; bottom: 3.5vh; transform: translateX(-50%); width: min(1240px, 94vw); text-align: center; animation-name: ovInCenter; }
+.ov-logos.out { animation-name: ovOutCenter; }
+.ov-logos-h { font-size: 13px; letter-spacing: 0.34em; font-weight: 700; color: var(--ink-dim, #b3bec5); margin-bottom: 10px; }
+.ov-logos-row { display: flex; justify-content: center; align-items: flex-start; gap: clamp(18px, 4vw, 64px); border-top: 1px solid rgba(255, 255, 255, 0.28); padding-top: 12px; }
+.ov-logos-row figure { margin: 0; flex: 0 1 190px; display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0; animation: ovPop 0.5s ease-out forwards; }
+.ov-logos-row img { height: 62px; width: auto; max-width: 150px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.7)); }
+.ov-logos-row figcaption b { display: block; font-size: 16px; letter-spacing: 0.04em; }
+.ov-logos-row figcaption span { display: block; font-size: 12px; color: var(--ink-dim, #b3bec5); }
+
+/* Cover and closing: patch on top, text in the middle, partner logos at the bottom */
+.ov-image.patch { right: auto; }
+.ov-image.patch img { box-shadow: none; height: 21vh; }
+.demo-overlay.has-logos .ov-card.side-center { top: 49%; }
+.demo-overlay.has-logos .ov-card.side-center .ov-title { font-size: 46px; letter-spacing: 0.06em; line-height: 1.08; }
+.demo-overlay.has-logos .ov-card.side-center .ov-sub { font-size: 20px; max-width: 1000px; margin-left: auto; margin-right: auto; }
+.demo-overlay.has-logos .ov-stats { margin-top: 14px; }
+
+/* Larger chip text: the capability slides are read from a distance over bright terrain */
+.ov-chip { padding: 12px 14px; }
+.ov-chip b { font-size: 21px; }
+.ov-chip span { font-size: 16.5px; line-height: 1.25; margin-top: 3px; }
+.ov-ico-chip { width: 36px; height: 36px; }
+.ov-chips { gap: 14px; margin-top: 22px; }
+
+/* Voice chat bubbles overlap the HUD: dark translucent background so they stay readable */
+.ov-voice, .ov-glow { background: rgba(8, 12, 16, 0.72) !important; backdrop-filter: blur(6px) !important; -webkit-backdrop-filter: blur(6px) !important; }
+.ov-voice { border-radius: 3px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); }
+.ov-lower { background: rgba(8, 12, 16, 0.6) !important; }
+
+/* Large operation map */
+.ov-map { left: 50%; top: 2vh; transform: translateX(-50%); width: auto; max-width: 96vw; animation-name: ovInMap; padding: 10px 12px 8px; background: rgba(8, 12, 16, 0.78) !important; border: 1px solid rgba(255, 179, 107, 0.55); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px) !important; }
+.ov-map.out { animation-name: ovOutMap; }
+@keyframes ovInMap { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes ovOutMap { to { opacity: 0; transform: translate(-50%, -10px); } }
+.ov-map-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 6px; }
+.ov-map-head .ov-title { font-size: 26px; }
+.ov-map-canvas { display: block; height: 74vh; width: auto; max-width: 92vw; }
+.ov-map-cap { margin-top: 6px; font-size: 16px; color: var(--ink, #f3ece3); }
+
+/* Dark translucent backing for the small boxes (capability chips and the cover stat row) */
+.ov-chip, .ov-stat { background: rgba(8, 12, 16, 0.66) !important; border-color: rgba(255, 179, 107, 0.55); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
+
+/* Graph slides with the live cartography under the boxes */
+.ov-graph-wrap { position: relative; }
+.ov-graph-map { position: absolute; object-fit: contain; border: 1px solid rgba(255, 179, 107, 0.6); background: rgba(8, 12, 16, 0.5); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5); }
+.ov-map-canvas { height: 80vh; }
+
+.ov-logos-foot { margin-top: 14px; font-size: 15px; letter-spacing: 0.22em; font-weight: 700; color: var(--ok, #ffb36b); }
+.demo-overlay.has-logos .ov-logos { bottom: 2.4vh; }
+
+/* Maps in slides: the map square only, as large as the screen allows */
+.ov-map-canvas { height: 84vh; width: auto; max-width: 94vw; aspect-ratio: 1; }
+.ov-map-head .ov-title { font-size: 24px; }
+.ov-map-cap { font-size: 15px; margin-top: 4px; }
+.ov-graph.has-live { width: min(94vw, 135vh); }
+.ov-graph-map { aspect-ratio: 1; }
+
+/* Cover spacing: the stat row must clear the partner logos */
+.demo-overlay.has-logos .ov-card.side-center { top: 44%; }
+.ov-image.patch img { height: 19vh; }

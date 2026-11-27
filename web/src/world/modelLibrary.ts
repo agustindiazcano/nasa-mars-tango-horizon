@@ -299,6 +299,58 @@ export class ModelLibrary {
   }
 
   /**
+   * One white rocket cut out of `model-1`, which ships as a pair on one mesh. The triangles on one side of the
+   * centre plane (along the wider horizontal axis) are kept; the result stands on y = 0 at the origin and is scaled
+   * to `heightM`. Null when the model cannot be loaded.
+   */
+  async spawnSingleRocket(heightM: number): Promise<THREE.Group | null> {
+    const m = await this.spawn("model-1");
+    if (!m) return null;
+    const root = m.object;
+    root.updateMatrixWorld(true);
+    root.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh || !mesh.geometry.index) return;
+      const g = mesh.geometry;
+      const pos = g.getAttribute("position");
+      const index = g.index!;
+      g.computeBoundingBox();
+      const bb = g.boundingBox!;
+      // Widest horizontal axis in the mesh frame: the rockets stand side by side along it.
+      const axes = [0, 1, 2].filter((a) => a !== 1);
+      const spans = axes.map((a) => [bb.max.x - bb.min.x, 0, bb.max.z - bb.min.z][a]);
+      const axis = spans[0] >= spans[1] ? 0 : 2;
+      const cMin = axis === 0 ? bb.min.x : bb.min.z;
+      const cMax = axis === 0 ? bb.max.x : bb.max.z;
+      const mid = (cMin + cMax) / 2;
+      const keep: number[] = [];
+      for (let i = 0; i < index.count; i += 3) {
+        const a = index.getX(i);
+        const b = index.getX(i + 1);
+        const c = index.getX(i + 2);
+        const get = axis === 0 ? (k: number) => pos.getX(k) : (k: number) => pos.getZ(k);
+        if ((get(a) + get(b) + get(c)) / 3 < mid) keep.push(a, b, c);
+      }
+      if (keep.length === 0) return;
+      const ng = new THREE.BufferGeometry();
+      for (const name of Object.keys(g.attributes)) ng.setAttribute(name, g.getAttribute(name));
+      ng.setIndex(keep);
+      mesh.geometry = ng;
+    });
+    root.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(root);
+    const size = box.getSize(new THREE.Vector3());
+    const holder = new THREE.Group();
+    holder.name = "glb:single-rocket";
+    root.position.x -= (box.min.x + box.max.x) / 2;
+    root.position.z -= (box.min.z + box.max.z) / 2;
+    root.position.y -= box.min.y;
+    holder.add(root);
+    holder.scale.setScalar(heightM / Math.max(1e-6, size.y));
+    return holder;
+  }
+
+  /**
    * Adds the model to `parent` when it loads and hides `fallback`. On failure the fallback stays visible.
    * `onLoaded` can adjust the model (yaw offset, position) before it is added.
    */

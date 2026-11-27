@@ -14,6 +14,7 @@ import { AIRCRAFT_GROUNDING_TAU, C, leakTimeline, planRoute, stepSuitTelemetry }
 import type { ArmSkillId, LayerId, RouteDisplay } from "@th/shared";
 import { createDemoDeck } from "./hud/demoDeck";
 import { TacticalHud } from "./hud/hud";
+import { CartographyRenderer, MAP_CROP, MAP_HEIGHT, MAP_WIDTH, type AgentRoute, type CartographyRoute } from "./hud/cartography";
 import { ChatSessionManager, SessionStore } from "./data/sessionStore";
 import { ScreenRelay } from "./remote/screenRelay";
 import { MissionStore } from "./state";
@@ -35,11 +36,12 @@ import {
 import { formatCoordinates } from "./world/terrainValidation";
 import { ScenePanel } from "./hud/scenePanel";
 import { AgentChat } from "./hud/agentChat";
-import { CannonFx, PodPayloadFx } from "./demo/lifeSupportFx";
+import { CannonFx } from "./demo/lifeSupportFx";
 import { OverlayLayer } from "./demo/overlayLayer";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
+import { models } from "./world/modelLibrary";
 import { SceneDirector } from "./world/sceneDirector";
-import { U1_CREW4, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_ORDER_S, u1Drone, u1Gaze, u1Walker } from "./world/uiTourScript";
+import { U1_CREW4, U1_ORDERS, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_GOAL, U1_ROVER2_ORDER_S, U1_ROVER2_WAIT, U1_TYPE_CPS, u1Drone, u1Gaze, u1PickLane, u1TypeS, u1Walker, laneOffset } from "./world/uiTourScript";
 import { RescueLitter } from "./world/rescueLitter";
 import { PodBallistics } from "./world/podBallistics";
 import { RocksProc } from "./world/rocksProc";
@@ -158,8 +160,11 @@ createSkyCraneToggle(() => {
 });
 const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [LAUNCHER_PRIMARY_COORD.x, LAUNCHER_PRIMARY_COORD.z, 6];
 const podBallistics = new PodBallistics(scene, terrain, podLauncherOrigin);
+// The pod uses the single white rocket model (cut from model-1) instead of the procedural capsule.
+void models.spawnSingleRocket(1.9).then((rocket) => {
+  if (rocket) podBallistics.setPodModel(rocket);
+});
 const cannonFx = new CannonFx(scene);
-const podPayloadFx = new PodPayloadFx(scene, terrain);
 const overlayLayer = new OverlayLayer();
 /** The scripted life-support shot (scene `L1`) fires once per take, 4 s after the scene starts. */
 let lifeSupportShot = false;
@@ -167,7 +172,10 @@ let lifeSupportShot = false;
 let crew4Scripted = false;
 /** Scene `U1` (helmet UI tour): scripted walk of the player, drone and rover orders; undone when the scene ends. */
 let u1Active = false;
-const u1Flags = { rock: false, rover2: false };
+const u1Flags = { rock: false, rover2: false, stage: new Map<number, number>() };
+/** Rocks (medium and large) that the scripted walk must stay out of, with a margin for the body and the camera. */
+let u1Lane = 0;
+const u1Avoid = rocks.placements.filter((r) => r.tier !== "small").map((r) => ({ x: r.x, z: r.z, r: Math.max(r.sx, r.sz) + 1.6 }));
 const LIFE_SUPPORT_FIRE_S = 4;
 const LIFE_SUPPORT_IMPACT_OFFSET_M = 32;
 
@@ -179,10 +187,8 @@ function fireLifeSupportShot(): void {
   const n = Math.hypot(ux, uz) || 1;
   const tx = RESCUE_SITE.x + (ux / n) * LIFE_SUPPORT_IMPACT_OFFSET_M;
   const tz = RESCUE_SITE.z + (uz / n) * LIFE_SUPPORT_IMPACT_OFFSET_M;
-  const tele = podBallistics.launch(tx, tz, store.env.pressure_pa, store.env.air_temp_k, store.env.wind_ms, store.env.wind_dir_rad, () => {
-    podBallistics.hidePod();
-    podPayloadFx.deploy(tx, tz);
-  });
+  // The pod only lands: nothing comes out of it (no opening animation).
+  const tele = podBallistics.launch(tx, tz, store.env.pressure_pa, store.env.air_temp_k, store.env.wind_ms, store.env.wind_dir_rad);
   if (!tele) return;
   store.podTelemetry = tele;
   const dir = new THREE.Vector3(tx - lx, 0, tz - lz).normalize().multiplyScalar(Math.SQRT1_2);
@@ -190,12 +196,20 @@ function fireLifeSupportShot(): void {
   cannonFx.fire(new THREE.Vector3(lx, ly, lz).addScaledVector(dir, 3), dir);
 }
 
+/** Shows or hides every floating name tag (crew, robots, targets), e.g. for first-person takes that need a clear view. */
+let worldLabelsVisible = true;
+function setWorldLabels(visible: boolean): void {
+  worldLabelsVisible = visible;
+  scene.traverse((o) => {
+    if (o.userData.isLabel) o.visible = visible;
+  });
+}
+
 function resetDemoEffects(): void {
   lifeSupportShot = false;
   overlayLayer.clear();
   podBallistics.reset();
   cannonFx.reset();
-  podPayloadFx.reset();
 }
 
 const fleet = new FleetProc(scene, terrain, (ev, skill) => {
@@ -513,6 +527,67 @@ store.rescue = rescue;
 
 // Scene director: recorded takes of the rescue (plan 22, section 3.1). It seeks the scenario, drives the camera
 // and hands the clock to the normal simulation step by marking the rescue scenario as active.
+/**
+ * Operation map (scene `O1`): the HUD cartography with the live fleet and crew, plus the route that A* finds for
+ * rescue-1 over the terrain slope grid, from the base to a point 30 m short of the pit rim.
+ */
+const opsMap = new CartographyRenderer(terrain);
+opsMap.labelScale = 1.55;
+// The map is drawn on a full-size canvas and only the map square (no sidebar) is copied into the slides.
+const opsCanvas = document.createElement("canvas");
+opsCanvas.width = MAP_WIDTH;
+opsCanvas.height = MAP_HEIGHT;
+let opsRoute: CartographyRoute | null | undefined;
+function operationRoute(): CartographyRoute | null {
+  if (opsRoute !== undefined) return opsRoute;
+  opsRoute = null;
+  const s = fleetStartPos("rescue-1");
+  const dx = s.x - RESCUE_SITE.x;
+  const dz = s.z - RESCUE_SITE.z;
+  const n = Math.hypot(dx, dz) || 1;
+  const goal = { x: RESCUE_SITE.x + (dx / n) * 30, z: RESCUE_SITE.z + (dz / n) * 30 };
+  const res = planRoute(terrain.buildRouteGrid(), terrain.worldToCell(s.x, s.z), terrain.worldToCell(goal.x, goal.z), {
+    bodyKg: 4500,
+    loadKg: 0,
+    speed: 5.5,
+    maxSlopeDeg: 16,
+    doseWeight: 0,
+  });
+  if (res) opsRoute = { algorithm: "A* (8-direction search, slope and energy cost)", points: res.path.map((idx) => terrain.cellToWorld(idx)) };
+  return opsRoute;
+}
+/** Routes the agents chose for the rescue: rescue-1 by A*, the two drones straight at their 25 m standoff, the robot. */
+let agentRouteList: AgentRoute[] | undefined;
+function agentRoutes(): AgentRoute[] {
+  if (agentRouteList) return agentRouteList;
+  const list: AgentRoute[] = [];
+  const main = operationRoute();
+  const pit = RESCUE_SITE;
+  const standoff = (from: { x: number; z: number }, m: number) => {
+    const dx = from.x - pit.x;
+    const dz = from.z - pit.z;
+    const n = Math.hypot(dx, dz) || 1;
+    return { x: pit.x + (dx / n) * m, z: pit.z + (dz / n) * m };
+  };
+  if (main) {
+    list.push({ label: "rescue-1 · A*", color: "#0a6f86", points: main.points });
+    const end = main.points[main.points.length - 1];
+    list.push({ label: "rescue-bot-1 · to the pit", color: "#c2410c", points: [end, pit], dashed: true });
+  }
+  for (const [id, color] of [["drone-1", "#5b2a86"], ["drone-2", "#9333ea"]] as const) {
+    const s = fleetStartPos(id);
+    list.push({ label: `${id} · overwatch`, color, points: [s, standoff(s, 25)], dashed: true });
+  }
+  if (main) agentRouteList = list;
+  return list;
+}
+overlayLayer.setMapDrawer((ctx) => {
+  const full = opsCanvas.getContext("2d");
+  if (!full) return;
+  opsMap.draw(full, { fleet: store.fleet, crew: store.crew, astronaut: store.astronaut }, null, agentRoutes());
+  ctx.drawImage(opsCanvas, MAP_CROP.x, MAP_CROP.y, MAP_CROP.size, MAP_CROP.size, 0, 0, ctx.canvas.width, ctx.canvas.height);
+});
+
 const sceneDirector = new SceneDirector(rescue, {
   onStart: (scene) => {
     resetDemoEffects();
@@ -520,12 +595,22 @@ const sceneDirector = new SceneDirector(rescue, {
     store.activeScenario = "rescue";
     store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
     store.simScale = 1;
+    // Floating name tags are hidden in first-person takes and behind the cover and closing slides.
+    setWorldLabels(scene.pov !== "1st" && !scene.overlay?.some((o) => o.kind === "logos"));
     const wantPov = scene.pov ?? "3rd";
     if (store.povMode !== wantPov) {
       astronaut.setPovMode(wantPov);
       store.povMode = wantPov;
     }
     u1Flags.rock = u1Flags.rover2 = false;
+    u1Flags.stage.clear();
+    u1Lane = u1PickLane(u1Avoid);
+    if (scene.id === "U1") {
+      store.baseProcessing = false;
+      store.loadTranscriptLines([]);
+      const w = U1_ROVER2_WAIT;
+      fleet.placeUnit("rover-2", w.x, w.z, Math.PI);
+    }
   },
 });
 // Scripted narration of the orchestrator agent (no model calls): values come from a probe copy of the scenario.
@@ -558,10 +643,11 @@ const scenePanel = new ScenePanel(sceneDirector, { setHudVisible: (v) => store.s
 /** Scene `U1`: moves the player, the second astronaut, the arm, the drone and the rover as a function of scene time. */
 function runHelmetTour(t: number, playing: boolean): void {
   u1Active = true;
-  const w = u1Walker(t);
+  const w = u1Walker(t, u1Avoid, u1Lane);
+  const lo = laneOffset(u1Lane);
   astronaut.pos.set(w.x, terrain.heightAt(w.x, w.z), w.z);
   astronaut.yaw = w.yaw + Math.PI;
-  crew.place("crew-4", U1_CREW4.x, U1_CREW4.z, Math.atan2(w.x - U1_CREW4.x, w.z - U1_CREW4.z), "idle");
+  crew.place("crew-4", U1_CREW4.x + lo.x, U1_CREW4.z + lo.z, Math.atan2(w.x - U1_CREW4.x - lo.x, w.z - U1_CREW4.z - lo.z), "idle");
   crew4Scripted = true;
   if (!playing) return;
   if (t >= U1_ROCK_ORDER_S && !u1Flags.rock) {
@@ -571,8 +657,9 @@ function runHelmetTour(t: number, playing: boolean): void {
   }
   if (t >= U1_ROVER2_ORDER_S && !u1Flags.rover2) {
     u1Flags.rover2 = true;
-    fleet.dispatchTo("rover-2", BASE_ORIGIN.x + 46, BASE_ORIGIN.z + 36, "go_to");
+    fleet.dispatchTo("rover-2", U1_ROVER2_GOAL.x, U1_ROVER2_GOAL.z, "go_to");
   }
+  runHelmetOrders(t);
   const drone = fleet.get("drone-1");
   if (drone) {
     const start = fleetStartPos("drone-1");
@@ -583,7 +670,43 @@ function runHelmetTour(t: number, playing: boolean): void {
   }
 }
 
+/**
+ * The scripted orders as the live HUD shows them: the crew line types out in the transcript, the processing badge
+ * lights, the agent trace is filled, and the answer arrives. Stage per order: 1 typing, 2 processing, 3 answered.
+ */
+function runHelmetOrders(t: number): void {
+  U1_ORDERS.forEach((o, i) => {
+    if (t < o.atS) return;
+    const typed = Math.min(o.text.length, Math.floor((t - o.atS) * U1_TYPE_CPS));
+    const stage = u1Flags.stage.get(i) ?? 0;
+    const doneAt = o.atS + u1TypeS(o.text);
+    if (stage === 0 || (stage === 1 && typed > 0)) {
+      if (typed < o.text.length) {
+        store.pushTranscript("you", o.text.slice(0, typed) || "…", false);
+        u1Flags.stage.set(i, 1);
+        return;
+      }
+    }
+    if (t >= doneAt && stage < 2) {
+      store.pushTranscript("you", o.text, true);
+      store.baseProcessing = true;
+      store.setTrace(
+        o.trace.map((e, n) => ({ t: Math.round(store.metS) + n, agent: e.agent, kind: e.kind, detail: e.detail })),
+        o.route,
+      );
+      u1Flags.stage.set(i, 2);
+    }
+    if (t >= doneAt + 1.8 && (u1Flags.stage.get(i) ?? 0) < 3) {
+      store.baseProcessing = false;
+      store.pushTranscript("base", o.answer, true, { route: o.route });
+      u1Flags.stage.set(i, 3);
+    }
+  });
+}
+
 function endHelmetTour(): void {
+  setWorldLabels(true);
+  store.baseProcessing = false;
   u1Active = false;
   fleet.stopAll();
   fleet.resetLiftedTarget();
@@ -888,6 +1011,12 @@ function animate(now: number): void {
     acc -= SIM_DT;
   }
 
+  // The scenario advances in fixed 0.1 s steps; between steps the scripted motion is interpolated so units glide.
+  if (store.activeScenario === "rescue" && rescue.running) {
+    rescue.setFrameOffset(acc);
+    applyRescueView(rescue.view);
+  }
+
   astronaut.updateMovement(realDt);
   if (store.povMode === "cinematic") {
     cinematic.update(realDt, {
@@ -918,13 +1047,14 @@ function animate(now: number): void {
     crew.place("crew-4", CREW4_START.x, CREW4_START.z, Math.PI * 0.75, "idle");
     crew4Scripted = false;
   }
+  if (sceneDirector.state === "idle" && !worldLabelsVisible) setWorldLabels(true);
   if (sceneDirector.activeId === "U1" && sceneDirector.state !== "idle") {
     runHelmetTour(sceneDirector.sceneTimeS, sceneDirector.state === "playing");
   } else if (u1Active) {
     endHelmetTour();
   }
   cannonFx.update(realDt);
-  podPayloadFx.update(realDt);
+  podBallistics.tick(realDt);
   const shot = sceneDirector.update(realDt, {
     getPos: (id) => {
       if (id === "pod") return podBallistics.position() ?? rescue.getEntityPosition("pit");
@@ -932,7 +1062,7 @@ function animate(now: number): void {
         if (id === "u1-gaze") {
           const p = astronaut.pos;
           const g = u1Gaze(sceneDirector.sceneTimeS, { x: p.x, y: p.y, z: p.z }, (eid) => {
-            const o = fleet.get(eid)?.object.position ?? (eid === "crew-4" ? { x: U1_CREW4.x, y: terrain.heightAt(U1_CREW4.x, U1_CREW4.z), z: U1_CREW4.z } : null);
+            const o = fleet.get(eid)?.object.position ?? (eid === "crew-4" ? { x: U1_CREW4.x + laneOffset(u1Lane).x, y: terrain.heightAt(U1_CREW4.x + laneOffset(u1Lane).x, U1_CREW4.z + laneOffset(u1Lane).z), z: U1_CREW4.z + laneOffset(u1Lane).z } : null);
             return o ? { x: o.x, y: o.y, z: o.z } : null;
           });
           return new THREE.Vector3(g.x, g.y, g.z);

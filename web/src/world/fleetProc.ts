@@ -8,6 +8,8 @@ import { collectDroneRotorPivots, type RotorPivot } from "./nasaModels";
 import { models, type ModelId, type SpawnedModel } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
+import { buildRockGeometry } from "./rockGeometry";
+import { makeRockTextures } from "./rockTextures";
 import { buildRescueRobotModel, type RescuePose, type RescueRobotModel } from "./rescueRobotProc";
 
 // Existing landed root clearance; ground-anchored drone GLBs must cancel this offset.
@@ -73,6 +75,10 @@ export class FleetUnit {
   scriptYOffset = 0;
   scriptPitch: number | undefined;
   targetAltitude?: number;
+  /** Smoothed vertical speed of a flying unit (m/s). */
+  private climbVy = 0;
+  /** Low-pass state of a ground unit: pitch, roll, height and the time of the last update. */
+  private sm?: { pitch: number; roll: number; y: number; t: number };
   onArrive?: () => void;
   /** `rescue-1`: hinged rear ramp of the robot bay (rotation.x 1.45 = closed/up, 0 = open/flat). */
   bayRamp?: THREE.Group;
@@ -137,8 +143,22 @@ export class FleetUnit {
     const ground = this.terrain.heightAt(o.position.x, o.position.z);
     if (this.spec.flies) {
       const alt = this.targetAltitude ?? this.spec.altitude ?? 14;
-      const targetY = this.grounded ? ground + DRONE_LANDED_ROOT_HEIGHT_M : ground + alt;
-      o.position.y += (targetY - o.position.y) * Math.min(1, dt * 3);
+      // Terrain-following with look-ahead: the drone rises before a slope instead of climbing it late, and the
+      // vertical speed is limited and eased so a mountain is crossed in one smooth climb.
+      const fwdX = Math.sin(o.rotation.y);
+      const fwdZ = Math.cos(o.rotation.y);
+      let envelope = ground;
+      if (!this.grounded && this.path.length > 0) {
+        for (const ahead of [6, 12, 20, 30, 42]) {
+          envelope = Math.max(envelope, this.terrain.heightAt(o.position.x + fwdX * ahead, o.position.z + fwdZ * ahead));
+        }
+      }
+      const climbTarget = envelope > ground + 0.5 ? envelope + alt * 0.8 + 3 : ground + alt;
+      const targetY = this.grounded ? ground + DRONE_LANDED_ROOT_HEIGHT_M : Math.max(ground + alt, climbTarget);
+      const desiredVy = Math.max(-4, Math.min(6.5, (targetY - o.position.y) * 1.3));
+      this.climbVy += (desiredVy - this.climbVy) * Math.min(1, dt * 3.5);
+      o.position.y += this.climbVy * dt;
+      o.position.y = Math.max(o.position.y, ground + (this.grounded ? DRONE_LANDED_ROOT_HEIGHT_M : 2.5));
       for (let i = 0; i < this.rotors.length; i++) {
         const spin = this.grounded ? 0.5 : i % 2 === 0 ? 28 : -28;
         this.rotors[i].rotation.y += spin * dt;
@@ -167,13 +187,21 @@ export class FleetUnit {
     const fwdZ = Math.cos(yaw);
     const rightX = Math.cos(yaw);
     const rightZ = -Math.sin(yaw);
-    const hAhead = this.terrain.heightAt(o.position.x + fwdX * 1.0, o.position.z + fwdZ * 1.0);
-    const hBehind = this.terrain.heightAt(o.position.x - fwdX * 1.0, o.position.z - fwdZ * 1.0);
-    const pitch = Math.atan2(hBehind - hAhead, 2.0);
-    o.rotation.x = pitch;
-    const hRight = this.terrain.heightAt(o.position.x + rightX * 0.9, o.position.z + rightZ * 0.9);
-    const hLeft = this.terrain.heightAt(o.position.x - rightX * 0.9, o.position.z - rightZ * 0.9);
-    o.rotation.z = Math.atan2(hRight - hLeft, 1.8 * Math.max(0.4, Math.cos(pitch)));
+    // Wide baselines (the DEM is noisy at 1 m) and a low-pass filter keep the tilt smooth on a climb.
+    const hAhead = this.terrain.heightAt(o.position.x + fwdX * 2.2, o.position.z + fwdZ * 2.2);
+    const hBehind = this.terrain.heightAt(o.position.x - fwdX * 2.2, o.position.z - fwdZ * 2.2);
+    const rawPitch = Math.atan2(hBehind - hAhead, 4.4);
+    const hRight = this.terrain.heightAt(o.position.x + rightX * 1.6, o.position.z + rightZ * 1.6);
+    const hLeft = this.terrain.heightAt(o.position.x - rightX * 1.6, o.position.z - rightZ * 1.6);
+    const rawRoll = Math.atan2(hRight - hLeft, 3.2 * Math.max(0.4, Math.cos(rawPitch)));
+    const now = typeof performance !== "undefined" ? performance.now() : 0;
+    if (!this.sm) this.sm = { pitch: rawPitch, roll: rawRoll, y: Number.NaN, t: now };
+    const dt = Math.min(0.1, Math.max(0.001, (now - this.sm.t) / 1000));
+    const k = 1 - Math.exp(-9 * dt);
+    this.sm.pitch += (rawPitch - this.sm.pitch) * k;
+    this.sm.roll += (rawRoll - this.sm.roll) * k;
+    o.rotation.x = this.sm.pitch;
+    o.rotation.z = this.sm.roll;
   }
 
   placeOnGround(): void {
@@ -188,7 +216,19 @@ export class FleetUnit {
           const center = wheel.position.clone().applyEuler(o.rotation);
           return { x: center.x, y: center.y - 0.32, z: center.z };
         });
-    o.position.y = groundPlacement((x, z) => this.terrain.heightAt(x, z), o.position.x, o.position.z, contacts).y;
+    const rawY = groundPlacement((x, z) => this.terrain.heightAt(x, z), o.position.x, o.position.z, contacts).y;
+    const sm = this.sm;
+    if (!sm) {
+      o.position.y = rawY;
+      return;
+    }
+    const now = typeof performance !== "undefined" ? performance.now() : 0;
+    const dt = Math.min(0.1, Math.max(0.001, (now - sm.t) / 1000));
+    sm.t = now;
+    // Snap on a teleport or the first frame; otherwise ease the height so wheel contact does not jitter.
+    if (!Number.isFinite(sm.y) || Math.abs(rawY - sm.y) > 2.5) sm.y = rawY;
+    else sm.y += (rawY - sm.y) * (1 - Math.exp(-14 * dt));
+    o.position.y = sm.y;
   }
 
   snapshot(): UnitSnapshot {
@@ -1019,9 +1059,13 @@ export class FleetProc {
   }
 
   private buildManipTargets(): void {
-    for (const t of this.targets) {
-      const color = t.kind === "sulfate_vein" ? 0xf2f4f8 : t.kind === "basalt_rock" ? 0x5c636e : 0xc67848;
-      const geo = new THREE.DodecahedronGeometry(0.32, 0);
+    // The rocks the arm samples use the same faceted rock mesh and weathered texture as the boulders, tinted per kind.
+    const tex = makeRockTextures(256, 4242);
+    const sizeM = 0.36;
+    this.targets.forEach((t, i) => {
+      const tint = t.kind === "sulfate_vein" ? 0xe4e0d6 : t.kind === "basalt_rock" ? 0x77787f : 0xc98350;
+      const geo = buildRockGeometry({ detail: 3, seed: 91 + i * 17, worldSizeM: 0.7, roughness: t.kind === "regolith_patch" ? 0.7 : 0.45 });
+      geo.scale(sizeM, sizeM * 0.85, sizeM);
       geo.computeBoundingBox();
       const minY = geo.boundingBox!.min.y;
       const placed = groundPlacement(
@@ -1030,9 +1074,19 @@ export class FleetProc {
         t.z,
         footprintContacts(0.45, 0.45, minY),
       );
-      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: 0.85 }));
+      const mat = new THREE.MeshStandardMaterial({
+        color: tint,
+        map: tex.map,
+        normalMap: tex.normalMap,
+        normalScale: new THREE.Vector2(1.3, 1.3),
+        roughness: t.kind === "sulfate_vein" ? 0.7 : 0.92,
+        metalness: t.kind === "basalt_rock" ? 0.08 : 0.02,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(t.x, placed.y, t.z);
+      mesh.rotation.y = i * 1.9;
       mesh.castShadow = true;
+      mesh.receiveShadow = true;
       mesh.name = `target:${t.id}`;
       this.group.add(mesh);
 
@@ -1041,6 +1095,6 @@ export class FleetProc {
       lbl.position.set(t.x, placed.y + 0.77, t.z);
       lbl.scale.set(3.8, 0.72, 1);
       this.group.add(lbl);
-    }
+    });
   }
 }

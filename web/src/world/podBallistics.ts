@@ -13,13 +13,19 @@ import {
   type PodEnv,
 } from "@th/shared";
 import type { PodTelemetry } from "@th/shared";
+import { buildParachute, type Parachute } from "./parachuteProc";
+import { ProjectileTrail } from "./projectileTrail";
 import type { TerrainProc } from "./terrainProc";
 
 export class PodBallistics {
   private group = new THREE.Group();
-  private arcLine: THREE.Line | null = null;
+  private trail = new ProjectileTrail();
+  private chuteFadeS = -1;
   private podMesh: THREE.Group;
-  private chuteMesh: THREE.Mesh;
+  /** The procedural capsule, hidden once the GLB rocket model is attached. */
+  private procPod = new THREE.Group();
+  private chute: Parachute;
+  private chuteOpenS = 0;
   private ellipse1: THREE.Line | null = null;
   private ellipse2: THREE.Line | null = null;
   private keepoutRing: THREE.Line;
@@ -35,11 +41,12 @@ export class PodBallistics {
     private launcherOrigin: [number, number, number],
   ) {
     this.podMesh = new THREE.Group();
+    this.podMesh.add(this.procPod);
     const capsule = new THREE.Mesh(
       new THREE.CylinderGeometry(0.32, 0.36, 1.1, 12),
       new THREE.MeshStandardMaterial({ color: 0xff623b, emissive: 0x441206, metalness: 0.4 }),
     );
-    this.podMesh.add(capsule);
+    this.procPod.add(capsule);
     // Detail: nose cone, white band, rocket-orange base ring and four stabilizing fins.
     const noseMat = new THREE.MeshStandardMaterial({ color: 0xe9eef2, metalness: 0.5, roughness: 0.4 });
     const nose = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.45, 12), noseMat);
@@ -52,19 +59,17 @@ export class PodBallistics {
       const a = (k / 4) * Math.PI * 2;
       fin.position.set(Math.cos(a) * 0.4, -0.4, Math.sin(a) * 0.4);
       fin.rotation.y = -a;
-      this.podMesh.add(fin);
+      this.procPod.add(fin);
     }
-    this.podMesh.add(nose, band);
+    this.procPod.add(nose, band);
 
-    this.chuteMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(2.35, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.55),
-      new THREE.MeshStandardMaterial({ color: 0xffe6d0, side: THREE.DoubleSide, transparent: true, opacity: 0.9 }),
-    );
-    this.chuteMesh.position.y = 2.6;
-    this.chuteMesh.visible = false;
-    this.podMesh.add(this.chuteMesh);
+    this.chute = buildParachute();
+    this.chute.group.position.y = 0.95;
+    this.chute.group.visible = false;
+    this.podMesh.add(this.chute.group);
     this.podMesh.visible = false;
     this.group.add(this.podMesh);
+    this.group.add(this.trail.group);
 
     // 15 m astronaut keep-out ring
     this.keepoutRing = this.makeCircle(C.pod_keepout_m.value, 0xff2a55);
@@ -79,6 +84,28 @@ export class PodBallistics {
     scene.add(this.group);
   }
 
+  /** Replaces the procedural capsule by a model (upright, bottom on y = 0, scaled by the caller). */
+  setPodModel(model: THREE.Object3D): void {
+    model.position.y -= 0.95;
+    this.podMesh.add(model);
+    this.procPod.visible = false;
+  }
+
+  /** Moves the smoke and dust and fades the canopy after touchdown (call every frame). */
+  tick(dt: number): void {
+    this.trail.update(dt);
+    if (this.chuteFadeS >= 0) {
+      this.chuteFadeS += dt;
+      const k = Math.min(1, this.chuteFadeS / 1.6);
+      this.chute.group.scale.setScalar(1 - k * 0.85);
+      if (k >= 1) {
+        this.chute.group.visible = false;
+        this.chute.group.scale.setScalar(1);
+        this.chuteFadeS = -1;
+      }
+    }
+  }
+
   /** World position of the pod while it is shown (in flight or lying at the impact point), else null. */
   position(): THREE.Vector3 | null {
     return this.podMesh.visible ? this.podMesh.position.clone() : (this.lastPos?.clone() ?? null);
@@ -89,18 +116,12 @@ export class PodBallistics {
     this.activeDelivery = null;
     this.onLanded = undefined;
     this.podMesh.visible = false;
-    this.chuteMesh.visible = false;
+    this.chute.group.visible = false;
+    this.podMesh.quaternion.identity();
     this.lastPos = null;
-    if (this.arcLine) {
-      this.group.remove(this.arcLine);
-      this.arcLine.geometry.dispose();
-      this.arcLine = null;
-    }
-  }
-
-  /** Hides the pod body once its payload has been opened. */
-  hidePod(): void {
-    this.podMesh.visible = false;
+    this.chuteFadeS = -1;
+    this.chute.group.scale.setScalar(1);
+    this.trail.reset();
   }
 
   updateKeepoutRing(astroX: number, astroZ: number): void {
@@ -132,19 +153,12 @@ export class PodBallistics {
     this.elapsedS = 0;
     this.onLanded = onLanded;
     this.podMesh.visible = true;
-    this.chuteMesh.visible = false;
+    this.podMesh.quaternion.identity();
+    this.chute.group.visible = false;
 
-    // Draw trajectory arc
-    if (this.arcLine) {
-      this.group.remove(this.arcLine);
-      this.arcLine.geometry.dispose();
-    }
-    const pts = aimed.delivery.path.map((s) => new THREE.Vector3(s.p[0], s.p[2], s.p[1]));
-    this.arcLine = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({ color: 0xffb800 }),
-    );
-    this.group.add(this.arcLine);
+    // The track is the pod itself: ember and smoke are emitted behind it as it flies (see `update`).
+    this.trail.reset();
+    this.chuteFadeS = -1;
 
     // Compute 1-sigma & 2-sigma landing dispersion ellipse
     const ell = landingEllipse(
@@ -210,16 +224,36 @@ export class PodBallistics {
       }
     }
 
+    const prev = this.podMesh.position.clone();
     this.podMesh.position.set(state.p[0], state.p[2], state.p[1]);
     this.lastPos = this.podMesh.position.clone();
     const deployed =
       this.activeDelivery.deployedAtS !== null && this.elapsedS >= this.activeDelivery.deployedAtS;
-    this.chuteMesh.visible = deployed;
+    // Nose along the flight path until the parachute opens, then upright under the canopy.
+    const vel = this.podMesh.position.clone().sub(prev);
+    if (!deployed && vel.lengthSq() > 1e-8) {
+      const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vel.normalize());
+      this.podMesh.quaternion.slerp(q, 0.25);
+    } else if (deployed) {
+      this.podMesh.quaternion.slerp(new THREE.Quaternion(), 0.12);
+    }
+    if (!deployed) this.trail.emit(this.podMesh.position, true);
+    else this.trail.endStream();
+    if (deployed && !this.chute.group.visible) this.chuteOpenS = this.elapsedS;
+    this.chute.group.visible = deployed;
+    if (deployed) this.chute.update(Math.min(1, (this.elapsedS - this.chuteOpenS) / 0.9), this.elapsedS);
     tele.chuteDeployed = deployed;
 
     if (this.elapsedS >= this.activeDelivery.flightTimeS) {
       tele.active = false;
-      this.chuteMesh.visible = false;
+      // Touchdown: the pod stands upright on its base, dust rises and the canopy settles.
+      const gx = this.podMesh.position.x;
+      const gz = this.podMesh.position.z;
+      this.podMesh.quaternion.identity();
+      this.podMesh.position.y = this.terrain.heightAt(gx, gz) + 0.95;
+      this.lastPos = this.podMesh.position.clone();
+      this.trail.dustBurst(new THREE.Vector3(gx, this.terrain.heightAt(gx, gz), gz));
+      this.chuteFadeS = 0;
       const cb = this.onLanded;
       this.onLanded = undefined;
       cb?.();

@@ -76,7 +76,7 @@
 </tr>
 <tr>
 <td width="50%"><img src="docs/media/life-support-pod.jpg" alt="Cápsula de soporte vital con paracaídas" width="100%" /><br/><sub>La cápsula de soporte vital desciende en paracaídas hacia el astronauta.</sub></td>
-<td width="50%"><img src="docs/media/life-support-payload.jpg" alt="Cápsula de soporte vital abierta" width="100%" /><br/><sub>La cápsula se abre: tanque de oxígeno, depurador de CO2, batería y parche del traje.</sub></td>
+<td width="50%"><img src="docs/media/operation-map.jpg" alt="Mapa de la operación con las rutas elegidas por los agentes" width="100%" /><br/><sub>Mapa de la operación: ruta de rescue-1 hallada con A*, líneas de sobrevuelo de los drones, rovers y los cuatro astronautas, sobre el relieve de HiRISE.</sub></td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/media/rescue-casualty-pit.jpg" alt="Rescate en el pozo" width="100%" /><br/><sub>El robot de rescate y el astronauta en el pozo.</sub></td>

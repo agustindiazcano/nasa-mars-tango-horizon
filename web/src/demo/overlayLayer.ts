@@ -1,3 +1,4 @@
+import { MAP_CROP } from "../hud/cartography";
 import { iconInner, iconSvg, speakerIcon } from "./icons";
 import { EDGE_DRAW_S, overlaysActiveAt, tokenAt, typedText, vitalsAt, type GraphItem, type OverlayItem } from "./overlays";
 import "./overlay.css";
@@ -27,7 +28,7 @@ function edgeEnds(a: GraphItem["nodes"][number], b: GraphItem["nodes"][number]):
 function graphSvg(item: GraphItem, uid: string): string {
   const byId = new Map(item.nodes.map((n) => [n.id, n]));
   let out = `<svg ${SVG_NS} viewBox="0 0 100 56" class="ov-graph-svg"><defs><marker id="${uid}-ah" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="2.4" markerHeight="2.4" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="currentColor"/></marker></defs>`;
-  if (item.map) {
+  if (item.map && !item.map.live) {
     const m = item.map;
     out += `<g class="g-map"><rect x="${m.x}" y="${m.y}" width="${m.w}" height="${m.h}"/><text x="${m.x + 1.2}" y="${m.y + 2.6}" class="g-maplabel">${esc(m.label)}</text>`;
     for (const k of m.marks) {
@@ -55,7 +56,7 @@ function graphSvg(item: GraphItem, uid: string): string {
     if (n.detail) out += `<text x="${tx}" y="${n.y + 2.1}" class="g-detail${ico ? " g-left" : ""}">${esc(n.detail)}</text>`;
     out += "</g>";
   });
-  (item.tokens ?? []).forEach((k, i) => {
+  (item.map?.live ? [] : item.tokens ?? []).forEach((k, i) => {
     out += `<g class="g-token tone-${k.tone}" data-i="${i}" style="opacity:0"><circle r="1.5" class="g-tring"/><circle r="0.8"/><text y="-2.1" class="g-tlabel">${esc(k.label)}</text></g>`;
   });
   return out + "</svg>";
@@ -78,6 +79,8 @@ export class OverlayLayer {
   private root: HTMLElement;
   private views = new Map<string, View>();
   private voiceStack: HTMLElement;
+  private mapDrawer: ((ctx: CanvasRenderingContext2D) => void) | null = null;
+  private lastMapDraw = new Map<string, number>();
   private brand: HTMLImageElement;
 
   constructor(parent: HTMLElement = document.body) {
@@ -86,7 +89,7 @@ export class OverlayLayer {
     this.root.className = "demo-overlay";
     this.brand = document.createElement("img");
     this.brand.className = "ov-brand";
-    this.brand.src = "/images/th-logo-192.jpg";
+    this.brand.src = "/images/th-patch.png";
     this.brand.alt = "Tango Horizon";
     this.brand.style.display = "none";
     this.root.appendChild(this.brand);
@@ -94,6 +97,11 @@ export class OverlayLayer {
     this.voiceStack.className = "ov-voice-stack";
     this.root.appendChild(this.voiceStack);
     parent.appendChild(this.root);
+  }
+
+  /** Supplies the drawing of `map` items (the HUD cartography with live symbols); called a few times per second. */
+  setMapDrawer(fn: ((ctx: CanvasRenderingContext2D) => void) | null): void {
+    this.mapDrawer = fn;
   }
 
   /** Shows the project logo in a corner while a take or presentation is running. */
@@ -111,6 +119,7 @@ export class OverlayLayer {
     const active = items ? overlaysActiveAt(items, tRel) : [];
     const activeIds = new Set(active.map((i) => i.id));
     this.root.classList.toggle("has-graph", active.some((i) => i.kind === "graph"));
+    this.root.classList.toggle("has-logos", active.some((i) => i.kind === "logos"));
     for (const [id, v] of this.views) {
       if (activeIds.has(id) || v.leaving) continue;
       v.leaving = true;
@@ -229,17 +238,38 @@ export class OverlayLayer {
         el.innerHTML = `<img src="${esc(item.src)}" alt="${esc(item.caption)}" /><div class="ov-cap">${esc(item.caption)}</div>`;
         this.root.appendChild(el);
         break;
+      case "map":
+        el.innerHTML =
+          `<div class="ov-map-head"><span class="ov-kicker">${esc(item.kicker)}</span><span class="ov-title">${esc(item.title)}</span></div>` +
+          `<canvas class="ov-map-canvas" width="${MAP_CROP.size}" height="${MAP_CROP.size}"></canvas>` +
+          (item.caption ? `<div class="ov-map-cap">${esc(item.caption)}</div>` : "");
+        this.root.appendChild(el);
+        break;
+      case "logos":
+        el.innerHTML =
+          `<div class="ov-logos-h">${esc(item.heading)}</div><div class="ov-logos-row">` +
+          item.logos
+            .map((l, n) => `<figure style="animation-delay:${0.6 + n * 0.25}s"><img src="${esc(l.src)}" alt="${esc(l.name)}" /><figcaption><b>${esc(l.name)}</b>${l.sub ? `<span>${esc(l.sub)}</span>` : ""}</figcaption></figure>`)
+            .join("") +
+          `</div>${item.footer ? `<div class="ov-logos-foot">${esc(item.footer)}</div>` : ""}`;
+        this.root.appendChild(el);
+        break;
       case "visor":
-        el.innerHTML = `<div class="ov-visor-ring"></div><div class="ov-visor-label">${esc(item.label)}</div><div class="ov-visor-reticle"></div>`;
+        el.innerHTML = `<div class="ov-visor-ring"></div>${item.label ? `<div class="ov-visor-label">${esc(item.label)}</div>` : ""}<div class="ov-visor-reticle"></div>`;
         this.root.insertBefore(el, this.root.firstChild);
         break;
       case "graph":
-        el.innerHTML = `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div>${graphSvg(item, `g-${item.id}`)}`;
+        const m = item.map;
+        const live = m?.live
+          ? `<canvas class="ov-graph-map" width="${MAP_CROP.size}" height="${MAP_CROP.size}" style="left:${m.x}%;top:${(m.y / 56) * 100}%;width:${m.w}%;height:${(m.h / 56) * 100}%"></canvas>`
+          : "";
+        if (m?.live) el.classList.add("has-live");
+        el.innerHTML = `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-graph-wrap">${graphSvg(item, `g-${item.id}`)}${live}</div>`;
         this.root.appendChild(el);
         break;
       case "grid":
         el.innerHTML =
-          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-chips">` +
+          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-chips" style="${item.cols ? `grid-template-columns:repeat(${item.cols},1fr)` : ""}">` +
           item.chips
             .map((c, n) => `<div class="ov-chip" style="animation-delay:${0.6 + n * 0.45}s">${iconSvg(c.icon, "ov-ico-chip")}<b>${esc(c.label)}</b><span>${esc(c.detail)}</span></div>`)
             .join("") +
@@ -261,7 +291,15 @@ export class OverlayLayer {
   }
 
   private refresh(el: HTMLElement, item: OverlayItem, tRel: number, v?: View): void {
-    if (item.kind === "glow") {
+    if (item.kind === "map") {
+      const last = this.lastMapDraw.get(item.id) ?? -1;
+      const cv = el.querySelector("canvas");
+      if (this.mapDrawer && cv && (last < 0 || tRel - last > 0.12 || tRel < last)) {
+        const ctx = cv.getContext("2d");
+        if (ctx) this.mapDrawer(ctx);
+        this.lastMapDraw.set(item.id, tRel);
+      }
+    } else if (item.kind === "glow") {
       if (v) this.refreshGlow(v, item, tRel);
     } else if (item.kind === "voice") {
       const text = el.querySelector(".ov-text") as HTMLElement;
@@ -269,6 +307,15 @@ export class OverlayLayer {
       if (text.textContent !== shown) text.textContent = shown;
     } else if (item.kind === "graph") {
       this.refreshGraph(el, item, tRel - item.fromS);
+      const cv = el.querySelector<HTMLCanvasElement>("canvas.ov-graph-map");
+      if (cv && this.mapDrawer) {
+        const last = this.lastMapDraw.get(item.id) ?? -1;
+        if (last < 0 || tRel - last > 0.12 || tRel < last) {
+          const ctx = cv.getContext("2d");
+          if (ctx) this.mapDrawer(ctx);
+          this.lastMapDraw.set(item.id, tRel);
+        }
+      }
     } else if (item.kind === "decision") {
       const t = tRel - item.fromS;
       const rows = item.stages

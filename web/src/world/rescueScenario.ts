@@ -479,6 +479,18 @@ export class RescueScenario {
     return this.ticks * RESCUE_TICK_S;
   }
 
+  /** Part of the next fixed step (seconds) already elapsed in real time; lets the render loop interpolate motion. */
+  private frameOffsetS = 0;
+
+  setFrameOffset(s: number): void {
+    this.frameOffsetS = Math.max(0, s);
+  }
+
+  /** Smooth scenario time for rendering: the discrete time plus the frame offset while running. */
+  get timeS(): number {
+    return Math.min(RESCUE_DURATION_S, this.elapsedS + (this._running ? this.frameOffsetS : 0));
+  }
+
   get running(): boolean {
     return this._running;
   }
@@ -490,7 +502,7 @@ export class RescueScenario {
 
   /** Scripted state at the current elapsed time. */
   get view(): RescueView {
-    return computeView(this.elapsedS);
+    return computeView(this.timeS);
   }
 
   start(): void {
@@ -509,6 +521,7 @@ export class RescueScenario {
   }
 
   reset(): void {
+    this.frameOffsetS = 0;
     this.ticks = 0;
     this.tickAcc = 0;
     this._running = false;

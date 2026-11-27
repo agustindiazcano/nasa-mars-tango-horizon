@@ -13,6 +13,8 @@ import { clampAboveTerrain, type Vec3 } from "./cinematicCams";
 export interface SceneScenario {
   readonly durationS: number;
   readonly elapsedS: number;
+  /** Smooth time for the camera and overlays (interpolated between fixed steps); defaults to `elapsedS`. */
+  readonly timeS?: number;
   readonly running: boolean;
   seekTo(tS: number): void;
   resume(): void;
@@ -214,7 +216,9 @@ export interface SceneDirectorHooks {
   onFinish?(scene: SceneDef): void;
 }
 
-const SMOOTH_RATE = 3.5;
+/** Camera smoothing: the position eases gently, the look-at point follows tightly so the subject stays centred. */
+const SMOOTH_RATE = 6;
+const TARGET_RATE = 16;
 
 /** Drives a scene: seeks the scenario, plays it for the scene duration and computes the camera pose. */
 export class SceneDirector {
@@ -240,7 +244,7 @@ export class SceneDirector {
   /** Seconds elapsed inside the active scene (0 when idle). */
   get sceneTimeS(): number {
     const s = this.active;
-    return s ? Math.min(Math.max(this.scenario.elapsedS - s.startS, 0), s.durationS) : 0;
+    return s ? Math.min(Math.max((this.scenario.timeS ?? this.scenario.elapsedS) - s.startS, 0), s.durationS) : 0;
   }
 
   play(id: string): boolean {
@@ -325,7 +329,7 @@ export class SceneDirector {
       else this.inSequence = false;
     }
     const cur = this.active ?? s;
-    const tRel = Math.min(Math.max(this.scenario.elapsedS - cur.startS, 0), cur.durationS);
+    const tRel = Math.min(Math.max((this.scenario.timeS ?? this.scenario.elapsedS) - cur.startS, 0), cur.durationS);
     const pose = scenePose(cur, tRel, ctx);
     const cut = pose.segment !== this.lastSegment || !this.smoothedPos || !this.smoothedTarget;
     this.lastSegment = pose.segment;
@@ -334,14 +338,15 @@ export class SceneDirector {
       this.smoothedTarget = { ...pose.target };
     } else {
       const k = 1 - Math.exp(-SMOOTH_RATE * Math.max(realDt, 0));
+      const kt = 1 - Math.exp(-TARGET_RATE * Math.max(realDt, 0));
       const sp = this.smoothedPos as Vec3;
       const st = this.smoothedTarget as Vec3;
       sp.x += (pose.pos.x - sp.x) * k;
       sp.y += (pose.pos.y - sp.y) * k;
       sp.z += (pose.pos.z - sp.z) * k;
-      st.x += (pose.target.x - st.x) * k;
-      st.y += (pose.target.y - st.y) * k;
-      st.z += (pose.target.z - st.z) * k;
+      st.x += (pose.target.x - st.x) * kt;
+      st.y += (pose.target.y - st.y) * kt;
+      st.z += (pose.target.z - st.z) * kt;
     }
     const sp = this.smoothedPos as Vec3;
     sp.y = clampAboveTerrain(sp.y, ctx.heightAt(sp.x, sp.z));

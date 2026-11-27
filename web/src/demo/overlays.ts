@@ -106,6 +106,8 @@ export interface GridItem extends Timed {
   kicker: string;
   title: string;
   chips: { label: string; detail: string; icon?: string }[];
+  /** Columns of the grid (default 4). */
+  cols?: number;
 }
 
 export type GraphTone = "crew" | "agent" | "guard" | "robot" | "world";
@@ -148,6 +150,8 @@ export interface GraphMap {
   w: number;
   h: number;
   label: string;
+  /** Draws the live cartography (real terrain relief, fleet, crew and agent routes) instead of the schematic frame. */
+  live?: boolean;
   /** `r` in drawing units; a ring is dashed. */
   marks: { x: number; y: number; label: string; r?: number; tone: GraphTone }[];
 }
@@ -169,7 +173,25 @@ export interface ImageItem extends Timed {
   src: string;
   caption: string;
   /** Defaults to the top-right corner; `banner` centres a wide header picture at the top of the screen. */
-  place?: "top-right" | "mid-right" | "banner";
+  place?: "top-right" | "mid-right" | "banner" | "patch";
+}
+
+/** Large live map of the zone (the NASA and USGS style map of the HUD) with crew, robots and the planned route. */
+export interface MapItem extends Timed {
+  kind: "map";
+  kicker: string;
+  title: string;
+  /** Short lines under the map (algorithm, distance, what the markers are). */
+  caption?: string;
+}
+
+/** Row of partner logos with a heading, for the cover and the closing slide. */
+export interface LogosItem extends Timed {
+  kind: "logos";
+  heading: string;
+  /** One line under the logos (for example the local node of the event). */
+  footer?: string;
+  logos: { src: string; name: string; sub?: string }[];
 }
 
 /** Helmet visor frame: vignette, reticle and a label, for point-of-view shots. */
@@ -192,7 +214,7 @@ export interface GlowItem extends Timed {
   side?: "left" | "right" | "above" | "below";
 }
 
-export type OverlayItem = GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
+export type OverlayItem = MapItem | LogosItem | GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
 
 /** Items visible at `tRel` seconds after the scene start. */
 export function overlaysActiveAt(items: readonly OverlayItem[], tRel: number): OverlayItem[] {

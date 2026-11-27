@@ -15,7 +15,7 @@
 | `rover-2` | Second large transport rover parked at the base apron (cargo/transport, uncrewed) |
 | `rescue-rover` | Unit `rescue-1` |
 | `rescue-robot-without-astronaut` | Unit `rescue-bot-1` (the casualty is a separate animated crew model dragged by it) |
-| `rescue-robot-astronaut` | Static display piece (robot carrying an astronaut) at the garage or in a scene |
+| `rescue-robot-astronaut` | Static display piece (robot carrying an astronaut) at the rocket platform or in a scene |
 | `conae-base-mars` | Main base complex at `BASE_ORIGIN` (hero asset) |
 | `asset-1` (inflatable habitat cluster), `asset-2` (lab with ramp and NASA logo), `asset-3` (twin domes with corridor), `building-1` (landing pad with long module), `building-2` (geodesic dome), `building-3` (round hub), `building-connector` (tube) | Base modules and annexes arranged around the main complex; the existing selectable module cards map to them |
 | `asset-4` and `solar-panel` | Solar field (instanced) |

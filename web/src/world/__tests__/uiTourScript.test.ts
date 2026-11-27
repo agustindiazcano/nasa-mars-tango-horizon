@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { U1_DRONE_ARRIVE_S, U1_DRONE_ORDER_S, U1_WALK_FROM, U1_WALK_S, U1_WALK_TO, u1Drone, u1Gaze, u1Walker } from "../uiTourScript";
+import { U1_ORDERS, pushOut, u1TypeS, U1_DRONE_ARRIVE_S, U1_DRONE_ORDER_S, U1_WALK_FROM, U1_WALK_S, U1_WALK_TO, u1Drone, u1Gaze, u1Walker } from "../uiTourScript";
 
 describe("U1 script", () => {
   it("walks from the start to the end and is deterministic", () => {
@@ -29,5 +29,24 @@ describe("U1 script", () => {
     const arrived = u1Drone(U1_DRONE_ARRIVE_S + 1, start, player);
     expect(Math.hypot(arrived.x - player.x, arrived.z - player.z)).toBeLessThan(11);
     expect(arrived.altM).toBeCloseTo(9);
+  });
+
+  it("pushes the path out of a rock and keeps it continuous", () => {
+    const mid = u1Walker(U1_WALK_S / 2);
+    const rock = [{ x: mid.x, z: mid.z, r: 3 }];
+    let prev = u1Walker(0, rock);
+    for (let t = 0.1; t <= U1_WALK_S; t += 0.1) {
+      const w = u1Walker(t, rock);
+      expect(Math.hypot(w.x - rock[0].x, w.z - rock[0].z)).toBeGreaterThanOrEqual(3 - 1e-6);
+      expect(Math.hypot(w.x - prev.x, w.z - prev.z)).toBeLessThan(2);
+      prev = w;
+    }
+    expect(pushOut(1, 1, [])).toEqual({ x: 1, z: 1 });
+  });
+
+  it("orders do not overlap and the answer comes after the typing", () => {
+    for (let i = 1; i < U1_ORDERS.length; i++) {
+      expect(U1_ORDERS[i].atS).toBeGreaterThan(U1_ORDERS[i - 1].atS + u1TypeS(U1_ORDERS[i - 1].text));
+    }
   });
 });
