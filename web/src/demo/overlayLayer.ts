@@ -82,6 +82,8 @@ export class OverlayLayer {
   private mapDrawer: ((ctx: CanvasRenderingContext2D) => void) | null = null;
   private arcDrawer: ((ctx: CanvasRenderingContext2D, w: number, h: number) => void) | null = null;
   private lastMapDraw = new Map<string, number>();
+  /** Live maps of graph slides: canvases attached to the root (a fixed-position child of an animated slide would be positioned inside it). */
+  private liveMaps = new Map<string, HTMLCanvasElement>();
   private brand: HTMLImageElement;
 
   constructor(parent: HTMLElement = document.body) {
@@ -131,6 +133,7 @@ export class OverlayLayer {
       v.leaving = true;
       v.el.classList.add("out");
       v.glowEl?.classList.remove("th-glow");
+      this.liveMaps.get(id)?.classList.add("out");
       window.setTimeout(() => {
         this.dispose(v);
         if (this.views.get(id) === v) this.views.delete(id);
@@ -148,6 +151,8 @@ export class OverlayLayer {
   }
 
   private dispose(v: View): void {
+    this.liveMaps.get(v.item.id)?.remove();
+    this.liveMaps.delete(v.item.id);
     v.glowEl?.classList.remove("th-glow");
     v.el.remove();
   }
@@ -273,11 +278,17 @@ export class OverlayLayer {
         break;
       case "graph":
         const m = item.map;
-        const live = m?.live
-          ? `<canvas class="ov-graph-map" width="${MAP_CROP.size}" height="${MAP_CROP.size}" style="left:${m.x}%;top:${(m.y / 56) * 100}%;width:${m.w}%;height:${(m.h / 56) * 100}%"></canvas>`
-          : "";
+        const live = "";
         if (m?.live) el.classList.add("has-live");
         el.innerHTML = `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-graph-wrap">${graphSvg(item, `g-${item.id}`)}${live}</div>`;
+        if (m?.live) {
+          const cv = document.createElement("canvas");
+          cv.className = "ov-graph-map";
+          cv.width = MAP_CROP.size;
+          cv.height = MAP_CROP.size;
+          this.root.appendChild(cv);
+          this.liveMaps.set(item.id, cv);
+        }
         this.root.appendChild(el);
         break;
       case "grid":
@@ -324,7 +335,7 @@ export class OverlayLayer {
       if (text.textContent !== shown) text.textContent = shown;
     } else if (item.kind === "graph") {
       this.refreshGraph(el, item, tRel - item.fromS);
-      const cv = el.querySelector<HTMLCanvasElement>("canvas.ov-graph-map");
+      const cv = this.liveMaps.get(item.id);
       if (cv && this.mapDrawer) {
         const last = this.lastMapDraw.get(item.id) ?? -1;
         if (last < 0 || tRel - last > 0.12 || tRel < last) {

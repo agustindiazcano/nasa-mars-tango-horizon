@@ -472,7 +472,7 @@ const RESCUE_FLOW_FULL: OverlayItem[] = [
       { id: "plan", label: "EVA + WEATHER", detail: "EVA-PLANNER route, storm window", x: FLOW_X, y: slot(2), tone: "agent", atS: 6 },
       { id: "robots", label: "ROBOTS", detail: "rescue-1, rescue-bot-1, drone-1, drone-2", x: FLOW_X, y: slot(3), tone: "robot", atS: 8.6 },
       { id: "guard", label: "GUARDIAN", detail: "Every action: rules, judge, vote", x: FLOW_X, y: slot(4), tone: "guard", atS: 11.2 },
-      { id: "act", label: "SIMULATOR", detail: "Dispatch, hook, drag, return", x: 68, y: slot(4), w: 36, tone: "world", atS: 13.8 },
+      { id: "act", label: "SIMULATOR", detail: "Dispatch, hook, drag, return", x: 79, y: 6.5, w: 38, tone: "world", atS: 13.8 },
     ],
     edges: [
       ...chain(["health", "base", "plan", "robots", "guard"], [0.8, 3.4, 6, 8.6]),
@@ -480,10 +480,10 @@ const RESCUE_FLOW_FULL: OverlayItem[] = [
     ],
     map: {
       live: true,
-      x: 55,
-      y: 1.5,
-      w: 44,
-      h: 44,
+      x: 59.5,
+      y: 11,
+      w: 40,
+      h: 40,
       label: "TOP VIEW · SCHEMATIC, TIME COMPRESSED",
       marks: [
         { ...BASE_PT, label: "BASE", tone: "world" },
@@ -531,10 +531,10 @@ const LIFE_SUPPORT_FLOW: OverlayItem[] = [
     edges: chain(["health", "base", "ballistic", "guard", "fire"], [0.8, 3.2, 5.6, 8], { 3: "approved" }),
     map: {
       live: true,
-      x: 55,
-      y: 1.5,
-      w: 44,
-      h: 44,
+      x: 59.5,
+      y: 11,
+      w: 40,
+      h: 40,
       label: "TOP VIEW · SCHEMATIC",
       marks: [
         { x: 48, y: 36, label: "LAUNCHER-1", tone: "world" },
@@ -910,7 +910,7 @@ export const DECK_ORDER: readonly string[] = [
   // Direct control and voice orders from the base, with the AI team behind them
   "U1", "W1", "A1", "G1",
   // The rescue, from the alarm to the extraction
-  "H1", "T1", "O1", "V1", "R1", "L0", "L1", "T2", "S5", "S6", "S7",
+  "H1", "T1", "O1", "R1", "V1", "L0", "L1", "T2", "S5", "S6", "S7",
   // Models and standards, then the close
   "Q1", "ML1", "E1",
 ];
