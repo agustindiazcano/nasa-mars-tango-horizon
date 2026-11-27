@@ -25,7 +25,13 @@ function make(key: string, w: number, h: number, draw: (c: CanvasRenderingContex
   const bv = document.createElement("canvas");
   bv.width = w;
   bv.height = h;
-  draw(cv.getContext("2d")!, bv.getContext("2d")!);
+  try {
+    draw(cv.getContext("2d")!, bv.getContext("2d")!);
+  } catch {
+    // A canvas without the 2D features used here (a stubbed DOM): the material keeps its plain colour.
+    cache.set(key, null);
+    return null;
+  }
   const map = new THREE.CanvasTexture(cv);
   map.colorSpace = THREE.SRGBColorSpace;
   const bump = new THREE.CanvasTexture(bv);

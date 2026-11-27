@@ -199,8 +199,9 @@ export class FleetUnit {
     if (!this.sm) this.sm = { pitch: rawPitch, roll: rawRoll, y: Number.NaN, t: now };
     const dt = Math.min(0.1, Math.max(0.001, (now - this.sm.t) / 1000));
     const k = 1 - Math.exp(-9 * dt);
-    this.sm.pitch += (rawPitch - this.sm.pitch) * k;
-    this.sm.roll += (rawRoll - this.sm.roll) * k;
+    // Easing only smooths small noise; a larger change (a teleport, a steep step) is taken at once so the wheels stay seated.
+    this.sm.pitch = Math.abs(rawPitch - this.sm.pitch) > 0.05 ? rawPitch : this.sm.pitch + (rawPitch - this.sm.pitch) * k;
+    this.sm.roll = Math.abs(rawRoll - this.sm.roll) > 0.05 ? rawRoll : this.sm.roll + (rawRoll - this.sm.roll) * k;
     o.rotation.x = this.sm.pitch;
     o.rotation.z = this.sm.roll;
   }
@@ -226,8 +227,8 @@ export class FleetUnit {
     const now = typeof performance !== "undefined" ? performance.now() : 0;
     const dt = Math.min(0.1, Math.max(0.001, (now - sm.t) / 1000));
     sm.t = now;
-    // Snap on a teleport or the first frame; otherwise ease the height so wheel contact does not jitter.
-    if (!Number.isFinite(sm.y) || Math.abs(rawY - sm.y) > 2.5) sm.y = rawY;
+    // The height never goes below the ground (no penetration); it only eases downward, and snaps on a large drop.
+    if (!Number.isFinite(sm.y) || rawY >= sm.y || sm.y - rawY > 0.12) sm.y = rawY;
     else sm.y += (rawY - sm.y) * (1 - Math.exp(-14 * dt));
     o.position.y = sm.y;
   }
