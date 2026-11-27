@@ -48,6 +48,20 @@ export class ScenePanel {
         else if (this.open) this.toggle();
         return;
       }
+      if ((e.code === "ArrowRight" || e.code === "ArrowLeft") && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const tgt = e.target as HTMLElement | null;
+        if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.isContentEditable)) return;
+        const st = this.director.state;
+        if (st === "playing" || st === "paused" || st === "done") {
+          e.preventDefault();
+          if (this.director.step(e.code === "ArrowRight" ? 1 : -1)) {
+            this.syncHud();
+            this.lastKey = "";
+            this.update();
+          }
+        }
+        return;
+      }
       if (e.code !== "KeyP" || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
       const el = e.target as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;

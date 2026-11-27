@@ -253,11 +253,28 @@ export class SceneDirector {
     return true;
   }
 
+  /** Scene ids in play order for stepping: the running sequence, or the deck order for a single take. */
+  private order: string[] = [...DECK_ORDER];
+
+  /** Jumps `delta` scenes forward or back (clamped), keeping the rest of the sequence queued. Returns false at an end. */
+  step(delta: number): boolean {
+    if (!this.activeId) return false;
+    const list = this.order.includes(this.activeId) ? this.order : [...DECK_ORDER];
+    const idx = list.indexOf(this.activeId);
+    const target = idx + delta;
+    if (idx < 0 || target < 0 || target >= list.length) return false;
+    this.queue = list.slice(target + 1);
+    this.inSequence = this.queue.length > 0;
+    this.order = list;
+    return this.play(list[target]);
+  }
+
   /** Plays the given scenes (default: all) one after another, hard cut between them. */
   playSequence(ids: readonly string[] = DECK_ORDER): boolean {
     const list = ids.filter((id) => this.scenes.some((x) => x.id === id));
     if (list.length === 0) return false;
     this.queue = list.slice(1);
+    this.order = list;
     this.inSequence = true;
     return this.play(list[0]);
   }
