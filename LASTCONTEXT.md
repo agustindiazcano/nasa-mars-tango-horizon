@@ -16,6 +16,12 @@
 - Presentation text uses "astronaut" instead of crew surnames; the scripted agent narration (`narr.*`) and the HUD roster still use the callsigns.
 - Crew roster in two lines per astronaut, wide scenes panel, styled scrollbars, crosshair cursor and pointing-hand cursor, Mars favicon (branch `feat/styled-scrollbars`).
 
+- Smoother rescue takes: the scenario view is interpolated between its 0.1 s steps (`RescueScenario.setFrameOffset`, `timeS`), the director uses that smooth time, and the camera look-at follows tightly (`TARGET_RATE`).
+- New scene `O1`: big map of the zone (HUD cartography in a `map` overlay, live fleet and crew, rescue-1 route found by A* in `operationRoute()` in `main.ts`). `V1` (22 s), `R1` (29 s) and `W1` (38 s) are shorter; `G1` keeps two of the three decisions (37 s). New `ML1` replaces `M1`-`M3` in the deck.
+- Deck order: C0 P0 | U1 W1 A1 K1 G1 | H1 T1 O1 V1 R1 L0 L1 T2 S5 S6 S7 | Q1 ML1 E1 (about 9.9 min). `F1`, `M1`-`M3` stay selectable but leave the deck.
+- First-person takes (`pov: "1st"`: `U1`, `W1`, `T2`) hide all floating name tags (`setWorldLabels`); the visor label of `U1` is removed.
+- `U1`: the walk avoids rocks (`pushOut`), the orders type into the live HUD chat with processing badge and trace, rover-2 comes closer, chat bubbles have a dark translucent background.
+
 ## Files touched
 
 `web/src/demo/*`, `web/src/world/{fleetProc,sceneDirector,uiTourScript}.ts`, `web/src/hud/scenePanel.ts`, `web/src/main.ts`, `shared/src/i18n/*.ts`, `docs/slides/ICON_LIST.md`.
