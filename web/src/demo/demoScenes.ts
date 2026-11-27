@@ -253,28 +253,41 @@ const VOICE_RESCUE: OverlayItem[] = [
   { id: "v-l2", kind: "lower", icon: "drone", fromS: 12, toS: 22, title: "drone-1 and drone-2 flying to the pit", detail: "Overwatch at a 25 m standoff, ETA 36 s" },
 ];
 
+/**
+ * The launch take is short: the pod flies about 2.2 times faster than real time (34 s become about 15 s), a side-view
+ * animation shows the arc, and the vitals and events follow the shortened flight (launch 4, canopy 16.3, landing 19.5).
+ */
 const LIFE_SUPPORT: OverlayItem[] = [
-  { id: "l-armed", kind: "lower", icon: "cannon", fromS: 0.5, toS: 8, title: "Life-support cannon armed", detail: "6 m tube, 90 m/s maximum, 45° elevation" },
-  { id: "l-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 1, toS: 14, text: "Launching the 8 kg life-support pod. Impact 32 m from the astronaut, outside the 15 m keep-out." },
-  { id: "l-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 6, toS: 20, text: "Trajectory and keep-out verified. Approved." },
+  { id: "l-armed", kind: "lower", icon: "cannon", fromS: 0.5, toS: 6, title: "Life-support cannon armed", detail: "6 m tube, 90 m/s maximum, 45° elevation" },
+  { id: "l-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 1, toS: 11, text: "Launching the 8 kg life-support pod. Impact 32 m from the astronaut, outside the 15 m keep-out." },
+  { id: "l-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 5, toS: 15, text: "Trajectory and keep-out verified. Approved." },
+  {
+    id: "l-arc",
+    kind: "arc",
+    fromS: 0.5,
+    toS: 25.5,
+    kicker: "LIFE-SUPPORT LAUNCH · SIDE VIEW",
+    title: "From the launcher to the astronaut",
+    caption: "Ballistic arc from the cannon, parachute opening and touchdown outside the 15 m keep-out (sped up, not to scale)",
+  },
   {
     id: "l-vitals",
     kind: "vitals",
     fromS: 0.5,
-    toS: 45,
+    toS: 25.5,
     title: "ASTRONAUT · LIFE SUPPORT",
     keys: [
       { atS: 0.5, o2Pct: 41, pao2Kpa: 9.2, co2Pa: 520, batteryWh: 640 },
-      { atS: 30, o2Pct: 22, pao2Kpa: 7.4, co2Pa: 690, batteryWh: 610 },
-      { atS: 38, o2Pct: 22, pao2Kpa: 7.4, co2Pa: 690, batteryWh: 610 },
-      { atS: 44, o2Pct: 96, pao2Kpa: 13.2, co2Pa: 150, batteryWh: 810 },
+      { atS: 16.3, o2Pct: 22, pao2Kpa: 7.4, co2Pa: 690, batteryWh: 610 },
+      { atS: 19.5, o2Pct: 22, pao2Kpa: 7.4, co2Pa: 690, batteryWh: 610 },
+      { atS: 24.5, o2Pct: 96, pao2Kpa: 13.2, co2Pa: 150, batteryWh: 810 },
     ],
     events: [
-      { atS: 4, text: "Pod launched, ETA 34 s" },
-      { atS: 31, text: "Parachute deployed" },
-      { atS: 38, text: "Pod landed 32 m from the crew" },
-      { atS: 41, text: "Life-support pod supplies connected to the suit" },
-      { atS: 44, text: "Pressure and CO2 restored" },
+      { atS: 4, text: "Pod launched, flight about 34 s (sped up)" },
+      { atS: 16.3, text: "Parachute deployed" },
+      { atS: 19.5, text: "Pod landed 32 m from the crew" },
+      { atS: 21.5, text: "Life-support pod supplies connected to the suit" },
+      { atS: 24.5, text: "Pressure and CO2 restored" },
     ],
   },
 ];
@@ -798,11 +811,11 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     id: "L1",
     nameKey: "scene.l1",
     startS: 72,
-    durationS: 46,
+    durationS: 26,
     segments: [
       { fromS: 0, kind: "aerial", target: "launcher-1", offset: { x: -12, y: 5, z: 16 }, lookAboveM: 3 },
-      { fromS: 9, kind: "follow", target: "pod", offset: { x: 26, y: 9, z: 24 }, lookAboveM: 0 },
-      { fromS: 27, kind: "aerial", target: "pod", offset: { x: 9, y: 4, z: 10 }, lookAboveM: 1 },
+      { fromS: 4.4, kind: "follow", target: "pod", offset: { x: 30, y: 10, z: 26 }, lookAboveM: 0 },
+      { fromS: 16, kind: "aerial", target: "pod", offset: { x: 9, y: 4, z: 10 }, lookAboveM: 1 },
     ],
     overlay: LIFE_SUPPORT,
   },

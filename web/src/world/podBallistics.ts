@@ -21,6 +21,8 @@ export class PodBallistics {
   private group = new THREE.Group();
   private trail = new ProjectileTrail();
   private chuteFadeS = -1;
+  /** Flight speed-up for short takes (1 = real time). */
+  timeScale = 1;
   private podMesh: THREE.Group;
   /** The procedural capsule, hidden once the GLB rocket model is attached. */
   private procPod = new THREE.Group();
@@ -89,6 +91,19 @@ export class PodBallistics {
     model.position.y -= 0.95;
     this.podMesh.add(model);
     this.procPod.visible = false;
+  }
+
+  /** The flight being shown (path in world metres, y up), or null before the first launch. */
+  profile(): { points: { x: number; y: number; z: number; t: number }[]; deployedAtS: number | null; flightTimeS: number; elapsedS: number; launcher: { x: number; z: number } } | null {
+    const d = this.activeDelivery;
+    if (!d) return null;
+    return {
+      points: d.path.map((s) => ({ x: s.p[0], y: s.p[2], z: s.p[1], t: s.t })),
+      deployedAtS: d.deployedAtS,
+      flightTimeS: d.flightTimeS,
+      elapsedS: Math.min(this.elapsedS, d.flightTimeS),
+      launcher: { x: this.launcherOrigin[0], z: this.launcherOrigin[1] },
+    };
   }
 
   /** Moves the smoke and dust and fades the canopy after touchdown (call every frame). */
@@ -212,6 +227,7 @@ export class PodBallistics {
 
   update(dt: number, tele: PodTelemetry): void {
     if (!this.activeDelivery || !tele.active) return;
+    dt *= this.timeScale;
     this.elapsedS += dt;
     tele.elapsedS = Math.min(this.elapsedS, this.activeDelivery.flightTimeS);
 

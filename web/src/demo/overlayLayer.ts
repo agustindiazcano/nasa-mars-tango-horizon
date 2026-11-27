@@ -80,6 +80,7 @@ export class OverlayLayer {
   private views = new Map<string, View>();
   private voiceStack: HTMLElement;
   private mapDrawer: ((ctx: CanvasRenderingContext2D) => void) | null = null;
+  private arcDrawer: ((ctx: CanvasRenderingContext2D, w: number, h: number) => void) | null = null;
   private lastMapDraw = new Map<string, number>();
   private brand: HTMLImageElement;
 
@@ -102,6 +103,11 @@ export class OverlayLayer {
   /** Supplies the drawing of `map` items (the HUD cartography with live symbols); called a few times per second. */
   setMapDrawer(fn: ((ctx: CanvasRenderingContext2D) => void) | null): void {
     this.mapDrawer = fn;
+  }
+
+  /** Supplies the drawing of `arc` items (the side view of the pod launch); called every frame. */
+  setArcDrawer(fn: ((ctx: CanvasRenderingContext2D, w: number, h: number) => void) | null): void {
+    this.arcDrawer = fn;
   }
 
   /** Shows the project logo in a corner while a take or presentation is running. */
@@ -238,6 +244,13 @@ export class OverlayLayer {
         el.innerHTML = `<img src="${esc(item.src)}" alt="${esc(item.caption)}" /><div class="ov-cap">${esc(item.caption)}</div>`;
         this.root.appendChild(el);
         break;
+      case "arc":
+        el.innerHTML =
+          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div>` +
+          `<canvas class="ov-arc-canvas" width="720" height="400"></canvas>` +
+          (item.caption ? `<div class="ov-map-cap">${esc(item.caption)}</div>` : "");
+        this.root.appendChild(el);
+        break;
       case "map":
         el.innerHTML =
           `<div class="ov-map-head"><span class="ov-kicker">${esc(item.kicker)}</span><span class="ov-title">${esc(item.title)}</span></div>` +
@@ -291,7 +304,11 @@ export class OverlayLayer {
   }
 
   private refresh(el: HTMLElement, item: OverlayItem, tRel: number, v?: View): void {
-    if (item.kind === "map") {
+    if (item.kind === "arc") {
+      const cv = el.querySelector("canvas");
+      const ctx = cv?.getContext("2d");
+      if (cv && ctx && this.arcDrawer) this.arcDrawer(ctx, cv.width, cv.height);
+    } else if (item.kind === "map") {
       const last = this.lastMapDraw.get(item.id) ?? -1;
       const cv = el.querySelector("canvas");
       if (this.mapDrawer && cv && (last < 0 || tRel - last > 0.12 || tRel < last)) {

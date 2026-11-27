@@ -581,6 +581,139 @@ function agentRoutes(): AgentRoute[] {
   if (main) agentRouteList = list;
   return list;
 }
+/** Side view of the pod launch: terrain profile, full arc (dashed), flown part, canopy point, launcher and astronaut. */
+overlayLayer.setArcDrawer((ctx, w, h) => {
+  ctx.clearRect(0, 0, w, h);
+  const prof = podBallistics.profile();
+  const [lx, lz] = podLauncherOrigin;
+  const gx = lx - RESCUE_SITE.x;
+  const gz = lz - RESCUE_SITE.z;
+  const gn = Math.hypot(gx, gz) || 1;
+  const tx = RESCUE_SITE.x + (gx / gn) * LIFE_SUPPORT_IMPACT_OFFSET_M;
+  const tz = RESCUE_SITE.z + (gz / gn) * LIFE_SUPPORT_IMPACT_OFFSET_M;
+  const range = Math.hypot(tx - lx, tz - lz);
+  const pts = prof?.points ?? [];
+  const ux = (tx - lx) / (range || 1);
+  const uz = (tz - lz) / (range || 1);
+  const dist = (p: { x: number; z: number }) => (p.x - lx) * ux + (p.z - lz) * uz;
+  const groundAtD = (d: number) => terrain.heightAt(lx + ux * d, lz + uz * d);
+  const maxY = pts.length ? Math.max(...pts.map((p) => p.y)) : terrain.heightAt(lx, lz) + 120;
+  let gMin = Infinity;
+  for (let i = 0; i <= 40; i++) gMin = Math.min(gMin, groundAtD((range * i) / 40));
+  const padL = 56;
+  const padR = 40;
+  const padT = 62;
+  const padB = 56;
+  const X = (d: number) => padL + (d / Math.max(1, range)) * (w - padL - padR);
+  const Y = (y: number) => h - padB - ((y - gMin) / Math.max(1, maxY - gMin + 6)) * (h - padT - padB);
+  const sky = ctx.createLinearGradient(0, padT, 0, h - padB);
+  sky.addColorStop(0, "rgba(120, 200, 230, 0.05)");
+  sky.addColorStop(1, "rgba(255, 179, 107, 0.1)");
+  ctx.fillStyle = sky;
+  ctx.fillRect(padL, padT, w - padL - padR, h - padT - padB);
+  ctx.beginPath();
+  ctx.moveTo(X(0), h - 4);
+  for (let i = 0; i <= 80; i++) ctx.lineTo(X((range * i) / 80), Y(groundAtD((range * i) / 80)));
+  ctx.lineTo(X(range), h - 4);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(168, 98, 58, 0.85)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 210, 160, 0.9)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.font = "600 15px Rajdhani, sans-serif";
+  ctx.textBaseline = "middle";
+  const lY = Y(groundAtD(0));
+  const aY = Y(groundAtD(range));
+  ctx.fillStyle = "#ffb800";
+  ctx.fillRect(X(0) - 7, lY - 14, 14, 14);
+  ctx.textAlign = "left";
+  ctx.fillText("LIFE SUPPORT LAUNCHER", X(0) - 4, lY + 22);
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#8fd9d2";
+  ctx.beginPath();
+  ctx.arc(X(range), aY - 12, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(X(range) - 4, aY - 8, 8, 8);
+  ctx.fillText("ASTRONAUT", X(range) + 8, aY + 22);
+  const kx = X(Math.max(0, range - 15));
+  ctx.strokeStyle = "rgba(255, 77, 94, 0.9)";
+  ctx.setLineDash([5, 4]);
+  ctx.beginPath();
+  ctx.moveTo(kx, aY - 70);
+  ctx.lineTo(kx, aY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(255, 120, 130, 0.95)";
+  ctx.textAlign = "right";
+  ctx.fillText("15 m keep-out", kx - 6, aY - 60);
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#f3ece3";
+  ctx.font = "700 17px Rajdhani, sans-serif";
+  if (!prof || pts.length < 2) {
+    ctx.fillText(`Armed · 45° elevation · 90 m/s · target ${range.toFixed(0)} m away`, padL, 24);
+    return;
+  }
+  ctx.strokeStyle = "rgba(143, 217, 210, 0.55)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 6]);
+  ctx.beginPath();
+  pts.forEach((p, i) => (i === 0 ? ctx.moveTo(X(dist(p)), Y(p.y)) : ctx.lineTo(X(dist(p)), Y(p.y))));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const flown = pts.filter((p) => p.t <= prof.elapsedS);
+  if (flown.length > 1) {
+    ctx.strokeStyle = "#ffb36b";
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    flown.forEach((p, i) => (i === 0 ? ctx.moveTo(X(dist(p)), Y(p.y)) : ctx.lineTo(X(dist(p)), Y(p.y))));
+    ctx.stroke();
+  }
+  const cur = flown[flown.length - 1] ?? pts[0];
+  const cx = X(dist(cur));
+  const cy = Y(cur.y);
+  const top = pts.reduce((m, p) => (p.y > m.y ? p : m), pts[0]);
+  ctx.fillStyle = "rgba(243, 236, 227, 0.95)";
+  ctx.textAlign = "center";
+  ctx.font = "600 15px Rajdhani, sans-serif";
+  ctx.fillText(`apogee ${Math.round(top.y - groundAtD(0))} m`, X(dist(top)), Y(top.y) - 14);
+  if (prof.deployedAtS !== null) {
+    const dp = pts.find((p) => p.t >= (prof.deployedAtS as number)) ?? pts[pts.length - 1];
+    ctx.strokeStyle = "rgba(255, 122, 47, 0.95)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(X(dist(dp)), Y(dp.y) - 6, 9, Math.PI, 0);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255, 190, 150, 0.95)";
+    ctx.fillText("parachute opens", X(dist(dp)), Y(dp.y) - 30);
+  }
+  const open = prof.deployedAtS !== null && prof.elapsedS >= prof.deployedAtS;
+  const glow = ctx.createRadialGradient(cx, cy, 1, cx, cy, 16);
+  glow.addColorStop(0, "rgba(255, 240, 200, 1)");
+  glow.addColorStop(1, "rgba(255, 140, 60, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fill();
+  if (open) {
+    ctx.strokeStyle = "#ff7a2f";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy - 16, 13, Math.PI, 0);
+    ctx.stroke();
+  }
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#f3ece3";
+  ctx.font = "700 17px Rajdhani, sans-serif";
+  const alt = Math.max(0, cur.y - groundAtD(Math.max(0, Math.min(range, dist(cur)))));
+  ctx.fillText(`T+${prof.elapsedS.toFixed(0)} s of ${prof.flightTimeS.toFixed(0)} s   ·   altitude ${alt.toFixed(0)} m   ·   range ${dist(cur).toFixed(0)} m of ${range.toFixed(0)} m`, padL, 24);
+});
+
 overlayLayer.setMapDrawer((ctx) => {
   const full = opsCanvas.getContext("2d");
   if (!full) return;
@@ -595,6 +728,8 @@ const sceneDirector = new SceneDirector(rescue, {
     store.activeScenario = "rescue";
     store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
     store.simScale = 1;
+    // The life-support launch is sped up so the take stays short; every other take flies the pod in real time.
+    podBallistics.timeScale = scene.id === "L1" ? 2.2 : 1;
     // Floating name tags are hidden in first-person takes and behind the cover and closing slides.
     setWorldLabels(scene.pov !== "1st" && !scene.overlay?.some((o) => o.kind === "logos"));
     const wantPov = scene.pov ?? "3rd";

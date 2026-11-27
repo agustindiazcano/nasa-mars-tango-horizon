@@ -308,6 +308,7 @@ export class ModelLibrary {
     if (!m) return null;
     const root = m.object;
     root.updateMatrixWorld(true);
+    const axisAt = { x: Number.NaN, z: Number.NaN };
     root.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (!mesh.isMesh || !mesh.geometry.index) return;
@@ -336,14 +337,38 @@ export class ModelLibrary {
       for (const name of Object.keys(g.attributes)) ng.setAttribute(name, g.getAttribute(name));
       ng.setIndex(keep);
       mesh.geometry = ng;
+      // The rocket axis is where its nose is, not the middle of the box (fins and the cut are not symmetric).
+      const v = new THREE.Vector3();
+      let top = -Infinity;
+      let bottom = Infinity;
+      for (const k of keep) {
+        v.set(pos.getX(k), pos.getY(k), pos.getZ(k)).applyMatrix4(mesh.matrixWorld);
+        top = Math.max(top, v.y);
+        bottom = Math.min(bottom, v.y);
+      }
+      let sx = 0;
+      let sz = 0;
+      let n = 0;
+      for (const k of keep) {
+        v.set(pos.getX(k), pos.getY(k), pos.getZ(k)).applyMatrix4(mesh.matrixWorld);
+        if (v.y > top - (top - bottom) * 0.04) {
+          sx += v.x;
+          sz += v.z;
+          n++;
+        }
+      }
+      if (n > 0) {
+        axisAt.x = sx / n;
+        axisAt.z = sz / n;
+      }
     });
     root.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(root);
     const size = box.getSize(new THREE.Vector3());
     const holder = new THREE.Group();
     holder.name = "glb:single-rocket";
-    root.position.x -= (box.min.x + box.max.x) / 2;
-    root.position.z -= (box.min.z + box.max.z) / 2;
+    root.position.x -= Number.isFinite(axisAt.x) ? axisAt.x : (box.min.x + box.max.x) / 2;
+    root.position.z -= Number.isFinite(axisAt.z) ? axisAt.z : (box.min.z + box.max.z) / 2;
     root.position.y -= box.min.y;
     holder.add(root);
     holder.scale.setScalar(heightM / Math.max(1e-6, size.y));
