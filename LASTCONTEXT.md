@@ -19,7 +19,8 @@
 - Project logo in the HUD top bar and as a corner watermark during takes; the cover and closing slides show the README banner (`web/public/images/th-banner.jpg`).
 - Left and right arrow keys step to the previous or next scene while a take or presentation runs (`SceneDirector.step`, `ScenePanel`).
 - Loading screen: the falling numbers and letters canvas is gone; the logo is larger and rotates slowly.
-- Not done: several astronauts walking to a shelter with drones assisting (the rescue scenario only moves SALERNO and the robot towing DIAZ-CANO; drones are grounded by then); a live check of `T2`, `R1` and the darker storm.
+- `T2`: crew-4 walks beside SALERNO to rescue-1 (scripted in `main.ts`); drones are already grounded by then. Storm darkness reaches its maximum at dust opacity 3.5 (sun floor 0.36, ambient floor 0.4). Checked live: `T2`, `S6` (dialogue and towing picture), the darker storm. Not done: a march of more astronauts to the base shelter with drones assisting (needs a new scenario segment).
+- README screenshots refreshed (cover slide, HUD, orchestrator graph, voice-to-drone, storm helmet view); `docs/slides/VIDEO_SCRIPT_6MIN.md` rewritten for the 20-scene deck (about 9.5 minutes).
 
 ## Files touched
 
@@ -27,4 +28,4 @@
 
 ## State
 
-Branch `feat/demo-voice-flow-diagrams`. The map markers are schematic and time compressed (`R1`); the drone token in `W1` follows the real drone timing. Not updated: the video script (`docs/slides/VIDEO_SCRIPT_6MIN.md`) and the slide deck do not mention `W1`, `R1`, `L0` yet.
+Branch `feat/demo-voice-flow-diagrams`. The map markers are schematic and time compressed (`R1`); the drone token in `W1` follows the real drone timing. Not updated: the slide deck (`TANGO_HORIZON_English.pptx`, `site/src/data/slidesDeck.ts`) does not mention the new scenes.
