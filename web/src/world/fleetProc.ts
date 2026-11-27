@@ -673,10 +673,13 @@ export class FleetProc {
 
     const orbiter = this.buildProceduralOrbiter();
     this.orbiterGroup.add(orbiter);
-    const lbl = makeSpriteLabel("MARS RELAY ORBITER", "#35e0ff");
-    lbl.position.y = 9.5;
-    lbl.scale.set(28, 5.2, 1);
-    this.orbiterGroup.add(lbl);
+    // Labels need a canvas; the server tests run this code without a DOM.
+    if (typeof document !== "undefined") {
+      const lbl = makeSpriteLabel("MARS RELAY ORBITER", "#35e0ff");
+      lbl.position.y = 9.5;
+      lbl.scale.set(28, 5.2, 1);
+      this.orbiterGroup.add(lbl);
+    }
     this.updateOrbiter(0);
   }
 
