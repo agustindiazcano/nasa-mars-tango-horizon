@@ -99,31 +99,34 @@
 .ov-step span { display: block; font-size: 14px; color: var(--ink, #f3ece3); margin-top: 3px; line-height: 1.25; }
 .ov-arrow { align-self: center; color: var(--ok, #ffb36b); font-style: normal; font-size: 18px; }
 
-/* Voice conversation */
+/* Voice conversation: large enough to read in a recorded video */
 .ov-voice-stack {
   position: absolute;
   left: 50%;
-  bottom: 7vh;
+  bottom: 5vh;
   transform: translateX(-50%);
-  width: min(760px, 70vw);
+  width: min(1240px, 90vw);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
-.ov-voice { position: static; padding: 10px 16px 12px; backdrop-filter: blur(8px); background: rgba(10, 16, 22, 0.82); border-left: 3px solid var(--cyan, #8fd9d2); }
+.ov-voice { position: static; padding: 14px 24px 16px; backdrop-filter: blur(8px); background: rgba(10, 16, 22, 0.88); border-left: 5px solid var(--cyan, #8fd9d2); }
 .ov-voice.who-crew { border-left-color: var(--warn, #ffd23f); }
 .ov-voice.who-guardian { border-left-color: var(--good, #8ee6a0); }
-.ov-who { font-size: 12px; letter-spacing: 0.24em; font-weight: 700; color: var(--ink-dim, #b3bec5); margin-bottom: 3px; display: flex; align-items: center; gap: 8px; }
-.ov-text { font-size: 21px; line-height: 1.3; min-height: 1.3em; }
-.ov-wave { display: inline-flex; gap: 2px; align-items: center; height: 14px; }
-.ov-wave i { width: 3px; background: var(--warn, #ffd23f); animation: ovWave 0.7s ease-in-out infinite; }
+.ov-who { font-size: 16px; letter-spacing: 0.26em; font-weight: 700; color: var(--ink-dim, #b3bec5); margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
+.ov-voice.who-crew .ov-who { color: var(--warn, #ffd23f); }
+.ov-voice.who-guardian .ov-who { color: var(--good, #8ee6a0); }
+.ov-voice.who-agent .ov-who { color: var(--cyan, #8fd9d2); }
+.ov-text { font-size: 32px; line-height: 1.25; min-height: 1.25em; font-weight: 600; }
+.ov-wave { display: inline-flex; gap: 3px; align-items: center; height: 20px; }
+.ov-wave i { width: 4px; background: var(--warn, #ffd23f); animation: ovWave 0.7s ease-in-out infinite; }
 .ov-wave i:nth-child(2) { animation-delay: 0.1s; }
 .ov-wave i:nth-child(3) { animation-delay: 0.2s; }
 .ov-wave i:nth-child(4) { animation-delay: 0.3s; }
 .ov-wave i:nth-child(5) { animation-delay: 0.4s; }
 @keyframes ovWave {
-  0%, 100% { height: 3px; }
-  50% { height: 14px; }
+  0%, 100% { height: 4px; }
+  50% { height: 20px; }
 }
 
 /* Coordinates chip and lower third */
@@ -187,3 +190,35 @@
 .ov-lower.alert { border-left-color: var(--crit, #ff4d5e); background: rgba(60, 10, 16, 0.9); animation: ovIn 0.55s both, ovAlarm 0.9s 0.6s infinite; }
 .ov-lower.alert b { color: var(--crit, #ff4d5e); }
 @keyframes ovAlarm { 50% { box-shadow: 0 0 22px rgba(255, 77, 94, 0.75); } }
+
+/* Animated decision graph with robot map */
+.ov-graph { left: 3vw; top: 6vh; width: min(920px, 52vw); background: linear-gradient(180deg, rgba(10, 16, 22, 0.92), rgba(10, 16, 22, 0.8)); border-left: 3px solid var(--cyan, #8fd9d2); backdrop-filter: blur(10px); padding: 18px 22px 16px; }
+.ov-graph .ov-title { font-size: 34px; }
+.ov-graph-svg { display: block; width: 100%; height: auto; margin-top: 10px; overflow: visible; }
+.ov-graph-svg text { font-family: var(--font-ui, "Rajdhani", system-ui, sans-serif); fill: var(--ink, #f3ece3); text-anchor: middle; }
+.g-node rect { fill: rgba(143, 217, 210, 0.1); stroke: currentColor; stroke-width: 0.28; }
+.g-node .g-label { font-size: 2.5px; font-weight: 700; letter-spacing: 0.04px; }
+.g-node .g-detail { font-size: 1.75px; fill: var(--ink-dim, #b3bec5); }
+.g-node.hot rect { fill: rgba(255, 255, 255, 0.16); stroke-width: 0.5; }
+.tone-crew { color: var(--warn, #ffd23f); }
+.tone-agent { color: var(--cyan, #8fd9d2); }
+.tone-guard { color: var(--good, #8ee6a0); }
+.tone-robot { color: var(--ok, #ffb36b); }
+.tone-world { color: #d8e2ea; }
+.g-edge { color: var(--ink-dim, #b3bec5); }
+.g-edge path { fill: none; stroke: currentColor; stroke-width: 0.32; stroke-dasharray: 1; }
+.g-pulse { fill: #fff; }
+.g-elabel { font-size: 1.7px; text-anchor: start !important; fill: var(--ink-dim, #b3bec5) !important; }
+.g-map rect { fill: rgba(60, 40, 30, 0.45); stroke: rgba(255, 179, 107, 0.55); stroke-width: 0.25; }
+.g-map .g-maplabel { text-anchor: start; font-size: 1.8px; letter-spacing: 0.2px; fill: var(--ink-dim, #b3bec5); }
+.g-mark { fill: currentColor; }
+.g-ring { fill: none; stroke: currentColor; stroke-width: 0.2; stroke-dasharray: 0.8 0.8; }
+.g-marklabel { text-anchor: start !important; font-size: 1.9px; font-weight: 700; fill: currentColor !important; }
+.g-token circle { fill: currentColor; }
+.g-token .g-tring { fill: none; stroke: currentColor; stroke-width: 0.25; opacity: 0.6; }
+.g-token .g-tlabel { font-size: 1.9px; font-weight: 700; fill: currentColor; }
+
+/* With a graph on the left, the conversation moves to the right so both stay readable */
+.demo-overlay.has-graph .ov-voice-stack { left: auto; right: 2.5vw; transform: none; width: min(780px, 43vw); bottom: 4vh; }
+.demo-overlay.has-graph .ov-text { font-size: 28px; }
+.demo-overlay.has-graph .ov-lower { left: auto; right: 2.5vw; bottom: 4vh; max-width: 43vw; }

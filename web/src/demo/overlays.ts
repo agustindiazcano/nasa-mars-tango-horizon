@@ -101,7 +101,61 @@ export interface GridItem extends Timed {
   chips: { label: string; detail: string }[];
 }
 
-export type OverlayItem = CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem;
+export type GraphTone = "crew" | "agent" | "guard" | "robot" | "world";
+
+/** Box of the animated decision graph. Coordinates are in a 100 x 56 drawing space. */
+export interface GraphNode {
+  id: string;
+  label: string;
+  detail?: string;
+  x: number;
+  y: number;
+  w?: number;
+  tone: GraphTone;
+  /** Seconds after the item starts at which the box appears. */
+  atS: number;
+}
+
+/** Arrow that is drawn, with a travelling pulse, at `atS`. */
+export interface GraphEdge {
+  from: string;
+  to: string;
+  atS: number;
+  /** Short caption on the arrow. */
+  label?: string;
+}
+
+/** Robot or crew marker moving over the map zone; positions are linear between keys. */
+export interface GraphToken {
+  id: string;
+  label: string;
+  tone: GraphTone;
+  path: { atS: number; x: number; y: number }[];
+}
+
+/** Map zone inside the drawing (top view): a frame plus fixed markers and dashed rings. */
+export interface GraphMap {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  /** `r` in drawing units; a ring is dashed. */
+  marks: { x: number; y: number; label: string; r?: number; tone: GraphTone }[];
+}
+
+/** Animated decision logic: boxes and arrows appear in order and robots move over a top-view map. */
+export interface GraphItem extends Timed {
+  kind: "graph";
+  kicker: string;
+  title: string;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  tokens?: GraphToken[];
+  map?: GraphMap;
+}
+
+export type OverlayItem = CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem;
 
 /** Items visible at `tRel` seconds after the scene start. */
 export function overlaysActiveAt(items: readonly OverlayItem[], tRel: number): OverlayItem[] {
@@ -134,6 +188,23 @@ export function vitalsAt(keys: readonly VitalsKey[], tRel: number): VitalsKey {
   };
 }
 
+/** Position of a token at `t` seconds after the item start; clamps before the first and after the last key. */
+export function tokenAt(path: GraphToken["path"], t: number): { x: number; y: number } {
+  if (path.length === 0) throw new Error("token path is empty");
+  if (t <= path[0].atS) return { x: path[0].x, y: path[0].y };
+  const last = path[path.length - 1];
+  if (t >= last.atS) return { x: last.x, y: last.y };
+  let i = 0;
+  while (i + 1 < path.length && path[i + 1].atS <= t) i++;
+  const a = path[i];
+  const b = path[i + 1];
+  const u = (t - a.atS) / (b.atS - a.atS);
+  return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
+}
+
+/** Seconds a graph arrow takes to draw. */
+export const EDGE_DRAW_S = 0.9;
+
 /** Throws a readable message when a scene's overlay list is inconsistent (used by tests). */
 export function validateOverlays(items: readonly OverlayItem[], durationS: number): string[] {
   const problems: string[] = [];
@@ -143,6 +214,12 @@ export function validateOverlays(items: readonly OverlayItem[], durationS: numbe
     ids.add(i.id);
     if (!(i.fromS >= 0 && i.toS > i.fromS)) problems.push(`${i.id}: bad window`);
     if (i.toS > durationS + 1e-9) problems.push(`${i.id}: ends after the scene`);
+    if (i.kind === "graph") {
+      const nodeIds = new Set(i.nodes.map((n) => n.id));
+      for (const e of i.edges) if (!nodeIds.has(e.from) || !nodeIds.has(e.to)) problems.push(`${i.id}: edge ${e.from}->${e.to} has no box`);
+      for (const k of i.tokens ?? []) if (k.path.some((p, n) => n > 0 && p.atS <= k.path[n - 1].atS)) problems.push(`${i.id}: token ${k.id} keys not increasing`);
+      for (const n of i.nodes) if (n.atS > i.toS - i.fromS) problems.push(`${i.id}: box ${n.id} appears after the item ends`);
+    }
     if (i.kind === "vitals" && i.keys.some((k, n) => n > 0 && k.atS <= i.keys[n - 1].atS)) problems.push(`${i.id}: keys not increasing`);
   }
   return problems;

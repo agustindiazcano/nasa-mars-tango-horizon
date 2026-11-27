@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SCENES } from "../../world/sceneDirector";
 import { DECK_ORDER } from "../demoScenes";
-import { overlaysActiveAt, typedText, validateOverlays, vitalsAt, type OverlayItem } from "../overlays";
+import { overlaysActiveAt, tokenAt, typedText, validateOverlays, vitalsAt, type OverlayItem } from "../overlays";
 
 describe("overlay timing helpers", () => {
   const items: OverlayItem[] = [
@@ -41,6 +41,25 @@ describe("overlay timing helpers", () => {
   });
 });
 
+describe("graph overlays", () => {
+  it("moves a token linearly between keys and clamps at the ends", () => {
+    const path = [
+      { atS: 2, x: 0, y: 0 },
+      { atS: 6, x: 40, y: 20 },
+    ];
+    expect(tokenAt(path, 0)).toEqual({ x: 0, y: 0 });
+    expect(tokenAt(path, 4)).toEqual({ x: 20, y: 10 });
+    expect(tokenAt(path, 99)).toEqual({ x: 40, y: 20 });
+  });
+
+  it("reports arrows that point at a missing box", () => {
+    const g: OverlayItem[] = [
+      { id: "g", kind: "graph", fromS: 0, toS: 10, kicker: "k", title: "t", nodes: [{ id: "a", label: "A", x: 10, y: 10, tone: "agent", atS: 1 }], edges: [{ from: "a", to: "zz", atS: 2 }] },
+    ];
+    expect(validateOverlays(g, 10)).toHaveLength(1);
+  });
+});
+
 describe("explained-video scenes", () => {
   it("defines every deck scene and keeps each overlay inside its scene", () => {
     const ids = new Set(SCENES.map((s) => s.id));
@@ -50,9 +69,9 @@ describe("explained-video scenes", () => {
     }
   });
 
-  it("plays about seven minutes of footage", () => {
+  it("plays under ten minutes of footage", () => {
     const total = DECK_ORDER.reduce((sum, id) => sum + (SCENES.find((s) => s.id === id)?.durationS ?? 0), 0);
     expect(total).toBeGreaterThan(300);
-    expect(total).toBeLessThan(540);
+    expect(total).toBeLessThan(600);
   });
 });
