@@ -863,6 +863,7 @@ function animate(now: number): void {
     camera.lookAt(shot.target.x, shot.target.y, shot.target.z);
   }
   scenePanel.update();
+  overlayLayer.setBrand(sceneDirector.state !== "idle");
   overlayLayer.update(sceneDirector.state === "idle" ? undefined : sceneDirector.active?.overlay, sceneDirector.sceneTimeS);
   narrationFeeder.sync(rescue.elapsedS, store.activeScenario === "rescue");
   agentChat.update(store.hudVisible);

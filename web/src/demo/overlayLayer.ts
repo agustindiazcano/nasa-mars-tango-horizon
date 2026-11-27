@@ -65,15 +65,27 @@ export class OverlayLayer {
   private root: HTMLElement;
   private views = new Map<string, View>();
   private voiceStack: HTMLElement;
+  private brand: HTMLImageElement;
 
   constructor(parent: HTMLElement = document.body) {
     this.root = document.createElement("div");
     this.root.id = "demo-overlay";
     this.root.className = "demo-overlay";
+    this.brand = document.createElement("img");
+    this.brand.className = "ov-brand";
+    this.brand.src = "/images/th-logo-192.jpg";
+    this.brand.alt = "Tango Horizon";
+    this.brand.style.display = "none";
+    this.root.appendChild(this.brand);
     this.voiceStack = document.createElement("div");
     this.voiceStack.className = "ov-voice-stack";
     this.root.appendChild(this.voiceStack);
     parent.appendChild(this.root);
+  }
+
+  /** Shows the project logo in a corner while a take or presentation is running. */
+  setBrand(visible: boolean): void {
+    this.brand.style.display = visible ? "block" : "none";
   }
 
   /** Removes every overlay immediately (scene change or stop). */
@@ -160,6 +172,15 @@ export class OverlayLayer {
           `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div>` +
           `<div class="ov-order">&ldquo;${esc(item.order)}&rdquo;</div><div class="ov-stages"></div><div class="ov-verdict"></div>`;
         this.root.appendChild(el);
+        break;
+      case "image":
+        el.classList.add(item.place ?? "top-right");
+        el.innerHTML = `<img src="${esc(item.src)}" alt="${esc(item.caption)}" /><div class="ov-cap">${esc(item.caption)}</div>`;
+        this.root.appendChild(el);
+        break;
+      case "visor":
+        el.innerHTML = `<div class="ov-visor-ring"></div><div class="ov-visor-label">${esc(item.label)}</div><div class="ov-visor-reticle"></div>`;
+        this.root.insertBefore(el, this.root.firstChild);
         break;
       case "graph":
         el.innerHTML = `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div>${graphSvg(item, `g-${item.id}`)}`;

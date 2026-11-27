@@ -155,7 +155,22 @@ export interface GraphItem extends Timed {
   map?: GraphMap;
 }
 
-export type OverlayItem = CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem;
+/** Still picture with a caption (for example the rescue robot towing a casualty). */
+export interface ImageItem extends Timed {
+  kind: "image";
+  src: string;
+  caption: string;
+  /** Defaults to the top-right corner; `banner` centres a wide header picture at the top of the screen. */
+  place?: "top-right" | "mid-right" | "banner";
+}
+
+/** Helmet visor frame: vignette, reticle and a label, for point-of-view shots. */
+export interface VisorItem extends Timed {
+  kind: "visor";
+  label: string;
+}
+
+export type OverlayItem = CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
 
 /** Items visible at `tRel` seconds after the scene start. */
 export function overlaysActiveAt(items: readonly OverlayItem[], tRel: number): OverlayItem[] {
