@@ -17,9 +17,13 @@ export interface CardItem extends Timed {
   side: "left" | "center";
   kicker: string;
   title: string;
+  /** Icon shown beside the title (name from `icons.ts`). */
+  icon?: string;
   subtitle?: string;
   bullets?: string[];
-  stats?: { value: string; label: string }[];
+  /** One icon per bullet, same order. */
+  bulletIcons?: string[];
+  stats?: { value: string; label: string; icon?: string }[];
   /** Small print under the card (limits, sources). */
   note?: string;
 }
@@ -29,7 +33,7 @@ export interface FlowItem extends Timed {
   kind: "flow";
   kicker: string;
   title: string;
-  steps: { label: string; detail: string }[];
+  steps: { label: string; detail: string; icon?: string }[];
 }
 
 /** One line of the scripted voice conversation. `crew` lines show a waveform and type out like speech. */
@@ -38,6 +42,8 @@ export interface VoiceItem extends Timed {
   who: "crew" | "agent" | "guardian";
   speaker: string;
   text: string;
+  /** Overrides the default icon of the speaker. */
+  icon?: string;
 }
 
 /** Coordinates chip. */
@@ -53,6 +59,7 @@ export interface LowerItem extends Timed {
   kind: "lower";
   title: string;
   detail?: string;
+  icon?: string;
   /** `alert` draws the caption as a flashing red alarm. */
   level?: "info" | "alert";
 }
@@ -98,7 +105,7 @@ export interface GridItem extends Timed {
   kind: "grid";
   kicker: string;
   title: string;
-  chips: { label: string; detail: string }[];
+  chips: { label: string; detail: string; icon?: string }[];
 }
 
 export type GraphTone = "crew" | "agent" | "guard" | "robot" | "world";
@@ -112,6 +119,7 @@ export interface GraphNode {
   y: number;
   w?: number;
   tone: GraphTone;
+  icon?: string;
   /** Seconds after the item starts at which the box appears. */
   atS: number;
 }
@@ -170,7 +178,21 @@ export interface VisorItem extends Timed {
   label: string;
 }
 
-export type OverlayItem = CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
+/**
+ * Glow on a part of the live HUD, with a short callout (icon and label) beside it. `target` is a CSS selector of
+ * the HUD element; the glow follows the item window, so the tour is identical on every take.
+ */
+export interface GlowItem extends Timed {
+  kind: "glow";
+  target: string;
+  label: string;
+  detail?: string;
+  icon?: string;
+  /** Callout side relative to the element (default: the side with more room). */
+  side?: "left" | "right" | "above" | "below";
+}
+
+export type OverlayItem = GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
 
 /** Items visible at `tRel` seconds after the scene start. */
 export function overlaysActiveAt(items: readonly OverlayItem[], tRel: number): OverlayItem[] {

@@ -53,6 +53,10 @@ export interface SceneDef {
   layer?: LayerId;
   /** Explanatory overlays (cards, conversation, coordinates), keyed to scene-relative seconds. */
   overlay?: readonly OverlayItem[];
+  /** Keeps the live HUD on screen even when the panel hides it for clean takes (the HUD tour scene). */
+  showHud?: boolean;
+  /** First-person helmet view: the astronaut's own body is hidden and the camera sits at head height. */
+  pov?: "1st";
 }
 
 const CORE_SCENES: readonly SceneDef[] = [
