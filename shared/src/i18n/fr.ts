@@ -217,6 +217,11 @@ export const fr: Record<Key, string> = {
   "scene.a1": "Architecture",
   "scene.v1": "Ordre vocal et envoi",
   "scene.l1": "Lancement du support vital",
+  "scene.w1": "Ordre vocal au drone",
+  "scene.r1": "Flux du sauvetage",
+  "scene.l0": "Flux du support vital",
+  "scene.t1": "Alerte tempête, vue satellite",
+  "scene.t2": "Tempête, vue du casque",
   "scene.h1": "Suivi de santé",
   "scene.m1": "Hydration Prospector",
   "scene.m2": "Storm Nowcaster",
@@ -256,6 +261,7 @@ export const fr: Record<Key, string> = {
 
   // 3D Viewer & Comms UI keys
   "hud.title": "TANGO HORIZON // BANC 3D",
+  "hud.winner": "LAURÉAT CATÉGORIE IMPACT · BUENOS AIRES, ARGENTINE · 450+ PARTICIPANTS",
   "hud.pao2": "PAO2 Alvéolaire",
   "hud.fan": "Ventilateur PLSS",
   "hud.leak_timer": "COMPTE À REBOURS FUITE",

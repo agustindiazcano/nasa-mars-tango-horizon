@@ -217,6 +217,11 @@ export const de: Record<Key, string> = {
   "scene.a1": "Architektur",
   "scene.v1": "Sprachbefehl und Einsatz",
   "scene.l1": "Start der Lebenserhaltung",
+  "scene.w1": "Sprachbefehl an die Drohne",
+  "scene.r1": "Ablauf der Rettung",
+  "scene.l0": "Ablauf der Lebenserhaltung",
+  "scene.t1": "Sturmwarnung, Satellitenansicht",
+  "scene.t2": "Sturm, Helmansicht",
   "scene.h1": "Gesundheitsüberwachung",
   "scene.m1": "Hydration Prospector",
   "scene.m2": "Storm Nowcaster",
@@ -256,6 +261,7 @@ export const de: Record<Key, string> = {
 
   // 3D Viewer & Comms UI keys
   "hud.title": "TANGO HORIZON // 3D TESTUMGEBUNG",
+  "hud.winner": "GEWINNER KATEGORIE IMPACT · BUENOS AIRES, ARGENTINIEN · 450+ TEILNEHMENDE",
   "hud.pao2": "Alveolärer PAO2",
   "hud.fan": "PLSS-Lüfter",
   "hud.leak_timer": "LECK-COUNTDOWN",

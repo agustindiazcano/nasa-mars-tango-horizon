@@ -1,5 +1,5 @@
 import type { LayerId } from "@th/shared";
-import { DEMO_SCENES, DECK_ORDER } from "../demo/demoScenes";
+import { DEMO_SCENES, DECK_ORDER, RESCUE_DIALOGUE_S5, RESCUE_DIALOGUE_S6, RESCUE_DIALOGUE_S7 } from "../demo/demoScenes";
 import type { OverlayItem } from "../demo/overlays";
 import { clampAboveTerrain, type Vec3 } from "./cinematicCams";
 
@@ -36,8 +36,10 @@ export interface ShotSegment {
   radius?: number;
   height?: number;
   speed?: number;
-  /** Height above the target at which the camera looks (m). */
+  /** Height above the look point at which the camera looks (m). */
   lookAboveM?: number;
+  /** Entity to look at instead of `target` (a point-of-view shot: camera on the crew, looking at a robot). */
+  lookAt?: string | string[];
 }
 
 export interface SceneDef {
@@ -118,6 +120,7 @@ const CORE_SCENES: readonly SceneDef[] = [
       { fromS: 7, kind: "follow", target: "rescue-bot-1", offset: { x: 9, y: 3, z: 9 }, lookAboveM: 0.6 },
       { fromS: 14, kind: "aerial", target: "pit", offset: { x: 10, y: 9, z: 10 }, lookAboveM: -2 },
     ],
+    overlay: RESCUE_DIALOGUE_S5,
   },
   {
     id: "S6",
@@ -131,6 +134,7 @@ const CORE_SCENES: readonly SceneDef[] = [
       { fromS: 10, kind: "follow", target: "rescue-bot-1", offset: { x: 7, y: 3.5, z: -7 }, lookAboveM: 0.5 },
       { fromS: 22, kind: "aerial", target: "rescue-1", offset: { x: 12, y: 5, z: -12 }, lookAboveM: 1 },
     ],
+    overlay: RESCUE_DIALOGUE_S6,
   },
   {
     id: "S7",
@@ -138,6 +142,7 @@ const CORE_SCENES: readonly SceneDef[] = [
     startS: 166,
     durationS: 14,
     segments: [{ fromS: 0, kind: "aerial", target: "rescue-1", offset: { x: 25, y: 6, z: 30 }, lookAboveM: 2 }],
+    overlay: RESCUE_DIALOGUE_S7,
   },
 ];
 
@@ -182,8 +187,8 @@ export function scenePose(scene: SceneDef, tRel: number, ctx: PoseContext): Shot
   const segment = segmentIndexAt(scene, tRel);
   const seg = scene.segments[segment];
   const tgt = resolveTarget(seg.target, ctx);
-  const lookY = tgt.y + (seg.lookAboveM ?? 0);
-  const target: Vec3 = { x: tgt.x, y: lookY, z: tgt.z };
+  const look = seg.lookAt ? resolveTarget(seg.lookAt, ctx) : tgt;
+  const target: Vec3 = { x: look.x, y: look.y + (seg.lookAboveM ?? 0), z: look.z };
   let pos: Vec3;
   if (seg.kind === "orbit") {
     const ang = (seg.startRad ?? 0) + (seg.speed ?? 0.2) * (tRel - seg.fromS);
@@ -248,11 +253,28 @@ export class SceneDirector {
     return true;
   }
 
+  /** Scene ids in play order for stepping: the running sequence, or the deck order for a single take. */
+  private order: string[] = [...DECK_ORDER];
+
+  /** Jumps `delta` scenes forward or back (clamped), keeping the rest of the sequence queued. Returns false at an end. */
+  step(delta: number): boolean {
+    if (!this.activeId) return false;
+    const list = this.order.includes(this.activeId) ? this.order : [...DECK_ORDER];
+    const idx = list.indexOf(this.activeId);
+    const target = idx + delta;
+    if (idx < 0 || target < 0 || target >= list.length) return false;
+    this.queue = list.slice(target + 1);
+    this.inSequence = this.queue.length > 0;
+    this.order = list;
+    return this.play(list[target]);
+  }
+
   /** Plays the given scenes (default: all) one after another, hard cut between them. */
   playSequence(ids: readonly string[] = DECK_ORDER): boolean {
     const list = ids.filter((id) => this.scenes.some((x) => x.id === id));
     if (list.length === 0) return false;
     this.queue = list.slice(1);
+    this.order = list;
     this.inSequence = true;
     return this.play(list[0]);
   }

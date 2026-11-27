@@ -988,3 +988,24 @@ body > button:not([id]) { left: var(--hud-edge); right: auto !important; }
   #scene-panel:not(.open) { top: auto; left: auto; right: var(--hud-edge); width: 130px; transform: none; bottom: calc(var(--console-bottom) + var(--console-height) + 130px); }
   #scene-panel.open { top: 90px; max-height: calc(100dvh - 110px); overflow-y: auto; }
 }
+
+/* Award badge in the top bar */
+.gold-badge {
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  background: linear-gradient(90deg, #b8860b, #ffe27a 45%, #d4a017 70%, #ffe9a0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 14px rgba(255, 210, 90, 0.35);
+}
+
+/* Project logo in the top bar */
+.hud-brand { display: inline-flex; align-items: center; gap: 8px; }
+.hud-logo { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1px rgba(255, 179, 107, 0.5); }

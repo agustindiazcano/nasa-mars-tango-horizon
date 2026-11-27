@@ -33,12 +33,12 @@ export class SkyDust {
         void main() {
           vec3 d = normalize(vWorldDir);
           float h = clamp(d.y, 0.0, 1.0);
-          float storm = clamp((uTau - 0.5) / 6.0, 0.0, 1.0);
+          float storm = clamp((uTau - 0.5) / 3.5, 0.0, 1.0);
 
           vec3 horizonClear = vec3(0.86, 0.52, 0.31);
           vec3 zenithClear  = vec3(0.42, 0.25, 0.17);
-          vec3 horizonStorm = vec3(0.56, 0.31, 0.17);
-          vec3 zenithStorm  = vec3(0.30, 0.16, 0.10);
+          vec3 horizonStorm = vec3(0.26, 0.13, 0.075);
+          vec3 zenithStorm  = vec3(0.10, 0.05, 0.035);
 
           vec3 skyCol = mix(mix(horizonClear, zenithClear, pow(h, 0.52)),
                             mix(horizonStorm, zenithStorm, pow(h, 0.52)), storm);
@@ -156,15 +156,15 @@ export class SkyDust {
     this.dustMat.uniforms.uWind.value.set(Math.cos(windDirRad) * windMs, Math.sin(windDirRad) * windMs);
     this.dust.position.set(anchorX, anchorY - 2, anchorZ);
 
-    const storm = THREE.MathUtils.clamp((tau - 0.5) / 6.0, 0, 1);
-    this.sunLight.intensity = THREE.MathUtils.lerp(2.4, 0.45, storm);
+    const storm = THREE.MathUtils.clamp((tau - 0.5) / 3.5, 0, 1);
+    this.sunLight.intensity = THREE.MathUtils.lerp(2.4, 0.36, storm);
     this.sunLight.position.set(anchorX, anchorY, anchorZ).addScaledVector(this.sunDir, 500);
-    this.ambientLight.intensity = THREE.MathUtils.lerp(1.0, 0.45, storm);
+    this.ambientLight.intensity = THREE.MathUtils.lerp(1.0, 0.4, storm);
 
     const fogColor = new THREE.Color().setRGB(
-      THREE.MathUtils.lerp(0.78, 0.56, storm),
-      THREE.MathUtils.lerp(0.53, 0.35, storm),
-      THREE.MathUtils.lerp(0.35, 0.21, storm),
+      THREE.MathUtils.lerp(0.78, 0.2, storm),
+      THREE.MathUtils.lerp(0.53, 0.115, storm),
+      THREE.MathUtils.lerp(0.35, 0.07, storm),
     );
     const fogDensity = 0.00038 + Math.max(0, tau - 0.4) * 0.0048;
     if (!scene.fog || !(scene.fog instanceof THREE.FogExp2)) {

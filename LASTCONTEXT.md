@@ -4,20 +4,28 @@
 
 ## Work done
 
-- Restored the Starship (owner request): reverted `b758c44`, which brings back `rocket.glb`, its manifest/`ModelId`/spec entries, the procedural stack, launch mount, tower and label in `launchSiteProc.ts`, the original `S0`/`S1`/`CAM-3` framing and the "Starship" i18n strings. The `rockets` GLB is no longer used on the pad.
-- Restored `docs/media/starship-pad.jpg` and `starship-distance.jpg` from history.
-- Added slide 6 "Starship on Mars" to `docs/slides/TANGO_HORIZON_English.pptx` (now 8 slides). Eyebrow numbers, footer counters (`/08`) and timings were shifted; slide 5 now ends at 01:50.
-- Restored `asset-1..3` (inflatable habitat, lab with ramp, twin domes) from history on branch `feat/restore-nasa-buildings`: greenhouse uses `asset-1`, lab `asset-2`, shelter `asset-3`; footprints back to 18x11.45, 14x8.5, 14x4.97 m. Checked in the model lab contact sheet and the aerial base view; no close-up shot of the three buildings yet. `provenance.test.ts` was already failing (stale `models/mro.glb` entry).
-- Drone rotors (`drone-new`): `tools/assets/split-drone-rotors.mjs` splits the fused scan mesh into a body plus eight `rotor_<corner>_<layer>` pivot nodes (two coaxial layers on each of four arms); `collectDroneRotorPivots` in `nasaModels.ts` feeds `fleetProc.ts`, which spins them (32 rad/s flying, 0.5 rad/s landed, alternating sense in `node.extras.spinDir`). The original blades are reused, no substitute rotors. A few tiny scan fragments near the hubs were not moved; GLB grew from 0.66 to 1.0 MB. Checked in the model lab with a rotated debug build and in the running app (8 pivots, correct senses); live spin not filmed.
-- Explained video (plan 25): `web/src/demo/` overlay layer (cards, agent flow, scripted voice conversation, coordinates chip, lower thirds, scripted life-support panel) and nine new scenes `C0 P0 A1 V1 L1 H1 M1 M2 M3 E1` in `demoScenes.ts`; `Play all` now plays `DECK_ORDER` (about 6 min, `S0`-`S4` stay selectable). Scene `L1` fires the cannon at 4 s (flash, smoke), the pod flies about 34 s, opens and lifts its four payload items. ML metrics in slides and scripts now match the README. Script: `docs/slides/VIDEO_SCRIPT_6MIN.md`. Viewed live: `C0`, `A1`, `V1`, `L1`, `H1`, `M1`.
-- `tsc --noEmit` on `web/` and `modelLibrary.test.ts` pass. CI not run yet.
+- Removed the yellow LiDAR coverage discs (`lidarRing.ts` deleted) and the green LiDAR cone under the drones in `fleetProc.ts`.
+- New overlay kind `graph` (`web/src/demo/overlays.ts`, `overlayLayer.ts`, `overlay.css`): animated decision diagram with boxes and arrows that appear in order, travelling pulses and robot markers moving over a schematic top-view map. Deterministic from scene time.
+- Voice dialogue is larger (32 px, 28 px beside a graph; the stack moves to the right when a graph is shown).
+- New scenes: `W1` voice order to drone (astronaut point of view via the new `lookAt` shot field, graph `voice -> VOICE-EXEC -> BASE -> ROBOT -> GUARDIAN -> fly_to`), `R1` rescue flow (graph with rescue-1, drones and robot on the map), `L0` life-support flow slide that now plays before the cannon takes `L1`.
+- Rescue dialogue overlays added to `S5`, `S6`, `S7` (texts taken from the rescue events).
+- `DECK_ORDER`: C0 P0 A1 W1 G1 V1 R1 L0 L1 H1 F1 M1 M2 M3 S5 S6 S7 E1 (about 9.5 min; the footage-length test limit is now 10 min). Scene names added in the five languages (`@th/shared` must be rebuilt for the web dev server: `npm run build -w shared`).
+- Checked live: `W1` and `L0` (graph, dialogue, drone leaving in the astronaut view, no LiDAR discs). Not checked live: `R1`, the `S5`-`S7` dialogue, the drones without the green cone.
+- `tsc --noEmit` and vitest (`web/src/demo`, `web/src/world`, `shared`) pass. CI not run yet.
 
-- Merged `main` (site navbar iPhone glass styling, PR #62) into this branch.
+- Second round (same branch): opening trimmed (`C0` 14 s, `P0` 11 s with a cut to the rover); `A1` is now an animated hub graph (astronaut, VOICE-EXEC, BASE, four specialists, robot planners, GUARDIAN, simulator). New scenes `T1` (storm alert from a satellite-style top view) and `T2` (helmet view of SALERNO walking to rescue-1, then the robot towing the casualty). New overlay kinds `image` (the rescue robot towing the casualty, shown in `R1`, `S5`, `S6`) and `visor` (helmet frame, also in `W1`). The storm is darker (sun, ambient, fog and sky in `skyDust.ts`).
+- Removed the black plinth under every base module (`baseProc.ts`); modules sit 0.25 m into the graded pad. Checked live: domes sit on the ground. The launch-site plinths (`launchSiteProc.ts`) were not touched.
+- Gold "Impact Category winner" badge in the HUD top bar (five languages) and the certificate image in both READMEs (`docs/media/impact-winner-certificate.jpeg`).
+- Project logo in the HUD top bar and as a corner watermark during takes; the cover and closing slides show the README banner (`web/public/images/th-banner.jpg`).
+- Left and right arrow keys step to the previous or next scene while a take or presentation runs (`SceneDirector.step`, `ScenePanel`).
+- Loading screen: the falling numbers and letters canvas is gone; the logo is larger and rotates slowly.
+- `T2`: crew-4 walks beside SALERNO to rescue-1 (scripted in `main.ts`); drones are already grounded by then. Storm darkness reaches its maximum at dust opacity 3.5 (sun floor 0.36, ambient floor 0.4). Checked live: `T2`, `S6` (dialogue and towing picture), the darker storm. Not done: a march of more astronauts to the base shelter with drones assisting (needs a new scenario segment).
+- README screenshots refreshed (cover slide, HUD, orchestrator graph, voice-to-drone, storm helmet view); `docs/slides/VIDEO_SCRIPT_6MIN.md` rewritten for the 20-scene deck (about 9.5 minutes).
 
 ## Files touched
 
-`web/src/world/*`, `web/public/models/*`, `shared/src/i18n/*.ts`, `shared/src/physics/sites.ts`, `docs/slides/*`, `docs/media/`, `docs/impl/24_*`.
+`web/src/demo/*`, `web/src/hud/*`, `web/src/world/{fleetProc,sceneDirector,baseProc,skyDust}.ts`, `web/public/images|media`, `shared/src/i18n/*.ts`, `README*.md`.
 
 ## State
 
-The new slide was not rendered (no PowerPoint/LibreOffice on this machine); check layout in PowerPoint. The live visual check of the pad was not done. Not updated: the Spanish script, `site/src/data/slidesDeck.ts` and the READMEs still say "rockets".
+Branch `feat/demo-voice-flow-diagrams`. The map markers are schematic and time compressed (`R1`); the drone token in `W1` follows the real drone timing. Not updated: the slide deck (`TANGO_HORIZON_English.pptx`, `site/src/data/slidesDeck.ts`) does not mention the new scenes.

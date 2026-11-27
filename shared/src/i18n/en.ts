@@ -215,6 +215,11 @@ export const en = {
   "scene.a1": "Architecture",
   "scene.v1": "Voice order and dispatch",
   "scene.l1": "Life-support launch",
+  "scene.w1": "Voice order to drone",
+  "scene.r1": "Rescue flow",
+  "scene.l0": "Life-support flow",
+  "scene.t1": "Storm alert, satellite view",
+  "scene.t2": "Storm, helmet view",
   "scene.h1": "Health monitoring",
   "scene.m1": "Hydration Prospector",
   "scene.m2": "Storm Nowcaster",
@@ -254,6 +259,7 @@ export const en = {
 
   // 3D Viewer & Comms UI keys
   "hud.title": "TANGO HORIZON // 3D TEST HARNESS",
+  "hud.winner": "IMPACT CATEGORY WINNER · BUENOS AIRES, ARGENTINA · 450+ PARTICIPANTS",
   "hud.pao2": "Alveolar PAO2",
   "hud.fan": "PLSS Fan",
   "hud.leak_timer": "LEAK COUNTDOWN",

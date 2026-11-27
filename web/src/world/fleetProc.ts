@@ -1,5 +1,4 @@
 import { fleetStartPos, MANIP_TARGETS } from "@th/shared";
-import { LIDAR_RING_RADIUS_M, LidarRing } from "./lidarRing";
 import { footprintContacts, groundPlacement, type ContactPoint } from "./groundPlacement";
 import * as THREE from "three";
 import { AIRCRAFT_GROUNDING_TAU, planRoute } from "@th/shared";
@@ -66,7 +65,6 @@ export class FleetUnit {
   rotorPivots: RotorPivot[] = [];
   contactPoints?: ContactPoint[];
   proceduralGroup?: THREE.Group;
-  lidarCone?: THREE.Mesh;
   mastCamera?: THREE.PerspectiveCamera;
   mastPivot?: THREE.Group;
   grounded = false;
@@ -151,9 +149,6 @@ export class FleetUnit {
         const spin = this.grounded ? 0.5 * sense : 32 * sense;
         rp.pivot.rotation[rp.axis] += spin * dt;
       }
-      if (this.lidarCone) {
-        this.lidarCone.visible = !this.grounded;
-      }
     } else {
       this.alignToTerrain();
       if (this.scriptPitch !== undefined) o.rotation.x = this.scriptPitch;
@@ -228,8 +223,6 @@ export class FleetProc {
   private handedItemMesh: THREE.Mesh;
   /** While true, `rescue-bot-1` rides in the rear bay of `rescue-1`. */
   private rescueBotStowed = true;
-  /** Yellow LiDAR coverage discs on the ground (visual only), keyed by unit id. */
-  private lidarRings = new Map<string, LidarRing>();
 
   constructor(
     private scene: THREE.Scene,
@@ -252,12 +245,6 @@ export class FleetProc {
       const unit = this.createUnit(spec);
       this.units.set(spec.id, unit);
       this.group.add(unit.object);
-      const ring = new LidarRing(
-        spec.flies ? LIDAR_RING_RADIUS_M.air : LIDAR_RING_RADIUS_M.ground,
-        (x, z) => this.terrain.heightAt(x, z),
-      );
-      this.lidarRings.set(spec.id, ring);
-      this.group.add(ring.mesh);
     }
 
     this.orbiterGroup.name = "orbiter:mro";
@@ -486,8 +473,6 @@ export class FleetProc {
     const cam = unit.mastCamera;
     if (!cam) return "";
     unit.object.updateMatrixWorld(true);
-    const prevConeVis = unit.lidarCone ? unit.lidarCone.visible : false;
-    if (unit.lidarCone) unit.lidarCone.visible = false;
     const prevTarget = renderer.getRenderTarget();
     renderer.setRenderTarget(this.renderTarget);
     renderer.render(this.scene, cam);
@@ -497,7 +482,6 @@ export class FleetProc {
     const pixels = new Uint8Array(w * h * 4);
     renderer.readRenderTargetPixels(this.renderTarget, 0, 0, w, h, pixels);
     renderer.setRenderTarget(prevTarget);
-    if (unit.lidarCone) unit.lidarCone.visible = prevConeVis;
 
     const canvas = document.createElement("canvas");
     canvas.width = w;
@@ -546,12 +530,6 @@ export class FleetProc {
       u.update(dt, tau);
     }
     this.updateRescueBotStow();
-    for (const [id, ring] of this.lidarRings) {
-      const u = this.units.get(id);
-      if (!u) continue;
-      const stowed = id === "rescue-bot-1" && this.rescueBotStowed;
-      ring.update(u.object.position.x, u.object.position.z, u.object.visible && !stowed && !(u.spec.flies && u.grounded));
-    }
     this.updateOrbiter(dt);
     this.manipRunner.update(dt);
     void this.pendingSkill;
@@ -695,10 +673,13 @@ export class FleetProc {
 
     const orbiter = this.buildProceduralOrbiter();
     this.orbiterGroup.add(orbiter);
-    const lbl = makeSpriteLabel("MARS RELAY ORBITER", "#35e0ff");
-    lbl.position.y = 9.5;
-    lbl.scale.set(28, 5.2, 1);
-    this.orbiterGroup.add(lbl);
+    // Labels need a canvas; the server tests run this code without a DOM.
+    if (typeof document !== "undefined") {
+      const lbl = makeSpriteLabel("MARS RELAY ORBITER", "#35e0ff");
+      lbl.position.y = 9.5;
+      lbl.scale.set(28, 5.2, 1);
+      this.orbiterGroup.add(lbl);
+    }
     this.updateOrbiter(0);
   }
 
@@ -833,21 +814,6 @@ export class FleetProc {
         procGroup.add(rotorGroup);
         unit.rotors.push(rotorGroup);
       }
-
-      // Green LiDAR scan cone
-      const cone = new THREE.Mesh(
-        new THREE.ConeGeometry(5.5, 14, 18, 1, true),
-        new THREE.MeshBasicMaterial({
-          color: 0x35ff96,
-          transparent: true,
-          opacity: 0.12,
-          side: THREE.DoubleSide,
-          depthWrite: false,
-        }),
-      );
-      cone.position.y = -7.2;
-      g.add(cone);
-      unit.lidarCone = cone;
 
       // Onboard aerial camera mounted on root Group (g) so it survives ingenuity.glb swap
       const droneCamMount = new THREE.Group();

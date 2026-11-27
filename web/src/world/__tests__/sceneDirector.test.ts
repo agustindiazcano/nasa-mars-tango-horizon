@@ -124,3 +124,26 @@ describe("SceneDirector", () => {
     expect(Math.hypot(b.pos.x - a.pos.x, b.pos.z - a.pos.z)).toBeGreaterThan(0);
   });
 });
+
+describe("stepping between scenes", () => {
+  it("moves forward and back in the deck order and keeps the rest queued", () => {
+    const d = new SceneDirector(new FakeScenario());
+    d.playSequence(["C0", "P0", "A1"]);
+    expect(d.activeId).toBe("C0");
+    expect(d.step(-1)).toBe(false);
+    expect(d.step(1)).toBe(true);
+    expect(d.activeId).toBe("P0");
+    expect(d.step(1)).toBe(true);
+    expect(d.activeId).toBe("A1");
+    expect(d.step(1)).toBe(false);
+    expect(d.step(-2)).toBe(true);
+    expect(d.activeId).toBe("C0");
+  });
+
+  it("steps through the deck from a single take", () => {
+    const d = new SceneDirector(new FakeScenario());
+    d.play("A1");
+    expect(d.step(1)).toBe(true);
+    expect(d.activeId).not.toBe("A1");
+  });
+});

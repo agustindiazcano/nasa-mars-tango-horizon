@@ -2,6 +2,8 @@
 
 **Tango Horizon:** NASA Space Apps Challenge 2026 project among 450+ participants in Buenos Aires · [Project page](https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project) · [Universidad de Palermo: NASA Space Apps Challenge host site](https://www.palermo.edu/ingenieria/2026/noviembre/up-sede-nasa-space-apps-challenge.html) · [Universidad de Palermo video on Facebook](https://www.facebook.com/universidaddepalermo/videos/as%C3%AD-se-vivi%C3%B3-el-nasa-space-apps-challenge-en-la-upla-universidad-de-palermo-fue-/1829309231323121/) · [Instagram reel](https://www.instagram.com/reels/DgH_go-JCgu/) · [Post on X](https://x.com/udepalermo/status/2125210609981456661)
 
+<p align="center"><img src="docs/media/impact-winner-certificate.jpeg" alt="Judges' Choice Award - Impact Category certificate for Tango Horizon, NASA Space Apps Challenge 2026" width="60%" /><br/><sub>Judges' Choice Award, Impact Category: certificate of the 2026 NASA Space Apps Challenge, Buenos Aires (450+ participants).</sub></p>
+
 <p align="center"><img src="docs/tango-horizon-banner.png" alt="Tango Horizon: AI Systems for EVA and Mars Exploration" width="100%" /></p>
 
 [![Leer en español](https://img.shields.io/badge/Leer%20en-espa%C3%B1ol-0ea5e9?style=for-the-badge)](README_ES.md)
@@ -58,12 +60,20 @@
 
 <table>
 <tr>
-<td width="50%"><img src="docs/media/starship-sunlit.jpg" alt="Starship on its launch pad" width="100%" /><br/><sub>Starship launch complex on Mars, lit by the sun.</sub></td>
-<td width="50%"><img src="docs/media/ai-architecture.jpg" alt="AI agent architecture" width="100%" /><br/><sub>The AI team: voice, coordinator, specialists, tools and the safety gate.</sub></td>
+<td width="50%"><img src="docs/media/cover-slide.jpg" alt="Cover slide" width="100%" /><br/><sub>Cover of the explained video: project, event and sponsors.</sub></td>
+<td width="50%"><img src="docs/media/hud-overview.jpg" alt="Simulator HUD" width="100%" /><br/><sub>The simulator: crew, life support, AI console and the award badge.</sub></td>
 </tr>
 <tr>
+<td width="50%"><img src="docs/media/starship-sunlit.jpg" alt="Starship on its launch pad" width="100%" /><br/><sub>Starship launch complex on Mars, lit by the sun.</sub></td>
+<td width="50%"><img src="docs/media/ai-orchestrator-graph.jpg" alt="AI orchestrator" width="100%" /><br/><sub>One AI team orchestrates the base: voice, BASE, specialists, robots and the safety gate.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/voice-to-drone.jpg" alt="Voice order to drone" width="100%" /><br/><sub>A spoken order becomes two drone flights, seen from the astronaut's helmet.</sub></td>
 <td width="50%"><img src="docs/media/ai-guardian-decision.jpg" alt="GUARDIAN decision" width="100%" /><br/><sub>GUARDIAN checks an order: hard rules, AI judge and a three-model vote.</sub></td>
+</tr>
+<tr>
 <td width="50%"><img src="docs/media/health-alarm.jpg" alt="Health alarm" width="100%" /><br/><sub>Health monitoring: the suit pressure falls, the alarm goes off and the AI notifies BASE.</sub></td>
+<td width="50%"><img src="docs/media/storm-helmet.jpg" alt="Dust storm from the helmet" width="100%" /><br/><sub>Dust storm at full strength, seen from an astronaut walking to the rescue vehicle.</sub></td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/media/life-support-pod.jpg" alt="Life-support pod with parachute" width="100%" /><br/><sub>The life-support pod descends on its parachute toward the astronaut.</sub></td>
