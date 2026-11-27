@@ -2,6 +2,8 @@
 
 **Tango Horizon:** proyecto del NASA Space Apps Challenge 2026 entre más de 450 participantes en Buenos Aires · [Página del proyecto](https://www.spaceappschallenge.org/2026/find-a-team/tango-horizon/?tab=project) · [Universidad de Palermo: sede del NASA Space Apps Challenge](https://www.palermo.edu/ingenieria/2026/noviembre/up-sede-nasa-space-apps-challenge.html) · [Video de la Universidad de Palermo en Facebook](https://www.facebook.com/universidaddepalermo/videos/as%C3%AD-se-vivi%C3%B3-el-nasa-space-apps-challenge-en-la-upla-universidad-de-palermo-fue-/1829309231323121/) · [Reel de Instagram](https://www.instagram.com/reels/DgH_go-JCgu/) · [Publicación en X](https://x.com/udepalermo/status/2125210609981456661)
 
+<p align="center"><img src="docs/media/impact-winner-certificate.jpeg" alt="Certificado Judges' Choice Award - Impact Category de Tango Horizon, NASA Space Apps Challenge 2026" width="60%" /><br/><sub>Judges' Choice Award, categoría Impact: certificado del NASA Space Apps Challenge 2026, Buenos Aires (más de 450 participantes).</sub></p>
+
 <p align="center"><img src="docs/tango-horizon-banner.png" alt="Tango Horizon: AI Systems for EVA and Mars Exploration" width="100%" /></p>
 
 [![Read in English](https://img.shields.io/badge/Read%20in-English-0ea5e9?style=for-the-badge)](README.md)
