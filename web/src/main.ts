@@ -993,7 +993,6 @@ function stepSimulation(dt: number): void {
   store.crew = rescue.getCrewSnapshots();
 
   podBallistics.updateKeepoutRing(astronaut.pos.x, astronaut.pos.z);
-  podBallistics.update(dt, store.podTelemetry);
 
   if (store.earthDelayRemainingS > 0) {
     store.earthDelayRemainingS = Math.max(0, store.earthDelayRemainingS - dt);
@@ -1054,6 +1053,8 @@ function animate(now: number): void {
     endHelmetTour();
   }
   cannonFx.update(realDt);
+  // The pod advances every rendered frame (not in the 10 Hz step) so the camera that follows it glides.
+  podBallistics.update(realDt * store.simScale, store.podTelemetry);
   podBallistics.tick(realDt);
   const shot = sceneDirector.update(realDt, {
     getPos: (id) => {
