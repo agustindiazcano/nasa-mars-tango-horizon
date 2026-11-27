@@ -8,6 +8,7 @@ import { collectDroneRotorPivots, type RotorPivot } from "./nasaModels";
 import { models, type ModelId, type SpawnedModel } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
+import { applySurface, panelMetal, tireTread } from "./surfaceTextures";
 import { buildRockGeometry } from "./rockGeometry";
 import { makeRockTextures } from "./rockTextures";
 import { buildRescueRobotModel, type RescuePose, type RescueRobotModel } from "./rescueRobotProc";
@@ -831,9 +832,14 @@ export class FleetProc {
               ? 0xff8c2b
               : 0x72f59b;
 
-    const chassisMat = new THREE.MeshStandardMaterial({ color: 0xd6dce2, roughness: 0.45, metalness: 0.4 });
-    const accentMat = new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.4, metalness: 0.3 });
-    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x252a30, roughness: 0.85, metalness: 0.2 });
+    // Painted plates with seams and rivets on the body, tread on the tyres (procedural textures).
+    const chassisMat = applySurface(new THREE.MeshStandardMaterial({ color: 0xd6dce2, roughness: 0.5, metalness: 0.35 }), panelMetal("#d6dce2", 3), 1.2);
+    const accentMat = applySurface(
+      new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.45, metalness: 0.3 }),
+      panelMetal(`#${bodyColor.toString(16).padStart(6, "0")}`, 11),
+      1.2,
+    );
+    const wheelMat = applySurface(new THREE.MeshStandardMaterial({ color: 0x252a30, roughness: 0.9, metalness: 0.1 }), tireTread([5, 1]), 1.6);
 
     if (spec.kind === "rescue_robot") {
       const model = buildRescueRobotModel();
