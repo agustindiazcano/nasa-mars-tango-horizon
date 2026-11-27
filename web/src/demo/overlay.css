@@ -243,3 +243,53 @@
 @keyframes ovOutBanner { to { opacity: 0; transform: translate(-50%, -10px); } }
 .ov-image.banner img { max-height: 38vh; max-width: 86vw; width: auto; height: auto; border-radius: 6px; box-shadow: 0 0 0 1px rgba(255, 179, 107, 0.35), 0 8px 30px rgba(0, 0, 0, 0.55); }
 .ov-image.banner .ov-cap { display: none; }
+
+/* No panel backgrounds: the 3D scene stays visible and the text is separated by a dark outline and shadow */
+.ov-card, .ov-flow, .ov-voice, .ov-coords, .ov-lower, .ov-lower.alert, .ov-vitals, .ov-decision, .ov-grid, .ov-graph, .ov-image {
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.demo-overlay {
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.95), 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.85), 0 0 22px rgba(0, 0, 0, 0.6);
+}
+.ov-graph-svg text { paint-order: stroke fill; stroke: rgba(0, 0, 0, 0.9); stroke-width: 0.45px; stroke-linejoin: round; }
+.ov-graph-svg { filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.9)); }
+.g-node rect, .g-map rect { fill: rgba(0, 0, 0, 0.12); }
+.ov-step, .ov-chip, .ov-stat { background: none; }
+.ov-image img { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6); }
+.ov-image.banner img { box-shadow: none; }
+
+/* Icons: line art, drawn in with a short stroke animation */
+.ov-ico { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; overflow: visible; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.9)); }
+.ov-ico * { stroke-dasharray: 200; stroke-dashoffset: 200; animation: icoDraw 0.9s 0.15s ease-out forwards; }
+@keyframes icoDraw { to { stroke-dashoffset: 0; } }
+.ov-ico-title { width: 1.05em; height: 1.05em; margin-right: 0.28em; vertical-align: -0.12em; color: var(--ok, #ffb36b); }
+.ov-ico-b { position: absolute; left: 0; top: 7px; width: 22px; height: 22px; color: var(--ok, #ffb36b); }
+.ov-bullets li.has-ico { padding-left: 34px; }
+.ov-bullets li.has-ico::before { display: none; }
+.ov-ico-stat { display: block; width: 28px; height: 28px; margin: 0 auto 4px; color: var(--ok, #ffb36b); }
+.ov-ico-chip { float: left; width: 30px; height: 30px; margin: 1px 10px 0 0; color: var(--ok, #ffb36b); }
+.ov-chip b { overflow: hidden; }
+.ov-ico-who { width: 24px; height: 24px; }
+.ov-who { color: inherit; }
+.ov-ico-low { width: 1.15em; height: 1.15em; margin-right: 0.35em; vertical-align: -0.2em; }
+.ov-lower.alert .ov-ico-low { color: var(--crit, #ff4d5e); }
+.g-icon { color: currentColor; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.g-icon * { stroke-dasharray: none; stroke-dashoffset: 0; animation: none; }
+.g-icon { text-shadow: none; }
+.g-node.hot .g-icon { stroke-width: 2.1; }
+
+/* Glow tour of the live HUD */
+.th-glow {
+  box-shadow: 0 0 0 3px rgba(255, 179, 107, calc(1 * var(--glow-a, 1))), 0 0 34px 10px rgba(255, 179, 107, calc(0.8 * var(--glow-a, 1))), inset 0 0 34px rgba(255, 179, 107, calc(0.3 * var(--glow-a, 1))) !important;
+  filter: brightness(1.25) saturate(1.15);
+  animation: glowPulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes glowPulse { to { filter: brightness(1.45) saturate(1.2); } }
+.ov-glow { display: flex; align-items: center; gap: 12px; max-width: 360px; padding: 8px 14px 8px 10px; border: 1px solid rgba(255, 179, 107, 0.7); border-radius: 4px; background: rgba(8, 12, 16, 0.55); box-shadow: 0 0 18px rgba(255, 179, 107, 0.35); animation: none; }
+.ov-glow-text b { display: block; font-size: 22px; letter-spacing: 0.1em; color: var(--ok, #ffb36b); }
+.ov-glow-text span { display: block; font-size: 16px; line-height: 1.2; }
+.ov-ico-glow { width: 36px; height: 36px; color: var(--ok, #ffb36b); }
+
+.ov-graph-svg text.g-left { text-anchor: start; }

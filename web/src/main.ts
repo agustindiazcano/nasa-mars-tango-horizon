@@ -1,4 +1,4 @@
-import { BASE_ORIGIN, CREW4_START, LAUNCHER_PRIMARY_COORD, READY_TERRAIN, RESCUE_SITE } from "@th/shared";
+import { ASTRONAUT_START, BASE_ORIGIN, CREW4_START, fleetStartPos, LAUNCHER_PRIMARY_COORD, READY_TERRAIN, RESCUE_SITE } from "@th/shared";
 import "./hud/hud.css";
 import { createLoadingOverlay } from "./hud/loadingOverlay";
 import { installHistoricalArchive } from "./hud/historicalArchive";
@@ -39,6 +39,7 @@ import { CannonFx, PodPayloadFx } from "./demo/lifeSupportFx";
 import { OverlayLayer } from "./demo/overlayLayer";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
 import { SceneDirector } from "./world/sceneDirector";
+import { U1_CREW4, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_ORDER_S, u1Drone, u1Gaze, u1Walker } from "./world/uiTourScript";
 import { RescueLitter } from "./world/rescueLitter";
 import { PodBallistics } from "./world/podBallistics";
 import { RocksProc } from "./world/rocksProc";
@@ -164,6 +165,9 @@ const overlayLayer = new OverlayLayer();
 let lifeSupportShot = false;
 /** True while `crew-4` is driven by the storm scene `T2` (walks beside SALERNO to rescue-1). */
 let crew4Scripted = false;
+/** Scene `U1` (helmet UI tour): scripted walk of the player, drone and rover orders; undone when the scene ends. */
+let u1Active = false;
+const u1Flags = { rock: false, rover2: false };
 const LIFE_SUPPORT_FIRE_S = 4;
 const LIFE_SUPPORT_IMPACT_OFFSET_M = 32;
 
@@ -516,10 +520,12 @@ const sceneDirector = new SceneDirector(rescue, {
     store.activeScenario = "rescue";
     store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
     store.simScale = 1;
-    if (store.povMode !== "3rd") {
-      astronaut.setPovMode("3rd");
-      store.povMode = "3rd";
+    const wantPov = scene.pov ?? "3rd";
+    if (store.povMode !== wantPov) {
+      astronaut.setPovMode(wantPov);
+      store.povMode = wantPov;
     }
+    u1Flags.rock = u1Flags.rover2 = false;
   },
 });
 // Scripted narration of the orchestrator agent (no model calls): values come from a probe copy of the scenario.
@@ -547,6 +553,46 @@ const scenePanel = new ScenePanel(sceneDirector, { setHudVisible: (v) => store.s
   const qs = new URLSearchParams(location.search);
   if (qs.has("present") || qs.has("autoplay")) scenePanel.show();
   if (qs.has("autoplay")) setTimeout(() => void scenePanel.startPresentation(false), 1500);
+}
+
+/** Scene `U1`: moves the player, the second astronaut, the arm, the drone and the rover as a function of scene time. */
+function runHelmetTour(t: number, playing: boolean): void {
+  u1Active = true;
+  const w = u1Walker(t);
+  astronaut.pos.set(w.x, terrain.heightAt(w.x, w.z), w.z);
+  astronaut.yaw = w.yaw + Math.PI;
+  crew.place("crew-4", U1_CREW4.x, U1_CREW4.z, Math.atan2(w.x - U1_CREW4.x, w.z - U1_CREW4.z), "idle");
+  crew4Scripted = true;
+  if (!playing) return;
+  if (t >= U1_ROCK_ORDER_S && !u1Flags.rock) {
+    u1Flags.rock = true;
+    fleet.liftOnSample(U1_ROCK_ID);
+    fleet.executeArmSkill("sample", U1_ROCK_ID, astronaut.pos, astronaut.yaw);
+  }
+  if (t >= U1_ROVER2_ORDER_S && !u1Flags.rover2) {
+    u1Flags.rover2 = true;
+    fleet.dispatchTo("rover-2", BASE_ORIGIN.x + 46, BASE_ORIGIN.z + 36, "go_to");
+  }
+  const drone = fleet.get("drone-1");
+  if (drone) {
+    const start = fleetStartPos("drone-1");
+    const d = u1Drone(t, start, { x: w.x, z: w.z });
+    fleet.placeUnit("drone-1", d.x, d.z, Math.atan2(w.x - d.x, w.z - d.z));
+    drone.targetAltitude = d.altM;
+    drone.manualGrounded = false;
+  }
+}
+
+function endHelmetTour(): void {
+  u1Active = false;
+  fleet.stopAll();
+  fleet.resetLiftedTarget();
+  fleet.manipRunner.active = null;
+  for (const id of ["rover-2", "rover-3"] as const) {
+    const s = fleetStartPos(id);
+    fleet.placeUnit(id, s.x, s.z);
+  }
+  astronaut.pos.set(ASTRONAUT_START.x, terrain.heightAt(ASTRONAUT_START.x, ASTRONAUT_START.z), ASTRONAUT_START.z);
 }
 
 /** Applies the scripted rescue state to the fleet, crew, rescue robot and environment. */
@@ -872,10 +918,30 @@ function animate(now: number): void {
     crew.place("crew-4", CREW4_START.x, CREW4_START.z, Math.PI * 0.75, "idle");
     crew4Scripted = false;
   }
+  if (sceneDirector.activeId === "U1" && sceneDirector.state !== "idle") {
+    runHelmetTour(sceneDirector.sceneTimeS, sceneDirector.state === "playing");
+  } else if (u1Active) {
+    endHelmetTour();
+  }
   cannonFx.update(realDt);
   podPayloadFx.update(realDt);
   const shot = sceneDirector.update(realDt, {
-    getPos: (id) => (id === "pod" ? (podBallistics.position() ?? rescue.getEntityPosition("pit")) : rescue.getEntityPosition(id)),
+    getPos: (id) => {
+      if (id === "pod") return podBallistics.position() ?? rescue.getEntityPosition("pit");
+      if (sceneDirector.activeId === "U1") {
+        if (id === "u1-gaze") {
+          const p = astronaut.pos;
+          const g = u1Gaze(sceneDirector.sceneTimeS, { x: p.x, y: p.y, z: p.z }, (eid) => {
+            const o = fleet.get(eid)?.object.position ?? (eid === "crew-4" ? { x: U1_CREW4.x, y: terrain.heightAt(U1_CREW4.x, U1_CREW4.z), z: U1_CREW4.z } : null);
+            return o ? { x: o.x, y: o.y, z: o.z } : null;
+          });
+          return new THREE.Vector3(g.x, g.y, g.z);
+        }
+        const live = fleet.get(id);
+        if (live) return live.object.position.clone();
+      }
+      return rescue.getEntityPosition(id);
+    },
     heightAt: (x, z) => terrain.heightAt(x, z),
   });
   if (shot) {

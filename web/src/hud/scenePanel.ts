@@ -24,6 +24,7 @@ export class ScenePanel {
   private root: HTMLElement;
   private open = false;
   private hideHud = true;
+  private lastHudWanted = true;
   private lastKey = "";
   private recorder: PresentationRecorder;
   private recordWithPresentation = false;
@@ -163,7 +164,8 @@ export class ScenePanel {
 
   private syncHud(): void {
     const taking = this.director.state === "playing" || this.director.state === "paused";
-    this.opts.setHudVisible(!(taking && this.hideHud));
+    this.lastHudWanted = !(taking && this.hideHud && !this.director.active?.showHud);
+    this.opts.setHudVisible(this.lastHudWanted);
   }
 
   /** Call once per frame; the DOM is only rewritten when something visible changed. */
@@ -174,6 +176,12 @@ export class ScenePanel {
       if (this.recordWithPresentation && !d.inSequence) void this.finishRecording();
     }
     const active = d.active;
+    // A scene that shows the live HUD overrides the "hide HUD" option, also when it comes up inside a sequence.
+    const hudWanted = !((d.state === "playing" || d.state === "paused") && this.hideHud && !active?.showHud);
+    if (hudWanted !== this.lastHudWanted) {
+      this.lastHudWanted = hudWanted;
+      this.opts.setHudVisible(hudWanted);
+    }
     const timeS = Math.floor(d.sceneTimeS);
     const toastOn = performance.now() < this.toastUntil;
     const rec = this.recorder.recording;
@@ -182,7 +190,7 @@ export class ScenePanel {
     this.lastKey = key;
 
     const taking = d.state === "playing" || d.state === "paused";
-    this.root.classList.toggle("clean", taking && this.hideHud);
+    this.root.classList.toggle("clean", taking && this.hideHud && !active?.showHud);
     this.root.classList.toggle("open", this.open);
 
     const toastHtml = toastOn ? `<div class="scene-toast">${escapeHtml(this.toast)}</div>` : "";

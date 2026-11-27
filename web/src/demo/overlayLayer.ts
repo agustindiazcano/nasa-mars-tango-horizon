@@ -1,8 +1,15 @@
+import { iconInner, iconSvg, speakerIcon } from "./icons";
 import { EDGE_DRAW_S, overlaysActiveAt, tokenAt, typedText, vitalsAt, type GraphItem, type OverlayItem } from "./overlays";
 import "./overlay.css";
 
 const ESC: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ESC[c]);
+
+/** Default icon of a graph box by its id, so scenes only name an icon when they want a different one. */
+const NODE_ICON: Record<string, string> = {
+  voice: "astronaut", exec: "voicewave", base: "base", health: "heart", eva: "route", weather: "storm", maint: "wrench",
+  robots: "robot", guard: "shield", sim: "planet", act: "planet", plan: "route", ballistic: "cannon", fire: "cannon",
+};
 
 const NODE_H = 7.6;
 const NODE_W = 30;
@@ -40,8 +47,12 @@ function graphSvg(item: GraphItem, uid: string): string {
   });
   item.nodes.forEach((n, i) => {
     const w = n.w ?? NODE_W;
-    out += `<g class="g-node tone-${n.tone}" data-i="${i}" style="opacity:0"><rect x="${n.x - w / 2}" y="${n.y - NODE_H / 2}" width="${w}" height="${NODE_H}"/><text x="${n.x}" y="${n.y - (n.detail ? 0.6 : -0.7)}" class="g-label">${esc(n.label)}</text>`;
-    if (n.detail) out += `<text x="${n.x}" y="${n.y + 2.1}" class="g-detail">${esc(n.detail)}</text>`;
+    const ico = iconInner(n.icon ?? NODE_ICON[n.id]);
+    const tx = ico ? n.x - w / 2 + 7.2 : n.x;
+    out += `<g class="g-node tone-${n.tone}" data-i="${i}" style="opacity:0"><rect x="${n.x - w / 2}" y="${n.y - NODE_H / 2}" width="${w}" height="${NODE_H}"/>`;
+    if (ico) out += `<svg x="${n.x - w / 2 + 0.9}" y="${n.y - 2.7}" width="5.4" height="5.4" viewBox="0 0 24 24" class="g-icon">${ico}</svg>`;
+    out += `<text x="${tx}" y="${n.y - (n.detail ? 0.6 : -0.7)}" class="g-label${ico ? " g-left" : ""}">${esc(n.label)}</text>`;
+    if (n.detail) out += `<text x="${tx}" y="${n.y + 2.1}" class="g-detail${ico ? " g-left" : ""}">${esc(n.detail)}</text>`;
     out += "</g>";
   });
   (item.tokens ?? []).forEach((k, i) => {
@@ -51,6 +62,8 @@ function graphSvg(item: GraphItem, uid: string): string {
 }
 
 interface View {
+  /** HUD element that carries the glow while a `glow` item is active. */
+  glowEl?: Element | null;
   el: HTMLElement;
   item: OverlayItem;
   leaving: boolean;
@@ -90,7 +103,7 @@ export class OverlayLayer {
 
   /** Removes every overlay immediately (scene change or stop). */
   clear(): void {
-    for (const v of this.views.values()) v.el.remove();
+    for (const v of this.views.values()) this.dispose(v);
     this.views.clear();
   }
 
@@ -102,20 +115,58 @@ export class OverlayLayer {
       if (activeIds.has(id) || v.leaving) continue;
       v.leaving = true;
       v.el.classList.add("out");
+      v.glowEl?.classList.remove("th-glow");
       window.setTimeout(() => {
-        v.el.remove();
+        this.dispose(v);
         if (this.views.get(id) === v) this.views.delete(id);
       }, 450);
     }
     for (const item of active) {
       let v = this.views.get(item.id);
       if (!v || v.leaving) {
-        if (v) v.el.remove();
+        if (v) this.dispose(v);
         v = { el: this.create(item), item, leaving: false };
         this.views.set(item.id, v);
       }
-      this.refresh(v.el, item, tRel);
+      this.refresh(v.el, item, tRel, v);
     }
+  }
+
+  private dispose(v: View): void {
+    v.glowEl?.classList.remove("th-glow");
+    v.el.remove();
+  }
+
+  /** Glow on the HUD element and a callout beside it, faded in and out over the item window. */
+  private refreshGlow(v: View, item: Extract<OverlayItem, { kind: "glow" }>, tRel: number): void {
+    const target = v.glowEl ?? document.querySelector(item.target);
+    v.glowEl = target;
+    const t = tRel - item.fromS;
+    const dur = item.toS - item.fromS;
+    const a = Math.max(0, Math.min(1, t / 0.35, (dur - t) / 0.35));
+    const callout = v.el;
+    if (!target) {
+      callout.style.opacity = "0";
+      return;
+    }
+    target.classList.toggle("th-glow", a > 0.02);
+    (target as HTMLElement).style.setProperty("--glow-a", a.toFixed(2));
+    const r = target.getBoundingClientRect();
+    const w = callout.offsetWidth || 260;
+    const h = callout.offsetHeight || 60;
+    const room = { left: r.left, right: window.innerWidth - r.right };
+    const side = item.side ?? (room.right > room.left ? "right" : "left");
+    let x = 0;
+    let y = 0;
+    if (side === "right") { x = r.right + 18; y = r.top + Math.min(r.height / 2 - h / 2, 40); }
+    else if (side === "left") { x = r.left - w - 18; y = r.top + Math.min(r.height / 2 - h / 2, 40); }
+    else if (side === "above") { x = r.left + r.width / 2 - w / 2; y = r.top - h - 14; }
+    else { x = r.left + r.width / 2 - w / 2; y = r.bottom + 14; }
+    x = Math.max(8, Math.min(window.innerWidth - w - 8, x));
+    y = Math.max(8, Math.min(window.innerHeight - h - 8, y));
+    callout.style.left = `${x.toFixed(0)}px`;
+    callout.style.top = `${y.toFixed(0)}px`;
+    callout.style.opacity = a.toFixed(2);
   }
 
   private create(item: OverlayItem): HTMLElement {
@@ -127,14 +178,14 @@ export class OverlayLayer {
         el.classList.add(`side-${item.side}`);
         const stats = item.stats
           ? `<div class="ov-stats">${item.stats
-              .map((s, n) => `<div class="ov-stat" style="animation-delay:${0.9 + n * 0.28}s"><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`)
+              .map((s, n) => `<div class="ov-stat" style="animation-delay:${0.9 + n * 0.28}s">${iconSvg(s.icon, "ov-ico-stat")}<b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`)
               .join("")}</div>`
           : "";
         const bullets = item.bullets
-          ? `<ul class="ov-bullets">${item.bullets.map((b, n) => `<li style="animation-delay:${0.8 + n * 0.55}s">${esc(b)}</li>`).join("")}</ul>`
+          ? `<ul class="ov-bullets">${item.bullets.map((b, n) => `<li class="${item.bulletIcons?.[n] ? "has-ico" : ""}" style="animation-delay:${0.8 + n * 0.55}s">${iconSvg(item.bulletIcons?.[n], "ov-ico-b")}${esc(b)}</li>`).join("")}</ul>`
           : "";
         el.innerHTML =
-          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div>` +
+          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${iconSvg(item.icon, "ov-ico-title")}${esc(item.title)}</div>` +
           (item.subtitle ? `<div class="ov-sub">${esc(item.subtitle)}</div>` : "") +
           stats +
           bullets +
@@ -146,7 +197,7 @@ export class OverlayLayer {
         el.innerHTML =
           `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-steps">` +
           item.steps
-            .map((s, n) => `<div class="ov-step" style="animation-delay:${0.8 + n * 0.9}s"><b>${esc(s.label)}</b><span>${esc(s.detail)}</span></div>`)
+            .map((s, n) => `<div class="ov-step" style="animation-delay:${0.8 + n * 0.9}s">${iconSvg(s.icon, "ov-ico-stat")}<b>${esc(s.label)}</b><span>${esc(s.detail)}</span></div>`)
             .join('<i class="ov-arrow">&#9654;</i>') +
           "</div>";
         this.root.appendChild(el);
@@ -154,7 +205,7 @@ export class OverlayLayer {
       case "voice":
         el.classList.add(`who-${item.who}`);
         el.innerHTML =
-          `<div class="ov-who">${item.who === "crew" ? '<span class="ov-wave"><i></i><i></i><i></i><i></i><i></i></span>' : ""}${esc(item.speaker)}</div>` +
+          `<div class="ov-who">${iconSvg(item.icon ?? speakerIcon(item.speaker, item.who), "ov-ico-who")}${item.who === "crew" ? '<span class="ov-wave"><i></i><i></i><i></i><i></i><i></i></span>' : ""}${esc(item.speaker)}</div>` +
           '<div class="ov-text"></div>';
         this.voiceStack.appendChild(el);
         break;
@@ -164,7 +215,7 @@ export class OverlayLayer {
         break;
       case "lower":
         if (item.level === "alert") el.classList.add("alert");
-        el.innerHTML = `<b>${esc(item.title)}</b>${item.detail ? `<span>${esc(item.detail)}</span>` : ""}`;
+        el.innerHTML = `<b>${iconSvg(item.icon ?? (item.level === "alert" ? "alert" : undefined), "ov-ico-low")}${esc(item.title)}</b>${item.detail ? `<span>${esc(item.detail)}</span>` : ""}`;
         this.root.appendChild(el);
         break;
       case "decision":
@@ -190,11 +241,17 @@ export class OverlayLayer {
         el.innerHTML =
           `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-chips">` +
           item.chips
-            .map((c, n) => `<div class="ov-chip" style="animation-delay:${0.6 + n * 0.45}s"><b>${esc(c.label)}</b><span>${esc(c.detail)}</span></div>`)
+            .map((c, n) => `<div class="ov-chip" style="animation-delay:${0.6 + n * 0.45}s">${iconSvg(c.icon, "ov-ico-chip")}<b>${esc(c.label)}</b><span>${esc(c.detail)}</span></div>`)
             .join("") +
           "</div>";
         this.root.appendChild(el);
         break;
+      case "glow": {
+        el.innerHTML = `${iconSvg(item.icon, "ov-ico-glow")}<div class="ov-glow-text"><b>${esc(item.label)}</b>${item.detail ? `<span>${esc(item.detail)}</span>` : ""}</div>`;
+        el.style.opacity = "0";
+        this.root.appendChild(el);
+        break;
+      }
       case "vitals":
         el.innerHTML = `<div class="ov-vhdr">${esc(item.title)}</div><div class="ov-vrows"></div><div class="ov-vevents"></div>`;
         this.root.appendChild(el);
@@ -203,8 +260,10 @@ export class OverlayLayer {
     return el;
   }
 
-  private refresh(el: HTMLElement, item: OverlayItem, tRel: number): void {
-    if (item.kind === "voice") {
+  private refresh(el: HTMLElement, item: OverlayItem, tRel: number, v?: View): void {
+    if (item.kind === "glow") {
+      if (v) this.refreshGlow(v, item, tRel);
+    } else if (item.kind === "voice") {
       const text = el.querySelector(".ov-text") as HTMLElement;
       const shown = typedText(item.text, tRel - item.fromS, item.who === "crew" ? 26 : 44);
       if (text.textContent !== shown) text.textContent = shown;

@@ -219,6 +219,10 @@ export class FleetProc {
   private orbiterGroup = new THREE.Group();
   private orbiterAngle = 0.4;
   private renderTarget = new THREE.WebGLRenderTarget(512, 384);
+  /** When set, the target rock of the next `sample` skill leaves the ground and rides on the arm tool. */
+  private liftTargetId: string | null = null;
+  private heldTargetId: string | null = null;
+  private targetHome = new Map<string, THREE.Vector3>();
   private pendingSkill: { skill: ArmSkillId; targetId: string; item?: string } | null = null;
   private handedItemMesh: THREE.Mesh;
   /** While true, `rescue-bot-1` rides in the rear bay of `rescue-1`. */
@@ -231,6 +235,7 @@ export class FleetProc {
   ) {
     this.manipRunner = new SkillRunner(this.manipArm, (ev, sk) => {
       this.handedItemMesh.visible = ev === "tool_grasped" || ev === "tool_offered";
+      if (ev === "sample_acquired" && this.liftTargetId) this.attachTargetToTool(this.liftTargetId);
       this.onManipEvent(ev, sk);
     });
 
@@ -254,6 +259,39 @@ export class FleetProc {
     this.buildManipTargets();
     this.scene.add(this.group);
     void this.attachNasaGlbModels();
+  }
+
+  /** The next `sample` skill on `targetId` lifts the rock (`null` returns to the normal scoop-only behaviour). */
+  liftOnSample(targetId: string | null): void {
+    this.liftTargetId = targetId;
+  }
+
+  private attachTargetToTool(targetId: string): void {
+    const mesh = this.group.getObjectByName(`target:${targetId}`);
+    if (!mesh || this.heldTargetId) return;
+    if (!this.targetHome.has(targetId)) this.targetHome.set(targetId, mesh.position.clone());
+    this.heldTargetId = targetId;
+    const lbl = this.group.getObjectByName(`targetlabel:${targetId}`);
+    if (lbl) lbl.visible = false;
+    this.manipArm.toolTip.add(mesh);
+    mesh.position.set(0, 0, 0.06);
+    mesh.scale.setScalar(0.7);
+  }
+
+  /** Puts a lifted rock back where it lay and clears the lift request. */
+  resetLiftedTarget(): void {
+    this.liftTargetId = null;
+    if (!this.heldTargetId) return;
+    const mesh = this.manipArm.toolTip.getObjectByName(`target:${this.heldTargetId}`);
+    const home = this.targetHome.get(this.heldTargetId);
+    if (mesh && home) {
+      this.group.add(mesh);
+      mesh.position.copy(home);
+      mesh.scale.setScalar(1);
+    }
+    const lbl = this.group.getObjectByName(`targetlabel:${this.heldTargetId}`);
+    if (lbl) lbl.visible = true;
+    this.heldTargetId = null;
   }
 
   get(id: string): FleetUnit | undefined {
@@ -999,6 +1037,7 @@ export class FleetProc {
       this.group.add(mesh);
 
       const lbl = makeSpriteLabel(`${t.id} ${t.kind}`, "#ffb800");
+      lbl.name = `targetlabel:${t.id}`;
       lbl.position.set(t.x, placed.y + 0.77, t.z);
       lbl.scale.set(3.8, 0.72, 1);
       this.group.add(lbl);
