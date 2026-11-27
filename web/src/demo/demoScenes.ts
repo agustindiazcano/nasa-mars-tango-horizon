@@ -457,7 +457,7 @@ const STORM_ALERT: OverlayItem[] = [
 const STORM_HELMET: OverlayItem[] = [
   { id: "t2-visor", kind: "visor", fromS: 0, toS: 9, label: "HELMET VIEW · SALERNO" },
   { id: "t2-lower", kind: "lower", level: "alert", fromS: 0.5, toS: 17.5, title: "DUST STORM AT FULL STRENGTH", detail: "Drones grounded. Floodlights on at rescue-1." },
-  { id: "t2-crew", kind: "voice", who: "crew", speaker: "SALERNO · HELMET", fromS: 1, toS: 9, text: "Visibility is very low. Walking to rescue-1 by its floodlights." },
+  { id: "t2-crew", kind: "voice", who: "crew", speaker: "SALERNO · HELMET", fromS: 1, toS: 9, text: "Visibility is very low. Walking to rescue-1 by its floodlights, with the second astronaut beside me." },
   { id: "t2-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 9.5, toS: 17.5, text: "Towing DIAZ-CANO to the bay. Wind and dust are rising." },
 ];
 
@@ -684,7 +684,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     durationS: 18,
     segments: [
       // Helmet view looking at rescue-1, then a side view of the astronaut and the robot towing the casualty.
-      { fromS: 0, kind: "aerial", target: "crew-2", offset: { x: 0, y: 1.95, z: 0 }, lookAt: "rescue-1", lookAboveM: 1.2 },
+      { fromS: 0, kind: "aerial", target: "crew-2", offset: { x: 0, y: 2.4, z: 0 }, lookAt: "rescue-1", lookAboveM: 1.2 },
       { fromS: 9, kind: "follow", target: ["crew-2", "rescue-bot-1"], offset: { x: 9, y: 3, z: 9 }, lookAboveM: 1 },
     ],
     overlay: STORM_HELMET,

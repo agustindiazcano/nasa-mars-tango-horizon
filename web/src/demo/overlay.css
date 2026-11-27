@@ -221,7 +221,7 @@
 .demo-overlay.has-graph .ov-lower { left: auto; right: 2.5vw; top: 14vh; bottom: auto; max-width: 43vw; }
 
 /* Still picture */
-.ov-image { right: 3vw; width: min(480px, 28vw); background: rgba(10, 16, 22, 0.88); border-top: 3px solid var(--ok, #ffb36b); padding: 8px; backdrop-filter: blur(8px); }
+.ov-image { right: 3vw; width: min(560px, 32vw); background: rgba(10, 16, 22, 0.88); border-top: 3px solid var(--ok, #ffb36b); padding: 8px; backdrop-filter: blur(8px); }
 .ov-image.top-right { top: 9vh; }
 .ov-image.mid-right { top: 30vh; }
 .ov-image img { display: block; width: 100%; height: auto; }

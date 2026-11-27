@@ -1,4 +1,4 @@
-import { BASE_ORIGIN, LAUNCHER_PRIMARY_COORD, READY_TERRAIN, RESCUE_SITE } from "@th/shared";
+import { BASE_ORIGIN, CREW4_START, LAUNCHER_PRIMARY_COORD, READY_TERRAIN, RESCUE_SITE } from "@th/shared";
 import "./hud/hud.css";
 import { createLoadingOverlay } from "./hud/loadingOverlay";
 import { installHistoricalArchive } from "./hud/historicalArchive";
@@ -162,6 +162,8 @@ const podPayloadFx = new PodPayloadFx(scene, terrain);
 const overlayLayer = new OverlayLayer();
 /** The scripted life-support shot (scene `L1`) fires once per take, 4 s after the scene starts. */
 let lifeSupportShot = false;
+/** True while `crew-4` is driven by the storm scene `T2` (walks beside SALERNO to rescue-1). */
+let crew4Scripted = false;
 const LIFE_SUPPORT_FIRE_S = 4;
 const LIFE_SUPPORT_IMPACT_OFFSET_M = 32;
 
@@ -851,6 +853,24 @@ function animate(now: number): void {
   }
   if (!lifeSupportShot && sceneDirector.activeId === "L1" && sceneDirector.state === "playing" && sceneDirector.sceneTimeS >= LIFE_SUPPORT_FIRE_S) {
     fireLifeSupportShot();
+  }
+  // Scene T2: a second astronaut (crew-4) walks beside SALERNO (crew-2) to rescue-1, 2.4 m to the side, in the storm.
+  if (sceneDirector.activeId === "T2" && sceneDirector.state === "playing") {
+    const r1 = rescue.getEntityPosition("rescue-1");
+    const c2 = rescue.getEntityPosition("crew-2");
+    if (r1 && c2) {
+      const dx = r1.x - c2.x;
+      const dz = r1.z - c2.z;
+      const len = Math.max(1, Math.hypot(dx, dz));
+      const x = c2.x - (dz / len) * 2.4 - (dx / len) * 1.2;
+      const z = c2.z + (dx / len) * 2.4 - (dz / len) * 1.2;
+      const walking = sceneDirector.sceneTimeS > 4 && len > 5;
+      crew.place("crew-4", x, z, Math.atan2(dx, dz), walking ? "walk" : "idle");
+      crew4Scripted = true;
+    }
+  } else if (crew4Scripted) {
+    crew.place("crew-4", CREW4_START.x, CREW4_START.z, Math.PI * 0.75, "idle");
+    crew4Scripted = false;
   }
   cannonFx.update(realDt);
   podPayloadFx.update(realDt);
