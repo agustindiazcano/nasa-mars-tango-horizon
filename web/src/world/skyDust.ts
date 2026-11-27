@@ -33,7 +33,7 @@ export class SkyDust {
         void main() {
           vec3 d = normalize(vWorldDir);
           float h = clamp(d.y, 0.0, 1.0);
-          float storm = clamp((uTau - 0.5) / 6.0, 0.0, 1.0);
+          float storm = clamp((uTau - 0.5) / 3.5, 0.0, 1.0);
 
           vec3 horizonClear = vec3(0.86, 0.52, 0.31);
           vec3 zenithClear  = vec3(0.42, 0.25, 0.17);
@@ -156,7 +156,7 @@ export class SkyDust {
     this.dustMat.uniforms.uWind.value.set(Math.cos(windDirRad) * windMs, Math.sin(windDirRad) * windMs);
     this.dust.position.set(anchorX, anchorY - 2, anchorZ);
 
-    const storm = THREE.MathUtils.clamp((tau - 0.5) / 6.0, 0, 1);
+    const storm = THREE.MathUtils.clamp((tau - 0.5) / 3.5, 0, 1);
     this.sunLight.intensity = THREE.MathUtils.lerp(2.4, 0.2, storm);
     this.sunLight.position.set(anchorX, anchorY, anchorZ).addScaledVector(this.sunDir, 500);
     this.ambientLight.intensity = THREE.MathUtils.lerp(1.0, 0.24, storm);
