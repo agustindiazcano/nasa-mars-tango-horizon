@@ -20,7 +20,7 @@ const VERT = /* glsl */ `
     vT = clamp(aAge / aLife, 0.0, 1.0);
     vKind = aKind;
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    float grow = 1.0 + vT * (aKind < 0.5 ? 0.6 : 3.2);
+    float grow = 1.0 + vT * (aKind < 0.5 ? 0.6 : 2.2);
     gl_PointSize = aLife <= 0.0 ? 0.0 : min(140.0, aSize * grow * uScale / max(1.0, -mv.z));
     gl_Position = projectionMatrix * mv;
   }
@@ -43,7 +43,7 @@ const FRAG = /* glsl */ `
     } else if (vKind < 1.5) {
       // Smoke: warm grey that cools and thins out.
       col = mix(vec3(0.62, 0.55, 0.5), vec3(0.78, 0.72, 0.66), vT);
-      a = soft * (1.0 - vT) * 0.42;
+      a = soft * (1.0 - vT) * 0.3;
     } else {
       // Dust: rust brown.
       col = mix(vec3(0.7, 0.45, 0.28), vec3(0.8, 0.6, 0.45), vT);
@@ -112,7 +112,7 @@ export class ProjectileTrail {
         const z = this.last.z + (p.z - this.last.z) * k;
         const j = () => (Math.random() - 0.5);
         if (hot) this.spawn(x + j() * 0.15, y + j() * 0.15, z + j() * 0.15, j() * 0.4, j() * 0.4, j() * 0.4, 0, 0.45, 0.9);
-        this.spawn(x + j() * 0.25, y + j() * 0.25, z + j() * 0.25, j() * 0.8, 0.25 + Math.random() * 0.35, j() * 0.8, 1, 6 + Math.random() * 3, 0.85);
+        this.spawn(x + j() * 0.25, y + j() * 0.25, z + j() * 0.25, j() * 0.8, 0.25 + Math.random() * 0.35, j() * 0.8, 1, 4 + Math.random() * 2.5, 0.42);
         t += spacing;
       }
       this.carry = t - d;
