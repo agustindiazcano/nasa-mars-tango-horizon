@@ -30,6 +30,8 @@ export interface ShotSegment {
   target: string | string[];
   /** aerial/follow: world-frame offset from the target (m). */
   offset?: Vec3;
+  /** orbit: start angle (rad, from +x toward +z); the sun-side arc of the launch pad is about -0.72 rad. */
+  startRad?: number;
   /** orbit: horizontal radius (m), camera height above the target (m) and angular speed (rad/s). */
   radius?: number;
   height?: number;
@@ -59,7 +61,7 @@ const CORE_SCENES: readonly SceneDef[] = [
     durationS: 18,
     segments: [
       // Slow orbit around the stack on the pad (about 170 m tall), then a low wide shot with the tower.
-      { fromS: 0, kind: "orbit", target: "launch-site", radius: 260, height: 60, speed: 0.1, lookAboveM: 90 },
+      { fromS: 0, kind: "orbit", target: "launch-site", radius: 260, height: 60, startRad: -1.2, speed: 0.07, lookAboveM: 90 },
       { fromS: 10, kind: "aerial", target: "launch-site", offset: { x: 150, y: 25, z: -190 }, lookAboveM: 110 },
     ],
   },
@@ -71,7 +73,7 @@ const CORE_SCENES: readonly SceneDef[] = [
     segments: [
       { fromS: 0, kind: "orbit", target: "base", radius: 95, height: 60, speed: 0.07, lookAboveM: 2 },
       // From the base apron toward the Starship on its pad, 1.1 km east-north-east.
-      { fromS: 12, kind: "aerial", target: "launch-site", offset: { x: -960, y: 48, z: 500 }, lookAboveM: 95 },
+      { fromS: 12, kind: "aerial", target: "launch-site", offset: { x: 720, y: 60, z: -580 }, lookAboveM: 95 },
     ],
   },
   {
@@ -184,7 +186,7 @@ export function scenePose(scene: SceneDef, tRel: number, ctx: PoseContext): Shot
   const target: Vec3 = { x: tgt.x, y: lookY, z: tgt.z };
   let pos: Vec3;
   if (seg.kind === "orbit") {
-    const ang = (seg.speed ?? 0.2) * (tRel - seg.fromS);
+    const ang = (seg.startRad ?? 0) + (seg.speed ?? 0.2) * (tRel - seg.fromS);
     const r = seg.radius ?? 20;
     pos = { x: tgt.x + Math.cos(ang) * r, y: tgt.y + (seg.height ?? 10), z: tgt.z + Math.sin(ang) * r };
   } else {

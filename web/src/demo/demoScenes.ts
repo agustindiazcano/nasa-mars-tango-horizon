@@ -212,7 +212,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     durationS: 25,
     layer: "optical",
     segments: [
-      { fromS: 0, kind: "orbit", target: "launch-site", radius: 260, height: 60, speed: 0.1, lookAboveM: 90 },
+      { fromS: 0, kind: "orbit", target: "launch-site", radius: 260, height: 60, startRad: -1.2, speed: 0.07, lookAboveM: 90 },
       { fromS: 14, kind: "aerial", target: "launch-site", offset: { x: 150, y: 25, z: -190 }, lookAboveM: 110 },
     ],
     overlay: COVER,
@@ -232,7 +232,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     durationS: 35,
     segments: [
       { fromS: 0, kind: "orbit", target: "base", radius: 120, height: 70, speed: 0.06, lookAboveM: 2 },
-      { fromS: 20, kind: "aerial", target: "launch-site", offset: { x: -320, y: 40, z: 170 }, lookAboveM: 95 },
+      { fromS: 20, kind: "aerial", target: "launch-site", offset: { x: 240, y: 40, z: -210 }, lookAboveM: 95 },
     ],
     overlay: ARCHITECTURE,
   },
