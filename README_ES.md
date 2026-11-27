@@ -59,20 +59,28 @@
 
 <table>
 <tr>
-<td width="50%"><img src="docs/media/starship-sunlit.jpg" alt="Starship en su plataforma" width="100%" /><br/><sub>Complejo de lanzamiento Starship en Marte, iluminado por el sol.</sub></td>
-<td width="50%"><img src="docs/media/ai-architecture.jpg" alt="Arquitectura de agentes de IA" width="100%" /><br/><sub>El equipo de IA: voz, coordinador, especialistas, herramientas y la puerta de seguridad.</sub></td>
+<td width="50%"><img src="docs/media/cover-slide.jpg" alt="Portada" width="100%" /><br/><sub>Portada del video explicativo: proyecto, evento y auspiciantes.</sub></td>
+<td width="50%"><img src="docs/media/hud-overview.jpg" alt="HUD del simulador" width="100%" /><br/><sub>El simulador: tripulación, soporte vital, consola de IA y la insignia del premio.</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/media/ai-guardian-decision.jpg" alt="Decisión de GUARDIAN" width="100%" /><br/><sub>GUARDIAN revisa una orden: reglas duras, juez de IA y voto de tres modelos.</sub></td>
-<td width="50%"><img src="docs/media/health-alarm.jpg" alt="Alarma de salud" width="100%" /><br/><sub>Monitoreo de salud: cae la presión del traje, suena la alarma y la IA avisa a BASE.</sub></td>
+<td width="50%"><img src="docs/media/starship-sunlit.jpg" alt="Starship en su plataforma" width="100%" /><br/><sub>Complejo de lanzamiento de Starship en Marte, iluminado por el sol.</sub></td>
+<td width="50%"><img src="docs/media/ai-orchestrator-graph.jpg" alt="Orquestador de IA" width="100%" /><br/><sub>Un equipo de IA orquesta la base: voz, BASE, especialistas, robots y la puerta de seguridad.</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/media/life-support-pod.jpg" alt="Cápsula de soporte vital con paracaídas" width="100%" /><br/><sub>La cápsula de soporte vital desciende en su paracaídas hacia el astronauta.</sub></td>
+<td width="50%"><img src="docs/media/voice-to-drone.jpg" alt="Orden de voz a un dron" width="100%" /><br/><sub>Una orden hablada se convierte en dos vuelos de dron, vista desde el casco del astronauta.</sub></td>
+<td width="50%"><img src="docs/media/ai-guardian-decision.jpg" alt="Decisión de GUARDIAN" width="100%" /><br/><sub>GUARDIAN revisa una orden: reglas duras, juez de IA y votación de tres modelos.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/health-alarm.jpg" alt="Alarma de salud" width="100%" /><br/><sub>Monitoreo de salud: baja la presión del traje, suena la alarma y la IA avisa a BASE.</sub></td>
+<td width="50%"><img src="docs/media/storm-helmet.jpg" alt="Tormenta de polvo desde el casco" width="100%" /><br/><sub>Tormenta de polvo a plena fuerza, vista desde un astronauta que camina al vehículo de rescate.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/life-support-pod.jpg" alt="Cápsula de soporte vital con paracaídas" width="100%" /><br/><sub>La cápsula de soporte vital desciende en paracaídas hacia el astronauta.</sub></td>
 <td width="50%"><img src="docs/media/life-support-payload.jpg" alt="Cápsula de soporte vital abierta" width="100%" /><br/><sub>La cápsula se abre: tanque de oxígeno, depurador de CO2, batería y parche del traje.</sub></td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/media/rescue-casualty-pit.jpg" alt="Rescate en el pozo" width="100%" /><br/><sub>El robot de rescate y el astronauta en el pozo.</sub></td>
-<td width="50%"><img src="docs/media/nasa-map.jpg" alt="Mapa estilo NASA" width="100%" /><br/><sub>Mapa estilo NASA y USGS de la escena del Cráter Gale.</sub></td>
+<td width="50%"><img src="docs/media/nasa-map.jpg" alt="Mapa estilo NASA" width="100%" /><br/><sub>Mapa estilo NASA y USGS de la escena del cráter Gale.</sub></td>
 </tr>
 </table>
 
