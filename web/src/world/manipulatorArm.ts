@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { applySurface, panelMetal } from "./surfaceTextures";
 import type { ArmSkillId } from "@th/shared";
 
 export type ArmTool = "gripper" | "drill" | "scoop" | "camera";
@@ -41,9 +42,9 @@ export class ManipulatorArm {
   private drillPhase = 0;
 
   constructor() {
-    const metal = new THREE.MeshStandardMaterial({ color: 0xd9dde2, metalness: 0.65, roughness: 0.35 });
-    const accent = new THREE.MeshStandardMaterial({ color: 0xf09d2c, metalness: 0.4, roughness: 0.45 });
-    const dark = new THREE.MeshStandardMaterial({ color: 0x2a313a, metalness: 0.5, roughness: 0.5 });
+    const metal = applySurface(new THREE.MeshStandardMaterial({ color: 0xd9dde2, metalness: 0.6, roughness: 0.38 }), panelMetal("#d9dde2", 21, [1, 1]), 1);
+    const accent = applySurface(new THREE.MeshStandardMaterial({ color: 0xf09d2c, metalness: 0.35, roughness: 0.5 }), panelMetal("#f09d2c", 22, [1, 1]), 1);
+    const dark = applySurface(new THREE.MeshStandardMaterial({ color: 0x2a313a, metalness: 0.5, roughness: 0.55 }), panelMetal("#2a313a", 23, [1, 1]), 0.8);
 
     const link = (len: number, r: number) => {
       const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 12), metal);

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { applySurface, panelMetal, tireTread, wovenCanvas } from "./surfaceTextures";
 
 /**
  * Rescue litter dragged by `rescue-bot-1`: a flat stretcher under the casualty with a bridle at its head end and a tow
@@ -61,8 +62,10 @@ export class RescueLitter {
   constructor(scene: THREE.Scene) {
     this.group.name = "rescue-litter";
     this.group.visible = false;
-    const frame = new THREE.MeshStandardMaterial({ color: 0x6f7378, roughness: 0.62, metalness: 0.55 });
-    const canvas = new THREE.MeshStandardMaterial({ color: 0xa98a56, roughness: 0.95, metalness: 0.0 });
+    const frame = applySurface(new THREE.MeshStandardMaterial({ color: 0x6f7378, roughness: 0.55, metalness: 0.6 }), panelMetal("#7a7f85", 31, [1, 6]), 0.8);
+    const canvas = applySurface(new THREE.MeshStandardMaterial({ color: 0xa98a56, roughness: 0.95, metalness: 0.0 }), wovenCanvas("#a98a56"), 0.7);
+    const tyre = applySurface(new THREE.MeshStandardMaterial({ color: 0x1c1f23, roughness: 0.92, metalness: 0.05 }), tireTread([4, 1]), 1.4);
+    const hubMat = new THREE.MeshStandardMaterial({ color: 0xb9bec4, roughness: 0.35, metalness: 0.85 });
     const strap = new THREE.MeshStandardMaterial({ color: 0x3a2f27, roughness: 0.9 });
     const buckle = new THREE.MeshStandardMaterial({ color: 0xc79436, roughness: 0.4, metalness: 0.7 });
     const { lengthM: L, widthM: W, bedY } = LITTER;
@@ -87,6 +90,29 @@ export class RescueLitter {
     for (const z of [-0.55, -0.05, 0.45]) {
       box(W + 0.04, 0.02, 0.09, strap, 0, bedY + 0.035, z);
       box(0.07, 0.03, 0.06, buckle, 0.08, bedY + 0.05, z);
+    }
+    // A chassis under the bed and four wheels with tyres, hubs and axles turn the litter into a cart.
+    const R = 0.1;
+    const axleY = bedY - 0.06;
+    for (const z of [-0.62, 0.62]) {
+      const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, W + 0.16, 8), hubMat);
+      axle.rotation.z = Math.PI / 2;
+      axle.position.set(0, axleY, z);
+      this.litter.add(axle);
+      for (const side of [-1, 1]) {
+        const x = (side * (W + 0.1)) / 2;
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 0.075, 18), tyre);
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(x, axleY, z);
+        wheel.castShadow = true;
+        const hub = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.55, R * 0.55, 0.082, 12), hubMat);
+        hub.rotation.z = Math.PI / 2;
+        hub.position.set(x, axleY, z);
+        this.litter.add(wheel, hub);
+      }
+      const bracket = new THREE.Mesh(new THREE.BoxGeometry(W - 0.06, 0.03, 0.05), frame);
+      bracket.position.set(0, bedY - 0.035, z);
+      this.litter.add(bracket);
     }
     this.group.add(this.litter);
 

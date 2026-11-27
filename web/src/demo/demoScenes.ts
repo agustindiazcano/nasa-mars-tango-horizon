@@ -253,28 +253,41 @@ const VOICE_RESCUE: OverlayItem[] = [
   { id: "v-l2", kind: "lower", icon: "drone", fromS: 12, toS: 22, title: "drone-1 and drone-2 flying to the pit", detail: "Overwatch at a 25 m standoff, ETA 36 s" },
 ];
 
+/**
+ * The launch take is short: the pod flies about 2.2 times faster than real time (34 s become about 15 s), a side-view
+ * animation shows the arc, and the vitals and events follow the shortened flight (launch 4, canopy 16.3, landing 19.5).
+ */
 const LIFE_SUPPORT: OverlayItem[] = [
-  { id: "l-armed", kind: "lower", icon: "cannon", fromS: 0.5, toS: 8, title: "Life-support cannon armed", detail: "6 m tube, 90 m/s maximum, 45° elevation" },
-  { id: "l-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 1, toS: 14, text: "Launching the 8 kg life-support pod. Impact 32 m from the astronaut, outside the 15 m keep-out." },
-  { id: "l-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 6, toS: 20, text: "Trajectory and keep-out verified. Approved." },
+  { id: "l-armed", kind: "lower", icon: "cannon", fromS: 0.5, toS: 6, title: "Life-support cannon armed", detail: "6 m tube, 90 m/s maximum, 45° elevation" },
+  { id: "l-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 1, toS: 11, text: "Launching the 8 kg life-support pod. Impact 32 m from the astronaut, outside the 15 m keep-out." },
+  { id: "l-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 5, toS: 15, text: "Trajectory and keep-out verified. Approved." },
+  {
+    id: "l-arc",
+    kind: "arc",
+    fromS: 0.5,
+    toS: 25.5,
+    kicker: "LIFE-SUPPORT LAUNCH · SIDE VIEW",
+    title: "From the launcher to the astronaut",
+    caption: "Ballistic arc from the cannon, parachute opening and touchdown outside the 15 m keep-out (sped up, not to scale)",
+  },
   {
     id: "l-vitals",
     kind: "vitals",
     fromS: 0.5,
-    toS: 45,
+    toS: 25.5,
     title: "ASTRONAUT · LIFE SUPPORT",
     keys: [
       { atS: 0.5, o2Pct: 41, pao2Kpa: 9.2, co2Pa: 520, batteryWh: 640 },
-      { atS: 30, o2Pct: 22, pao2Kpa: 7.4, co2Pa: 690, batteryWh: 610 },
-      { atS: 38, o2Pct: 22, pao2Kpa: 7.4, co2Pa: 690, batteryWh: 610 },
-      { atS: 44, o2Pct: 96, pao2Kpa: 13.2, co2Pa: 150, batteryWh: 810 },
+      { atS: 16.3, o2Pct: 22, pao2Kpa: 7.4, co2Pa: 690, batteryWh: 610 },
+      { atS: 19.5, o2Pct: 22, pao2Kpa: 7.4, co2Pa: 690, batteryWh: 610 },
+      { atS: 24.5, o2Pct: 96, pao2Kpa: 13.2, co2Pa: 150, batteryWh: 810 },
     ],
     events: [
-      { atS: 4, text: "Pod launched, ETA 34 s" },
-      { atS: 31, text: "Parachute deployed" },
-      { atS: 38, text: "Pod landed 32 m from the crew" },
-      { atS: 41, text: "Life-support pod supplies connected to the suit" },
-      { atS: 44, text: "Pressure and CO2 restored" },
+      { atS: 4, text: "Pod launched, flight about 34 s (sped up)" },
+      { atS: 16.3, text: "Parachute deployed" },
+      { atS: 19.5, text: "Pod landed 32 m from the crew" },
+      { atS: 21.5, text: "Life-support pod supplies connected to the suit" },
+      { atS: 24.5, text: "Pressure and CO2 restored" },
     ],
   },
 ];
@@ -361,7 +374,7 @@ const VOICE_TO_DRONE_FULL: OverlayItem[] = [
       { id: "base", label: "BASE", detail: "Orchestrator: picks the robots", x: FLOW_X, y: slot(2), tone: "agent", atS: 5.6 },
       { id: "robots", label: "ROBOT.drone-1 · drone-2", detail: "Each plans path and altitude", x: FLOW_X, y: slot(3), tone: "robot", atS: 7.8 },
       { id: "guard", label: "GUARDIAN", detail: "Keep-out, slope, judge, vote", x: FLOW_X, y: slot(4), tone: "guard", atS: 10 },
-      { id: "act", label: "SIMULATOR · fly_to ×2", detail: "Both drones take off", x: 68, y: slot(4), w: 36, tone: "world", atS: 12.2 },
+      { id: "act", label: "SIMULATOR · fly_to ×2", detail: "Both drones take off", x: 79, y: 6.5, w: 38, tone: "world", atS: 12.2 },
     ],
     edges: [
       ...chain(["voice", "exec", "base", "robots", "guard"], [0.8, 3.4, 5.6, 7.8]),
@@ -369,10 +382,10 @@ const VOICE_TO_DRONE_FULL: OverlayItem[] = [
     ],
     map: {
       live: true,
-      x: 55,
-      y: 1.5,
-      w: 44,
-      h: 44,
+      x: 59.5,
+      y: 11,
+      w: 40,
+      h: 40,
       label: "TOP VIEW · SCHEMATIC",
       marks: [
         { ...BASE_PT, label: "BASE", tone: "world" },
@@ -459,7 +472,7 @@ const RESCUE_FLOW_FULL: OverlayItem[] = [
       { id: "plan", label: "EVA + WEATHER", detail: "EVA-PLANNER route, storm window", x: FLOW_X, y: slot(2), tone: "agent", atS: 6 },
       { id: "robots", label: "ROBOTS", detail: "rescue-1, rescue-bot-1, drone-1, drone-2", x: FLOW_X, y: slot(3), tone: "robot", atS: 8.6 },
       { id: "guard", label: "GUARDIAN", detail: "Every action: rules, judge, vote", x: FLOW_X, y: slot(4), tone: "guard", atS: 11.2 },
-      { id: "act", label: "SIMULATOR", detail: "Dispatch, hook, drag, return", x: 68, y: slot(4), w: 36, tone: "world", atS: 13.8 },
+      { id: "act", label: "SIMULATOR", detail: "Dispatch, hook, drag, return", x: 79, y: 6.5, w: 38, tone: "world", atS: 13.8 },
     ],
     edges: [
       ...chain(["health", "base", "plan", "robots", "guard"], [0.8, 3.4, 6, 8.6]),
@@ -467,10 +480,10 @@ const RESCUE_FLOW_FULL: OverlayItem[] = [
     ],
     map: {
       live: true,
-      x: 55,
-      y: 1.5,
-      w: 44,
-      h: 44,
+      x: 59.5,
+      y: 11,
+      w: 40,
+      h: 40,
       label: "TOP VIEW · SCHEMATIC, TIME COMPRESSED",
       marks: [
         { ...BASE_PT, label: "BASE", tone: "world" },
@@ -518,10 +531,10 @@ const LIFE_SUPPORT_FLOW: OverlayItem[] = [
     edges: chain(["health", "base", "ballistic", "guard", "fire"], [0.8, 3.2, 5.6, 8], { 3: "approved" }),
     map: {
       live: true,
-      x: 55,
-      y: 1.5,
-      w: 44,
-      h: 44,
+      x: 59.5,
+      y: 11,
+      w: 40,
+      h: 40,
       label: "TOP VIEW · SCHEMATIC",
       marks: [
         { x: 48, y: 36, label: "LAUNCHER-1", tone: "world" },
@@ -702,7 +715,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     durationS: 38,
     segments: [
       // Point of view of the player astronaut at head height, looking at the drone as it takes off and flies away.
-      { fromS: 0, kind: "aerial", target: "crew-1", offset: { x: 0, y: 2.1, z: 0 }, lookAt: "drone-1", lookAboveM: 0 },
+      { fromS: 0, kind: "aerial", target: "crew-1", offset: { x: 0, y: 1.6, z: 0 }, lookAt: "drone-1", lookAboveM: 0 },
       { fromS: 26, kind: "follow", target: "drone-1", offset: { x: 18, y: 7, z: 18 }, lookAboveM: 0 },
     ],
     overlay: VOICE_TO_DRONE,
@@ -735,7 +748,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     pov: "1st",
     segments: [
       // Head height of the walking player, looking where the script points the gaze (crew-4, sky, rover, drone).
-      { fromS: 0, kind: "aerial", target: "crew-1", offset: { x: 0, y: 1.75, z: 0 }, lookAt: "u1-gaze", lookAboveM: 0 },
+      { fromS: 0, kind: "aerial", target: "crew-1", offset: { x: 0, y: 1.55, z: 0 }, lookAt: "u1-gaze", lookAboveM: 0 },
     ],
     overlay: HELMET_TOUR,
   },
@@ -798,11 +811,11 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     id: "L1",
     nameKey: "scene.l1",
     startS: 72,
-    durationS: 46,
+    durationS: 26,
     segments: [
       { fromS: 0, kind: "aerial", target: "launcher-1", offset: { x: -12, y: 5, z: 16 }, lookAboveM: 3 },
-      { fromS: 9, kind: "follow", target: "pod", offset: { x: 26, y: 9, z: 24 }, lookAboveM: 0 },
-      { fromS: 27, kind: "aerial", target: "pod", offset: { x: 9, y: 4, z: 10 }, lookAboveM: 1 },
+      { fromS: 4.4, kind: "follow", target: "pod", offset: { x: 30, y: 10, z: 26 }, lookAboveM: 0 },
+      { fromS: 16, kind: "aerial", target: "pod", offset: { x: 9, y: 4, z: 10 }, lookAboveM: 1 },
     ],
     overlay: LIFE_SUPPORT,
   },
@@ -875,7 +888,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     durationS: 18,
     segments: [
       // Helmet view looking at rescue-1, then a side view of the astronaut and the robot towing the casualty.
-      { fromS: 0, kind: "aerial", target: "crew-2", offset: { x: 0, y: 2.4, z: 0 }, lookAt: "rescue-1", lookAboveM: 1.2 },
+      { fromS: 0, kind: "aerial", target: "crew-2", offset: { x: 0, y: 1.6, z: 0 }, lookAt: "rescue-1", lookAboveM: 1.2 },
       { fromS: 9, kind: "follow", target: ["crew-2", "rescue-bot-1"], offset: { x: 9, y: 3, z: 9 }, lookAboveM: 1 },
     ],
     overlay: STORM_HELMET,
@@ -897,7 +910,7 @@ export const DECK_ORDER: readonly string[] = [
   // Direct control and voice orders from the base, with the AI team behind them
   "U1", "W1", "A1", "G1",
   // The rescue, from the alarm to the extraction
-  "H1", "T1", "O1", "V1", "R1", "L0", "L1", "T2", "S5", "S6", "S7",
+  "H1", "T1", "O1", "R1", "V1", "L0", "L1", "T2", "S5", "S6", "S7",
   // Models and standards, then the close
   "Q1", "ML1", "E1",
 ];

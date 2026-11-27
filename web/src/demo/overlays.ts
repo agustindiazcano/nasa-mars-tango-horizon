@@ -176,6 +176,14 @@ export interface ImageItem extends Timed {
   place?: "top-right" | "mid-right" | "banner" | "patch";
 }
 
+/** Side-view animation of the launch: ground profile, the pod arc, parachute point and impact. */
+export interface ArcItem extends Timed {
+  kind: "arc";
+  kicker: string;
+  title: string;
+  caption?: string;
+}
+
 /** Large live map of the zone (the NASA and USGS style map of the HUD) with crew, robots and the planned route. */
 export interface MapItem extends Timed {
   kind: "map";
@@ -214,7 +222,7 @@ export interface GlowItem extends Timed {
   side?: "left" | "right" | "above" | "below";
 }
 
-export type OverlayItem = MapItem | LogosItem | GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
+export type OverlayItem = ArcItem | MapItem | LogosItem | GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
 
 /** Items visible at `tRel` seconds after the scene start. */
 export function overlaysActiveAt(items: readonly OverlayItem[], tRel: number): OverlayItem[] {

@@ -120,7 +120,7 @@ export function u1Walker(t: number, avoid: readonly Circle[] = [], lane = 0): { 
 }
 
 /** Keyframes of the gaze: who or what the camera looks at, with the time the look settles. */
-export type GazeKey = { atS: number; at: "crew-4" | "sky" | "left" | "right" | "rover-3" | "drone-1" | "rover-2" };
+export type GazeKey = { atS: number; at: "crew-4" | "sky" | "base" | "left" | "right" | "rover-3" | "drone-1" | "rover-2" };
 
 /** A scripted spoken order as the HUD shows it: typed transcript, agent trace, answer. */
 export interface U1Order {
@@ -202,29 +202,22 @@ export const U1_ORDERS: readonly U1Order[] = [
 ];
 
 export const U1_GAZE: readonly GazeKey[] = [
+  // Few, slow head movements: the other astronaut, a glance up, the base, the other astronaut again, then the robots.
   { atS: 0, at: "crew-4" },
-  { atS: 2.6, at: "crew-4" },
-  { atS: 3.3, at: "sky" },
-  { atS: 3.9, at: "sky" },
-  { atS: 4.6, at: "left" },
-  { atS: 5.0, at: "left" },
-  { atS: 5.8, at: "right" },
-  { atS: 6.2, at: "right" },
-  { atS: 6.9, at: "sky" },
-  { atS: 7.3, at: "sky" },
-  { atS: 8.1, at: "left" },
-  { atS: 8.6, at: "left" },
-  { atS: 9.4, at: "right" },
-  { atS: 9.8, at: "right" },
-  { atS: 10.6, at: "crew-4" },
-  { atS: 11.2, at: "crew-4" },
-  { atS: 12, at: "rover-3" },
+  { atS: 3.2, at: "crew-4" },
+  { atS: 4.8, at: "sky" },
+  { atS: 6.4, at: "sky" },
+  { atS: 8.0, at: "base" },
+  { atS: 10.0, at: "base" },
+  { atS: 11.4, at: "crew-4" },
+  { atS: 12.6, at: "crew-4" },
+  { atS: 14, at: "rover-3" },
   { atS: 25, at: "rover-3" },
-  { atS: 26.5, at: "drone-1" },
+  { atS: 27, at: "drone-1" },
   { atS: 31, at: "drone-1" },
-  { atS: 33, at: "rover-2" },
+  { atS: 33.5, at: "rover-2" },
   { atS: 40, at: "rover-2" },
-  { atS: 42, at: "rover-3" },
+  { atS: 42.5, at: "rover-3" },
   { atS: 99, at: "rover-3" },
 ];
 
@@ -243,10 +236,10 @@ export function u1Gaze(t: number, player: Pt, pos: (id: string) => Pt | null): P
       const dx = U1_WALK_TO.x - U1_WALK_FROM.x;
       const dz = U1_WALK_TO.z - U1_WALK_FROM.z;
       const n = Math.hypot(dx, dz) || 1;
-      return { x: player.x + (dx / n) * 60 - (dz / n) * 25, y: player.y + 1.7 + 42, z: player.z + (dz / n) * 60 + (dx / n) * 25 };
+      return { x: player.x + (dx / n) * 60 - (dz / n) * 25, y: player.y + 1.55 + 26, z: player.z + (dz / n) * 60 + (dx / n) * 25 };
     }
     const p = pos(at) ?? { x: player.x + 10, y: player.y, z: player.z };
-    return { x: p.x, y: p.y + (at === "crew-4" ? 1.6 : at === "drone-1" ? 0 : 0.8), z: p.z };
+    return { x: p.x, y: p.y + (at === "crew-4" ? 1.5 : at === "drone-1" ? 0 : at === "base" ? 4 : 0.8), z: p.z };
   };
   let i = 0;
   while (i + 1 < U1_GAZE.length && U1_GAZE[i + 1].atS <= t) i++;

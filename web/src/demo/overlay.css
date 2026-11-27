@@ -362,3 +362,29 @@
 /* Cover spacing: the stat row must clear the partner logos */
 .demo-overlay.has-logos .ov-card.side-center { top: 44%; }
 .ov-image.patch img { height: 19vh; }
+
+/* Side-view launch animation */
+.ov-arc { left: 2.5vw; top: 7vh; width: min(740px, 46vw); padding: 12px 14px 10px; background: rgba(8, 12, 16, 0.78) !important; border: 1px solid rgba(255, 179, 107, 0.55); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); backdrop-filter: blur(6px) !important; }
+.ov-arc-canvas { display: block; width: 100%; height: auto; }
+
+/* Dialogue as subtitles: centred at the bottom, the last two lines only, above maps and diagrams */
+.ov-voice-stack { left: 50%; right: auto; transform: translateX(-50%); bottom: 2.6vh; width: min(1080px, 88vw); z-index: 6; align-items: center; gap: 6px; }
+.ov-voice-stack > .ov-voice:nth-last-child(n+3) { display: none; }
+.ov-voice-stack .ov-voice { width: 100%; text-align: center; padding: 8px 20px 10px; border-left: 0; border-bottom: 3px solid var(--cyan, #8fd9d2); }
+.ov-voice-stack .ov-voice.who-crew { border-bottom-color: var(--warn, #ffd23f); }
+.ov-voice-stack .ov-voice.who-guardian { border-bottom-color: var(--good, #8ee6a0); }
+.ov-voice-stack .ov-who { justify-content: center; font-size: 14px; margin-bottom: 2px; }
+.ov-voice-stack .ov-text { font-size: 25px; line-height: 1.2; }
+.ov-graph.has-live { width: min(94vw, 118vh); }
+
+/* Maps inside the explanation slides are see-through and sit at the bottom right, so the 3D view stays visible */
+.ov-graph-map { opacity: 0.62; background: none; box-shadow: none; border-color: rgba(255, 179, 107, 0.5); }
+
+/* The live map sits in the bottom right corner of the screen (above the subtitles), whatever the diagram width */
+.ov-graph.has-live .ov-graph-map { position: fixed !important; left: auto !important; top: auto !important; right: 2.5vw; bottom: 21vh; width: min(34vw, 54vh) !important; height: min(34vw, 54vh) !important; }
+.ov-graph.has-live { width: min(52vw, 92vh); }
+
+.ov-graph-map { position: fixed; z-index: 3; right: 2.5vw; bottom: 21vh; width: min(34vw, 54vh); height: min(34vw, 54vh); animation: mapIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.ov-graph-map.out { animation: mapOut 0.4s ease-in forwards; }
+@keyframes mapIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 0.62; transform: none; } }
+@keyframes mapOut { from { opacity: 0.62; } to { opacity: 0; } }

@@ -21,6 +21,8 @@ export class PodBallistics {
   private group = new THREE.Group();
   private trail = new ProjectileTrail();
   private chuteFadeS = -1;
+  /** Flight speed-up for short takes (1 = real time). */
+  timeScale = 1;
   private podMesh: THREE.Group;
   /** The procedural capsule, hidden once the GLB rocket model is attached. */
   private procPod = new THREE.Group();
@@ -64,9 +66,9 @@ export class PodBallistics {
     this.procPod.add(nose, band);
 
     this.chute = buildParachute();
-    this.chute.group.position.y = 0.95;
     this.chute.group.visible = false;
-    this.podMesh.add(this.chute.group);
+    // The canopy hangs in world space (always upright) from the pod nose; it is not a child of the tilting pod.
+    this.group.add(this.chute.group);
     this.podMesh.visible = false;
     this.group.add(this.podMesh);
     this.group.add(this.trail.group);
@@ -89,6 +91,19 @@ export class PodBallistics {
     model.position.y -= 0.95;
     this.podMesh.add(model);
     this.procPod.visible = false;
+  }
+
+  /** The flight being shown (path in world metres, y up), or null before the first launch. */
+  profile(): { points: { x: number; y: number; z: number; t: number }[]; deployedAtS: number | null; flightTimeS: number; elapsedS: number; launcher: { x: number; z: number } } | null {
+    const d = this.activeDelivery;
+    if (!d) return null;
+    return {
+      points: d.path.map((s) => ({ x: s.p[0], y: s.p[2], z: s.p[1], t: s.t })),
+      deployedAtS: d.deployedAtS,
+      flightTimeS: d.flightTimeS,
+      elapsedS: Math.min(this.elapsedS, d.flightTimeS),
+      launcher: { x: this.launcherOrigin[0], z: this.launcherOrigin[1] },
+    };
   }
 
   /** Moves the smoke and dust and fades the canopy after touchdown (call every frame). */
@@ -212,20 +227,24 @@ export class PodBallistics {
 
   update(dt: number, tele: PodTelemetry): void {
     if (!this.activeDelivery || !tele.active) return;
+    dt *= this.timeScale;
     this.elapsedS += dt;
     tele.elapsedS = Math.min(this.elapsedS, this.activeDelivery.flightTimeS);
 
     const path = this.activeDelivery.path;
-    let state = path[path.length - 1];
-    for (let i = 0; i < path.length; i++) {
-      if (path[i].t >= this.elapsedS) {
-        state = path[i];
-        break;
-      }
-    }
+    // Interpolate between the two path samples around the current time (the samples are 0.1 s or more apart).
+    let hi = path.findIndex((s) => s.t >= this.elapsedS);
+    if (hi < 0) hi = path.length - 1;
+    const b = path[hi];
+    const a = path[Math.max(0, hi - 1)];
+    const u = b.t > a.t ? Math.min(1, Math.max(0, (this.elapsedS - a.t) / (b.t - a.t))) : 1;
 
     const prev = this.podMesh.position.clone();
-    this.podMesh.position.set(state.p[0], state.p[2], state.p[1]);
+    this.podMesh.position.set(
+      a.p[0] + (b.p[0] - a.p[0]) * u,
+      a.p[2] + (b.p[2] - a.p[2]) * u,
+      a.p[1] + (b.p[1] - a.p[1]) * u,
+    );
     this.lastPos = this.podMesh.position.clone();
     const deployed =
       this.activeDelivery.deployedAtS !== null && this.elapsedS >= this.activeDelivery.deployedAtS;
@@ -235,12 +254,13 @@ export class PodBallistics {
       const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vel.normalize());
       this.podMesh.quaternion.slerp(q, 0.25);
     } else if (deployed) {
-      this.podMesh.quaternion.slerp(new THREE.Quaternion(), 0.12);
+      this.podMesh.quaternion.slerp(new THREE.Quaternion(), 0.3);
     }
     if (!deployed) this.trail.emit(this.podMesh.position, true);
     else this.trail.endStream();
     if (deployed && !this.chute.group.visible) this.chuteOpenS = this.elapsedS;
     this.chute.group.visible = deployed;
+    if (deployed) this.attachChute();
     if (deployed) this.chute.update(Math.min(1, (this.elapsedS - this.chuteOpenS) / 0.9), this.elapsedS);
     tele.chuteDeployed = deployed;
 
@@ -254,10 +274,17 @@ export class PodBallistics {
       this.lastPos = this.podMesh.position.clone();
       this.trail.dustBurst(new THREE.Vector3(gx, this.terrain.heightAt(gx, gz), gz));
       this.chuteFadeS = 0;
+      this.attachChute();
       const cb = this.onLanded;
       this.onLanded = undefined;
       cb?.();
     }
+  }
+
+  /** Puts the canopy base on the nose of the pod (the top of the model, 0.95 m above its centre). */
+  private attachChute(): void {
+    const top = new THREE.Vector3(0, 0.95, 0).applyQuaternion(this.podMesh.quaternion);
+    this.chute.group.position.copy(this.podMesh.position).add(top);
   }
 
   private drawEllipses(cx: number, cz: number, along: number, cross: number, rotRad: number): void {
