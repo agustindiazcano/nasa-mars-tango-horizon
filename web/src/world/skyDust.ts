@@ -157,9 +157,9 @@ export class SkyDust {
     this.dust.position.set(anchorX, anchorY - 2, anchorZ);
 
     const storm = THREE.MathUtils.clamp((tau - 0.5) / 3.5, 0, 1);
-    this.sunLight.intensity = THREE.MathUtils.lerp(2.4, 0.2, storm);
+    this.sunLight.intensity = THREE.MathUtils.lerp(2.4, 0.36, storm);
     this.sunLight.position.set(anchorX, anchorY, anchorZ).addScaledVector(this.sunDir, 500);
-    this.ambientLight.intensity = THREE.MathUtils.lerp(1.0, 0.24, storm);
+    this.ambientLight.intensity = THREE.MathUtils.lerp(1.0, 0.4, storm);
 
     const fogColor = new THREE.Color().setRGB(
       THREE.MathUtils.lerp(0.78, 0.2, storm),
