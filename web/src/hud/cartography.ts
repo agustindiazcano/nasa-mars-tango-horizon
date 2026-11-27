@@ -365,6 +365,9 @@ const PAPER = "#f4efe4";
 const FONT = "Rajdhani, 'IBM Plex Mono', 'Segoe UI', sans-serif";
 const MONO = "'IBM Plex Mono', Consolas, monospace";
 
+/** Square map area (neatline plus a small margin) in canvas pixels, for crops that show the map without the sidebar. */
+export const MAP_CROP = { x: 40, y: 24, size: 732 };
+
 export class CartographyRenderer {
   readonly projection: MapProjection;
   private staticLayer: HTMLCanvasElement | null = null;
@@ -375,6 +378,9 @@ export class CartographyRenderer {
   }
 
   /** Renders (or reuses) the cached base map and draws the dynamic layer on `ctx`. */
+  /** Multiplies symbol, label and route-legend sizes (above 1 for slides that are read from a distance). */
+  labelScale = 1;
+
   draw(ctx: CanvasRenderingContext2D, input: MapDynamicInput, route: CartographyRoute | null, agentRoutes: readonly AgentRoute[] = []): void {
     const key = `${this.terrain.meta.product_id}|${this.terrain.realRastersLoaded}`;
     if (!this.staticLayer || this.staticKey !== key) {
@@ -687,6 +693,7 @@ export class CartographyRenderer {
 
   private drawDynamic(ctx: CanvasRenderingContext2D, input: MapDynamicInput, route: CartographyRoute | null, agentRoutes: readonly AgentRoute[] = []): void {
     const proj = this.projection;
+    const ks = this.labelScale;
     ctx.save();
     ctx.beginPath();
     ctx.rect(NEATLINE.x - 2, NEATLINE.y - 2, NEATLINE.size + 4, NEATLINE.size + 4);
@@ -713,7 +720,7 @@ export class CartographyRenderer {
       if (r.points.length < 2) return;
       ctx.setLineDash(r.dashed ? [9, 6] : []);
       ctx.strokeStyle = "rgba(255,255,255,0.85)";
-      ctx.lineWidth = 4.2;
+      ctx.lineWidth = 4.2 * ks;
       ctx.beginPath();
       r.points.forEach((p, i) => {
         const pt = proj.toPx(p.x, p.z);
@@ -722,14 +729,14 @@ export class CartographyRenderer {
       });
       ctx.stroke();
       ctx.strokeStyle = r.color;
-      ctx.lineWidth = 2.6;
+      ctx.lineWidth = 2.6 * ks;
       ctx.stroke();
     });
     ctx.setLineDash([]);
     if (agentRoutes.length > 0) {
-      ctx.font = `700 12px ${MONO}`;
-      const w = Math.max(...agentRoutes.map((r) => ctx.measureText(r.label).width)) + 44;
-      const h = agentRoutes.length * 18 + 10;
+      ctx.font = `700 ${12 * ks}px ${MONO}`;
+      const w = Math.max(...agentRoutes.map((r) => ctx.measureText(r.label).width)) + 44 * ks;
+      const h = agentRoutes.length * 18 * ks + 10 * ks;
       ctx.fillStyle = "rgba(246,239,225,0.92)";
       ctx.fillRect(NEATLINE.x + 8, NEATLINE.y + 8, w, h);
       ctx.strokeStyle = "rgba(40,30,20,0.7)";
@@ -738,17 +745,17 @@ export class CartographyRenderer {
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       agentRoutes.forEach((r, i) => {
-        const y = NEATLINE.y + 8 + 14 + i * 18;
+        const y = NEATLINE.y + 8 + 14 * ks + i * 18 * ks;
         ctx.setLineDash(r.dashed ? [6, 4] : []);
         ctx.strokeStyle = r.color;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3 * ks;
         ctx.beginPath();
         ctx.moveTo(NEATLINE.x + 16, y);
-        ctx.lineTo(NEATLINE.x + 38, y);
+        ctx.lineTo(NEATLINE.x + 38 * ks, y);
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillStyle = "#1d1d1d";
-        ctx.fillText(r.label, NEATLINE.x + 44, y);
+        ctx.fillText(r.label, NEATLINE.x + 44 * ks, y);
       });
     }
 
@@ -761,15 +768,15 @@ export class CartographyRenderer {
     ctx.arc(rp.x, rp.y, Math.max(6, 18 / proj.metersPerPx), 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.font = `600 11px ${MONO}`;
+    ctx.font = `600 ${11 * ks}px ${MONO}`;
     const anchors = symbols.map((s) => {
       const p = proj.toPx(s.x, s.z);
-      return { x: p.x, y: p.y, w: ctx.measureText(s.label).width + 6, h: 14 };
+      return { x: p.x, y: p.y, w: ctx.measureText(s.label).width + 6, h: 14 * ks };
     });
     const boxes = placeLabels(anchors, { x: NEATLINE.x + 2, y: NEATLINE.y + 2, w: NEATLINE.size - 4, h: NEATLINE.size - 4 });
     symbols.forEach((s, i) => {
       const a = anchors[i];
-      drawSymbol(ctx, s.kind, s.color, a.x, a.y, 1.15);
+      drawSymbol(ctx, s.kind, s.color, a.x, a.y, 1.15 * ks);
     });
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";

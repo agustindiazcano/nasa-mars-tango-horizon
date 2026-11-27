@@ -197,7 +197,7 @@ export function pitWallOffset(dist: number, rim: number): number {
 /**
  * Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` of every base module and annex.
  * Layout (docs/impl/24): `hab-1` is the `conae-base-mars` complex at `BASE_ORIGIN`; annexes, the solar field, the
- * antenna farm, connectors and the rocket display piece were placed by a scan of the real HiRISE DEM (greedy search
+ * antenna farm, connectors and the robot display piece were placed by a scan of the real HiRISE DEM (greedy search
  * around the desired spots for footprints whose slope is below 4.8 deg on both the DEM and `slope_1024.png`,
  * non-overlapping with 3 to 6 m of spacing and clear of the fleet start, spawn and launcher zones).
  */
@@ -213,15 +213,14 @@ export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
   { id: "solar", offsetX: 0, offsetZ: -52, widthM: 36, depthM: 13 },
   { id: "battery", offsetX: 22, offsetZ: -34, widthM: 6.0, depthM: 3.06 },
   { id: "fission", offsetX: 220, offsetZ: -40, widthM: 6.0, depthM: 5.13 },
-  { id: "rocket-pad", offsetX: -52, offsetZ: 18, widthM: 20, depthM: 12.6 },
   { id: "comms", offsetX: 28, offsetZ: 12, widthM: 7.36, depthM: 7.01 },
   { id: "launcher-1", offsetX: 55, offsetZ: 24, widthM: 6.0, depthM: 5.95 },
   { id: "shelter", offsetX: -31, offsetZ: 7, widthM: 14, depthM: 4.97 },
-  // Unselectable parts: antenna farm, rocket display piece and the tube connectors to the lab and the medical bay.
+  // Unselectable parts: antenna farm, robot display piece and the tube connectors to the lab and the medical bay.
   { id: "antenna-1", offsetX: 46, offsetZ: -6, widthM: 7.4, depthM: 7.1 },
   { id: "antenna-2", offsetX: 52, offsetZ: 7, widthM: 7.4, depthM: 7.1 },
   { id: "antenna-3", offsetX: 52, offsetZ: -17, widthM: 7.4, depthM: 7.1 },
-  { id: "rocket-display", offsetX: -52, offsetZ: 31, widthM: 3.4, depthM: 6 },
+  { id: "robot-display", offsetX: -52, offsetZ: 31, widthM: 3.4, depthM: 6 },
   { id: "connector-lab", offsetX: 3, offsetZ: -16.05, widthM: 1.8, depthM: 7.4 },
   { id: "connector-med", offsetX: 19.5, offsetZ: -6, widthM: 13, depthM: 1.8 },
 ];

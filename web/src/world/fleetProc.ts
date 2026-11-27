@@ -8,6 +8,8 @@ import { collectDroneRotorPivots, type RotorPivot } from "./nasaModels";
 import { models, type ModelId, type SpawnedModel } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
+import { buildRockGeometry } from "./rockGeometry";
+import { makeRockTextures } from "./rockTextures";
 import { buildRescueRobotModel, type RescuePose, type RescueRobotModel } from "./rescueRobotProc";
 
 // Existing landed root clearance; ground-anchored drone GLBs must cancel this offset.
@@ -1057,9 +1059,13 @@ export class FleetProc {
   }
 
   private buildManipTargets(): void {
-    for (const t of this.targets) {
-      const color = t.kind === "sulfate_vein" ? 0xf2f4f8 : t.kind === "basalt_rock" ? 0x5c636e : 0xc67848;
-      const geo = new THREE.DodecahedronGeometry(0.32, 0);
+    // The rocks the arm samples use the same faceted rock mesh and weathered texture as the boulders, tinted per kind.
+    const tex = makeRockTextures(256, 4242);
+    const sizeM = 0.36;
+    this.targets.forEach((t, i) => {
+      const tint = t.kind === "sulfate_vein" ? 0xe4e0d6 : t.kind === "basalt_rock" ? 0x77787f : 0xc98350;
+      const geo = buildRockGeometry({ detail: 3, seed: 91 + i * 17, worldSizeM: 0.7, roughness: t.kind === "regolith_patch" ? 0.7 : 0.45 });
+      geo.scale(sizeM, sizeM * 0.85, sizeM);
       geo.computeBoundingBox();
       const minY = geo.boundingBox!.min.y;
       const placed = groundPlacement(
@@ -1068,9 +1074,19 @@ export class FleetProc {
         t.z,
         footprintContacts(0.45, 0.45, minY),
       );
-      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: 0.85 }));
+      const mat = new THREE.MeshStandardMaterial({
+        color: tint,
+        map: tex.map,
+        normalMap: tex.normalMap,
+        normalScale: new THREE.Vector2(1.3, 1.3),
+        roughness: t.kind === "sulfate_vein" ? 0.7 : 0.92,
+        metalness: t.kind === "basalt_rock" ? 0.08 : 0.02,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(t.x, placed.y, t.z);
+      mesh.rotation.y = i * 1.9;
       mesh.castShadow = true;
+      mesh.receiveShadow = true;
       mesh.name = `target:${t.id}`;
       this.group.add(mesh);
 
@@ -1079,6 +1095,6 @@ export class FleetProc {
       lbl.position.set(t.x, placed.y + 0.77, t.z);
       lbl.scale.set(3.8, 0.72, 1);
       this.group.add(lbl);
-    }
+    });
   }
 }

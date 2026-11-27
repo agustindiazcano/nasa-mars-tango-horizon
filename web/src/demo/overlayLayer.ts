@@ -1,4 +1,4 @@
-import { MAP_HEIGHT, MAP_WIDTH } from "../hud/cartography";
+import { MAP_CROP } from "../hud/cartography";
 import { iconInner, iconSvg, speakerIcon } from "./icons";
 import { EDGE_DRAW_S, overlaysActiveAt, tokenAt, typedText, vitalsAt, type GraphItem, type OverlayItem } from "./overlays";
 import "./overlay.css";
@@ -241,7 +241,7 @@ export class OverlayLayer {
       case "map":
         el.innerHTML =
           `<div class="ov-map-head"><span class="ov-kicker">${esc(item.kicker)}</span><span class="ov-title">${esc(item.title)}</span></div>` +
-          `<canvas class="ov-map-canvas" width="${MAP_WIDTH}" height="${MAP_HEIGHT}"></canvas>` +
+          `<canvas class="ov-map-canvas" width="${MAP_CROP.size}" height="${MAP_CROP.size}"></canvas>` +
           (item.caption ? `<div class="ov-map-cap">${esc(item.caption)}</div>` : "");
         this.root.appendChild(el);
         break;
@@ -261,8 +261,9 @@ export class OverlayLayer {
       case "graph":
         const m = item.map;
         const live = m?.live
-          ? `<canvas class="ov-graph-map" width="${MAP_WIDTH}" height="${MAP_HEIGHT}" style="left:${m.x}%;top:${(m.y / 56) * 100}%;width:${m.w}%;height:${(m.h / 56) * 100}%"></canvas>`
+          ? `<canvas class="ov-graph-map" width="${MAP_CROP.size}" height="${MAP_CROP.size}" style="left:${m.x}%;top:${(m.y / 56) * 100}%;width:${m.w}%;height:${(m.h / 56) * 100}%"></canvas>`
           : "";
+        if (m?.live) el.classList.add("has-live");
         el.innerHTML = `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-graph-wrap">${graphSvg(item, `g-${item.id}`)}${live}</div>`;
         this.root.appendChild(el);
         break;

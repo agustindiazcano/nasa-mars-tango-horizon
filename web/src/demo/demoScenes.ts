@@ -273,7 +273,7 @@ const LIFE_SUPPORT: OverlayItem[] = [
       { atS: 4, text: "Pod launched, ETA 34 s" },
       { atS: 31, text: "Parachute deployed" },
       { atS: 38, text: "Pod landed 32 m from the crew" },
-      { atS: 41, text: "COPV O2, LiOH scrubber and battery connected" },
+      { atS: 41, text: "Life-support pod supplies connected to the suit" },
       { atS: 44, text: "Pressure and CO2 restored" },
     ],
   },
@@ -369,10 +369,10 @@ const VOICE_TO_DRONE_FULL: OverlayItem[] = [
     ],
     map: {
       live: true,
-      x: 41,
-      y: 3,
-      w: 58,
-      h: 39,
+      x: 55,
+      y: 1.5,
+      w: 44,
+      h: 44,
       label: "TOP VIEW · SCHEMATIC",
       marks: [
         { ...BASE_PT, label: "BASE", tone: "world" },
@@ -467,10 +467,10 @@ const RESCUE_FLOW_FULL: OverlayItem[] = [
     ],
     map: {
       live: true,
-      x: 41,
-      y: 3,
-      w: 58,
-      h: 39,
+      x: 55,
+      y: 1.5,
+      w: 44,
+      h: 44,
       label: "TOP VIEW · SCHEMATIC, TIME COMPRESSED",
       marks: [
         { ...BASE_PT, label: "BASE", tone: "world" },
@@ -518,10 +518,10 @@ const LIFE_SUPPORT_FLOW: OverlayItem[] = [
     edges: chain(["health", "base", "ballistic", "guard", "fire"], [0.8, 3.2, 5.6, 8], { 3: "approved" }),
     map: {
       live: true,
-      x: 41,
-      y: 3,
-      w: 58,
-      h: 39,
+      x: 55,
+      y: 1.5,
+      w: 44,
+      h: 44,
       label: "TOP VIEW · SCHEMATIC",
       marks: [
         { x: 48, y: 36, label: "LAUNCHER-1", tone: "world" },
@@ -534,7 +534,7 @@ const LIFE_SUPPORT_FLOW: OverlayItem[] = [
   { id: "ls-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 1.2, toS: 9, text: "Oxygen 41 % and falling. Rescue is 66 seconds away." },
   { id: "ls-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 4, toS: 14, text: "Launching the life-support pod: oxygen, CO2 scrubber and battery." },
   { id: "ls-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 9, toS: 18, text: "Pod lands 32 m from the crew, outside the 15 m keep-out. Approved." },
-  { id: "ls-lower", kind: "lower", icon: "pod", fromS: 20, toS: 31, title: "Next: the cannon takes", detail: "The pod flies about 34 seconds and opens at the crew member." },
+  { id: "ls-lower", kind: "lower", icon: "pod", fromS: 20, toS: 31, title: "Next: the cannon takes", detail: "The pod flies about 34 seconds and lands beside the crew member." },
 ];
 
 /** Rescue dialogue in the extraction scenes, so the conversation stays readable while the robot works. */

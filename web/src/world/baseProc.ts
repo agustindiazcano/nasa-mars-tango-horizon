@@ -19,7 +19,6 @@ export interface BaseModuleSpec {
     | "solar"
     | "battery"
     | "fission"
-    | "pad"
     | "comms"
     | "launcher"
     | "shelter";
@@ -181,17 +180,6 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     ],
   },
   {
-    id: "rocket-pad",
-    name: "Rocket Launch Platform",
-    kind: "pad",
-    offset: [-52, 18],
-    footprint: [20, 12.6],
-    height: 3.1,
-    color: 0x9aa6b2,
-    model: "building-1",
-    specs: [{ key: "Role", value: "Rocket landing and launch platform with a service module", source: "Design choice", assumption: true }],
-  },
-  {
     id: "comms",
     name: "Comms Relay Tower",
     kind: "comms",
@@ -323,7 +311,7 @@ export class BaseProc {
       this.selectableMeshes.push(mesh);
 
       const isLauncher = mod.kind === "launcher";
-      const lbl = makeSpriteLabel(isLauncher ? "LIFE SUPPORT LAUNCHER" : mod.kind === "pad" ? "ROCKET PLATFORM" : mod.id.toUpperCase(), mod.kind === "fission" || isLauncher ? "#ffb800" : "#35e0ff");
+      const lbl = makeSpriteLabel(isLauncher ? "LIFE SUPPORT LAUNCHER" : mod.id.toUpperCase(), mod.kind === "fission" || isLauncher ? "#ffb800" : "#35e0ff");
       lbl.position.y = mod.height + (isLauncher ? 3.4 : 2.2);
       lbl.scale.set(isLauncher ? 14 : 6.0, isLauncher ? 1.5 : 1.1, 1);
       mGroup.add(lbl);

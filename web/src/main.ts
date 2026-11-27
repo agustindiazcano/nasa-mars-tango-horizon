@@ -14,7 +14,7 @@ import { AIRCRAFT_GROUNDING_TAU, C, leakTimeline, planRoute, stepSuitTelemetry }
 import type { ArmSkillId, LayerId, RouteDisplay } from "@th/shared";
 import { createDemoDeck } from "./hud/demoDeck";
 import { TacticalHud } from "./hud/hud";
-import { CartographyRenderer, type AgentRoute, type CartographyRoute } from "./hud/cartography";
+import { CartographyRenderer, MAP_CROP, MAP_HEIGHT, MAP_WIDTH, type AgentRoute, type CartographyRoute } from "./hud/cartography";
 import { ChatSessionManager, SessionStore } from "./data/sessionStore";
 import { ScreenRelay } from "./remote/screenRelay";
 import { MissionStore } from "./state";
@@ -36,7 +36,7 @@ import {
 import { formatCoordinates } from "./world/terrainValidation";
 import { ScenePanel } from "./hud/scenePanel";
 import { AgentChat } from "./hud/agentChat";
-import { CannonFx, PodPayloadFx } from "./demo/lifeSupportFx";
+import { CannonFx } from "./demo/lifeSupportFx";
 import { OverlayLayer } from "./demo/overlayLayer";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
 import { models } from "./world/modelLibrary";
@@ -165,7 +165,6 @@ void models.spawnSingleRocket(1.9).then((rocket) => {
   if (rocket) podBallistics.setPodModel(rocket);
 });
 const cannonFx = new CannonFx(scene);
-const podPayloadFx = new PodPayloadFx(scene, terrain);
 const overlayLayer = new OverlayLayer();
 /** The scripted life-support shot (scene `L1`) fires once per take, 4 s after the scene starts. */
 let lifeSupportShot = false;
@@ -188,10 +187,8 @@ function fireLifeSupportShot(): void {
   const n = Math.hypot(ux, uz) || 1;
   const tx = RESCUE_SITE.x + (ux / n) * LIFE_SUPPORT_IMPACT_OFFSET_M;
   const tz = RESCUE_SITE.z + (uz / n) * LIFE_SUPPORT_IMPACT_OFFSET_M;
-  const tele = podBallistics.launch(tx, tz, store.env.pressure_pa, store.env.air_temp_k, store.env.wind_ms, store.env.wind_dir_rad, () => {
-    podBallistics.hidePod();
-    podPayloadFx.deploy(tx, tz);
-  });
+  // The pod only lands: nothing comes out of it (no opening animation).
+  const tele = podBallistics.launch(tx, tz, store.env.pressure_pa, store.env.air_temp_k, store.env.wind_ms, store.env.wind_dir_rad);
   if (!tele) return;
   store.podTelemetry = tele;
   const dir = new THREE.Vector3(tx - lx, 0, tz - lz).normalize().multiplyScalar(Math.SQRT1_2);
@@ -213,7 +210,6 @@ function resetDemoEffects(): void {
   overlayLayer.clear();
   podBallistics.reset();
   cannonFx.reset();
-  podPayloadFx.reset();
 }
 
 const fleet = new FleetProc(scene, terrain, (ev, skill) => {
@@ -536,6 +532,11 @@ store.rescue = rescue;
  * rescue-1 over the terrain slope grid, from the base to a point 30 m short of the pit rim.
  */
 const opsMap = new CartographyRenderer(terrain);
+opsMap.labelScale = 1.55;
+// The map is drawn on a full-size canvas and only the map square (no sidebar) is copied into the slides.
+const opsCanvas = document.createElement("canvas");
+opsCanvas.width = MAP_WIDTH;
+opsCanvas.height = MAP_HEIGHT;
 let opsRoute: CartographyRoute | null | undefined;
 function operationRoute(): CartographyRoute | null {
   if (opsRoute !== undefined) return opsRoute;
@@ -581,7 +582,10 @@ function agentRoutes(): AgentRoute[] {
   return list;
 }
 overlayLayer.setMapDrawer((ctx) => {
-  opsMap.draw(ctx, { fleet: store.fleet, crew: store.crew, astronaut: store.astronaut }, null, agentRoutes());
+  const full = opsCanvas.getContext("2d");
+  if (!full) return;
+  opsMap.draw(full, { fleet: store.fleet, crew: store.crew, astronaut: store.astronaut }, null, agentRoutes());
+  ctx.drawImage(opsCanvas, MAP_CROP.x, MAP_CROP.y, MAP_CROP.size, MAP_CROP.size, 0, 0, ctx.canvas.width, ctx.canvas.height);
 });
 
 const sceneDirector = new SceneDirector(rescue, {
@@ -1049,8 +1053,7 @@ function animate(now: number): void {
     endHelmetTour();
   }
   cannonFx.update(realDt);
-  podPayloadFx.update(realDt);
-  podBallistics.tickHologram(now / 1000);
+  podBallistics.tick(realDt);
   const shot = sceneDirector.update(realDt, {
     getPos: (id) => {
       if (id === "pod") return podBallistics.position() ?? rescue.getEntityPosition("pit");

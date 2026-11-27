@@ -13,13 +13,14 @@ import {
   type PodEnv,
 } from "@th/shared";
 import type { PodTelemetry } from "@th/shared";
-import { makeHologramArc, type HologramArc } from "./hologramArc";
 import { buildParachute, type Parachute } from "./parachuteProc";
+import { ProjectileTrail } from "./projectileTrail";
 import type { TerrainProc } from "./terrainProc";
 
 export class PodBallistics {
   private group = new THREE.Group();
-  private hologram: HologramArc | null = null;
+  private trail = new ProjectileTrail();
+  private chuteFadeS = -1;
   private podMesh: THREE.Group;
   /** The procedural capsule, hidden once the GLB rocket model is attached. */
   private procPod = new THREE.Group();
@@ -68,6 +69,7 @@ export class PodBallistics {
     this.podMesh.add(this.chute.group);
     this.podMesh.visible = false;
     this.group.add(this.podMesh);
+    this.group.add(this.trail.group);
 
     // 15 m astronaut keep-out ring
     this.keepoutRing = this.makeCircle(C.pod_keepout_m.value, 0xff2a55);
@@ -89,9 +91,19 @@ export class PodBallistics {
     this.procPod.visible = false;
   }
 
-  /** Advances the hologram pulses (call every frame, time in seconds). */
-  tickHologram(timeS: number): void {
-    this.hologram?.tick(timeS);
+  /** Moves the smoke and dust and fades the canopy after touchdown (call every frame). */
+  tick(dt: number): void {
+    this.trail.update(dt);
+    if (this.chuteFadeS >= 0) {
+      this.chuteFadeS += dt;
+      const k = Math.min(1, this.chuteFadeS / 1.6);
+      this.chute.group.scale.setScalar(1 - k * 0.85);
+      if (k >= 1) {
+        this.chute.group.visible = false;
+        this.chute.group.scale.setScalar(1);
+        this.chuteFadeS = -1;
+      }
+    }
   }
 
   /** World position of the pod while it is shown (in flight or lying at the impact point), else null. */
@@ -107,12 +119,9 @@ export class PodBallistics {
     this.chute.group.visible = false;
     this.podMesh.quaternion.identity();
     this.lastPos = null;
-    this.clearHologram();
-  }
-
-  /** Hides the pod body once its payload has been opened. */
-  hidePod(): void {
-    this.podMesh.visible = false;
+    this.chuteFadeS = -1;
+    this.chute.group.scale.setScalar(1);
+    this.trail.reset();
   }
 
   updateKeepoutRing(astroX: number, astroZ: number): void {
@@ -147,11 +156,9 @@ export class PodBallistics {
     this.podMesh.quaternion.identity();
     this.chute.group.visible = false;
 
-    // Trajectory as a hologram: glowing core with moving pulses, a curtain down to the ground and a ground shadow.
-    this.clearHologram();
-    const pts = aimed.delivery.path.map((s) => new THREE.Vector3(s.p[0], s.p[2], s.p[1]));
-    this.hologram = makeHologramArc(pts, (x, z) => this.terrain.heightAt(x, z));
-    this.group.add(this.hologram.group);
+    // The track is the pod itself: ember and smoke are emitted behind it as it flies (see `update`).
+    this.trail.reset();
+    this.chuteFadeS = -1;
 
     // Compute 1-sigma & 2-sigma landing dispersion ellipse
     const ell = landingEllipse(
@@ -230,6 +237,8 @@ export class PodBallistics {
     } else if (deployed) {
       this.podMesh.quaternion.slerp(new THREE.Quaternion(), 0.12);
     }
+    if (!deployed) this.trail.emit(this.podMesh.position, true);
+    else this.trail.endStream();
     if (deployed && !this.chute.group.visible) this.chuteOpenS = this.elapsedS;
     this.chute.group.visible = deployed;
     if (deployed) this.chute.update(Math.min(1, (this.elapsedS - this.chuteOpenS) / 0.9), this.elapsedS);
@@ -237,18 +246,18 @@ export class PodBallistics {
 
     if (this.elapsedS >= this.activeDelivery.flightTimeS) {
       tele.active = false;
-      this.chute.group.visible = false;
+      // Touchdown: the pod stands upright on its base, dust rises and the canopy settles.
+      const gx = this.podMesh.position.x;
+      const gz = this.podMesh.position.z;
+      this.podMesh.quaternion.identity();
+      this.podMesh.position.y = this.terrain.heightAt(gx, gz) + 0.95;
+      this.lastPos = this.podMesh.position.clone();
+      this.trail.dustBurst(new THREE.Vector3(gx, this.terrain.heightAt(gx, gz), gz));
+      this.chuteFadeS = 0;
       const cb = this.onLanded;
       this.onLanded = undefined;
       cb?.();
     }
-  }
-
-  private clearHologram(): void {
-    if (!this.hologram) return;
-    this.group.remove(this.hologram.group);
-    this.hologram.dispose();
-    this.hologram = null;
   }
 
   private drawEllipses(cx: number, cz: number, along: number, cross: number, rotRad: number): void {

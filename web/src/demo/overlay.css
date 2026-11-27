@@ -351,3 +351,10 @@
 
 .ov-logos-foot { margin-top: 14px; font-size: 15px; letter-spacing: 0.22em; font-weight: 700; color: var(--ok, #ffb36b); }
 .demo-overlay.has-logos .ov-logos { bottom: 2.4vh; }
+
+/* Maps in slides: the map square only, as large as the screen allows */
+.ov-map-canvas { height: 84vh; width: auto; max-width: 94vw; aspect-ratio: 1; }
+.ov-map-head .ov-title { font-size: 24px; }
+.ov-map-cap { font-size: 15px; margin-top: 4px; }
+.ov-graph.has-live { width: min(94vw, 135vh); }
+.ov-graph-map { aspect-ratio: 1; }

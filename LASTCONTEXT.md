@@ -28,6 +28,10 @@
 
 - Life-support pod: one white rocket (cut from the pair in `model-1` by `ModelLibrary.spawnSingleRocket`) replaces the pair near the old garage; it stands beside the life-support launcher and is the model of the flying pod (nose along the path, upright under the canopy). New parachute (`parachuteProc.ts`: 16 orange and white gores, scalloped rim, suspension lines, opens over 0.9 s, sways). The trajectory is a hologram (`hologramArc.ts`: glowing core with moving pulses, curtain to the ground, ground shadow).
 
+- Pod and rocks: the pod only lands (no opening animation; `PodPayloadFx` removed), upright on its base with a dust burst; its track is a projectile trail of ember and smoke (`projectileTrail.ts`, replaces the hologram arc); the parachute has a ripstop fabric texture with seams and bump; the sampled rocks use the boulder mesh and texture, tinted per kind.
+- The base module `garage` (model `building-1`) is gone from the base: the model is now the launch platform at the rocket launch site (`launchSiteProc.ts`). The display robot keeps its footprint as `robot-display`.
+- Slide maps: the live map is cropped to the map square (no sidebar), labels and route legend scale 1.55x, `O1` shows it at 84 vh and graph slides with a map are wider.
+
 ## Files touched
 
 `web/src/demo/*`, `web/src/world/{fleetProc,sceneDirector,uiTourScript}.ts`, `web/src/hud/scenePanel.ts`, `web/src/main.ts`, `shared/src/i18n/*.ts`, `docs/slides/ICON_LIST.md`.
