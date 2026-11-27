@@ -77,7 +77,7 @@
 </tr>
 <tr>
 <td width="50%"><img src="docs/media/life-support-pod.jpg" alt="Life-support pod with parachute" width="100%" /><br/><sub>The life-support pod descends on its parachute toward the astronaut.</sub></td>
-<td width="50%"><img src="docs/media/life-support-payload.jpg" alt="Opened life-support pod" width="100%" /><br/><sub>The pod opens: oxygen tank, CO2 scrubber, battery and suit patch.</sub></td>
+<td width="50%"><img src="docs/media/operation-map.jpg" alt="Operation map with the routes chosen by the agents" width="100%" /><br/><sub>Operation map: rescue-1 route found by A*, drone overwatch lines, rovers and the four astronauts, over the HiRISE relief.</sub></td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/media/rescue-casualty-pit.jpg" alt="Rescue at the pit" width="100%" /><br/><sub>The rescue robot and the astronaut at the pit.</sub></td>
