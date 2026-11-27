@@ -106,6 +106,8 @@ export interface GridItem extends Timed {
   kicker: string;
   title: string;
   chips: { label: string; detail: string; icon?: string }[];
+  /** Columns of the grid (default 4). */
+  cols?: number;
 }
 
 export type GraphTone = "crew" | "agent" | "guard" | "robot" | "world";
@@ -172,6 +174,15 @@ export interface ImageItem extends Timed {
   place?: "top-right" | "mid-right" | "banner" | "patch";
 }
 
+/** Large live map of the zone (the NASA and USGS style map of the HUD) with crew, robots and the planned route. */
+export interface MapItem extends Timed {
+  kind: "map";
+  kicker: string;
+  title: string;
+  /** Short lines under the map (algorithm, distance, what the markers are). */
+  caption?: string;
+}
+
 /** Row of partner logos with a heading, for the cover and the closing slide. */
 export interface LogosItem extends Timed {
   kind: "logos";
@@ -199,7 +210,7 @@ export interface GlowItem extends Timed {
   side?: "left" | "right" | "above" | "below";
 }
 
-export type OverlayItem = LogosItem | GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
+export type OverlayItem = MapItem | LogosItem | GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
 
 /** Items visible at `tRel` seconds after the scene start. */
 export function overlaysActiveAt(items: readonly OverlayItem[], tRel: number): OverlayItem[] {

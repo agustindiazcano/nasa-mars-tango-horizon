@@ -330,3 +330,13 @@
 .ov-voice, .ov-glow { background: rgba(8, 12, 16, 0.72) !important; backdrop-filter: blur(6px) !important; -webkit-backdrop-filter: blur(6px) !important; }
 .ov-voice { border-radius: 3px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); }
 .ov-lower { background: rgba(8, 12, 16, 0.6) !important; }
+
+/* Large operation map */
+.ov-map { left: 50%; top: 2vh; transform: translateX(-50%); width: auto; max-width: 96vw; animation-name: ovInMap; padding: 10px 12px 8px; background: rgba(8, 12, 16, 0.78) !important; border: 1px solid rgba(255, 179, 107, 0.55); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px) !important; }
+.ov-map.out { animation-name: ovOutMap; }
+@keyframes ovInMap { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes ovOutMap { to { opacity: 0; transform: translate(-50%, -10px); } }
+.ov-map-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 6px; }
+.ov-map-head .ov-title { font-size: 26px; }
+.ov-map-canvas { display: block; height: 74vh; width: auto; max-width: 92vw; }
+.ov-map-cap { margin-top: 6px; font-size: 16px; color: var(--ink, #f3ece3); }

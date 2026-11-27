@@ -219,6 +219,8 @@ export const de: Record<Key, string> = {
   "scene.l1": "Start der Lebenserhaltung",
   "scene.w1": "Sprachbefehl an die Drohne",
   "scene.u1": "Helm: Oberfläche und Sprachdemo",
+  "scene.ml1": "Drei ML-Modelle",
+  "scene.o1": "Einsatzkarte",
   "scene.k1": "Fähigkeiten",
   "scene.q1": "Prädiktives RAG",
   "scene.r1": "Ablauf der Rettung",

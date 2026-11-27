@@ -1423,6 +1423,7 @@ export function makeSpriteLabel(text: string, color = "#35e0ff"): THREE.Sprite {
   tex.colorSpace = THREE.SRGBColorSpace;
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
   const sprite = new THREE.Sprite(mat);
+  sprite.userData.isLabel = true;
   sprite.scale.set(9.5, 1.8, 1);
   return sprite;
 }

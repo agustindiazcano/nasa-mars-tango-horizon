@@ -1,3 +1,4 @@
+import { MAP_HEIGHT, MAP_WIDTH } from "../hud/cartography";
 import { iconInner, iconSvg, speakerIcon } from "./icons";
 import { EDGE_DRAW_S, overlaysActiveAt, tokenAt, typedText, vitalsAt, type GraphItem, type OverlayItem } from "./overlays";
 import "./overlay.css";
@@ -78,6 +79,8 @@ export class OverlayLayer {
   private root: HTMLElement;
   private views = new Map<string, View>();
   private voiceStack: HTMLElement;
+  private mapDrawer: ((ctx: CanvasRenderingContext2D) => void) | null = null;
+  private lastMapDraw = new Map<string, number>();
   private brand: HTMLImageElement;
 
   constructor(parent: HTMLElement = document.body) {
@@ -94,6 +97,11 @@ export class OverlayLayer {
     this.voiceStack.className = "ov-voice-stack";
     this.root.appendChild(this.voiceStack);
     parent.appendChild(this.root);
+  }
+
+  /** Supplies the drawing of `map` items (the HUD cartography with live symbols); called a few times per second. */
+  setMapDrawer(fn: ((ctx: CanvasRenderingContext2D) => void) | null): void {
+    this.mapDrawer = fn;
   }
 
   /** Shows the project logo in a corner while a take or presentation is running. */
@@ -230,6 +238,13 @@ export class OverlayLayer {
         el.innerHTML = `<img src="${esc(item.src)}" alt="${esc(item.caption)}" /><div class="ov-cap">${esc(item.caption)}</div>`;
         this.root.appendChild(el);
         break;
+      case "map":
+        el.innerHTML =
+          `<div class="ov-map-head"><span class="ov-kicker">${esc(item.kicker)}</span><span class="ov-title">${esc(item.title)}</span></div>` +
+          `<canvas class="ov-map-canvas" width="${MAP_WIDTH}" height="${MAP_HEIGHT}"></canvas>` +
+          (item.caption ? `<div class="ov-map-cap">${esc(item.caption)}</div>` : "");
+        this.root.appendChild(el);
+        break;
       case "logos":
         el.innerHTML =
           `<div class="ov-logos-h">${esc(item.heading)}</div><div class="ov-logos-row">` +
@@ -240,7 +255,7 @@ export class OverlayLayer {
         this.root.appendChild(el);
         break;
       case "visor":
-        el.innerHTML = `<div class="ov-visor-ring"></div><div class="ov-visor-label">${esc(item.label)}</div><div class="ov-visor-reticle"></div>`;
+        el.innerHTML = `<div class="ov-visor-ring"></div>${item.label ? `<div class="ov-visor-label">${esc(item.label)}</div>` : ""}<div class="ov-visor-reticle"></div>`;
         this.root.insertBefore(el, this.root.firstChild);
         break;
       case "graph":
@@ -249,7 +264,7 @@ export class OverlayLayer {
         break;
       case "grid":
         el.innerHTML =
-          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-chips">` +
+          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-chips" style="${item.cols ? `grid-template-columns:repeat(${item.cols},1fr)` : ""}">` +
           item.chips
             .map((c, n) => `<div class="ov-chip" style="animation-delay:${0.6 + n * 0.45}s">${iconSvg(c.icon, "ov-ico-chip")}<b>${esc(c.label)}</b><span>${esc(c.detail)}</span></div>`)
             .join("") +
@@ -271,7 +286,15 @@ export class OverlayLayer {
   }
 
   private refresh(el: HTMLElement, item: OverlayItem, tRel: number, v?: View): void {
-    if (item.kind === "glow") {
+    if (item.kind === "map") {
+      const last = this.lastMapDraw.get(item.id) ?? -1;
+      const cv = el.querySelector("canvas");
+      if (this.mapDrawer && cv && (last < 0 || tRel - last > 0.12 || tRel < last)) {
+        const ctx = cv.getContext("2d");
+        if (ctx) this.mapDrawer(ctx);
+        this.lastMapDraw.set(item.id, tRel);
+      }
+    } else if (item.kind === "glow") {
       if (v) this.refreshGlow(v, item, tRel);
     } else if (item.kind === "voice") {
       const text = el.querySelector(".ov-text") as HTMLElement;

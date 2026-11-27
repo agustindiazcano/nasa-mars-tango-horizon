@@ -14,6 +14,7 @@ import { AIRCRAFT_GROUNDING_TAU, C, leakTimeline, planRoute, stepSuitTelemetry }
 import type { ArmSkillId, LayerId, RouteDisplay } from "@th/shared";
 import { createDemoDeck } from "./hud/demoDeck";
 import { TacticalHud } from "./hud/hud";
+import { CartographyRenderer, type CartographyRoute } from "./hud/cartography";
 import { ChatSessionManager, SessionStore } from "./data/sessionStore";
 import { ScreenRelay } from "./remote/screenRelay";
 import { MissionStore } from "./state";
@@ -190,6 +191,15 @@ function fireLifeSupportShot(): void {
   const dir = new THREE.Vector3(tx - lx, 0, tz - lz).normalize().multiplyScalar(Math.SQRT1_2);
   dir.y = Math.SQRT1_2;
   cannonFx.fire(new THREE.Vector3(lx, ly, lz).addScaledVector(dir, 3), dir);
+}
+
+/** Shows or hides every floating name tag (crew, robots, targets), e.g. for first-person takes that need a clear view. */
+let worldLabelsVisible = true;
+function setWorldLabels(visible: boolean): void {
+  worldLabelsVisible = visible;
+  scene.traverse((o) => {
+    if (o.userData.isLabel) o.visible = visible;
+  });
 }
 
 function resetDemoEffects(): void {
@@ -515,6 +525,34 @@ store.rescue = rescue;
 
 // Scene director: recorded takes of the rescue (plan 22, section 3.1). It seeks the scenario, drives the camera
 // and hands the clock to the normal simulation step by marking the rescue scenario as active.
+/**
+ * Operation map (scene `O1`): the HUD cartography with the live fleet and crew, plus the route that A* finds for
+ * rescue-1 over the terrain slope grid, from the base to a point 30 m short of the pit rim.
+ */
+const opsMap = new CartographyRenderer(terrain);
+let opsRoute: CartographyRoute | null | undefined;
+function operationRoute(): CartographyRoute | null {
+  if (opsRoute !== undefined) return opsRoute;
+  opsRoute = null;
+  const s = fleetStartPos("rescue-1");
+  const dx = s.x - RESCUE_SITE.x;
+  const dz = s.z - RESCUE_SITE.z;
+  const n = Math.hypot(dx, dz) || 1;
+  const goal = { x: RESCUE_SITE.x + (dx / n) * 30, z: RESCUE_SITE.z + (dz / n) * 30 };
+  const res = planRoute(terrain.buildRouteGrid(), terrain.worldToCell(s.x, s.z), terrain.worldToCell(goal.x, goal.z), {
+    bodyKg: 4500,
+    loadKg: 0,
+    speed: 5.5,
+    maxSlopeDeg: 16,
+    doseWeight: 0,
+  });
+  if (res) opsRoute = { algorithm: "A* (8-direction search, slope and energy cost)", points: res.path.map((idx) => terrain.cellToWorld(idx)) };
+  return opsRoute;
+}
+overlayLayer.setMapDrawer((ctx) => {
+  opsMap.draw(ctx, { fleet: store.fleet, crew: store.crew, astronaut: store.astronaut }, operationRoute());
+});
+
 const sceneDirector = new SceneDirector(rescue, {
   onStart: (scene) => {
     resetDemoEffects();
@@ -522,6 +560,7 @@ const sceneDirector = new SceneDirector(rescue, {
     store.activeScenario = "rescue";
     store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
     store.simScale = 1;
+    setWorldLabels(scene.pov !== "1st");
     const wantPov = scene.pov ?? "3rd";
     if (store.povMode !== wantPov) {
       astronaut.setPovMode(wantPov);
@@ -628,6 +667,7 @@ function runHelmetOrders(t: number): void {
 }
 
 function endHelmetTour(): void {
+  setWorldLabels(true);
   store.baseProcessing = false;
   u1Active = false;
   fleet.stopAll();
@@ -933,6 +973,12 @@ function animate(now: number): void {
     acc -= SIM_DT;
   }
 
+  // The scenario advances in fixed 0.1 s steps; between steps the scripted motion is interpolated so units glide.
+  if (store.activeScenario === "rescue" && rescue.running) {
+    rescue.setFrameOffset(acc);
+    applyRescueView(rescue.view);
+  }
+
   astronaut.updateMovement(realDt);
   if (store.povMode === "cinematic") {
     cinematic.update(realDt, {
@@ -963,6 +1009,7 @@ function animate(now: number): void {
     crew.place("crew-4", CREW4_START.x, CREW4_START.z, Math.PI * 0.75, "idle");
     crew4Scripted = false;
   }
+  if (sceneDirector.state === "idle" && !worldLabelsVisible) setWorldLabels(true);
   if (sceneDirector.activeId === "U1" && sceneDirector.state !== "idle") {
     runHelmetTour(sceneDirector.sceneTimeS, sceneDirector.state === "playing");
   } else if (u1Active) {

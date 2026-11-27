@@ -183,7 +183,7 @@ const DECISIONS: OverlayItem[] = [
     kind: "decision",
     fromS: 0.5,
     toS: 18,
-    kicker: "AI DECISIONS AND GUARDRAILS 1 OF 3",
+    kicker: "AI DECISIONS AND GUARDRAILS 1 OF 2",
     title: "An order that passes every gate",
     order: "Launch the life-support pod to 32 m from the astronaut",
     stages: [
@@ -194,22 +194,11 @@ const DECISIONS: OverlayItem[] = [
     verdict: { atS: 10.5, text: "ALLOW", level: "allow" },
   },
   {
-    id: "d2",
-    kind: "decision",
-    fromS: 18.5,
-    toS: 36,
-    kicker: "AI DECISIONS AND GUARDRAILS 2 OF 3",
-    title: "A hard limit blocks it before any model votes",
-    order: "Move the manipulator arm to 1.2 m from the crew member",
-    stages: [{ atS: 2.5, name: "Hard-limit rule check", detail: "Closer than the 2 m manipulator keep-out", result: "fail" }],
-    verdict: { atS: 5, text: "DENY", level: "deny" },
-  },
-  {
     id: "d3",
     kind: "decision",
-    fromS: 36.5,
-    toS: 54.5,
-    kicker: "AI DECISIONS AND GUARDRAILS 3 OF 3",
+    fromS: 18.5,
+    toS: 36.5,
+    kicker: "AI DECISIONS AND GUARDRAILS 2 OF 2",
     title: "One dissent hands the decision to a human",
     order: "Send the rescue robot next to the injured crew member",
     stages: [
@@ -223,7 +212,7 @@ const DECISIONS: OverlayItem[] = [
     id: "d-note",
     kind: "lower",
     fromS: 2,
-    toS: 54,
+    toS: 36,
     title: "Gemini 4 Carbon, Gemini 4 Argon and Meta Muse vote independently",
     detail: "Cloud providers fail over automatically; the offline engine keeps the same rule check.",
   },
@@ -255,14 +244,12 @@ const EVERYTHING: OverlayItem[] = [
 ];
 
 const VOICE_RESCUE: OverlayItem[] = [
-  { id: "v-crew", kind: "voice", who: "crew", speaker: "ASTRONAUT · VOICE", fromS: 7, toS: 20, text: "Base, astronaut here. I fell into the pit. My suit is leaking and I cannot climb out." },
-  { id: "v-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 13.5, toS: 26, text: "Leak confirmed: suit pressure falling 0.12 kPa/s. Hypoxia in about 9 minutes." },
-  { id: "v-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 17, toS: 32, text: "Dust storm approaching. Dispatching rescue-1 with the rescue robot and both drones for overwatch." },
-  { id: "v-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 24, toS: 36, text: "Route slope under 16 degrees, 15 m keep-out respected. Approved." },
-  { id: "v-ack", kind: "voice", who: "crew", speaker: "ASTRONAUT · VOICE", fromS: 31, toS: 39, text: "Copy, Base. Waiting." },
-  { id: "v-coords", kind: "coords", fromS: 14, toS: 40, ...DIAZ_CANO },
-  { id: "v-l1", kind: "lower", icon: "rescue", fromS: 17, toS: 22, title: "rescue-1 dispatched", detail: "1.7 km to the site, ETA 66 s" },
-  { id: "v-l2", kind: "lower", icon: "drone", fromS: 22, toS: 32, title: "drone-1 and drone-2 launched", detail: "Overwatch at a 25 m standoff, ETA 36 s" },
+  { id: "v-crew", kind: "voice", who: "crew", speaker: "ASTRONAUT · VOICE", fromS: 0.3, toS: 8, text: "Base, I fell into the pit. My suit is leaking." },
+  { id: "v-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 3.5, toS: 13, text: "Dust storm approaching. Dispatching rescue-1, the rescue robot and both drones." },
+  { id: "v-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 8, toS: 16, text: "Route slope under 16 degrees, 15 m keep-out respected. Approved." },
+  { id: "v-coords", kind: "coords", fromS: 2, toS: 22, ...DIAZ_CANO },
+  { id: "v-l1", kind: "lower", icon: "rescue", fromS: 5, toS: 12, title: "rescue-1 on its way", detail: "1.7 km to the site, ETA 66 s" },
+  { id: "v-l2", kind: "lower", icon: "drone", fromS: 12, toS: 22, title: "drone-1 and drone-2 flying to the pit", detail: "Overwatch at a 25 m standoff, ETA 36 s" },
 ];
 
 const LIFE_SUPPORT: OverlayItem[] = [
@@ -359,7 +346,7 @@ const chain = (ids: string[], atS: number[], labels: Record<number, string> = {}
   ids.slice(0, -1).map((id, i) => ({ from: id, to: ids[i + 1], atS: atS[i] + 1, label: labels[i] }));
 
 /** Worked example of a voice order: the astronaut sends two drones to the pit and the AI chain runs. */
-const VOICE_TO_DRONE: OverlayItem[] = [
+const VOICE_TO_DRONE_FULL: OverlayItem[] = [
   {
     id: "w-graph",
     kind: "graph",
@@ -400,7 +387,7 @@ const VOICE_TO_DRONE: OverlayItem[] = [
       },
     ],
   },
-  { id: "w-visor", kind: "visor", fromS: 0, toS: 33, label: "HELMET VIEW · ASTRONAUT" },
+  { id: "w-visor", kind: "visor", fromS: 0, toS: 33, label: "" },
   { id: "w-crew", kind: "voice", who: "crew", speaker: "ASTRONAUT · VOICE", fromS: 1, toS: 10, text: "Drones, fly to the pit and keep watch from 25 meters." },
   { id: "w-exec", kind: "voice", who: "agent", speaker: "SUIT.VOICE-EXEC", fromS: 3.8, toS: 14, text: "Intent: fly_to and overwatch, two robots. Escalating to BASE." },
   { id: "w-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 6, toS: 18, text: "Assigning drone-1 and drone-2. Standoff 25 m, altitudes 22 m and 28 m." },
@@ -411,7 +398,7 @@ const VOICE_TO_DRONE: OverlayItem[] = [
 
 /** Helmet view with the live HUD: a glow tour of each panel, then voice orders to the rover, drone and base. */
 const HELMET_TOUR: OverlayItem[] = [
-  { id: "u-visor", kind: "visor", fromS: 0, toS: 48, label: "HELMET VIEW · LIVE HUD" },
+  { id: "u-visor", kind: "visor", fromS: 0, toS: 48, label: "" },
   { id: "u-g-top", kind: "glow", target: "#hud-top", fromS: 0.8, toS: 3.4, icon: "hud", label: "MISSION BAR", detail: "Clock, link, language and AI latency", side: "below" },
   { id: "u-g-left", kind: "glow", target: "#hud-left", fromS: 3.4, toS: 6, icon: "heart", label: "LIFE SUPPORT", detail: "O2, pressure, CO2, battery and coolant, live", side: "right" },
   { id: "u-g-right", kind: "glow", target: "#hud-right", fromS: 6, toS: 8.6, icon: "storm", label: "ENVIRONMENT", detail: "Dust, wind, radiation and the storm forecast", side: "left" },
@@ -429,8 +416,34 @@ const HELMET_TOUR: OverlayItem[] = [
   { id: "u-h", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 41.5, toS: 48, text: "Oxygen, pressure and CO2 are nominal. No fault on the fan or the battery." },
 ];
 
+/** Big map at the start of the operation: where every robot and astronaut is, and the route A* found for rescue-1. */
+const OPERATION_MAP: OverlayItem[] = [
+  {
+    id: "o-map",
+    kind: "map",
+    fromS: 0.4,
+    toS: 17,
+    kicker: "OPERATION MAP",
+    title: "Where everyone is when the rescue starts",
+    caption: "Route of rescue-1 found by A* over the terrain slope grid · rovers, drones and the four astronauts update live",
+  },
+];
+
+/** Compresses the timing of an overlay list by `k` (graph boxes, arrows and tokens included). */
+const scaleTiming = (items: OverlayItem[], k: number): OverlayItem[] =>
+  items.map((i) => {
+    const base = { ...i, fromS: i.fromS * k, toS: i.toS * k };
+    if (i.kind !== "graph") return base as OverlayItem;
+    return {
+      ...base,
+      nodes: i.nodes.map((n) => ({ ...n, atS: n.atS * k })),
+      edges: i.edges.map((e) => ({ ...e, atS: e.atS * k })),
+      tokens: i.tokens?.map((t) => ({ ...t, path: t.path.map((p) => ({ ...p, atS: p.atS * k })) })),
+    } as OverlayItem;
+  });
+
 /** The rescue as one animated flow: alarm, decision, planning, robots, safety gate, motion. */
-const RESCUE_FLOW: OverlayItem[] = [
+const RESCUE_FLOW_FULL: OverlayItem[] = [
   {
     id: "r-graph",
     kind: "graph",
@@ -472,6 +485,9 @@ const RESCUE_FLOW: OverlayItem[] = [
   { id: "r-l2", kind: "lower", icon: "rescue", fromS: 26, toS: 34, title: "rescue-bot-1 reaches the astronaut", detail: "Hooks the harness and drags the crew member to rescue-1" },
   { id: "r-l3", kind: "lower", icon: "base", fromS: 35, toS: 45, title: "Convoy returns to base", detail: "Through the dust storm, drones grounded at their limit" },
 ];
+
+const RESCUE_FLOW: OverlayItem[] = scaleTiming(RESCUE_FLOW_FULL, 0.6);
+const VOICE_TO_DRONE: OverlayItem[] = scaleTiming(VOICE_TO_DRONE_FULL, 0.76);
 
 /** Arc of the life-support pod over the map: sampled so the token follows a parabola. */
 const podArc = (from: { x: number; y: number }, to: { x: number; y: number }, t0: number, t1: number, rise: number) =>
@@ -549,7 +565,7 @@ const STORM_ALERT: OverlayItem[] = [
 
 /** In the storm: the helmet view of the astronaut who walks to the rescue vehicle. */
 const STORM_HELMET: OverlayItem[] = [
-  { id: "t2-visor", kind: "visor", fromS: 0, toS: 9, label: "HELMET VIEW · ASTRONAUT" },
+  { id: "t2-visor", kind: "visor", fromS: 0, toS: 9, label: "" },
   { id: "t2-lower", kind: "lower", icon: "storm", level: "alert", fromS: 0.5, toS: 17.5, title: "DUST STORM AT FULL STRENGTH", detail: "Drones grounded. Floodlights on at rescue-1." },
   { id: "t2-crew", kind: "voice", who: "crew", speaker: "ASTRONAUT · HELMET", fromS: 1, toS: 9, text: "Visibility is very low. Walking to rescue-1 by its floodlights, with the second astronaut beside me." },
   { id: "t2-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 9.5, toS: 17.5, text: "Towing the astronaut to the bay. Wind and dust are rising." },
@@ -603,6 +619,24 @@ const VEINS = mlCard(
   "vein",
   ["eye", "camera", "chart"],
 );
+
+/** The three custom ML models on one slide (replaces the three single-model slides in the deck). */
+const ML_MODELS: OverlayItem[] = [
+  {
+    id: "ml-all",
+    kind: "grid",
+    cols: 3,
+    fromS: 0.5,
+    toS: 32,
+    kicker: "3 CUSTOM ML MODELS",
+    title: "Trained on real NASA data",
+    chips: [
+      { icon: "waterdrop", label: "Hydration Prospector", detail: "Where to look for water: 1,567 Curiosity DAN stops plus CRISM, THEMIS and CTX. Spearman 0.58, error 0.37 against 0.49 for the baseline. A relative H/OH indicator, not percent water." },
+      { icon: "storm", label: "Storm Nowcaster", detail: "Is it safe to go outside: dust opacity 1 to 3 sols ahead from REMS pressure tides; the Mars Year 34 storm held out. Spearman 0.77 to 0.80. A trend indicator: it does not beat persistence on one station." },
+      { icon: "vein", label: "Mineral Vein Detector", detail: "Where to drill: DINOv2-small features flag bright veins in 117 audited Curiosity photos. ROC-AUC 0.85, precision 0.79, recall 0.66. A visual candidate only: minerals need ChemCam or CheMin." },
+    ],
+  },
+];
 
 const CLOSING: OverlayItem[] = [
   PATCH("closing-patch", 0.3, 14),
@@ -659,12 +693,13 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "W1",
     nameKey: "scene.w1",
+    pov: "1st",
     startS: 56,
-    durationS: 50,
+    durationS: 38,
     segments: [
       // Point of view of the player astronaut at head height, looking at the drone as it takes off and flies away.
       { fromS: 0, kind: "aerial", target: "crew-1", offset: { x: 0, y: 2.1, z: 0 }, lookAt: "drone-1", lookAboveM: 0 },
-      { fromS: 34, kind: "follow", target: "drone-1", offset: { x: 18, y: 7, z: 18 }, lookAboveM: 0 },
+      { fromS: 26, kind: "follow", target: "drone-1", offset: { x: 18, y: 7, z: 18 }, lookAboveM: 0 },
     ],
     overlay: VOICE_TO_DRONE,
   },
@@ -704,10 +739,10 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     id: "G1",
     nameKey: "scene.g1",
     startS: 0,
-    durationS: 55,
+    durationS: 37,
     segments: [
       { fromS: 0, kind: "orbit", target: "base", radius: 110, height: 55, speed: 0.05, lookAboveM: 2 },
-      { fromS: 28, kind: "aerial", target: "rover-1", offset: { x: 18, y: 6, z: 16 }, lookAboveM: 1.2 },
+      { fromS: 19, kind: "aerial", target: "rover-1", offset: { x: 18, y: 6, z: 16 }, lookAboveM: 1.2 },
     ],
     overlay: DECISIONS,
   },
@@ -720,14 +755,22 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     overlay: EVERYTHING,
   },
   {
+    id: "O1",
+    nameKey: "scene.o1",
+    startS: 48,
+    durationS: 17,
+    segments: [{ fromS: 0, kind: "orbit", target: ["base", "rescue-site"], radius: 900, height: 700, speed: 0.04 }],
+    overlay: OPERATION_MAP,
+  },
+  {
     id: "V1",
     nameKey: "scene.v1",
-    startS: 48,
-    durationS: 40,
+    startS: 55,
+    durationS: 22,
     segments: [
-      { fromS: 0, kind: "orbit", target: "crew-2", radius: 14, height: 3.5, speed: 0.2, lookAboveM: 1.2 },
-      { fromS: 14, kind: "follow", target: "rescue-1", offset: { x: 14, y: 5, z: 12 }, lookAboveM: 1.5 },
-      { fromS: 26, kind: "follow", target: "drone-1", offset: { x: 10, y: 5, z: 12 }, lookAboveM: 0 },
+      { fromS: 0, kind: "orbit", target: "crew-2", radius: 12, height: 3, speed: 0.2, lookAboveM: 1.2 },
+      { fromS: 6, kind: "follow", target: "rescue-1", offset: { x: 12, y: 3.5, z: 11 }, lookAboveM: 1.2 },
+      { fromS: 14, kind: "follow", target: "drone-1", offset: { x: 9, y: 4, z: 11 }, lookAboveM: 0 },
     ],
     overlay: VOICE_RESCUE,
   },
@@ -735,7 +778,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     id: "R1",
     nameKey: "scene.r1",
     startS: 64,
-    durationS: 48,
+    durationS: 29,
     segments: [{ fromS: 0, kind: "orbit", target: ["base", "rescue-site"], radius: 900, height: 700, speed: 0.04 }],
     overlay: RESCUE_FLOW,
   },
@@ -798,6 +841,15 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     overlay: VEINS,
   },
   {
+    id: "ML1",
+    nameKey: "scene.ml1",
+    startS: 20,
+    durationS: 33,
+    layer: "hydration",
+    segments: [{ fromS: 0, kind: "orbit", target: "base", radius: 520, height: 420, speed: 0.03, lookAboveM: 0 }],
+    overlay: ML_MODELS,
+  },
+  {
     id: "T1",
     nameKey: "scene.t1",
     startS: 58,
@@ -814,6 +866,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "T2",
     nameKey: "scene.t2",
+    pov: "1st",
     startS: 146,
     durationS: 18,
     segments: [
@@ -834,4 +887,13 @@ export const DEMO_SCENES: readonly SceneDef[] = [
 ];
 
 /** Scenes of the explained video in play order; the older takes stay selectable one by one. */
-export const DECK_ORDER: readonly string[] = ["C0", "P0", "A1", "K1", "U1", "W1", "G1", "V1", "R1", "L0", "L1", "H1", "Q1", "M1", "M2", "M3", "T1", "T2", "S5", "S6", "S7", "E1"];
+export const DECK_ORDER: readonly string[] = [
+  // Opening
+  "C0", "P0",
+  // Direct control and voice orders from the base, with the AI team behind them
+  "U1", "W1", "A1", "K1", "G1",
+  // The rescue, from the alarm to the extraction
+  "H1", "T1", "O1", "V1", "R1", "L0", "L1", "T2", "S5", "S6", "S7",
+  // Models and standards, then the close
+  "Q1", "ML1", "E1",
+];
