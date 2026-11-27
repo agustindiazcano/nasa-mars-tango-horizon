@@ -11,6 +11,11 @@
 - Deck limit in the footage-length test raised to 11 min (deck is about 10.3 min with `U1`).
 - Checked live (dev server on port 5180, since 5174 serves another project): glow callouts, FPS view with crew-4 ahead, drone arriving, voice lines, icons in `A1`. Not checked: arm lifting the rock close up, glow ring on bright sky at full pace.
 
+- Cover and closing: the banner picture (`th-banner.jpg`, deleted) is replaced by the Tango Horizon patch (`web/public/images/th-patch.png`, circular, transparent), a text title taken from the README ("Tango Horizon: AI Systems for EVA and Mars Exploration" and a multi-agent description) and a partner logo row (`logos` overlay kind; logos cropped from the banner into `web/public/images/logos/*.png` with transparent background). The patch is also the corner brand on every slide. The patch ring still shows the four surnames (it is the project logo).
+- New slides `K1` (all 12 core capabilities, from the README) and `Q1` (predictive RAG for health, maintenance and weather); `F1` leaves the deck order because `K1` covers it. The 5-language scene names are added.
+- Presentation text uses "astronaut" instead of crew surnames; the scripted agent narration (`narr.*`) and the HUD roster still use the callsigns.
+- Crew roster in two lines per astronaut, wide scenes panel, styled scrollbars, crosshair cursor and pointing-hand cursor, Mars favicon (branch `feat/styled-scrollbars`).
+
 ## Files touched
 
 `web/src/demo/*`, `web/src/world/{fleetProc,sceneDirector,uiTourScript}.ts`, `web/src/hud/scenePanel.ts`, `web/src/main.ts`, `shared/src/i18n/*.ts`, `docs/slides/ICON_LIST.md`.
