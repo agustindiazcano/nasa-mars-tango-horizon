@@ -1,11 +1,11 @@
 {
  "version": 1,
- "totalBytes": 20497784,
+ "totalBytes": 10613516,
  "models": {
   "antenna": {
    "file": "antenna.glb",
    "role": "prop",
-   "bytes": 619196,
+   "bytes": 279516,
    "triangles": 40000,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -42,7 +42,7 @@
   "asset-1": {
    "file": "asset-1.glb",
    "role": "prop",
-   "bytes": 593184,
+   "bytes": 271624,
    "triangles": 39970,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -79,7 +79,7 @@
   "asset-2": {
    "file": "asset-2.glb",
    "role": "prop",
-   "bytes": 609376,
+   "bytes": 287040,
    "triangles": 39990,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -116,7 +116,7 @@
   "asset-3": {
    "file": "asset-3.glb",
    "role": "prop",
-   "bytes": 464468,
+   "bytes": 225020,
    "triangles": 40000,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -153,7 +153,7 @@
   "asset-4": {
    "file": "asset-4.glb",
    "role": "prop",
-   "bytes": 685204,
+   "bytes": 296612,
    "triangles": 39998,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -190,7 +190,7 @@
   "astronaut": {
    "file": "astronaut.glb",
    "role": "rigid-astronaut",
-   "bytes": 2457068,
+   "bytes": 714088,
    "triangles": 99984,
    "triangleBudget": 100000,
    "byteBudget": 5242880,
@@ -273,7 +273,7 @@
   "building-1": {
    "file": "building-1.glb",
    "role": "prop",
-   "bytes": 610508,
+   "bytes": 269064,
    "triangles": 39958,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -310,7 +310,7 @@
   "building-2": {
    "file": "building-2.glb",
    "role": "prop",
-   "bytes": 662408,
+   "bytes": 286228,
    "triangles": 39998,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -347,7 +347,7 @@
   "building-3": {
    "file": "building-3.glb",
    "role": "prop",
-   "bytes": 582080,
+   "bytes": 256320,
    "triangles": 39992,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -384,7 +384,7 @@
   "building-connector": {
    "file": "building-connector.glb",
    "role": "prop",
-   "bytes": 509544,
+   "bytes": 234288,
    "triangles": 39991,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -421,7 +421,7 @@
   "circle-building-1": {
    "file": "circle-building-1.glb",
    "role": "prop",
-   "bytes": 690088,
+   "bytes": 306656,
    "triangles": 39982,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -458,7 +458,7 @@
   "circle-building-2": {
    "file": "circle-building-2.glb",
    "role": "prop",
-   "bytes": 681208,
+   "bytes": 298904,
    "triangles": 39984,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -495,7 +495,7 @@
   "conae-base-mars": {
    "file": "conae-base-mars.glb",
    "role": "hero",
-   "bytes": 1050336,
+   "bytes": 658024,
    "triangles": 99995,
    "triangleBudget": 100000,
    "byteBudget": 4194304,
@@ -569,7 +569,7 @@
   "life-support-cannon": {
    "file": "life-support-cannon.glb",
    "role": "prop",
-   "bytes": 729184,
+   "bytes": 310720,
    "triangles": 39996,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -606,7 +606,7 @@
   "model-1": {
    "file": "model-1.glb",
    "role": "prop",
-   "bytes": 623668,
+   "bytes": 289900,
    "triangles": 39982,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -643,7 +643,7 @@
   "model-2": {
    "file": "model-2.glb",
    "role": "prop",
-   "bytes": 776952,
+   "bytes": 348448,
    "triangles": 39988,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -680,7 +680,7 @@
   "rescue-robot-astronaut": {
    "file": "rescue-robot-astronaut.glb",
    "role": "prop",
-   "bytes": 728912,
+   "bytes": 306752,
    "triangles": 39988,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -717,7 +717,7 @@
   "rescue-robot-without-astronaut": {
    "file": "rescue-robot-without-astronaut.glb",
    "role": "prop",
-   "bytes": 690324,
+   "bytes": 305396,
    "triangles": 39988,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -754,7 +754,7 @@
   "rescue-rover": {
    "file": "rescue-rover.glb",
    "role": "prop",
-   "bytes": 720192,
+   "bytes": 325072,
    "triangles": 39980,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -791,7 +791,7 @@
   "rocket": {
    "file": "rocket.glb",
    "role": "hero",
-   "bytes": 870732,
+   "bytes": 532916,
    "triangles": 80000,
    "triangleBudget": 80000,
    "byteBudget": 3145728,
@@ -828,7 +828,7 @@
   "rockets": {
    "file": "rockets.glb",
    "role": "prop",
-   "bytes": 726760,
+   "bytes": 316508,
    "triangles": 39972,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -865,7 +865,7 @@
   "rover-new": {
    "file": "rover-new.glb",
    "role": "prop",
-   "bytes": 807084,
+   "bytes": 380484,
    "triangles": 39668,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
@@ -902,7 +902,7 @@
   "solar-panel": {
    "file": "solar-panel.glb",
    "role": "prop",
-   "bytes": 785492,
+   "bytes": 290120,
    "triangles": 40000,
    "triangleBudget": 40000,
    "byteBudget": 2097152,
