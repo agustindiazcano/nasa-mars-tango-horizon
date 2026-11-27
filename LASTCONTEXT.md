@@ -26,6 +26,8 @@
 - Smoother climbs: ground units low-pass their pitch, roll and height; drones look ahead, rise before a slope and limit their vertical speed.
 - Graph slides (`W1`, `R1`, `L0`) show the live cartography with the agent routes (A* for rescue-1, drones, robot) instead of the flat schematic map. Slide text now says autonomous orchestration, predictive health with RAG and operations monitoring; the cover has the local node line; the UP logo is the black original.
 
+- Life-support pod: one white rocket (cut from the pair in `model-1` by `ModelLibrary.spawnSingleRocket`) replaces the pair near the old garage; it stands beside the life-support launcher and is the model of the flying pod (nose along the path, upright under the canopy). New parachute (`parachuteProc.ts`: 16 orange and white gores, scalloped rim, suspension lines, opens over 0.9 s, sways). The trajectory is a hologram (`hologramArc.ts`: glowing core with moving pulses, curtain to the ground, ground shadow).
+
 ## Files touched
 
 `web/src/demo/*`, `web/src/world/{fleetProc,sceneDirector,uiTourScript}.ts`, `web/src/hud/scenePanel.ts`, `web/src/main.ts`, `shared/src/i18n/*.ts`, `docs/slides/ICON_LIST.md`.

@@ -423,11 +423,13 @@ export class BaseProc {
       }),
     );
     if (antennas) this.extras.add(antennas);
-    // New rocket pair parked beside the rocket platform as a display piece.
-    const pair = at(-78, 34);
-    void models.attach("model-1", this.extras, null, (m) => {
-      m.object.position.copy(pair);
-      m.object.rotation.y = 0.4;
+    // One white rocket (cut from the old pair) stands beside the life-support launcher: it is the model of the pod.
+    const solo = at(64, 31);
+    void models.spawnSingleRocket(5.2).then((rocket) => {
+      if (!rocket) return;
+      rocket.position.copy(solo);
+      rocket.rotation.y = 0.4;
+      this.extras.add(rocket);
     });
     const dp = at(-52, 31);
     void models.attach("rescue-robot-astronaut", this.extras, null, (m) => {

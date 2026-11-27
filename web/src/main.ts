@@ -39,6 +39,7 @@ import { AgentChat } from "./hud/agentChat";
 import { CannonFx, PodPayloadFx } from "./demo/lifeSupportFx";
 import { OverlayLayer } from "./demo/overlayLayer";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
+import { models } from "./world/modelLibrary";
 import { SceneDirector } from "./world/sceneDirector";
 import { U1_CREW4, U1_ORDERS, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_GOAL, U1_ROVER2_ORDER_S, U1_ROVER2_WAIT, U1_TYPE_CPS, u1Drone, u1Gaze, u1PickLane, u1TypeS, u1Walker, laneOffset } from "./world/uiTourScript";
 import { RescueLitter } from "./world/rescueLitter";
@@ -159,6 +160,10 @@ createSkyCraneToggle(() => {
 });
 const podLauncherOrigin = baseProc.launcherOrigins[0] ?? [LAUNCHER_PRIMARY_COORD.x, LAUNCHER_PRIMARY_COORD.z, 6];
 const podBallistics = new PodBallistics(scene, terrain, podLauncherOrigin);
+// The pod uses the single white rocket model (cut from model-1) instead of the procedural capsule.
+void models.spawnSingleRocket(1.9).then((rocket) => {
+  if (rocket) podBallistics.setPodModel(rocket);
+});
 const cannonFx = new CannonFx(scene);
 const podPayloadFx = new PodPayloadFx(scene, terrain);
 const overlayLayer = new OverlayLayer();
@@ -1045,6 +1050,7 @@ function animate(now: number): void {
   }
   cannonFx.update(realDt);
   podPayloadFx.update(realDt);
+  podBallistics.tickHologram(now / 1000);
   const shot = sceneDirector.update(realDt, {
     getPos: (id) => {
       if (id === "pod") return podBallistics.position() ?? rescue.getEntityPosition("pit");
