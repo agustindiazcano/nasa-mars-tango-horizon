@@ -374,7 +374,7 @@ const VOICE_TO_DRONE_FULL: OverlayItem[] = [
       { id: "base", label: "BASE", detail: "Orchestrator: picks the robots", x: FLOW_X, y: slot(2), tone: "agent", atS: 5.6 },
       { id: "robots", label: "ROBOT.drone-1 · drone-2", detail: "Each plans path and altitude", x: FLOW_X, y: slot(3), tone: "robot", atS: 7.8 },
       { id: "guard", label: "GUARDIAN", detail: "Keep-out, slope, judge, vote", x: FLOW_X, y: slot(4), tone: "guard", atS: 10 },
-      { id: "act", label: "SIMULATOR · fly_to ×2", detail: "Both drones take off", x: 68, y: slot(4), w: 36, tone: "world", atS: 12.2 },
+      { id: "act", label: "SIMULATOR · fly_to ×2", detail: "Both drones take off", x: 79, y: 6.5, w: 38, tone: "world", atS: 12.2 },
     ],
     edges: [
       ...chain(["voice", "exec", "base", "robots", "guard"], [0.8, 3.4, 5.6, 7.8]),
@@ -382,10 +382,10 @@ const VOICE_TO_DRONE_FULL: OverlayItem[] = [
     ],
     map: {
       live: true,
-      x: 55,
-      y: 1.5,
-      w: 44,
-      h: 44,
+      x: 59.5,
+      y: 11,
+      w: 40,
+      h: 40,
       label: "TOP VIEW · SCHEMATIC",
       marks: [
         { ...BASE_PT, label: "BASE", tone: "world" },
@@ -715,7 +715,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     durationS: 38,
     segments: [
       // Point of view of the player astronaut at head height, looking at the drone as it takes off and flies away.
-      { fromS: 0, kind: "aerial", target: "crew-1", offset: { x: 0, y: 2.1, z: 0 }, lookAt: "drone-1", lookAboveM: 0 },
+      { fromS: 0, kind: "aerial", target: "crew-1", offset: { x: 0, y: 1.6, z: 0 }, lookAt: "drone-1", lookAboveM: 0 },
       { fromS: 26, kind: "follow", target: "drone-1", offset: { x: 18, y: 7, z: 18 }, lookAboveM: 0 },
     ],
     overlay: VOICE_TO_DRONE,
@@ -748,7 +748,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     pov: "1st",
     segments: [
       // Head height of the walking player, looking where the script points the gaze (crew-4, sky, rover, drone).
-      { fromS: 0, kind: "aerial", target: "crew-1", offset: { x: 0, y: 1.75, z: 0 }, lookAt: "u1-gaze", lookAboveM: 0 },
+      { fromS: 0, kind: "aerial", target: "crew-1", offset: { x: 0, y: 1.55, z: 0 }, lookAt: "u1-gaze", lookAboveM: 0 },
     ],
     overlay: HELMET_TOUR,
   },
@@ -888,7 +888,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     durationS: 18,
     segments: [
       // Helmet view looking at rescue-1, then a side view of the astronaut and the robot towing the casualty.
-      { fromS: 0, kind: "aerial", target: "crew-2", offset: { x: 0, y: 2.4, z: 0 }, lookAt: "rescue-1", lookAboveM: 1.2 },
+      { fromS: 0, kind: "aerial", target: "crew-2", offset: { x: 0, y: 1.6, z: 0 }, lookAt: "rescue-1", lookAboveM: 1.2 },
       { fromS: 9, kind: "follow", target: ["crew-2", "rescue-bot-1"], offset: { x: 9, y: 3, z: 9 }, lookAboveM: 1 },
     ],
     overlay: STORM_HELMET,

@@ -1198,14 +1198,16 @@ function animate(now: number): void {
         if (id === "u1-gaze") {
           const p = astronaut.pos;
           const g = u1Gaze(sceneDirector.sceneTimeS, { x: p.x, y: p.y, z: p.z }, (eid) => {
-            const o = fleet.get(eid)?.object.position ?? (eid === "crew-4" ? { x: U1_CREW4.x + laneOffset(u1Lane).x, y: terrain.heightAt(U1_CREW4.x + laneOffset(u1Lane).x, U1_CREW4.z + laneOffset(u1Lane).z), z: U1_CREW4.z + laneOffset(u1Lane).z } : null);
+            const o = fleet.get(eid)?.object.position ?? (eid === "base" ? rescue.getEntityPosition("base") : eid === "crew-4" ? { x: U1_CREW4.x + laneOffset(u1Lane).x, y: terrain.heightAt(U1_CREW4.x + laneOffset(u1Lane).x, U1_CREW4.z + laneOffset(u1Lane).z), z: U1_CREW4.z + laneOffset(u1Lane).z } : null);
             return o ? { x: o.x, y: o.y, z: o.z } : null;
           });
           return new THREE.Vector3(g.x, g.y, g.z);
         }
-        const live = fleet.get(id);
-        if (live) return live.object.position.clone();
       }
+      // Fleet units: the camera follows the rendered unit (a drone at its flight altitude, a rover on its wheels),
+      // not the scripted ground point of the scenario.
+      const live = fleet.get(id);
+      if (live) return live.object.position.clone();
       return rescue.getEntityPosition(id);
     },
     heightAt: (x, z) => terrain.heightAt(x, z),
