@@ -347,7 +347,7 @@ const RESCUE_FLOW: OverlayItem[] = [
     nodes: [
       { id: "health", label: "SUIT.HEALTH", detail: "Alarm: leak, hypoxia in about 9 min", x: FLOW_X, y: slot(0), tone: "agent", atS: 0.8 },
       { id: "base", label: "BASE", detail: "Decision: rescue now, storm coming", x: FLOW_X, y: slot(1), tone: "agent", atS: 3.4 },
-      { id: "plan", label: "EVA-PLANNER · WEATHER-RAD", detail: "Slope-safe route, storm window", x: FLOW_X, y: slot(2), tone: "agent", atS: 6 },
+      { id: "plan", label: "EVA + WEATHER", detail: "EVA-PLANNER route, storm window", x: FLOW_X, y: slot(2), tone: "agent", atS: 6 },
       { id: "robots", label: "ROBOTS", detail: "rescue-1, rescue-bot-1, drone-1, drone-2", x: FLOW_X, y: slot(3), tone: "robot", atS: 8.6 },
       { id: "guard", label: "GUARDIAN", detail: "Every action: rules, judge, vote", x: FLOW_X, y: slot(4), tone: "guard", atS: 11.2 },
       { id: "act", label: "SIMULATOR", detail: "Dispatch, hook, drag, return", x: 68, y: slot(4), w: 36, tone: "world", atS: 13.8 },
@@ -671,8 +671,8 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     layer: "optical",
     segments: [
       // Satellite-style top view: base, then the pit, then both at once.
-      { fromS: 0, kind: "aerial", target: "base", offset: { x: 0, y: 420, z: 2 }, lookAboveM: 0 },
-      { fromS: 5, kind: "aerial", target: "rescue-site", offset: { x: 0, y: 420, z: 2 }, lookAboveM: 0 },
+      { fromS: 0, kind: "aerial", target: "base", offset: { x: 0, y: 190, z: 2 }, lookAboveM: 0 },
+      { fromS: 5, kind: "aerial", target: "rescue-site", offset: { x: 0, y: 190, z: 2 }, lookAboveM: 0 },
       { fromS: 10, kind: "aerial", target: ["base", "rescue-site"], offset: { x: 0, y: 1250, z: 2 }, lookAboveM: 0 },
     ],
     overlay: STORM_ALERT,
