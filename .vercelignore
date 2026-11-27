@@ -9,6 +9,10 @@
 /scratch-voice/
 /docs/
 /.claude/
+/.worktrees/
+/screenshots slides/
+/impact-winner-tango-horizon-buenos-aires.jpeg
+/server/
 /.git/
 node_modules/
 **/node_modules/
