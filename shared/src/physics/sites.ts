@@ -197,7 +197,7 @@ export function pitWallOffset(dist: number, rim: number): number {
 /**
  * Nominal footprint dimensions (m) and offsets relative to `BASE_ORIGIN` of every base module and annex.
  * Layout (docs/impl/24): `hab-1` is the `conae-base-mars` complex at `BASE_ORIGIN`; annexes, the solar field, the
- * antenna farm, connectors and the garage display piece were placed by a scan of the real HiRISE DEM (greedy search
+ * antenna farm, connectors and the rocket display piece were placed by a scan of the real HiRISE DEM (greedy search
  * around the desired spots for footprints whose slope is below 4.8 deg on both the DEM and `slope_1024.png`,
  * non-overlapping with 3 to 6 m of spacing and clear of the fleet start, spawn and launcher zones).
  */
@@ -213,17 +213,63 @@ export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
   { id: "solar", offsetX: 0, offsetZ: -52, widthM: 36, depthM: 13 },
   { id: "battery", offsetX: 22, offsetZ: -34, widthM: 6.0, depthM: 3.06 },
   { id: "fission", offsetX: 220, offsetZ: -40, widthM: 6.0, depthM: 5.13 },
-  { id: "garage", offsetX: -52, offsetZ: 18, widthM: 20, depthM: 12.6 },
+  { id: "rocket-pad", offsetX: -52, offsetZ: 18, widthM: 20, depthM: 12.6 },
   { id: "comms", offsetX: 28, offsetZ: 12, widthM: 7.36, depthM: 7.01 },
   { id: "launcher-1", offsetX: 55, offsetZ: 24, widthM: 6.0, depthM: 5.95 },
   { id: "shelter", offsetX: -31, offsetZ: 7, widthM: 14, depthM: 4.97 },
-  // Unselectable parts: antenna farm, garage display piece and the tube connectors to the lab and the medical bay.
+  // Unselectable parts: antenna farm, rocket display piece and the tube connectors to the lab and the medical bay.
   { id: "antenna-1", offsetX: 46, offsetZ: -6, widthM: 7.4, depthM: 7.1 },
   { id: "antenna-2", offsetX: 52, offsetZ: 7, widthM: 7.4, depthM: 7.1 },
   { id: "antenna-3", offsetX: 52, offsetZ: -17, widthM: 7.4, depthM: 7.1 },
-  { id: "garage-display", offsetX: -52, offsetZ: 31, widthM: 3.4, depthM: 6 },
+  { id: "rocket-display", offsetX: -52, offsetZ: 31, widthM: 3.4, depthM: 6 },
   { id: "connector-lab", offsetX: 3, offsetZ: -16.05, widthM: 1.8, depthM: 7.4 },
   { id: "connector-med", offsetX: 19.5, offsetZ: -6, widthM: 13, depthM: 1.8 },
+];
+
+/**
+ * Extra buildings that complete the base (no module card): crew pods south of the main complex, domes south of the
+ * greenhouse and lab, a round hub beside the ISRU plant and an outpost of twin domes. `metres` is the maximum span of
+ * the model; `radiusM` keeps boulders and the fleet away. Offsets are relative to `BASE_ORIGIN`.
+ */
+export interface BaseAnnex {
+  id: string;
+  model: string;
+  offsetX: number;
+  offsetZ: number;
+  yaw: number;
+  metres: number;
+  radiusM: number;
+}
+
+export const BASE_ANNEXES: readonly BaseAnnex[] = [
+  { id: "pod-a", model: "circle-building-1", offsetX: -4, offsetZ: 23, yaw: 0, metres: 9, radiusM: 5.2 },
+  { id: "pod-b", model: "circle-building-2", offsetX: 14, offsetZ: 23, yaw: 0.6, metres: 10, radiusM: 5.8 },
+  { id: "dome-w", model: "building-2", offsetX: -28, offsetZ: -41, yaw: 0, metres: 10, radiusM: 5.5 },
+  { id: "dome-e", model: "building-2", offsetX: 3, offsetZ: -40, yaw: 0.8, metres: 9, radiusM: 5 },
+  { id: "hub-r", model: "building-3", offsetX: 52, offsetZ: -27, yaw: 0, metres: 9, radiusM: 5.2 },
+  { id: "outpost", model: "asset-3", offsetX: -50, offsetZ: -10, yaw: 0.3, metres: 13, radiusM: 7.5 },
+];
+
+/**
+ * Tube connectors between modules and annexes (visual only, axis aligned). `yaw` 0 runs along +X, `PI / 2` along
+ * +Z; `lenM` is the gap they bridge. The two original connectors stay in `BASE_MODULE_FOOTPRINTS`.
+ */
+export interface BaseTube {
+  id: string;
+  offsetX: number;
+  offsetZ: number;
+  yaw: number;
+  lenM: number;
+}
+
+export const BASE_TUBES: readonly BaseTube[] = [
+  { id: "tube-greenhouse-lab", offsetX: -11.5, offsetZ: -24, yaw: 0, lenM: 15 },
+  { id: "tube-pod-a", offsetX: -4, offsetZ: 15.2, yaw: Math.PI / 2, lenM: 5.6 },
+  { id: "tube-pod-b", offsetX: 14, offsetZ: 15, yaw: Math.PI / 2, lenM: 5.2 },
+  { id: "tube-dome-w", offsetX: -28, offsetZ: -33.1, yaw: Math.PI / 2, lenM: 6.8 },
+  { id: "tube-dome-e", offsetX: 3, offsetZ: -32.2, yaw: Math.PI / 2, lenM: 7.4 },
+  { id: "tube-hub-r", offsetX: 43.6, offsetZ: -26, yaw: 0, lenM: 5.4 },
+  { id: "tube-battery-eclss", offsetX: 22, offsetZ: -26, yaw: Math.PI / 2, lenM: 11.5 },
 ];
 
 /** Fleet spawn offsets relative to `BASE_ORIGIN`. */

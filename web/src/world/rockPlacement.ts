@@ -7,6 +7,8 @@ import {
   LAUNCHER_PRIMARY_COORD,
   LAUNCH_SITE_COORD,
   MANIP_TARGETS,
+  BASE_ANNEXES,
+  BASE_TUBES,
   MISSION_SITES,
   RESCUE_PIT_AXIS,
   RESCUE_SITE,
@@ -71,6 +73,8 @@ export function defaultExclusions(): Circle[] {
     if (m.id === "fission" || m.id.startsWith("launcher")) continue;
     out.push({ x: BASE_ORIGIN.x + m.offsetX, z: BASE_ORIGIN.z + m.offsetZ, r: Math.max(m.widthM, m.depthM) * 0.6 + 5 });
   }
+  for (const a of BASE_ANNEXES) out.push({ x: BASE_ORIGIN.x + a.offsetX, z: BASE_ORIGIN.z + a.offsetZ, r: a.radiusM + 4 });
+  for (const t of BASE_TUBES) out.push({ x: BASE_ORIGIN.x + t.offsetX, z: BASE_ORIGIN.z + t.offsetZ, r: t.lenM / 2 + 3 });
   for (const id of Object.keys(FLEET_START_OFFSETS)) {
     const p = fleetStartPos(id);
     out.push({ x: p.x, z: p.z, r: 14 });

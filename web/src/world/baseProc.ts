@@ -1,4 +1,4 @@
-import { BASE_ORIGIN } from "@th/shared";
+import { BASE_ANNEXES, BASE_ORIGIN, BASE_TUBES } from "@th/shared";
 import { footprintGridContacts, groundPlacement } from "./groundPlacement";
 import * as THREE from "three";
 import { MODEL_SPECS, models, type ModelId } from "./modelLibrary";
@@ -19,7 +19,7 @@ export interface BaseModuleSpec {
     | "solar"
     | "battery"
     | "fission"
-    | "garage"
+    | "pad"
     | "comms"
     | "launcher"
     | "shelter";
@@ -181,15 +181,15 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     ],
   },
   {
-    id: "garage",
-    name: "Fleet Garage",
-    kind: "garage",
+    id: "rocket-pad",
+    name: "Rocket Launch Platform",
+    kind: "pad",
     offset: [-52, 18],
     footprint: [20, 12.6],
     height: 3.1,
     color: 0x9aa6b2,
     model: "building-1",
-    specs: [{ key: "Bays", value: "4 pressurized/unpressurized", source: "Design choice", assumption: true }],
+    specs: [{ key: "Role", value: "Rocket landing and launch platform with a service module", source: "Design choice", assumption: true }],
   },
   {
     id: "comms",
@@ -235,6 +235,8 @@ export const BASE_MODULES: BaseModuleSpec[] = [
 
 /** Depth (m) the modules sink into the ground; hides the gap on the downhill side now that no plinth is drawn. */
 const MODULE_SINK_M = 0.25;
+/** Cross-section scale of the tube connectors (the GLB tube is slim at its authored size). */
+const TUBE_THICKNESS = 1.9;
 
 export class BaseProc {
   readonly group = new THREE.Group();
@@ -321,7 +323,7 @@ export class BaseProc {
       this.selectableMeshes.push(mesh);
 
       const isLauncher = mod.kind === "launcher";
-      const lbl = makeSpriteLabel(isLauncher ? "LIFE SUPPORT LAUNCHER" : mod.id.toUpperCase(), mod.kind === "fission" || isLauncher ? "#ffb800" : "#35e0ff");
+      const lbl = makeSpriteLabel(isLauncher ? "LIFE SUPPORT LAUNCHER" : mod.kind === "pad" ? "ROCKET PLATFORM" : mod.id.toUpperCase(), mod.kind === "fission" || isLauncher ? "#ffb800" : "#35e0ff");
       lbl.position.y = mod.height + (isLauncher ? 3.4 : 2.2);
       lbl.scale.set(isLauncher ? 14 : 6.0, isLauncher ? 1.5 : 1.1, 1);
       mGroup.add(lbl);
@@ -375,24 +377,37 @@ export class BaseProc {
     fallback.visible = false;
   }
 
-  /** Parts without a module card: tube connectors, antenna farm and the garage display piece. */
+  /** Parts without a module card: tube connectors, annex buildings, antenna farm and the rocket display piece. */
   private async buildExtras(terrain: TerrainProc): Promise<void> {
     const at = (offX: number, offZ: number) => {
       const x = BASE_ORIGIN.x + offX;
       const z = BASE_ORIGIN.z + offZ;
       return new THREE.Vector3(x, terrain.heightAt(x, z), z);
     };
-    // Connectors keep their natural 7 m length when the gap allows, otherwise they stretch along the tube axis.
+    // Connectors stretch along the tube axis to the gap and are thick enough to read from a distance.
     const connectors: { off: [number, number]; yaw: number; len: number }[] = [
       { off: [3, -16.05], yaw: Math.PI / 2, len: 7.4 },
       { off: [19.5, -6], yaw: 0, len: 13 },
+      ...BASE_TUBES.map((t) => ({ off: [t.offsetX, t.offsetZ] as [number, number], yaw: t.yaw, len: t.lenM })),
     ];
     for (const c of connectors) {
       const p = at(c.off[0], c.off[1]);
       void models.attach("building-connector", this.extras, null, (m) => {
-        m.object.scale.x = c.len / 7;
+        m.object.scale.set(c.len / 7, TUBE_THICKNESS, TUBE_THICKNESS);
         m.object.rotation.y = c.yaw;
         m.object.position.copy(p);
+      });
+    }
+    // Annex buildings: each sits on the lowest point of its footprint so no side floats on the slope.
+    for (const a of BASE_ANNEXES) {
+      const ax = BASE_ORIGIN.x + a.offsetX;
+      const az = BASE_ORIGIN.z + a.offsetZ;
+      const seat = groundPlacement((x, z) => terrain.heightAt(x, z), ax, az, footprintGridContacts(a.radiusM * 1.5, a.radiusM * 1.5, 0, 2));
+      const id = a.model as ModelId;
+      void models.attach(id, this.extras, null, (m) => {
+        m.object.scale.setScalar(a.metres / MODEL_SPECS[id].size.metres);
+        m.object.rotation.y = a.yaw;
+        m.object.position.set(ax, seat.y - MODULE_SINK_M, az);
       });
     }
     const farm = [
@@ -408,7 +423,7 @@ export class BaseProc {
       }),
     );
     if (antennas) this.extras.add(antennas);
-    // New rocket pair parked beside the garage as a display piece.
+    // New rocket pair parked beside the rocket platform as a display piece.
     const pair = at(-78, 34);
     void models.attach("model-1", this.extras, null, (m) => {
       m.object.position.copy(pair);

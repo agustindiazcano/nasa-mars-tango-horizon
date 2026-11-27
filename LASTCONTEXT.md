@@ -22,6 +22,10 @@
 - First-person takes (`pov: "1st"`: `U1`, `W1`, `T2`) hide all floating name tags (`setWorldLabels`); the visor label of `U1` is removed.
 - `U1`: the walk avoids rocks (`pushOut`), the orders type into the live HUD chat with processing badge and trace, rover-2 comes closer, chat bubbles have a dark translucent background.
 
+- Base redesign: thicker tube connectors (`TUBE_THICKNESS`), 7 new tubes (`BASE_TUBES`) and 6 annex buildings (`BASE_ANNEXES`: two crew pods, two domes, a round hub, an outpost of twin domes) built from the unused models; boulders avoid them. The module `garage` is now `rocket-pad` ("Rocket Launch Platform", label "ROCKET PLATFORM"); the Starship label reads "ROCKET LAUNCH SITE". Only one life-support launcher ("LIFE SUPPORT LAUNCHER" label).
+- Smoother climbs: ground units low-pass their pitch, roll and height; drones look ahead, rise before a slope and limit their vertical speed.
+- Graph slides (`W1`, `R1`, `L0`) show the live cartography with the agent routes (A* for rescue-1, drones, robot) instead of the flat schematic map. Slide text now says autonomous orchestration, predictive health with RAG and operations monitoring; the cover has the local node line; the UP logo is the black original.
+
 ## Files touched
 
 `web/src/demo/*`, `web/src/world/{fleetProc,sceneDirector,uiTourScript}.ts`, `web/src/hud/scenePanel.ts`, `web/src/main.ts`, `shared/src/i18n/*.ts`, `docs/slides/ICON_LIST.md`.
