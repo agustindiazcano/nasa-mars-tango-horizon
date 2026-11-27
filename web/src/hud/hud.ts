@@ -466,7 +466,7 @@ export class TacticalHud {
 
     // Top Mission Bar
     this.topEl.innerHTML = `
-      <span style="font-weight:700;">${t("hud.title")}</span>
+      <span class="hud-brand"><img class="hud-logo" src="/images/th-logo-192.jpg" alt="Tango Horizon" /><b>${t("hud.title")}</b></span>
       <span class="gold-badge">&#9733; ${t("hud.winner")}</span>
       <span>${t("hud.met")}: <b>${metH}:${metM}:${metSec}</b></span>
       <span>Sol ${s.env.sol} · ${fmt(s.env.ltst_hours, 2)}h</span>

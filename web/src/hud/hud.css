@@ -1005,3 +1005,7 @@ body > button:not([id]) { left: var(--hud-edge); right: auto !important; }
   color: transparent;
   text-shadow: 0 0 14px rgba(255, 210, 90, 0.35);
 }
+
+/* Project logo in the top bar */
+.hud-brand { display: inline-flex; align-items: center; gap: 8px; }
+.hud-logo { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1px rgba(255, 179, 107, 0.5); }
