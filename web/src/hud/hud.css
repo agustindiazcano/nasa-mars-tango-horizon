@@ -1047,3 +1047,6 @@ button:disabled { cursor: not-allowed !important; }
 #hud-cursor::after { top: 50%; left: 0; right: 0; height: 2px; margin-top: -1px;
   background: linear-gradient(90deg, var(--ok) 0 36%, transparent 36% 64%, var(--ok) 64% 100%); box-shadow: none; }
 #hud-cursor { background: radial-gradient(circle at 50% 50%, var(--ok) 0 2.5px, transparent 3px); }
+
+/* The phone pointer cross only shows once a pointer position has arrived (screenRelay sets display block). */
+#hud-cursor { display: none; }

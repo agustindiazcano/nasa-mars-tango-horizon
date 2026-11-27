@@ -358,3 +358,7 @@
 .ov-map-cap { font-size: 15px; margin-top: 4px; }
 .ov-graph.has-live { width: min(94vw, 135vh); }
 .ov-graph-map { aspect-ratio: 1; }
+
+/* Cover spacing: the stat row must clear the partner logos */
+.demo-overlay.has-logos .ov-card.side-center { top: 44%; }
+.ov-image.patch img { height: 19vh; }

@@ -595,7 +595,8 @@ const sceneDirector = new SceneDirector(rescue, {
     store.activeScenario = "rescue";
     store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
     store.simScale = 1;
-    setWorldLabels(scene.pov !== "1st");
+    // Floating name tags are hidden in first-person takes and behind the cover and closing slides.
+    setWorldLabels(scene.pov !== "1st" && !scene.overlay?.some((o) => o.kind === "logos"));
     const wantPov = scene.pov ?? "3rd";
     if (store.povMode !== wantPov) {
       astronaut.setPovMode(wantPov);
