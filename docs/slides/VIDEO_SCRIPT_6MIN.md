@@ -19,7 +19,7 @@ Recorded from the simulator: open `/?present=1` and press **Record + Play all** 
 | 6:54-7:19 | `M2` Storm Nowcaster | Base in dust, model card | optical |
 | 7:19-7:44 | `M3` Mineral Vein Detector | Rover orbit, model card | optical |
 | 7:44-8:00 | `T1` Storm alert | Satellite-style top view, storm alert, decision and dispatch | optical |
-| 8:00-8:18 | `T2` Storm, helmet view | Dark dust storm seen from SALERNO's helmet; two astronauts walk to rescue-1; the robot tows the casualty | optical |
+| 8:00-8:18 | `T2` Storm, helmet view | Dark dust storm seen from the astronaut's helmet; two astronauts walk to rescue-1; the robot tows the casualty | optical |
 | 8:18-8:40 | `S5` Rescue vehicle arrives | Original rescue take with large dialogue and the towing picture | optical |
 | 8:40-9:10 | `S6` Rescue and drag | Original rescue take with large dialogue and the towing picture | optical |
 | 9:10-9:24 | `S7` Departure | Original rescue take with dialogue | optical |

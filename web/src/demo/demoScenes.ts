@@ -6,7 +6,7 @@ import type { OverlayItem } from "./overlays";
  * scene start, so the take can be recorded again at any moment with the same result.
  */
 
-const DIAZ_CANO = { label: "DIAZ-CANO", lat: "4.7560° S", lon: "137.4241° E" } as const;
+const DIAZ_CANO = { label: "ASTRONAUT", lat: "4.7560° S", lon: "137.4241° E" } as const;
 
 const BANNER = (id: string, fromS: number, toS: number): OverlayItem => ({
   id,
@@ -116,7 +116,7 @@ const DECISIONS: OverlayItem[] = [
     toS: 18,
     kicker: "AI DECISIONS AND GUARDRAILS 1 OF 3",
     title: "An order that passes every gate",
-    order: "Launch the life-support pod to 32 m from DIAZ-CANO",
+    order: "Launch the life-support pod to 32 m from the astronaut",
     stages: [
       { atS: 2, name: "Hard-limit rule check", detail: "Impact outside the 15 m crew keep-out", result: "pass" },
       { atS: 4.5, name: "LLM safety judge", detail: "Matches crew intent, no untrusted instructions", result: "pass" },
@@ -186,11 +186,11 @@ const EVERYTHING: OverlayItem[] = [
 ];
 
 const VOICE_RESCUE: OverlayItem[] = [
-  { id: "v-crew", kind: "voice", who: "crew", speaker: "DIAZ-CANO · VOICE", fromS: 7, toS: 20, text: "Base, DIAZ-CANO. I fell into the pit. My suit is leaking and I cannot climb out." },
+  { id: "v-crew", kind: "voice", who: "crew", speaker: "ASTRONAUT · VOICE", fromS: 7, toS: 20, text: "Base, astronaut here. I fell into the pit. My suit is leaking and I cannot climb out." },
   { id: "v-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 13.5, toS: 26, text: "Leak confirmed: suit pressure falling 0.12 kPa/s. Hypoxia in about 9 minutes." },
   { id: "v-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 17, toS: 32, text: "Dust storm approaching. Dispatching rescue-1 with the rescue robot and both drones for overwatch." },
   { id: "v-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 24, toS: 36, text: "Route slope under 16 degrees, 15 m keep-out respected. Approved." },
-  { id: "v-ack", kind: "voice", who: "crew", speaker: "DIAZ-CANO · VOICE", fromS: 31, toS: 39, text: "Copy, Base. Waiting." },
+  { id: "v-ack", kind: "voice", who: "crew", speaker: "ASTRONAUT · VOICE", fromS: 31, toS: 39, text: "Copy, Base. Waiting." },
   { id: "v-coords", kind: "coords", fromS: 14, toS: 40, ...DIAZ_CANO },
   { id: "v-l1", kind: "lower", icon: "rescue", fromS: 17, toS: 22, title: "rescue-1 dispatched", detail: "1.7 km to the site, ETA 66 s" },
   { id: "v-l2", kind: "lower", icon: "drone", fromS: 22, toS: 32, title: "drone-1 and drone-2 launched", detail: "Overwatch at a 25 m standoff, ETA 36 s" },
@@ -198,14 +198,14 @@ const VOICE_RESCUE: OverlayItem[] = [
 
 const LIFE_SUPPORT: OverlayItem[] = [
   { id: "l-armed", kind: "lower", icon: "cannon", fromS: 0.5, toS: 8, title: "Life-support cannon armed", detail: "6 m tube, 90 m/s maximum, 45° elevation" },
-  { id: "l-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 1, toS: 14, text: "Launching the 8 kg life-support pod. Impact 32 m from DIAZ-CANO, outside the 15 m keep-out." },
+  { id: "l-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 1, toS: 14, text: "Launching the 8 kg life-support pod. Impact 32 m from the astronaut, outside the 15 m keep-out." },
   { id: "l-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 6, toS: 20, text: "Trajectory and keep-out verified. Approved." },
   {
     id: "l-vitals",
     kind: "vitals",
     fromS: 0.5,
     toS: 45,
-    title: "DIAZ-CANO · LIFE SUPPORT",
+    title: "ASTRONAUT · LIFE SUPPORT",
     keys: [
       { atS: 0.5, o2Pct: 41, pao2Kpa: 9.2, co2Pa: 520, batteryWh: 640 },
       { atS: 30, o2Pct: 22, pao2Kpa: 7.4, co2Pa: 690, batteryWh: 610 },
@@ -246,7 +246,7 @@ const HEALTH: OverlayItem[] = [
     kind: "vitals",
     fromS: 6,
     toS: 35,
-    title: "DIAZ-CANO · SUIT LEAK",
+    title: "ASTRONAUT · SUIT LEAK",
     keys: [
       { atS: 6, o2Pct: 96, pao2Kpa: 13.1, co2Pa: 150, batteryWh: 800 },
       { atS: 16, o2Pct: 70, pao2Kpa: 11.8, co2Pa: 300, batteryWh: 790 },
@@ -318,7 +318,7 @@ const VOICE_TO_DRONE: OverlayItem[] = [
       label: "TOP VIEW · SCHEMATIC",
       marks: [
         { ...BASE_PT, label: "BASE", tone: "world" },
-        { ...PIT_PT, label: "PIT · DIAZ-CANO", r: 5, tone: "crew" },
+        { ...PIT_PT, label: "PIT · ASTRONAUT", r: 5, tone: "crew" },
       ],
     },
     tokens: [
@@ -399,7 +399,7 @@ const RESCUE_FLOW: OverlayItem[] = [
   },
   TOWING_IMAGE("r-img", 24, 36),
   { id: "r-l1", kind: "lower", icon: "rescue", fromS: 15, toS: 24, title: "Robots dispatched", detail: "rescue-1 with the rescue robot, drones on overwatch" },
-  { id: "r-l2", kind: "lower", icon: "rescue", fromS: 26, toS: 34, title: "rescue-bot-1 reaches DIAZ-CANO", detail: "Hooks the harness and drags the crew member to rescue-1" },
+  { id: "r-l2", kind: "lower", icon: "rescue", fromS: 26, toS: 34, title: "rescue-bot-1 reaches the astronaut", detail: "Hooks the harness and drags the crew member to rescue-1" },
   { id: "r-l3", kind: "lower", icon: "base", fromS: 35, toS: 45, title: "Convoy returns to base", detail: "Through the dust storm, drones grounded at their limit" },
 ];
 
@@ -435,7 +435,7 @@ const LIFE_SUPPORT_FLOW: OverlayItem[] = [
       label: "TOP VIEW · SCHEMATIC",
       marks: [
         { x: 48, y: 36, label: "LAUNCHER-1", tone: "world" },
-        { x: 78, y: 14, label: "DIAZ-CANO", r: 6, tone: "crew" },
+        { x: 78, y: 14, label: "ASTRONAUT", r: 6, tone: "crew" },
         { x: 66, y: 26, label: "IMPACT 32 m", tone: "robot" },
       ],
     },
@@ -457,10 +457,10 @@ export const RESCUE_DIALOGUE_S5: OverlayItem[] = [
 
 export const RESCUE_DIALOGUE_S6: OverlayItem[] = [
   TOWING_IMAGE("s6-img", 2, 30),
-  { id: "s6-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 3.5, toS: 12, text: "Reached DIAZ-CANO. Grabbing the suit harness." },
+  { id: "s6-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 3.5, toS: 12, text: "Reached the astronaut. Grabbing the suit harness." },
   { id: "s6-bot2", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 7, toS: 17, text: "Harness hooked. Arm raised for the drag." },
-  { id: "s6-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 11, toS: 24, text: "Dragging DIAZ-CANO up the ramp to rescue-1. Dust opacity is rising." },
-  { id: "s6-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 25.5, toS: 30, text: "DIAZ-CANO is in the bay of rescue-1. SALERNO aboard." },
+  { id: "s6-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 11, toS: 24, text: "Dragging the astronaut up the ramp to rescue-1. Dust opacity is rising." },
+  { id: "s6-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 25.5, toS: 30, text: "The astronaut is in the bay of rescue-1. Second astronaut aboard." },
 ];
 
 export const RESCUE_DIALOGUE_S7: OverlayItem[] = [
@@ -471,7 +471,7 @@ export const RESCUE_DIALOGUE_S7: OverlayItem[] = [
 const STORM_ALERT: OverlayItem[] = [
   { id: "t1-alert", kind: "lower", icon: "storm", level: "alert", fromS: 0.5, toS: 15.5, title: "DUST STORM ALERT", detail: "Opacity rising: walking back to the base is NO-GO" },
   { id: "t1-weather", kind: "voice", who: "agent", speaker: "WEATHER-RAD", fromS: 2.2, toS: 9, text: "Dust storm front reported. Opacity is rising." },
-  { id: "t1-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 4.2, toS: 12, text: "Decision: rescue DIAZ-CANO with rescue-1 and the rescue robot." },
+  { id: "t1-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 4.2, toS: 12, text: "Decision: rescue the astronaut with rescue-1 and the rescue robot." },
   { id: "t1-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 6.2, toS: 14, text: "rescue-1 dispatch allowed. Slope and keep-out checked." },
   { id: "t1-drones", kind: "voice", who: "agent", speaker: "GUARDIAN", fromS: 10.2, toS: 16, text: "Drones launched for overwatch, 25 m or more from the crew." },
   { id: "t1-coords", kind: "coords", fromS: 3, toS: 15.5, ...DIAZ_CANO },
@@ -479,10 +479,10 @@ const STORM_ALERT: OverlayItem[] = [
 
 /** In the storm: the helmet view of the astronaut who walks to the rescue vehicle. */
 const STORM_HELMET: OverlayItem[] = [
-  { id: "t2-visor", kind: "visor", fromS: 0, toS: 9, label: "HELMET VIEW · SALERNO" },
+  { id: "t2-visor", kind: "visor", fromS: 0, toS: 9, label: "HELMET VIEW · ASTRONAUT" },
   { id: "t2-lower", kind: "lower", icon: "storm", level: "alert", fromS: 0.5, toS: 17.5, title: "DUST STORM AT FULL STRENGTH", detail: "Drones grounded. Floodlights on at rescue-1." },
-  { id: "t2-crew", kind: "voice", who: "crew", speaker: "SALERNO · HELMET", fromS: 1, toS: 9, text: "Visibility is very low. Walking to rescue-1 by its floodlights, with the second astronaut beside me." },
-  { id: "t2-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 9.5, toS: 17.5, text: "Towing DIAZ-CANO to the bay. Wind and dust are rising." },
+  { id: "t2-crew", kind: "voice", who: "crew", speaker: "ASTRONAUT · HELMET", fromS: 1, toS: 9, text: "Visibility is very low. Walking to rescue-1 by its floodlights, with the second astronaut beside me." },
+  { id: "t2-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 9.5, toS: 17.5, text: "Towing the astronaut to the bay. Wind and dust are rising." },
 ];
 
 const mlCard = (id: string, n: number, title: string, subtitle: string, bullets: string[], note: string, icon: string, bulletIcons: string[]): OverlayItem[] => [
