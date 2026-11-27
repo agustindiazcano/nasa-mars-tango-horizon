@@ -889,9 +889,9 @@ export const DEMO_SCENES: readonly SceneDef[] = [
 /** Scenes of the explained video in play order; the older takes stay selectable one by one. */
 export const DECK_ORDER: readonly string[] = [
   // Opening
-  "C0", "P0",
+  "C0", "K1", "P0",
   // Direct control and voice orders from the base, with the AI team behind them
-  "U1", "W1", "A1", "K1", "G1",
+  "U1", "W1", "A1", "G1",
   // The rescue, from the alarm to the extraction
   "H1", "T1", "O1", "V1", "R1", "L0", "L1", "T2", "S5", "S6", "S7",
   // Models and standards, then the close

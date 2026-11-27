@@ -340,3 +340,6 @@
 .ov-map-head .ov-title { font-size: 26px; }
 .ov-map-canvas { display: block; height: 74vh; width: auto; max-width: 92vw; }
 .ov-map-cap { margin-top: 6px; font-size: 16px; color: var(--ink, #f3ece3); }
+
+/* Dark translucent backing for the small boxes (capability chips and the cover stat row) */
+.ov-chip, .ov-stat { background: rgba(8, 12, 16, 0.66) !important; border-color: rgba(255, 179, 107, 0.55); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
