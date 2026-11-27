@@ -20,6 +20,7 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
 
 ## Índice
 
+- [Capturas](#capturas)
 - [Equipo: Tango Horizon (Buenos Aires, Argentina)](#equipo-tango-horizon-buenos-aires-argentina)
 - [Funcionalidades Principales y Capacidades Operativas](#funcionalidades-principales-y-capacidades-operativas)
 - [Arquitectura del Sistema y Runtime Multi-Agente](#arquitectura-del-sistema-y-runtime-multi-agente)
@@ -41,6 +42,27 @@ Para tomar decisiones sin alucinaciones físicas, el sistema acopla una arquitec
   - [`docs/slides/SLIDES.md`](docs/slides/SLIDES.md) — Estructura de las 10 diapositivas (Slides)
   - [`docs/slides/TANGO_HORIZON_English.pptx`](docs/slides/TANGO_HORIZON_English.pptx) — Presentación en inglés (PowerPoint)
 - [Licencia](#licencia)
+
+## Capturas
+
+<table>
+<tr>
+<td width="50%"><img src="docs/media/starship-sunlit.jpg" alt="Starship en su plataforma" width="100%" /><br/><sub>Complejo de lanzamiento Starship en Marte, iluminado por el sol.</sub></td>
+<td width="50%"><img src="docs/media/ai-architecture.jpg" alt="Arquitectura de agentes de IA" width="100%" /><br/><sub>El equipo de IA: voz, coordinador, especialistas, herramientas y la puerta de seguridad.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/ai-guardian-decision.jpg" alt="Decisión de GUARDIAN" width="100%" /><br/><sub>GUARDIAN revisa una orden: reglas duras, juez de IA y voto de tres modelos.</sub></td>
+<td width="50%"><img src="docs/media/health-alarm.jpg" alt="Alarma de salud" width="100%" /><br/><sub>Monitoreo de salud: cae la presión del traje, suena la alarma y la IA avisa a BASE.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/life-support-pod.jpg" alt="Cápsula de soporte vital con paracaídas" width="100%" /><br/><sub>La cápsula de soporte vital desciende en su paracaídas hacia el astronauta.</sub></td>
+<td width="50%"><img src="docs/media/life-support-payload.jpg" alt="Cápsula de soporte vital abierta" width="100%" /><br/><sub>La cápsula se abre: tanque de oxígeno, depurador de CO2, batería y parche del traje.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/rescue-casualty-pit.jpg" alt="Rescate en el pozo" width="100%" /><br/><sub>El robot de rescate y el astronauta en el pozo.</sub></td>
+<td width="50%"><img src="docs/media/nasa-map.jpg" alt="Mapa estilo NASA" width="100%" /><br/><sub>Mapa estilo NASA y USGS de la escena del Cráter Gale.</sub></td>
+</tr>
+</table>
 
 ## Equipo: Tango Horizon (Buenos Aires, Argentina)
 
