@@ -346,6 +346,14 @@ export interface CartographyRoute {
   points: ReadonlyArray<{ x: number; z: number }>;
 }
 
+/** A route chosen by one agent: drawn as a coloured line with an entry in the map legend. */
+export interface AgentRoute {
+  label: string;
+  color: string;
+  points: ReadonlyArray<{ x: number; z: number }>;
+  dashed?: boolean;
+}
+
 export const MAP_WIDTH = 1240;
 export const MAP_HEIGHT = 780;
 const NEATLINE = { x: 56, y: 40, size: 700 };
@@ -367,14 +375,14 @@ export class CartographyRenderer {
   }
 
   /** Renders (or reuses) the cached base map and draws the dynamic layer on `ctx`. */
-  draw(ctx: CanvasRenderingContext2D, input: MapDynamicInput, route: CartographyRoute | null): void {
+  draw(ctx: CanvasRenderingContext2D, input: MapDynamicInput, route: CartographyRoute | null, agentRoutes: readonly AgentRoute[] = []): void {
     const key = `${this.terrain.meta.product_id}|${this.terrain.realRastersLoaded}`;
     if (!this.staticLayer || this.staticKey !== key) {
       this.staticLayer = this.renderStatic();
       this.staticKey = key;
     }
     ctx.drawImage(this.staticLayer, 0, 0);
-    this.drawDynamic(ctx, input, route);
+    this.drawDynamic(ctx, input, route, agentRoutes);
   }
 
   private renderStatic(): HTMLCanvasElement {
@@ -423,8 +431,8 @@ export class CartographyRenderer {
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         const [cr, cg, cb] = hypsometricColor((smooth[r * n + c] - lo) / span);
-        const shade = hillshadeAt(smooth, n, c, r, mpp);
-        const k = 0.55 + shade * 0.75;
+        const shade = hillshadeAt(smooth, n, c, r, mpp, 315, 38, 2.6);
+        const k = 0.42 + shade * 1.0;
         const o = (r * n + c) * 4;
         img.data[o] = Math.min(255, cr * k);
         img.data[o + 1] = Math.min(255, cg * k);
@@ -677,7 +685,7 @@ export class CartographyRenderer {
     ctx.restore();
   }
 
-  private drawDynamic(ctx: CanvasRenderingContext2D, input: MapDynamicInput, route: CartographyRoute | null): void {
+  private drawDynamic(ctx: CanvasRenderingContext2D, input: MapDynamicInput, route: CartographyRoute | null, agentRoutes: readonly AgentRoute[] = []): void {
     const proj = this.projection;
     ctx.save();
     ctx.beginPath();
@@ -698,6 +706,50 @@ export class CartographyRenderer {
       ctx.strokeStyle = "#0a6f86";
       ctx.lineWidth = 2.4;
       ctx.stroke();
+    }
+
+    // Routes chosen by the agents, one colour each, with a legend in the top-left corner of the map.
+    agentRoutes.forEach((r) => {
+      if (r.points.length < 2) return;
+      ctx.setLineDash(r.dashed ? [9, 6] : []);
+      ctx.strokeStyle = "rgba(255,255,255,0.85)";
+      ctx.lineWidth = 4.2;
+      ctx.beginPath();
+      r.points.forEach((p, i) => {
+        const pt = proj.toPx(p.x, p.z);
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.stroke();
+      ctx.strokeStyle = r.color;
+      ctx.lineWidth = 2.6;
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    if (agentRoutes.length > 0) {
+      ctx.font = `700 12px ${MONO}`;
+      const w = Math.max(...agentRoutes.map((r) => ctx.measureText(r.label).width)) + 44;
+      const h = agentRoutes.length * 18 + 10;
+      ctx.fillStyle = "rgba(246,239,225,0.92)";
+      ctx.fillRect(NEATLINE.x + 8, NEATLINE.y + 8, w, h);
+      ctx.strokeStyle = "rgba(40,30,20,0.7)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(NEATLINE.x + 8, NEATLINE.y + 8, w, h);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      agentRoutes.forEach((r, i) => {
+        const y = NEATLINE.y + 8 + 14 + i * 18;
+        ctx.setLineDash(r.dashed ? [6, 4] : []);
+        ctx.strokeStyle = r.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(NEATLINE.x + 16, y);
+        ctx.lineTo(NEATLINE.x + 38, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#1d1d1d";
+        ctx.fillText(r.label, NEATLINE.x + 44, y);
+      });
     }
 
     const symbols = [...staticSymbols(), ...dynamicSymbols(input)];

@@ -28,7 +28,7 @@ function edgeEnds(a: GraphItem["nodes"][number], b: GraphItem["nodes"][number]):
 function graphSvg(item: GraphItem, uid: string): string {
   const byId = new Map(item.nodes.map((n) => [n.id, n]));
   let out = `<svg ${SVG_NS} viewBox="0 0 100 56" class="ov-graph-svg"><defs><marker id="${uid}-ah" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="2.4" markerHeight="2.4" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="currentColor"/></marker></defs>`;
-  if (item.map) {
+  if (item.map && !item.map.live) {
     const m = item.map;
     out += `<g class="g-map"><rect x="${m.x}" y="${m.y}" width="${m.w}" height="${m.h}"/><text x="${m.x + 1.2}" y="${m.y + 2.6}" class="g-maplabel">${esc(m.label)}</text>`;
     for (const k of m.marks) {
@@ -56,7 +56,7 @@ function graphSvg(item: GraphItem, uid: string): string {
     if (n.detail) out += `<text x="${tx}" y="${n.y + 2.1}" class="g-detail${ico ? " g-left" : ""}">${esc(n.detail)}</text>`;
     out += "</g>";
   });
-  (item.tokens ?? []).forEach((k, i) => {
+  (item.map?.live ? [] : item.tokens ?? []).forEach((k, i) => {
     out += `<g class="g-token tone-${k.tone}" data-i="${i}" style="opacity:0"><circle r="1.5" class="g-tring"/><circle r="0.8"/><text y="-2.1" class="g-tlabel">${esc(k.label)}</text></g>`;
   });
   return out + "</svg>";
@@ -251,7 +251,7 @@ export class OverlayLayer {
           item.logos
             .map((l, n) => `<figure style="animation-delay:${0.6 + n * 0.25}s"><img src="${esc(l.src)}" alt="${esc(l.name)}" /><figcaption><b>${esc(l.name)}</b>${l.sub ? `<span>${esc(l.sub)}</span>` : ""}</figcaption></figure>`)
             .join("") +
-          "</div>";
+          `</div>${item.footer ? `<div class="ov-logos-foot">${esc(item.footer)}</div>` : ""}`;
         this.root.appendChild(el);
         break;
       case "visor":
@@ -259,7 +259,11 @@ export class OverlayLayer {
         this.root.insertBefore(el, this.root.firstChild);
         break;
       case "graph":
-        el.innerHTML = `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div>${graphSvg(item, `g-${item.id}`)}`;
+        const m = item.map;
+        const live = m?.live
+          ? `<canvas class="ov-graph-map" width="${MAP_WIDTH}" height="${MAP_HEIGHT}" style="left:${m.x}%;top:${(m.y / 56) * 100}%;width:${m.w}%;height:${(m.h / 56) * 100}%"></canvas>`
+          : "";
+        el.innerHTML = `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${esc(item.title)}</div><div class="ov-graph-wrap">${graphSvg(item, `g-${item.id}`)}${live}</div>`;
         this.root.appendChild(el);
         break;
       case "grid":
@@ -302,6 +306,15 @@ export class OverlayLayer {
       if (text.textContent !== shown) text.textContent = shown;
     } else if (item.kind === "graph") {
       this.refreshGraph(el, item, tRel - item.fromS);
+      const cv = el.querySelector<HTMLCanvasElement>("canvas.ov-graph-map");
+      if (cv && this.mapDrawer) {
+        const last = this.lastMapDraw.get(item.id) ?? -1;
+        if (last < 0 || tRel - last > 0.12 || tRel < last) {
+          const ctx = cv.getContext("2d");
+          if (ctx) this.mapDrawer(ctx);
+          this.lastMapDraw.set(item.id, tRel);
+        }
+      }
     } else if (item.kind === "decision") {
       const t = tRel - item.fromS;
       const rows = item.stages

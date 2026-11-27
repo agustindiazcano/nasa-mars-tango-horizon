@@ -150,6 +150,8 @@ export interface GraphMap {
   w: number;
   h: number;
   label: string;
+  /** Draws the live cartography (real terrain relief, fleet, crew and agent routes) instead of the schematic frame. */
+  live?: boolean;
   /** `r` in drawing units; a ring is dashed. */
   marks: { x: number; y: number; label: string; r?: number; tone: GraphTone }[];
 }
@@ -187,6 +189,8 @@ export interface MapItem extends Timed {
 export interface LogosItem extends Timed {
   kind: "logos";
   heading: string;
+  /** One line under the logos (for example the local node of the event). */
+  footer?: string;
   logos: { src: string; name: string; sub?: string }[];
 }
 

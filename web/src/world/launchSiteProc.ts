@@ -1,7 +1,7 @@
 import { LAUNCH_SITE_COORD } from "@th/shared";
 import * as THREE from "three";
 import { models } from "./modelLibrary";
-import type { TerrainProc } from "./terrainProc";
+import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 
 /** Super Heavy booster (70 m) + Starship upper stage (52 m); both 9 m in diameter. */
 export const LAUNCH_VEHICLE = {
@@ -126,6 +126,12 @@ export class LaunchSiteProc {
     this.target = this.group;
     this.buildTankFarm();
     this.buildBunkerAndLights();
+
+    const label = makeSpriteLabel("ROCKET LAUNCH SITE", "#ffb36b");
+    (label.material as THREE.SpriteMaterial).fog = false;
+    label.position.set(0, TOWER_HEIGHT_M * COMPLEX_SCALE + 34, 0);
+    label.scale.set(120, 22.5, 1);
+    this.group.add(label);
 
     this.keepVisibleInHaze(this.group);
     scene.add(this.group);

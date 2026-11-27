@@ -216,7 +216,6 @@ export const BASE_MODULE_FOOTPRINTS: readonly BaseModuleFootprint[] = [
   { id: "garage", offsetX: -52, offsetZ: 18, widthM: 20, depthM: 12.6 },
   { id: "comms", offsetX: 28, offsetZ: 12, widthM: 7.36, depthM: 7.01 },
   { id: "launcher-1", offsetX: 55, offsetZ: 24, widthM: 6.0, depthM: 5.95 },
-  { id: "launcher-2", offsetX: 65, offsetZ: 24, widthM: 6.0, depthM: 5.95 },
   { id: "shelter", offsetX: -31, offsetZ: 7, widthM: 14, depthM: 4.97 },
   // Unselectable parts: antenna farm, garage display piece and the tube connectors to the lab and the medical bay.
   { id: "antenna-1", offsetX: 46, offsetZ: -6, widthM: 7.4, depthM: 7.1 },

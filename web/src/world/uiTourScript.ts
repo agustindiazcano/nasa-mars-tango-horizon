@@ -34,6 +34,39 @@ const smooth = (u: number): number => {
   return c * c * (3 - 2 * c);
 };
 
+/** Sideways shift of the whole walk (metres, positive to the walker's right, +z when walking toward +x). */
+export function laneOffset(lane: number): { x: number; z: number } {
+  const dx = U1_WALK_TO.x - U1_WALK_FROM.x;
+  const dz = U1_WALK_TO.z - U1_WALK_FROM.z;
+  const n = Math.hypot(dx, dz) || 1;
+  return { x: (-dz / n) * lane, z: (dx / n) * lane };
+}
+
+/** Lane with the fewest rocks near the first part of the walk, so the view is never blocked at the start. */
+export function u1PickLane(avoid: readonly Circle[], lanes: readonly number[] = [9, 14, 4, -4, -9, 19, 0]): number {
+  let best = lanes[0];
+  let bestCost = Infinity;
+  for (const lane of lanes) {
+    const off = laneOffset(lane);
+    let cost = 0;
+    for (let i = 0; i <= 40; i++) {
+      const u = i / 40;
+      const x = U1_WALK_FROM.x + (U1_WALK_TO.x - U1_WALK_FROM.x) * u + off.x;
+      const z = U1_WALK_FROM.z + (U1_WALK_TO.z - U1_WALK_FROM.z) * u + off.z;
+      for (const c of avoid) {
+        const d = Math.hypot(x - c.x, z - c.z);
+        // Rocks near the start weigh more: they block the first seconds of the view.
+        if (d < c.r + 3) cost += (1 - u * 0.6) * (c.r + 3 - d + 1);
+      }
+    }
+    if (cost < bestCost - 1e-9) {
+      bestCost = cost;
+      best = lane;
+    }
+  }
+  return best;
+}
+
 export interface Circle {
   x: number;
   z: number;
@@ -44,7 +77,7 @@ export interface Circle {
  * Side-steps a point on the straight walk line around every circle it is inside. The point slides sideways along the
  * circle (never jumps across it), on the side where the line already runs, so the path stays continuous.
  */
-export function pushOut(x: number, z: number, avoid: readonly Circle[]): { x: number; z: number } {
+export function pushOut(x: number, z: number, avoid: readonly Circle[], lane = 0): { x: number; z: number } {
   const dx = U1_WALK_TO.x - U1_WALK_FROM.x;
   const dz = U1_WALK_TO.z - U1_WALK_FROM.z;
   const n = Math.hypot(dx, dz) || 1;
@@ -59,7 +92,7 @@ export function pushOut(x: number, z: number, avoid: readonly Circle[]): { x: nu
       if (Math.hypot(rx, rz) >= c.r) continue;
       const along = rx * dir.x + rz * dir.z;
       // Side of the straight line relative to the circle centre (decided once per circle from the line itself).
-      const lineSide = (U1_WALK_FROM.x - c.x) * perp.x + (U1_WALK_FROM.z - c.z) * perp.z >= 0 ? 1 : -1;
+      const lineSide = (U1_WALK_FROM.x + perp.x * lane - c.x) * perp.x + (U1_WALK_FROM.z + perp.z * lane - c.z) * perp.z >= 0 ? 1 : -1;
       const lat = Math.sqrt(Math.max(0, c.r * c.r - along * along)) * lineSide;
       px = c.x + dir.x * along + perp.x * lat;
       pz = c.z + dir.z * along + perp.z * lat;
@@ -72,12 +105,14 @@ export function pushOut(x: number, z: number, avoid: readonly Circle[]): { x: nu
  * Player position and heading (rad, atan2(dx, dz) convention of the crew placement) at scene time `t`.
  * `avoid` lists rocks (with the body margin included) that the path must not enter.
  */
-export function u1Walker(t: number, avoid: readonly Circle[] = []): { x: number; z: number; yaw: number; walking: boolean } {
+export function u1Walker(t: number, avoid: readonly Circle[] = [], lane = 0): { x: number; z: number; yaw: number; walking: boolean } {
   const u = smooth(t / U1_WALK_S);
+  const off = laneOffset(lane);
   const p = pushOut(
-    U1_WALK_FROM.x + (U1_WALK_TO.x - U1_WALK_FROM.x) * u,
-    U1_WALK_FROM.z + (U1_WALK_TO.z - U1_WALK_FROM.z) * u,
+    U1_WALK_FROM.x + (U1_WALK_TO.x - U1_WALK_FROM.x) * u + off.x,
+    U1_WALK_FROM.z + (U1_WALK_TO.z - U1_WALK_FROM.z) * u + off.z,
     avoid,
+    lane,
   );
   const x = p.x;
   const z = p.z;
@@ -85,7 +120,7 @@ export function u1Walker(t: number, avoid: readonly Circle[] = []): { x: number;
 }
 
 /** Keyframes of the gaze: who or what the camera looks at, with the time the look settles. */
-export type GazeKey = { atS: number; at: "crew-4" | "sky" | "rover-3" | "drone-1" | "rover-2" };
+export type GazeKey = { atS: number; at: "crew-4" | "sky" | "left" | "right" | "rover-3" | "drone-1" | "rover-2" };
 
 /** A scripted spoken order as the HUD shows it: typed transcript, agent trace, answer. */
 export interface U1Order {
@@ -168,9 +203,21 @@ export const U1_ORDERS: readonly U1Order[] = [
 
 export const U1_GAZE: readonly GazeKey[] = [
   { atS: 0, at: "crew-4" },
-  { atS: 4.2, at: "crew-4" },
-  { atS: 6.2, at: "sky" },
-  { atS: 10.4, at: "sky" },
+  { atS: 2.6, at: "crew-4" },
+  { atS: 3.3, at: "sky" },
+  { atS: 3.9, at: "sky" },
+  { atS: 4.6, at: "left" },
+  { atS: 5.0, at: "left" },
+  { atS: 5.8, at: "right" },
+  { atS: 6.2, at: "right" },
+  { atS: 6.9, at: "sky" },
+  { atS: 7.3, at: "sky" },
+  { atS: 8.1, at: "left" },
+  { atS: 8.6, at: "left" },
+  { atS: 9.4, at: "right" },
+  { atS: 9.8, at: "right" },
+  { atS: 10.6, at: "crew-4" },
+  { atS: 11.2, at: "crew-4" },
   { atS: 12, at: "rover-3" },
   { atS: 25, at: "rover-3" },
   { atS: 26.5, at: "drone-1" },
@@ -184,6 +231,13 @@ export const U1_GAZE: readonly GazeKey[] = [
 /** World point of the gaze at `t`; `pos` resolves the moving entities and `player` is the walker position. */
 export function u1Gaze(t: number, player: Pt, pos: (id: string) => Pt | null): Pt {
   const point = (at: GazeKey["at"]): Pt => {
+    if (at === "left" || at === "right") {
+      const dx = U1_WALK_TO.x - U1_WALK_FROM.x;
+      const dz = U1_WALK_TO.z - U1_WALK_FROM.z;
+      const n = Math.hypot(dx, dz) || 1;
+      const side = at === "right" ? 1 : -1;
+      return { x: player.x + (dx / n) * 22 + (-dz / n) * 30 * side, y: player.y + 1.7 + 3, z: player.z + (dz / n) * 22 + (dx / n) * 30 * side };
+    }
     if (at === "sky") {
       // Up and ahead of the walk direction, about 30 degrees above the horizon.
       const dx = U1_WALK_TO.x - U1_WALK_FROM.x;

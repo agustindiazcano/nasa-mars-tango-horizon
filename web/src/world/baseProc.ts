@@ -205,7 +205,7 @@ export const BASE_MODULES: BaseModuleSpec[] = [
   },
   {
     id: "launcher-1",
-    name: "Pod Launcher Tower 1",
+    name: "Life Support Launcher",
     kind: "launcher",
     offset: [55, 24],
     footprint: [6.0, 5.95],
@@ -216,19 +216,6 @@ export const BASE_MODULES: BaseModuleSpec[] = [
     specs: [
       { key: "Muzzle speed", value: "90 m/s max (6 m tube)", source: "Design choice", assumption: true },
       { key: "Peak launch load", value: "69 g", source: "Computed: launchLoadG(90, 6)" },
-    ],
-  },
-  {
-    id: "launcher-2",
-    name: "Pod Launcher Tower 2",
-    kind: "launcher",
-    offset: [65, 24],
-    footprint: [6.0, 5.95],
-    height: 2.96,
-    color: 0xff623b,
-    model: "life-support-cannon",
-    modelMetres: 6,
-    specs: [
       { key: "Max vacuum range", value: "2183 m", source: "Computed: maxRangeVacuum(90)" },
       { key: "Payload", value: "3 kg O2 / Battery / Patch", source: "Design choice", assumption: true },
     ],
@@ -333,9 +320,10 @@ export class BaseProc {
       if (mod.kind === "launcher") this.launcherOrigins.push([wx, wz, placement.y + mod.height]);
       this.selectableMeshes.push(mesh);
 
-      const lbl = makeSpriteLabel(mod.id.toUpperCase(), mod.kind === "fission" ? "#ffb800" : "#35e0ff");
-      lbl.position.y = mod.height + 2.2;
-      lbl.scale.set(6.0, 1.1, 1);
+      const isLauncher = mod.kind === "launcher";
+      const lbl = makeSpriteLabel(isLauncher ? "LIFE SUPPORT LAUNCHER" : mod.id.toUpperCase(), mod.kind === "fission" || isLauncher ? "#ffb800" : "#35e0ff");
+      lbl.position.y = mod.height + (isLauncher ? 3.4 : 2.2);
+      lbl.scale.set(isLauncher ? 14 : 6.0, isLauncher ? 1.5 : 1.1, 1);
       mGroup.add(lbl);
 
       this.group.add(mGroup);

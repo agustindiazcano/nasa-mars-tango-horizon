@@ -202,7 +202,7 @@ export const en = {
   "scene.state.playing": "REC",
   "scene.state.paused": "Paused",
   "scene.state.done": "Done",
-  "scene.s0": "Launch pad",
+  "scene.s0": "Rocket at the pad",
   "scene.s1": "Base aerial",
   "scene.s2": "Where everyone is",
   "scene.s3": "Accident close-up",
