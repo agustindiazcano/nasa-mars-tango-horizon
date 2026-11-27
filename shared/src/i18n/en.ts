@@ -257,6 +257,7 @@ export const en = {
 
   // 3D Viewer & Comms UI keys
   "hud.title": "TANGO HORIZON // 3D TEST HARNESS",
+  "hud.winner": "IMPACT CATEGORY WINNER · BUENOS AIRES, ARGENTINA · 450+ PARTICIPANTS",
   "hud.pao2": "Alveolar PAO2",
   "hud.fan": "PLSS Fan",
   "hud.leak_timer": "LEAK COUNTDOWN",

@@ -259,6 +259,7 @@ export const de: Record<Key, string> = {
 
   // 3D Viewer & Comms UI keys
   "hud.title": "TANGO HORIZON // 3D TESTUMGEBUNG",
+  "hud.winner": "GEWINNER KATEGORIE IMPACT · BUENOS AIRES, ARGENTINIEN · 450+ TEILNEHMENDE",
   "hud.pao2": "Alveolärer PAO2",
   "hud.fan": "PLSS-Lüfter",
   "hud.leak_timer": "LECK-COUNTDOWN",

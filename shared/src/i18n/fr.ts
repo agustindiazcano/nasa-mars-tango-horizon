@@ -259,6 +259,7 @@ export const fr: Record<Key, string> = {
 
   // 3D Viewer & Comms UI keys
   "hud.title": "TANGO HORIZON // BANC 3D",
+  "hud.winner": "LAURÉAT CATÉGORIE IMPACT · BUENOS AIRES, ARGENTINE · 450+ PARTICIPANTS",
   "hud.pao2": "PAO2 Alvéolaire",
   "hud.fan": "Ventilateur PLSS",
   "hud.leak_timer": "COMPTE À REBOURS FUITE",
