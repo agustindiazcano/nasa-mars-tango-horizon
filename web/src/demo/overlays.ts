@@ -53,6 +53,8 @@ export interface LowerItem extends Timed {
   kind: "lower";
   title: string;
   detail?: string;
+  /** `alert` draws the caption as a flashing red alarm. */
+  level?: "info" | "alert";
 }
 
 export interface VitalsKey {
@@ -73,7 +75,33 @@ export interface VitalsItem extends Timed {
   events?: { atS: number; text: string }[];
 }
 
-export type OverlayItem = CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem;
+/** One order walked through GUARDIAN: stages light up in order and a verdict stamp closes the case. */
+export interface DecisionItem extends Timed {
+  kind: "decision";
+  kicker: string;
+  title: string;
+  /** The order being judged. */
+  order: string;
+  stages: {
+    /** Seconds after `fromS` at which the stage resolves. */
+    atS: number;
+    name: string;
+    detail: string;
+    result: "pass" | "fail" | "vote";
+    votes?: { model: string; approve: boolean }[];
+  }[];
+  verdict: { atS: number; text: string; level: "allow" | "ask" | "deny" };
+}
+
+/** Grid of capability chips that appear one after another. */
+export interface GridItem extends Timed {
+  kind: "grid";
+  kicker: string;
+  title: string;
+  chips: { label: string; detail: string }[];
+}
+
+export type OverlayItem = CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem;
 
 /** Items visible at `tRel` seconds after the scene start. */
 export function overlaysActiveAt(items: readonly OverlayItem[], tRel: number): OverlayItem[] {
