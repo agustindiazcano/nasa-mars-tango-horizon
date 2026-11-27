@@ -30,6 +30,7 @@
 
 ## Index
 
+- [Screenshots](#screenshots)
 - [Team: Tango Horizon (Buenos Aires, Argentina)](#team-tango-horizon-buenos-aires-argentina)
 - [Core Features & Operational Capabilities](#core-features--operational-capabilities)
 - [System Architecture & Multi-Agent Runtime](#system-architecture--multi-agent-runtime)
@@ -52,6 +53,27 @@
   - [`docs/slides/SLIDES.md`](docs/slides/SLIDES.md) — 10-slide presentation deck outline
   - [`docs/slides/TANGO_HORIZON_English.pptx`](docs/slides/TANGO_HORIZON_English.pptx) — English slide deck (PowerPoint)
 - [License](#license)
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%"><img src="docs/media/starship-sunlit.jpg" alt="Starship on its launch pad" width="100%" /><br/><sub>Starship launch complex on Mars, lit by the sun.</sub></td>
+<td width="50%"><img src="docs/media/ai-architecture.jpg" alt="AI agent architecture" width="100%" /><br/><sub>The AI team: voice, coordinator, specialists, tools and the safety gate.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/ai-guardian-decision.jpg" alt="GUARDIAN decision" width="100%" /><br/><sub>GUARDIAN checks an order: hard rules, AI judge and a three-model vote.</sub></td>
+<td width="50%"><img src="docs/media/health-alarm.jpg" alt="Health alarm" width="100%" /><br/><sub>Health monitoring: the suit pressure falls, the alarm goes off and the AI notifies BASE.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/life-support-pod.jpg" alt="Life-support pod with parachute" width="100%" /><br/><sub>The life-support pod descends on its parachute toward the astronaut.</sub></td>
+<td width="50%"><img src="docs/media/life-support-payload.jpg" alt="Opened life-support pod" width="100%" /><br/><sub>The pod opens: oxygen tank, CO2 scrubber, battery and suit patch.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/media/rescue-casualty-pit.jpg" alt="Rescue at the pit" width="100%" /><br/><sub>The rescue robot and the astronaut at the pit.</sub></td>
+<td width="50%"><img src="docs/media/nasa-map.jpg" alt="NASA-style map" width="100%" /><br/><sub>NASA and USGS style map of the Gale Crater scene.</sub></td>
+</tr>
+</table>
 
 ## Team: Tango Horizon (Buenos Aires, Argentina)
 
