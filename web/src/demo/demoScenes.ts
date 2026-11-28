@@ -893,7 +893,8 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     id: "T2",
     nameKey: "scene.t2",
     pov: "1st",
-    startS: 146,
+    startS: 226,
+    stormTau: STORM_TAU_FULL,
     durationS: 18,
     segments: [
       // Helmet view looking at rescue-1, then a side view of the astronaut and the robot towing the casualty.

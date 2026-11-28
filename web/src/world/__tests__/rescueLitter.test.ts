@@ -76,9 +76,9 @@ describe("scenario litter state", () => {
       return sc.view.litter.active;
     };
     expect(at(100)).toBe(false);
-    expect(at(143)).toBe(false);
-    expect(at(146)).toBe(true);
-    expect(at(160)).toBe(true);
-    expect(at(172)).toBe(false);
+    expect(at(223)).toBe(false);
+    expect(at(226)).toBe(true);
+    expect(at(240)).toBe(true);
+    expect(at(252)).toBe(false);
   });
 });

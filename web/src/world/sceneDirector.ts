@@ -1,4 +1,4 @@
-import { STORM_TAU } from "./stormTau";
+import { STORM_TAU, STORM_TAU_FULL } from "./stormTau";
 import type { LayerId } from "@th/shared";
 import { DEMO_SCENES, DECK_ORDER, RESCUE_DIALOGUE_S5, RESCUE_DIALOGUE_S6, RESCUE_DIALOGUE_S7 } from "../demo/demoScenes";
 import type { OverlayItem } from "../demo/overlays";
@@ -122,7 +122,7 @@ const CORE_SCENES: readonly SceneDef[] = [
     id: "S5",
     nameKey: "scene.s5",
     stormTau: STORM_TAU,
-    startS: 124,
+    startS: 204,
     durationS: 22,
     segments: [
       { fromS: 0, kind: "follow", target: "rescue-1", offset: { x: 12, y: 2.5, z: 8 }, lookAboveM: 1.5 },
@@ -135,7 +135,8 @@ const CORE_SCENES: readonly SceneDef[] = [
   {
     id: "S6",
     nameKey: "scene.s6",
-    startS: 142,
+    startS: 222,
+    stormTau: STORM_TAU_FULL,
     durationS: 30,
     segments: [
       // At the ramp bottom: arm reaches, hooks the harness (142-152).
@@ -149,7 +150,8 @@ const CORE_SCENES: readonly SceneDef[] = [
   {
     id: "S7",
     nameKey: "scene.s7",
-    startS: 166,
+    startS: 246,
+    stormTau: STORM_TAU_FULL,
     durationS: 14,
     segments: [{ fromS: 0, kind: "aerial", target: "rescue-1", offset: { x: 25, y: 6, z: 30 }, lookAboveM: 2 }],
     overlay: RESCUE_DIALOGUE_S7,

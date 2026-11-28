@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SCENES, SceneDirector, scenePose, segmentIndexAt, type SceneScenario } from "../sceneDirector";
 
 class FakeScenario implements SceneScenario {
-  readonly durationS = 180;
+  readonly durationS = 260;
   elapsedS = 0;
   running = false;
   seeks: number[] = [];
@@ -31,11 +31,11 @@ class FakeScenario implements SceneScenario {
 const flat = (x: number, z: number) => 0 * x * z;
 
 describe("scene table", () => {
-  it("has unique ids and fits inside the 180 s scenario", () => {
+  it("has unique ids and fits inside the 260 s scenario", () => {
     expect(new Set(SCENES.map((s) => s.id)).size).toBe(SCENES.length);
     for (const s of SCENES) {
       expect(s.startS).toBeGreaterThanOrEqual(0);
-      expect(s.startS + s.durationS).toBeLessThanOrEqual(180);
+      expect(s.startS + s.durationS).toBeLessThanOrEqual(260);
       expect(s.segments[0].fromS).toBe(0);
       const froms = s.segments.map((g) => g.fromS);
       expect([...froms].sort((a, b) => a - b)).toEqual(froms);
@@ -101,7 +101,7 @@ describe("SceneDirector", () => {
     d.resume();
     expect(sc.running).toBe(true);
     d.restart();
-    expect(sc.seeks).toEqual([142, 142]);
+    expect(sc.seeks).toEqual([222, 222]);
   });
 
   it("returns null when idle and rejects unknown scenes", () => {
