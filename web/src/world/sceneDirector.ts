@@ -1,3 +1,4 @@
+import { STORM_TAU } from "./stormTau";
 import type { LayerId } from "@th/shared";
 import { DEMO_SCENES, DECK_ORDER, RESCUE_DIALOGUE_S5, RESCUE_DIALOGUE_S6, RESCUE_DIALOGUE_S7 } from "../demo/demoScenes";
 import type { OverlayItem } from "../demo/overlays";
@@ -62,11 +63,6 @@ export interface SceneDef {
   /** Minimum dust opacity shown in the scene: once the storm has started, every later scene keeps a storm. */
   stormTau?: number;
 }
-
-/** Dust opacity floor for the scenes that follow the storm alert: a clear storm look with the HUD in warning. */
-export const STORM_TAU = 3.2;
-/** Floor for the closing slides, where the storm is at full strength. */
-export const STORM_TAU_FULL = 4.2;
 
 const CORE_SCENES: readonly SceneDef[] = [
   {

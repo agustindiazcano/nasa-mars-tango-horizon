@@ -1,4 +1,5 @@
-import { STORM_TAU, STORM_TAU_FULL, type SceneDef } from "../world/sceneDirector";
+import type { SceneDef } from "../world/sceneDirector";
+import { STORM_TAU, STORM_TAU_FULL } from "../world/stormTau";
 import type { OverlayItem } from "./overlays";
 
 /**
