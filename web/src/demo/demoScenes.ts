@@ -48,7 +48,7 @@ const COVER: OverlayItem[] = [
     toS: 13.5,
     kicker: "NASA SPACE APPS CHALLENGE · BUENOS AIRES 2026 · IMPACT CATEGORY WINNER",
     title: "TANGO HORIZON: AI SYSTEMS FOR EVA AND MARS EXPLORATION",
-    subtitle: "A multi-agent AI system that autonomously orchestrates the whole base: operations and safety, predictive health monitoring of every astronaut with RAG over NASA standards, and rescues",
+    subtitle: "A multi-agent AI system that orchestrates the robots and the whole base by voice, with a GUARDIAN safety layer, predictive health monitoring and predictive maintenance using RAG over NASA standards, and autonomous rescues",
     stats: [
       { value: "5", label: "LLMs (Gemini 4 ×3, Muse ×2)", icon: "brain" },
       { value: "3", label: "custom ML models", icon: "flask" },
@@ -95,7 +95,7 @@ const CAPABILITIES: OverlayItem[] = [
       { icon: "rescue", label: "Autonomous rescue", detail: "Started by voice or by suit, rover and storm alarms" },
       { icon: "pod", label: "Life-support pod", detail: "8 kg ballistic pod: oxygen, CO2 scrubber and battery" },
       { icon: "heart", label: "Predictive health (RAG)", detail: "Trends, time to breach and warning score, with NASA-STD-3001 citations" },
-      { icon: "book", label: "RAG over NASA standards", detail: "1,002 chunks in under 2 ms feed health, fault and weather warnings, with page citations" },
+      { icon: "book", label: "RAG over NASA standards", detail: "1,047 chunks in under 2 ms feed health, fault and weather warnings, with page citations" },
       { icon: "wrench", label: "Operations monitoring", detail: "Predictive maintenance of suit, rovers, base power and ISRU: fault codes and remaining life" },
       { icon: "satellite", label: "GPS-denied navigation", detail: "Map matching, UWB ranging, VIO and flash LiDAR" },
       { icon: "eye", label: "Camera vision", detail: "Helmet, rover and drone cameras read by vision models" },
@@ -124,8 +124,8 @@ const PREDICTIVE_RAG: OverlayItem[] = [
     ],
     bulletIcons: ["heart", "wrench", "storm", "check"],
     stats: [
-      { value: "1,002", label: "chunks", icon: "layers" },
-      { value: "15", label: "documents", icon: "book" },
+      { value: "1,047", label: "chunks", icon: "layers" },
+      { value: "30", label: "sources", icon: "book" },
       { value: "<2 ms", label: "search", icon: "clock" },
     ],
     note: "Decision support advisory only; not a medical diagnosis.",
@@ -201,12 +201,12 @@ const DECISIONS: OverlayItem[] = [
     fromS: 18.5,
     toS: 36.5,
     kicker: "AI DECISIONS AND GUARDRAILS 2 OF 2",
-    title: "One dissent hands the decision to a human",
+    title: "A confident dissent hands the decision to a human",
     order: "Send the rescue robot next to the injured crew member",
     stages: [
-      { atS: 2, name: "Hard-limit rule check", detail: "Slope under 16 degrees, keep-outs respected", result: "pass" },
+      { atS: 2, name: "Hard-limit rule check", detail: "Slope within the 20 degree limit, keep-outs respected", result: "pass" },
       { atS: 4.5, name: "LLM safety judge", detail: "No injection, consistent with the mission", result: "pass" },
-      { atS: 7.5, name: "3-model vote", detail: "Asymmetric safety override: any reject escalates", result: "vote", votes: [{ model: "Gemini Carbon", approve: true }, { model: "Gemini Argon", approve: true }, { model: "Muse Wonder", approve: false }] },
+      { atS: 7.5, name: "3-model vote", detail: "Asymmetric safety override: a confident reject (0.85 or more) escalates", result: "vote", votes: [{ model: "Gemini Carbon", approve: true }, { model: "Gemini Argon", approve: true }, { model: "Muse Wonder", approve: false }] },
     ],
     verdict: { atS: 11, text: "ASK HUMAN", level: "ask" },
   },
@@ -238,7 +238,7 @@ const EVERYTHING: OverlayItem[] = [
       { icon: "layers", label: "NASA and USGS data", detail: "HiRISE, CTX, THEMIS, CRISM, DAN, REMS, RAD, DONKI, MOXIE" },
       { icon: "wrench", label: "Predictive maintenance", detail: "FDIR trends and remaining useful life for suit and rovers" },
       { icon: "storm", label: "Weather and radiation", detail: "Dust, pressure tides and solar-storm alerts" },
-      { icon: "book", label: "Standards search", detail: "1,002 chunks of NASA documents in under 2 ms" },
+      { icon: "book", label: "Standards search", detail: "1,047 chunks of NASA documents in under 2 ms" },
       { icon: "mic", label: "Hands-free voice", detail: "5 languages, radio tones, neural speech" },
       { icon: "offline", label: "Offline fallback", detail: "Deterministic engine when every cloud model fails" },
     ],
@@ -248,10 +248,10 @@ const EVERYTHING: OverlayItem[] = [
 const VOICE_RESCUE: OverlayItem[] = [
   { id: "v-crew", kind: "voice", who: "crew", speaker: "ASTRONAUT · VOICE", fromS: 0.3, toS: 8, text: "Base, I fell into the pit. My suit is leaking." },
   { id: "v-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 3.5, toS: 13, text: "Dust storm approaching. Dispatching rescue-1, the rescue robot and both drones." },
-  { id: "v-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 8, toS: 16, text: "Route slope under 16 degrees, 15 m keep-out respected. Approved." },
+  { id: "v-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 8, toS: 16, text: "Route slope within the 25 degree limit, 15 m keep-out respected. Approved." },
   { id: "v-coords", kind: "coords", fromS: 2, toS: 22, ...DIAZ_CANO },
-  { id: "v-l1", kind: "lower", icon: "rescue", fromS: 5, toS: 12, title: "rescue-1 on its way", detail: "1.7 km to the site, ETA 66 s" },
-  { id: "v-l2", kind: "lower", icon: "drone", fromS: 12, toS: 22, title: "drone-1 and drone-2 flying to the pit", detail: "Overwatch at a 25 m standoff, ETA 36 s" },
+  { id: "v-l1", kind: "lower", icon: "rescue", fromS: 5, toS: 12, title: "rescue-1 on its way", detail: "1.7 km to the site, ETA about 2 min 20 s" },
+  { id: "v-l2", kind: "lower", icon: "drone", fromS: 12, toS: 22, title: "drone-1 and drone-2 flying to the pit", detail: "Overwatch at a 25 m standoff, ETA about 2 min" },
 ];
 
 /**
@@ -408,7 +408,7 @@ const VOICE_TO_DRONE_FULL: OverlayItem[] = [
   { id: "w-exec", kind: "voice", who: "agent", speaker: "SUIT.VOICE-EXEC", fromS: 3.8, toS: 14, text: "Intent: fly_to and overwatch, two robots. Escalating to BASE." },
   { id: "w-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 6, toS: 18, text: "Assigning drone-1 and drone-2. Standoff 25 m, altitudes 22 m and 28 m." },
   { id: "w-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 10.4, toS: 22, text: "Flight corridor and keep-out checked. Approved." },
-  { id: "w-drone", kind: "voice", who: "agent", speaker: "ROBOT.drone-1", fromS: 14, toS: 30, text: "Taking off. On station in about 36 seconds." },
+  { id: "w-drone", kind: "voice", who: "agent", speaker: "ROBOT.drone-1", fromS: 14, toS: 30, text: "Taking off. On station in about two minutes." },
   { id: "w-lower", kind: "lower", icon: "voicewave", fromS: 30, toS: 48, title: "The astronaut only speaks", detail: "Five agents and three safety checks turn the order into two flight plans." },
 ];
 
@@ -545,7 +545,7 @@ const LIFE_SUPPORT_FLOW: OverlayItem[] = [
     },
     tokens: [{ id: "t-pod", label: "POD", tone: "robot", path: [{ atS: 11, x: 48, y: 36 }, ...podArc({ x: 48, y: 36 }, { x: 66, y: 26 }, 12, 20, 9), { atS: 26, x: 66, y: 26 }] }],
   },
-  { id: "ls-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 1.2, toS: 9, text: "Oxygen 41 % and falling. Rescue is 66 seconds away." },
+  { id: "ls-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 1.2, toS: 9, text: "Oxygen 41 % and falling. Rescue is more than two minutes away." },
   { id: "ls-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 4, toS: 14, text: "Launching the life-support pod: oxygen, CO2 scrubber and battery." },
   { id: "ls-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 9, toS: 18, text: "Pod lands 32 m from the crew, outside the 15 m keep-out. Approved." },
   { id: "ls-lower", kind: "lower", icon: "pod", fromS: 20, toS: 31, title: "Next: the cannon takes", detail: "The pod flies about 34 seconds and lands beside the crew member." },
