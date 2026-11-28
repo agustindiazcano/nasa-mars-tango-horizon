@@ -44,6 +44,7 @@ import { buildChartModel, fetchStormForecast, stormVerdict, type StormForecastDa
 import { drawForecastAnimated } from "./demo/forecastChart";
 import { SceneDirector } from "./world/sceneDirector";
 import { U1_CREW4, U1_ORDERS, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_GOAL, U1_ROVER2_ORDER_S, U1_ROVER2_WAIT, U1_TYPE_CPS, u1Drone, u1Gaze, u1PickLane, u1TypeS, u1Walker, laneOffset } from "./world/uiTourScript";
+import { VehicleDust } from "./world/vehicleDust";
 import { RescueLitter, litterTilt } from "./world/rescueLitter";
 import { PodBallistics } from "./world/podBallistics";
 import { RocksProc } from "./world/rocksProc";
@@ -209,11 +210,14 @@ function setWorldLabels(visible: boolean): void {
 
 function resetDemoEffects(): void {
   lifeSupportShot = false;
+  vehicleDust.reset();
   overlayLayer.clear();
   podBallistics.reset();
   cannonFx.reset();
 }
 
+const vehicleDust = new VehicleDust();
+scene.add(vehicleDust.group);
 const fleet = new FleetProc(scene, terrain, (ev, skill) => {
   if (ev === "core_acquired" || ev === "sample_acquired") {
     store.samples.push({
@@ -1216,6 +1220,7 @@ function animate(now: number): void {
   // The pod advances every rendered frame (not in the 10 Hz step) so the camera that follows it glides.
   podBallistics.update(realDt * store.simScale, store.podTelemetry);
   podBallistics.tick(realDt);
+  vehicleDust.update(realDt, [...fleet.units].map(([id, u]) => ({ id, flies: u.spec.flies, object: u.object })), (x, z) => terrain.heightAt(x, z));
   const shot = sceneDirector.update(realDt, {
     getPos: (id) => {
       if (id === "pod") return podBallistics.position() ?? rescue.getEntityPosition("pit");
