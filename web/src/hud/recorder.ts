@@ -3,6 +3,8 @@
  * and the 3D view are all captured) and falls back to the 3D canvas alone. The result is a WebM download.
  */
 
+import { ObsClient } from "./obsClient";
+
 const MIME_CANDIDATES = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"];
 
 /** First container/codec the browser can record, or an empty string when none is supported. */
@@ -14,7 +16,15 @@ export function recordingSupported(): boolean {
   return typeof MediaRecorder !== "undefined" && (!!navigator.mediaDevices?.getDisplayMedia || typeof HTMLCanvasElement !== "undefined");
 }
 
+/** OBS connection settings from the address: `?obs=0` turns OBS off, `?obs=host:port` and `?obspw=...` override the defaults. */
+export function obsSettings(search: string): { enabled: boolean; url: string; password: string } {
+  const q = new URLSearchParams(search);
+  const obs = q.get("obs");
+  return { enabled: obs !== "0", url: `ws://${obs && obs !== "1" ? obs : "localhost:4455"}`, password: q.get("obspw") ?? "" };
+}
+
 export class PresentationRecorder {
+  private obs: ObsClient | null = null;
   private recorder: MediaRecorder | null = null;
   private chunks: Blob[] = [];
   private stream: MediaStream | null = null;
@@ -23,16 +33,30 @@ export class PresentationRecorder {
   constructor(private getCanvas: () => HTMLCanvasElement | null) {}
 
   get recording(): boolean {
-    return this.recorder !== null && this.recorder.state !== "inactive";
+    return this.obs !== null || (this.recorder !== null && this.recorder.state !== "inactive");
   }
 
   get elapsedS(): number {
     return this.recording ? (performance.now() - this.startedAt) / 1000 : 0;
   }
 
-  /** Starts recording. Returns "tab", "canvas" or null when nothing could be started. */
-  async start(): Promise<"tab" | "canvas" | null> {
-    if (this.recording || typeof MediaRecorder === "undefined") return this.recording ? "tab" : null;
+  /** Starts recording. Returns "obs", "tab", "canvas" or null when nothing could be started. OBS is tried first. */
+  async start(): Promise<"obs" | "tab" | "canvas" | null> {
+    if (this.recording) return this.obs ? "obs" : "tab";
+    const cfg = obsSettings(typeof location === "undefined" ? "" : location.search);
+    if (cfg.enabled && typeof WebSocket !== "undefined") {
+      const client = new ObsClient();
+      try {
+        await client.connect({ url: cfg.url, password: cfg.password });
+        await client.startRecord();
+        this.obs = client;
+        this.startedAt = performance.now();
+        return "obs";
+      } catch {
+        client.close();
+      }
+    }
+    if (typeof MediaRecorder === "undefined") return null;
     let kind: "tab" | "canvas" = "tab";
     let stream: MediaStream | null = null;
     try {
@@ -69,6 +93,18 @@ export class PresentationRecorder {
 
   /** Stops, downloads the file and returns its name (null when nothing was recording). */
   async stop(): Promise<string | null> {
+    if (this.obs) {
+      const client = this.obs;
+      this.obs = null;
+      try {
+        const path = await client.stopRecord();
+        return path ? (path.split(/[\/]/).pop() ?? path) : "OBS recording";
+      } catch {
+        return null;
+      } finally {
+        client.close();
+      }
+    }
     const rec = this.recorder;
     if (!rec || rec.state === "inactive") return null;
     const done = new Promise<void>((resolve) => {

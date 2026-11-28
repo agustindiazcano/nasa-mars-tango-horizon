@@ -48,7 +48,7 @@ const COVER: OverlayItem[] = [
     toS: 13.5,
     kicker: "NASA SPACE APPS CHALLENGE · BUENOS AIRES 2026 · IMPACT CATEGORY WINNER",
     title: "TANGO HORIZON: AI SYSTEMS FOR EVA AND MARS EXPLORATION",
-    subtitle: "A multi-agent AI system that autonomously orchestrates the whole base: operations and safety, predictive health monitoring of every astronaut with RAG over NASA standards, and rescues",
+    subtitle: "A multi-agent AI system that orchestrates the robots and the whole base by voice, with a GUARDIAN safety layer, predictive health monitoring and predictive maintenance using RAG over NASA standards, and autonomous rescues",
     stats: [
       { value: "5", label: "LLMs (Gemini 4 ×3, Muse ×2)", icon: "brain" },
       { value: "3", label: "custom ML models", icon: "flask" },
@@ -95,7 +95,7 @@ const CAPABILITIES: OverlayItem[] = [
       { icon: "rescue", label: "Autonomous rescue", detail: "Started by voice or by suit, rover and storm alarms" },
       { icon: "pod", label: "Life-support pod", detail: "8 kg ballistic pod: oxygen, CO2 scrubber and battery" },
       { icon: "heart", label: "Predictive health (RAG)", detail: "Trends, time to breach and warning score, with NASA-STD-3001 citations" },
-      { icon: "book", label: "RAG over NASA standards", detail: "1,002 chunks in under 2 ms feed health, fault and weather warnings, with page citations" },
+      { icon: "book", label: "RAG over NASA standards", detail: "1,047 chunks in under 2 ms feed health, fault and weather warnings, with page citations" },
       { icon: "wrench", label: "Operations monitoring", detail: "Predictive maintenance of suit, rovers, base power and ISRU: fault codes and remaining life" },
       { icon: "satellite", label: "GPS-denied navigation", detail: "Map matching, UWB ranging, VIO and flash LiDAR" },
       { icon: "eye", label: "Camera vision", detail: "Helmet, rover and drone cameras read by vision models" },
@@ -124,8 +124,8 @@ const PREDICTIVE_RAG: OverlayItem[] = [
     ],
     bulletIcons: ["heart", "wrench", "storm", "check"],
     stats: [
-      { value: "1,002", label: "chunks", icon: "layers" },
-      { value: "15", label: "documents", icon: "book" },
+      { value: "1,047", label: "chunks", icon: "layers" },
+      { value: "30", label: "sources", icon: "book" },
       { value: "<2 ms", label: "search", icon: "clock" },
     ],
     note: "Decision support advisory only; not a medical diagnosis.",
@@ -201,12 +201,12 @@ const DECISIONS: OverlayItem[] = [
     fromS: 18.5,
     toS: 36.5,
     kicker: "AI DECISIONS AND GUARDRAILS 2 OF 2",
-    title: "One dissent hands the decision to a human",
+    title: "A confident dissent hands the decision to a human",
     order: "Send the rescue robot next to the injured crew member",
     stages: [
-      { atS: 2, name: "Hard-limit rule check", detail: "Slope under 16 degrees, keep-outs respected", result: "pass" },
+      { atS: 2, name: "Hard-limit rule check", detail: "Slope within the 20 degree limit, keep-outs respected", result: "pass" },
       { atS: 4.5, name: "LLM safety judge", detail: "No injection, consistent with the mission", result: "pass" },
-      { atS: 7.5, name: "3-model vote", detail: "Asymmetric safety override: any reject escalates", result: "vote", votes: [{ model: "Gemini Carbon", approve: true }, { model: "Gemini Argon", approve: true }, { model: "Muse Wonder", approve: false }] },
+      { atS: 7.5, name: "3-model vote", detail: "Asymmetric safety override: a confident reject (0.85 or more) escalates", result: "vote", votes: [{ model: "Gemini Carbon", approve: true }, { model: "Gemini Argon", approve: true }, { model: "Muse Wonder", approve: false }] },
     ],
     verdict: { atS: 11, text: "ASK HUMAN", level: "ask" },
   },
@@ -238,7 +238,7 @@ const EVERYTHING: OverlayItem[] = [
       { icon: "layers", label: "NASA and USGS data", detail: "HiRISE, CTX, THEMIS, CRISM, DAN, REMS, RAD, DONKI, MOXIE" },
       { icon: "wrench", label: "Predictive maintenance", detail: "FDIR trends and remaining useful life for suit and rovers" },
       { icon: "storm", label: "Weather and radiation", detail: "Dust, pressure tides and solar-storm alerts" },
-      { icon: "book", label: "Standards search", detail: "1,002 chunks of NASA documents in under 2 ms" },
+      { icon: "book", label: "Standards search", detail: "1,047 chunks of NASA documents in under 2 ms" },
       { icon: "mic", label: "Hands-free voice", detail: "5 languages, radio tones, neural speech" },
       { icon: "offline", label: "Offline fallback", detail: "Deterministic engine when every cloud model fails" },
     ],
@@ -248,10 +248,10 @@ const EVERYTHING: OverlayItem[] = [
 const VOICE_RESCUE: OverlayItem[] = [
   { id: "v-crew", kind: "voice", who: "crew", speaker: "ASTRONAUT · VOICE", fromS: 0.3, toS: 8, text: "Base, I fell into the pit. My suit is leaking." },
   { id: "v-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 3.5, toS: 13, text: "Dust storm approaching. Dispatching rescue-1, the rescue robot and both drones." },
-  { id: "v-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 8, toS: 16, text: "Route slope under 16 degrees, 15 m keep-out respected. Approved." },
+  { id: "v-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 8, toS: 16, text: "Route slope within the 25 degree limit, 15 m keep-out respected. Approved." },
   { id: "v-coords", kind: "coords", fromS: 2, toS: 22, ...DIAZ_CANO },
-  { id: "v-l1", kind: "lower", icon: "rescue", fromS: 5, toS: 12, title: "rescue-1 on its way", detail: "1.7 km to the site, ETA 66 s" },
-  { id: "v-l2", kind: "lower", icon: "drone", fromS: 12, toS: 22, title: "drone-1 and drone-2 flying to the pit", detail: "Overwatch at a 25 m standoff, ETA 36 s" },
+  { id: "v-l1", kind: "lower", icon: "rescue", fromS: 5, toS: 12, title: "rescue-1 on its way", detail: "1.7 km to the site, ETA about 2 min 20 s" },
+  { id: "v-l2", kind: "lower", icon: "drone", fromS: 12, toS: 22, title: "drone-1 and drone-2 flying to the pit", detail: "Overwatch at a 25 m standoff, ETA about 2 min" },
 ];
 
 /**
@@ -408,7 +408,7 @@ const VOICE_TO_DRONE_FULL: OverlayItem[] = [
   { id: "w-exec", kind: "voice", who: "agent", speaker: "SUIT.VOICE-EXEC", fromS: 3.8, toS: 14, text: "Intent: fly_to and overwatch, two robots. Escalating to BASE." },
   { id: "w-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 6, toS: 18, text: "Assigning drone-1 and drone-2. Standoff 25 m, altitudes 22 m and 28 m." },
   { id: "w-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 10.4, toS: 22, text: "Flight corridor and keep-out checked. Approved." },
-  { id: "w-drone", kind: "voice", who: "agent", speaker: "ROBOT.drone-1", fromS: 14, toS: 30, text: "Taking off. On station in about 36 seconds." },
+  { id: "w-drone", kind: "voice", who: "agent", speaker: "ROBOT.drone-1", fromS: 14, toS: 30, text: "Taking off. On station in about two minutes." },
   { id: "w-lower", kind: "lower", icon: "voicewave", fromS: 30, toS: 48, title: "The astronaut only speaks", detail: "Five agents and three safety checks turn the order into two flight plans." },
 ];
 
@@ -545,7 +545,7 @@ const LIFE_SUPPORT_FLOW: OverlayItem[] = [
     },
     tokens: [{ id: "t-pod", label: "POD", tone: "robot", path: [{ atS: 11, x: 48, y: 36 }, ...podArc({ x: 48, y: 36 }, { x: 66, y: 26 }, 12, 20, 9), { atS: 26, x: 66, y: 26 }] }],
   },
-  { id: "ls-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 1.2, toS: 9, text: "Oxygen 41 % and falling. Rescue is 66 seconds away." },
+  { id: "ls-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 1.2, toS: 9, text: "Oxygen 41 % and falling. Rescue is more than two minutes away." },
   { id: "ls-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 4, toS: 14, text: "Launching the life-support pod: oxygen, CO2 scrubber and battery." },
   { id: "ls-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 9, toS: 18, text: "Pod lands 32 m from the crew, outside the 15 m keep-out. Approved." },
   { id: "ls-lower", kind: "lower", icon: "pod", fromS: 20, toS: 31, title: "Next: the cannon takes", detail: "The pod flies about 34 seconds and lands beside the crew member." },
@@ -553,6 +553,7 @@ const LIFE_SUPPORT_FLOW: OverlayItem[] = [
 
 /** Rescue dialogue in the extraction scenes, so the conversation stays readable while the robot works. */
 export const RESCUE_DIALOGUE_S5: OverlayItem[] = [
+  { id: "s5-l1", kind: "lower", icon: "rescue", fromS: 0.5, toS: 7.5, title: "rescue-1 arrives at the pit", detail: "Parks at the safe distance from the rim and opens its rear ramp" },
   TOWING_IMAGE("s5-img", 8, 22),
   { id: "s5-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 6.5, toS: 16, text: "rescue-1 stopped at the keep-out distance from the pit rim. Ramp open." },
   { id: "s5-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 8.5, toS: 20, text: "Reversing out of the rear bay and driving to the pit rim." },
@@ -560,6 +561,7 @@ export const RESCUE_DIALOGUE_S5: OverlayItem[] = [
 ];
 
 export const RESCUE_DIALOGUE_S6: OverlayItem[] = [
+  { id: "s6-l1", kind: "lower", icon: "rescue", fromS: 0.3, toS: 10, title: "rescue-bot-1 at the casualty", detail: "The arm lowers to the harness straps; hook, winch, then drag" },
   TOWING_IMAGE("s6-img", 2, 30),
   { id: "s6-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 3.5, toS: 12, text: "Reached the astronaut. Grabbing the suit harness." },
   { id: "s6-bot2", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 7, toS: 17, text: "Harness hooked. Arm raised for the drag." },
@@ -568,7 +570,101 @@ export const RESCUE_DIALOGUE_S6: OverlayItem[] = [
 ];
 
 export const RESCUE_DIALOGUE_S7: OverlayItem[] = [
+  { id: "s7-l1", kind: "lower", icon: "rescue", fromS: 0.5, toS: 7.5, title: "Ramp closes, both astronauts aboard", detail: "The casualty and the robot are inside the pressurized bay" },
+  { id: "s7-l2", kind: "lower", icon: "base", fromS: 8, toS: 13.5, title: "Convoy returns to base", detail: "Through the dust storm, 1.7 km, drones grounded" },
+  { id: "s7-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 2, toS: 8, text: "Both astronauts are aboard the pressurized rescue-1." },
   { id: "s7-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 8, toS: 14, text: "rescue-1 is leaving for the base through the storm." },
+];
+
+/** Base aerial: what the base is and what stands on it. */
+export const INTRO_S1: OverlayItem[] = [
+  {
+    id: "i1-card",
+    kind: "card",
+    side: "left",
+    fromS: 0.5,
+    toS: 11.5,
+    kicker: "MARS BASE ALPHA · GALE CRATER",
+    icon: "base",
+    title: "A base on real NASA terrain",
+    bulletIcons: ["base", "layers", "satellite"],
+    bullets: [
+      "Main habitat, solar array field and antenna farm",
+      "A 4 × 4 km model of the crater built from the 1 m per pixel HiRISE terrain",
+      "Every robot and astronaut you see is driven by the AI team",
+    ],
+    stats: [
+      { value: "4 × 4 km", label: "terrain", icon: "map" },
+      { value: "1 m/px", label: "HiRISE", icon: "satellite" },
+    ],
+  },
+  { id: "i1-l1", kind: "lower", icon: "rocket", fromS: 12.5, toS: 19.5, title: "Rocket launch site", detail: "The Starship stack on its pad, about 1.1 km from the base" },
+];
+
+/** Where everyone is: live map first, then who the people and robots are. */
+export const INTRO_S2: OverlayItem[] = [
+  {
+    id: "i2-map",
+    kind: "map",
+    fromS: 0.4,
+    toS: 14.5,
+    kicker: "THE ZONE",
+    title: "Where everyone is",
+    caption: "Base, science traverse site, rovers, drones and the four astronauts, live on the NASA and USGS style map",
+  },
+  {
+    id: "i2-crew",
+    kind: "grid",
+    cols: 4,
+    fromS: 15,
+    toS: 29.5,
+    kicker: "THE CREW AND THE FLEET",
+    title: "Four astronauts and a team of robots",
+    chips: [
+      { icon: "astronaut", label: "Two at base control", detail: "They monitor the mission from the habitat" },
+      { icon: "astronaut", label: "Driver and geologist", detail: "On a science traverse 1.7 km away, in a pressurized rover" },
+      { icon: "roverArm", label: "Rovers and arm robot", detail: "Drive, drill, sample and pick up rocks" },
+      { icon: "drone", label: "Two drones", detail: "Overwatch from the air, grounded in dust storms" },
+      { icon: "rescue", label: "Rescue vehicle and robot", detail: "A rear bay and a tracked robot with a harness arm" },
+      { icon: "pod", label: "Life-support cannon", detail: "Fires an 8 kg pod with oxygen, a CO2 scrubber and a battery" },
+      { icon: "brain", label: "One AI planner each", detail: "Every robot has its own agent, all under BASE" },
+      { icon: "shield", label: "GUARDIAN", detail: "Checks every action before anything moves" },
+    ],
+  },
+];
+
+/** Accident close-up: the fall and the first vitals. */
+export const INTRO_S3: OverlayItem[] = [
+  { id: "i3-l1", kind: "lower", icon: "astronaut", fromS: 0.5, toS: 9, title: "Science traverse", detail: "Two astronauts collecting samples near a pit 4 m deep" },
+  { id: "i3-alert", kind: "lower", icon: "alert", level: "alert", fromS: 10, toS: 24.5, title: "FALL DETECTED", detail: "Astronaut in the pit, suit breached: pressure falling" },
+  { id: "i3-coords", kind: "coords", fromS: 11, toS: 24.5, ...DIAZ_CANO },
+  {
+    id: "i3-vitals",
+    kind: "vitals",
+    fromS: 11,
+    toS: 24.5,
+    title: "ASTRONAUT · SUIT BREACH",
+    keys: [
+      { atS: 11, o2Pct: 96, pao2Kpa: 13.1, co2Pa: 150, batteryWh: 800 },
+      { atS: 17, o2Pct: 88, pao2Kpa: 12.4, co2Pa: 200, batteryWh: 798 },
+      { atS: 24, o2Pct: 76, pao2Kpa: 11.6, co2Pa: 260, batteryWh: 796 },
+    ],
+    events: [
+      { atS: 12, text: "Fall detected by the suit sensors" },
+      { atS: 15, text: "Suit pressure dropping" },
+      { atS: 20, text: "SUIT.HEALTH computing time to hypoxia" },
+    ],
+  },
+  { id: "i3-agent", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 12.5, toS: 23, text: "Fall detected. Suit pressure is dropping. Computing the time to hypoxia." },
+];
+
+/** Convoy and drone launch: the dispatch seen from the air. */
+export const INTRO_S4: OverlayItem[] = [
+  { id: "i4-l1", kind: "lower", icon: "drone", fromS: 0.5, toS: 10, title: "Drones climb and fly ahead", detail: "drone-1 and drone-2 head for the pit at 22 m and 28 m" },
+  { id: "i4-d1", kind: "voice", who: "agent", speaker: "ROBOT.drone-1", fromS: 1.5, toS: 11, text: "Climbing to 22 m. Heading to the pit, 25 m standoff." },
+  { id: "i4-l2", kind: "lower", icon: "rescue", fromS: 12, toS: 29.5, title: "rescue-1 drives to the pit", detail: "1.7 km of terrain with the rescue robot in the rear bay; the wheels raise dust" },
+  { id: "i4-r1", kind: "voice", who: "agent", speaker: "ROBOT.rescue-1", fromS: 13, toS: 24, text: "Driving to the pit. Slope under the 25 degree limit, 15 m keep-out respected." },
+  { id: "i4-g", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 19, toS: 28, text: "Convoy route approved. Drones on overwatch." },
 ];
 
 /** Satellite alert: what the base sees when the storm front is reported. */
@@ -918,10 +1014,12 @@ export const DEMO_SCENES: readonly SceneDef[] = [
 export const DECK_ORDER: readonly string[] = [
   // Opening
   "C0", "K1", "P0",
-  // Direct control and voice orders from the base, with the AI team behind them
-  "U1", "W1", "A1", "G1",
-  // The rescue, from the alarm to the extraction
-  "H1", "T1", "O1", "R1", "V1", "L0", "L1", "T2", "S5", "S6", "S7",
+  // The world: the base and where everyone is (the rocket pad is only the cover, `C0`)
+  "S1", "S2",
+  // The AI team, direct control and voice orders
+  "A1", "U1", "W1", "G1", "F1",
+  // The rescue, from the accident to the extraction
+  "S3", "H1", "V1", "T1", "O1", "S4", "R1", "L0", "L1", "T2", "S5", "S6", "S7",
   // Models and standards, then the close
-  "Q1", "ML1", "E1",
+  "Q1", "M1", "M2", "M3", "ML1", "E1",
 ];
