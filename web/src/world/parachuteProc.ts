@@ -14,6 +14,11 @@ export interface Parachute {
   group: THREE.Group;
   /** `inflate` 0 packed to 1 open; `timeS` drives a gentle sway. */
   update(inflate: number, timeS: number): void;
+  /**
+   * Deflates the canopy onto the ground: `k` 0 open to 1 lying flat beside the payload along local +x; `groundDy` is the
+   * terrain height under the canopy centre relative to the payload base (the group origin).
+   */
+  collapse(k: number, groundDy?: number): void;
   dispose(): void;
 }
 
@@ -186,12 +191,12 @@ export function buildParachute(): Parachute {
   const lineMat = new THREE.LineBasicMaterial({ color: 0xe9e1d3, transparent: true, opacity: 0.85 });
   const lines = new THREE.LineSegments(lineGeo, lineMat);
   lines.frustumCulled = false;
-  const setLines = (kx: number, ky: number): void => {
+  const setLines = (kx: number, ky: number, ox = 0, lineY = LINE_LEN, oy = 0): void => {
     for (let i = 0; i < GORES; i++) {
       const th = (i / GORES) * Math.PI * 2;
       const o = i * 6;
-      linePts[o] = Math.cos(th) * rimR * kx;
-      linePts[o + 1] = LINE_LEN + rimY * ky;
+      linePts[o] = ox + Math.cos(th) * rimR * kx;
+      linePts[o + 1] = lineY + rimY * ky + oy;
       linePts[o + 2] = Math.sin(th) * rimR * kx;
       linePts[o + 3] = 0;
       linePts[o + 4] = 0;
@@ -216,6 +221,18 @@ export function buildParachute(): Parachute {
       setLines(k, ky);
       swing.rotation.z = Math.sin(timeS * 1.4) * 0.05 * k;
       swing.rotation.x = Math.cos(timeS * 1.1) * 0.04 * k;
+    },
+    collapse(k, groundDy = 0) {
+      const u = Math.min(1, Math.max(0, k));
+      // The canopy slides downwind, flattens and spreads; the lines trail from the payload to its rim.
+      const sx = 1 + 0.45 * u;
+      const sy = 1 - 0.93 * u;
+      const ox = u * RADIUS * 1.5;
+      const baseY = 0.06 + groundDy * u;
+      swing.scale.set(sx, sy, sx);
+      swing.position.set(ox, LINE_LEN * (1 - u) + baseY, 0);
+      swing.rotation.set(0, 0, 0);
+      setLines(sx, sy, ox, LINE_LEN * (1 - u), baseY);
     },
     dispose() {
       geo.dispose();
