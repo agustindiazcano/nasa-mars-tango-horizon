@@ -918,8 +918,8 @@ export const DEMO_SCENES: readonly SceneDef[] = [
 export const DECK_ORDER: readonly string[] = [
   // Opening
   "C0", "K1", "P0",
-  // The world: the pad, the base and where everyone is
-  "S0", "S1", "S2",
+  // The world: the base and where everyone is (the rocket pad is only the cover, `C0`)
+  "S1", "S2",
   // The AI team, direct control and voice orders
   "A1", "U1", "W1", "G1", "F1",
   // The rescue, from the accident to the extraction
