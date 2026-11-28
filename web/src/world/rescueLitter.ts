@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { applySurface, panelMetal, tireTread, wovenCanvas } from "./surfaceTextures";
+import { applySurface, chrome, tireTread, whiteMetal, wovenCanvas } from "./surfaceTextures";
 import { weatherObject } from "./weathering";
 
 /**
@@ -92,12 +92,12 @@ export class RescueLitter {
   constructor(scene: THREE.Scene) {
     this.group.name = "rescue-litter";
     this.group.visible = false;
-    const frame = applySurface(new THREE.MeshStandardMaterial({ color: 0x6f7378, roughness: 0.55, metalness: 0.6 }), panelMetal("#7a7f85", 31, [1, 6]), 0.8);
-    const canvas = applySurface(new THREE.MeshStandardMaterial({ color: 0xa98a56, roughness: 0.95, metalness: 0.0 }), wovenCanvas("#a98a56"), 0.7);
+    const frame = whiteMetal(31, [1, 6]);
+    const canvas = applySurface(new THREE.MeshStandardMaterial({ color: 0xe4e8ec, roughness: 0.6, metalness: 0.05 }), wovenCanvas("#e4e8ec"), 0.5);
     const tyre = applySurface(new THREE.MeshStandardMaterial({ color: 0x1c1f23, roughness: 0.92, metalness: 0.05 }), tireTread([4, 1]), 1.4);
-    const hubMat = new THREE.MeshStandardMaterial({ color: 0xb9bec4, roughness: 0.35, metalness: 0.85 });
-    const strap = new THREE.MeshStandardMaterial({ color: 0x3a2f27, roughness: 0.9 });
-    const buckle = new THREE.MeshStandardMaterial({ color: 0xc79436, roughness: 0.4, metalness: 0.7 });
+    const hubMat = chrome();
+    const strap = new THREE.MeshStandardMaterial({ color: 0x4a4f55, roughness: 0.8 });
+    const buckle = chrome();
     const { lengthM: L, widthM: W, bedY } = LITTER;
     const box = (w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number): THREE.Mesh => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -125,7 +125,7 @@ export class RescueLitter {
     // stub axle to the rail. The axle sits at the bed height so the tyres rest on the ground (clearance 0.12 m).
     const R = WHEEL_RADIUS_M;
     const axleY = bedY;
-    const rim = new THREE.MeshStandardMaterial({ color: 0xe9ecef, roughness: 0.4, metalness: 0.7 });
+    const rim = whiteMetal(37);
     for (const z of [-0.62, 0.62]) {
       for (const side of [-1, 1]) {
         const x = side * (W / 2 + 0.11);
@@ -155,7 +155,7 @@ export class RescueLitter {
       this.litter.add(bracket);
     }
     // Same dust and scratches as the optimized vehicle models.
-    weatherObject(this.litter, { dust: 0.6, scratches: 0.85, tileM: 0.9 });
+    weatherObject(this.litter, { dust: 0.22, scratches: 0.5, tileM: 0.9 });
     this.group.add(this.litter);
 
     this.bridle = new THREE.Mesh(new THREE.BufferGeometry(), this.cableMat);

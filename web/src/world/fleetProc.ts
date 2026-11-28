@@ -8,7 +8,7 @@ import { collectDroneRotorPivots, type RotorPivot } from "./nasaModels";
 import { models, type ModelId, type SpawnedModel } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
-import { applySurface, panelMetal, tireTread } from "./surfaceTextures";
+import { applySurface, panelMetal, tireTread, whiteMetal } from "./surfaceTextures";
 import { weatherObject } from "./weathering";
 import { buildRockGeometry } from "./rockGeometry";
 import { makeRockTextures } from "./rockTextures";
@@ -843,8 +843,8 @@ export class FleetProc {
               : 0x72f59b;
 
     // Painted plates with seams and rivets on the body, tread on the tyres (procedural textures).
-    const chassisMat = applySurface(new THREE.MeshStandardMaterial({ color: 0xd6dce2, roughness: 0.5, metalness: 0.35 }), panelMetal("#d6dce2", 3), 1.2);
-    const accentMat = applySurface(
+    const chassisMat = spec.kind === "manipulator" ? whiteMetal(3, [2, 2]) : applySurface(new THREE.MeshStandardMaterial({ color: 0xd6dce2, roughness: 0.5, metalness: 0.35 }), panelMetal("#d6dce2", 3), 1.2);
+    const accentMat = spec.kind === "manipulator" ? whiteMetal(11, [2, 2]) : applySurface(
       new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.45, metalness: 0.3 }),
       panelMetal(`#${bodyColor.toString(16).padStart(6, "0")}`, 11),
       1.2,
@@ -1014,8 +1014,8 @@ export class FleetProc {
         this.manipArm.root.position.set(0, 0.76, 0.88);
         g.add(this.manipArm.root);
         // The procedural arm robot gets the same dust and scratches as the optimized vehicle models.
-        weatherObject(procGroup, { dust: 0.6, scratches: 0.85, tileM: 0.9 });
-        weatherObject(this.manipArm.root, { dust: 0.6, scratches: 0.85, tileM: 0.9 });
+        weatherObject(procGroup, { dust: 0.22, scratches: 0.5, tileM: 0.9 });
+        weatherObject(this.manipArm.root, { dust: 0.22, scratches: 0.5, tileM: 0.9 });
       }
     }
 
