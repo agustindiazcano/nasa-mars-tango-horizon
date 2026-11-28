@@ -9,6 +9,7 @@ import { models, type ModelId, type SpawnedModel } from "./modelLibrary";
 import { makeSpriteLabel, type TerrainProc } from "./terrainProc";
 import { createNasaInsignia } from "./nasaInsignia";
 import { applySurface, panelMetal, tireTread } from "./surfaceTextures";
+import { weatherObject } from "./weathering";
 import { buildRockGeometry } from "./rockGeometry";
 import { makeRockTextures } from "./rockTextures";
 import { buildRescueRobotModel, type RescuePose, type RescueRobotModel } from "./rescueRobotProc";
@@ -1012,6 +1013,9 @@ export class FleetProc {
       if (spec.kind === "manipulator") {
         this.manipArm.root.position.set(0, 0.76, 0.88);
         g.add(this.manipArm.root);
+        // The procedural arm robot gets the same dust and scratches as the optimized vehicle models.
+        weatherObject(procGroup, { dust: 0.6, scratches: 0.85, tileM: 0.9 });
+        weatherObject(this.manipArm.root, { dust: 0.6, scratches: 0.85, tileM: 0.9 });
       }
     }
 
