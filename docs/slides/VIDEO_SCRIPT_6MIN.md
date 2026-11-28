@@ -4,8 +4,8 @@ Recorded from the simulator: open `/?present=1` and press **Record + Play all** 
 
 | Time | Scene | On screen | Layer |
 |---|---|---|---|
-| 0:00-0:14 | `C0` Cover | Starship pad, README banner (project, logo, sponsors), title card with the AI model counts | optical |
-| 0:14-0:25 | `P0` The problem | Base, then a cut to the rover; card with the 4 to 24 minute delay | optical |
+| 0:00-0:20 | `C0` Cover + key idea | Starship pad, README banner (project, logo, sponsors), title card with the AI model counts | optical |
+| 0:20-0:30 | `P0` The problem | Base, then a cut to the rover; card with the 4 to 24 minute delay | optical |
 | 0:25-0:53 | `A1` Architecture | Animated hub: astronaut, VOICE-EXEC, BASE, four specialists, robot planners, GUARDIAN, simulator | optical |
 | 0:53-1:43 | `W1` Voice order to drone | Helmet view of the astronaut; animated flow with a top-view map; two drones fly to the pit | optical |
 | 1:43-2:38 | `G1` AI decisions and guardrails | Three orders walked through rule check, judge and 3-model vote: allow, deny, ask human | optical |
@@ -27,13 +27,13 @@ Recorded from the simulator: open `/?present=1` and press **Record + Play all** 
 
 ## Narration
 
-### 0:00-0:14 Cover
-**EN:** "This is Tango Horizon, from Buenos Aires for the NASA Space Apps Challenge, winner of the Impact category. A team of AI agents runs robots, rescues and health monitoring for astronauts on Mars, all controlled by voice."
-**ES:** "Esto es Tango Horizon, desde Buenos Aires para el NASA Space Apps Challenge, ganador de la categoría Impact. Un equipo de agentes de IA maneja robots, rescates y monitoreo de salud de astronautas en Marte, todo por voz."
+### 0:00-0:20 Key idea (read over the cover; a viewer who stops here knows the whole project)
+**EN:** "Tango Horizon is a multi-agent AI system that keeps astronauts safe on Mars. A team of AI agents orchestrates every robot and drone by voice. A safety system, GUARDIAN, checks every action before anything moves. One agent monitors each astronaut's health and another watches the equipment, and both use RAG, a search over NASA standards, to predict problems before they happen."
+**ES:** "Tango Horizon es un sistema de IA multiagente que cuida a los astronautas en Marte. Un equipo de agentes de IA orquesta cada robot y cada dron por voz. Un sistema de seguridad, GUARDIAN, revisa cada acción antes de que algo se mueva. Un agente monitorea la salud de cada astronauta y otro vigila los equipos, y los dos usan RAG, una búsqueda sobre estándares de la NASA, para predecir los problemas antes de que ocurran."
 
-### 0:14-0:25 The problem
-**EN:** "Radio between Earth and Mars takes four to twenty-four minutes one way, and a leak or a dust storm cannot wait for Houston. The crew needs local autonomy."
-**ES:** "La radio entre la Tierra y Marte demora de cuatro a veinticuatro minutos por tramo, y una fuga o una tormenta de polvo no pueden esperar a Houston. La tripulación necesita autonomía local."
+### 0:20-0:30 The problem
+**EN:** "Why local autonomy? Radio between Earth and Mars takes four to twenty-four minutes one way, and a leak or a dust storm cannot wait for Houston. From Buenos Aires, for the NASA Space Apps Challenge, winner of the Impact category."
+**ES:** "¿Por qué autonomía local? La radio entre la Tierra y Marte demora de cuatro a veinticuatro minutos por tramo, y una fuga o una tormenta de polvo no pueden esperar a Houston. Desde Buenos Aires, para el NASA Space Apps Challenge, ganador de la categoría Impact."
 
 ### 0:25-0:53 Architecture
 **EN:** "One AI team orchestrates the whole base. A spoken order goes to a fast agent on the suit, then to BASE, which delegates to health, route planning, weather and maintenance, and to a planner for every robot. GUARDIAN checks every action before the simulator moves anything."
