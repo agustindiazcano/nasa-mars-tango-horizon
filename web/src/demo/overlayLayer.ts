@@ -80,6 +80,7 @@ export class OverlayLayer {
   private views = new Map<string, View>();
   private voiceStack: HTMLElement;
   private mapDrawer: ((ctx: CanvasRenderingContext2D) => void) | null = null;
+  private forecastDrawer: ((ctx: CanvasRenderingContext2D, w: number, h: number, t: number) => void) | null = null;
   private arcDrawer: ((ctx: CanvasRenderingContext2D, w: number, h: number) => void) | null = null;
   private lastMapDraw = new Map<string, number>();
   /** Live maps of graph slides: canvases attached to the root (a fixed-position child of an animated slide would be positioned inside it). */
@@ -110,6 +111,11 @@ export class OverlayLayer {
   /** Supplies the drawing of `arc` items (the side view of the pod launch); called every frame. */
   setArcDrawer(fn: ((ctx: CanvasRenderingContext2D, w: number, h: number) => void) | null): void {
     this.arcDrawer = fn;
+  }
+
+  /** Supplies the drawing of `forecast` items: seconds since the item started; called every frame. */
+  setForecastDrawer(fn: ((ctx: CanvasRenderingContext2D, w: number, h: number, t: number) => void) | null): void {
+    this.forecastDrawer = fn;
   }
 
   /** Shows the project logo in a corner while a take or presentation is running. */
@@ -256,6 +262,13 @@ export class OverlayLayer {
           (item.caption ? `<div class="ov-map-cap">${esc(item.caption)}</div>` : "");
         this.root.appendChild(el);
         break;
+      case "forecast":
+        el.innerHTML =
+          `<div class="ov-kicker">${esc(item.kicker)}</div><div class="ov-title">${iconSvg("storm", "ov-ico-title")}${esc(item.title)}</div>` +
+          `<canvas class="ov-forecast-canvas" width="760" height="400"></canvas>` +
+          (item.caption ? `<div class="ov-map-cap">${esc(item.caption)}</div>` : "");
+        this.root.appendChild(el);
+        break;
       case "map":
         el.innerHTML =
           `<div class="ov-map-head"><span class="ov-kicker">${esc(item.kicker)}</span><span class="ov-title">${esc(item.title)}</span></div>` +
@@ -319,6 +332,10 @@ export class OverlayLayer {
       const cv = el.querySelector("canvas");
       const ctx = cv?.getContext("2d");
       if (cv && ctx && this.arcDrawer) this.arcDrawer(ctx, cv.width, cv.height);
+    } else if (item.kind === "forecast") {
+      const cv = el.querySelector("canvas");
+      const ctx = cv?.getContext("2d");
+      if (cv && ctx && this.forecastDrawer) this.forecastDrawer(ctx, cv.width, cv.height, tRel - item.fromS);
     } else if (item.kind === "map") {
       const last = this.lastMapDraw.get(item.id) ?? -1;
       const cv = el.querySelector("canvas");

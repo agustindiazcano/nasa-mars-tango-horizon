@@ -578,6 +578,7 @@ const STORM_ALERT: OverlayItem[] = [
   { id: "t1-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 6.2, toS: 14, text: "rescue-1 dispatch allowed. Slope and keep-out checked." },
   { id: "t1-drones", kind: "voice", who: "agent", speaker: "GUARDIAN", fromS: 10.2, toS: 16, text: "Drones launched for overwatch, 25 m or more from the crew." },
   { id: "t1-coords", kind: "coords", fromS: 3, toS: 15.5, ...DIAZ_CANO },
+  { id: "t1-forecast", kind: "forecast", fromS: 4.5, toS: 15.5, kicker: "STORM NOWCASTER", title: "Dust opacity forecast, next 3 sols", caption: "Median, 80 % band and the storm level; the verdict applies the EVA limits." },
 ];
 
 /** In the storm: the helmet view of the astronaut who walks to the rescue vehicle. */

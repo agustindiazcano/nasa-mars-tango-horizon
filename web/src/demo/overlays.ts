@@ -184,6 +184,14 @@ export interface ArcItem extends Timed {
   caption?: string;
 }
 
+/** Animated Storm Nowcaster fan chart (observed opacity, median, q10-q90 band, storm level and Go/No-Go stamp). */
+export interface ForecastItem extends Timed {
+  kind: "forecast";
+  kicker: string;
+  title: string;
+  caption?: string;
+}
+
 /** Large live map of the zone (the NASA and USGS style map of the HUD) with crew, robots and the planned route. */
 export interface MapItem extends Timed {
   kind: "map";
@@ -222,7 +230,7 @@ export interface GlowItem extends Timed {
   side?: "left" | "right" | "above" | "below";
 }
 
-export type OverlayItem = ArcItem | MapItem | LogosItem | GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
+export type OverlayItem = ForecastItem | ArcItem | MapItem | LogosItem | GlowItem | CardItem | FlowItem | VoiceItem | CoordsItem | LowerItem | VitalsItem | DecisionItem | GridItem | GraphItem | ImageItem | VisorItem;
 
 /** Items visible at `tRel` seconds after the scene start. */
 export function overlaysActiveAt(items: readonly OverlayItem[], tRel: number): OverlayItem[] {

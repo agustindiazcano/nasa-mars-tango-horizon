@@ -40,6 +40,8 @@ import { CannonFx } from "./demo/lifeSupportFx";
 import { OverlayLayer } from "./demo/overlayLayer";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
 import { models } from "./world/modelLibrary";
+import { buildChartModel, fetchStormForecast, stormVerdict, type StormForecastData } from "./hud/stormForecast";
+import { drawForecastAnimated } from "./demo/forecastChart";
 import { SceneDirector } from "./world/sceneDirector";
 import { U1_CREW4, U1_ORDERS, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_GOAL, U1_ROVER2_ORDER_S, U1_ROVER2_WAIT, U1_TYPE_CPS, u1Drone, u1Gaze, u1PickLane, u1TypeS, u1Walker, laneOffset } from "./world/uiTourScript";
 import { RescueLitter } from "./world/rescueLitter";
@@ -712,6 +714,19 @@ overlayLayer.setArcDrawer((ctx, w, h) => {
   ctx.font = "700 17px Rajdhani, sans-serif";
   const alt = Math.max(0, cur.y - groundAtD(Math.max(0, Math.min(range, dist(cur)))));
   ctx.fillText(`T+${prof.elapsedS.toFixed(0)} s of ${prof.flightTimeS.toFixed(0)} s   ·   altitude ${alt.toFixed(0)} m   ·   range ${dist(cur).toFixed(0)} m of ${range.toFixed(0)} m`, padL, 24);
+});
+
+let stormForecastData: StormForecastData | null = null;
+void fetchStormForecast().then((d) => {
+  stormForecastData = d;
+});
+overlayLayer.setForecastDrawer((ctx, w, h, t) => {
+  if (!stormForecastData) {
+    ctx.clearRect(0, 0, w, h);
+    return;
+  }
+  const verdict = stormVerdict(stormForecastData, store.env.tau).verdict;
+  drawForecastAnimated(ctx, w, h, buildChartModel(stormForecastData), verdict, t);
 });
 
 overlayLayer.setMapDrawer((ctx) => {
