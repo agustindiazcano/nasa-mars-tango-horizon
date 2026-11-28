@@ -78,6 +78,8 @@ export class FleetUnit {
   targetAltitude?: number;
   /** Smoothed vertical speed of a flying unit (m/s). */
   private climbVy = 0;
+  /** Low-passed target height of a flying unit (m). */
+  private smoothTargetY = Number.NaN;
   /** Low-pass state of a ground unit: pitch, roll, height and the time of the last update. */
   private sm?: { pitch: number; roll: number; y: number; t: number };
   onArrive?: () => void;
@@ -150,14 +152,20 @@ export class FleetUnit {
       const fwdZ = Math.cos(o.rotation.y);
       let envelope = ground;
       if (!this.grounded && this.path.length > 0) {
-        for (const ahead of [6, 12, 20, 30, 42]) {
+        for (const ahead of [6, 12, 20, 30, 42, 60]) {
           envelope = Math.max(envelope, this.terrain.heightAt(o.position.x + fwdX * ahead, o.position.z + fwdZ * ahead));
         }
       }
-      const climbTarget = envelope > ground + 0.5 ? envelope + alt * 0.8 + 3 : ground + alt;
-      const targetY = this.grounded ? ground + DRONE_LANDED_ROOT_HEIGHT_M : Math.max(ground + alt, climbTarget);
-      const desiredVy = Math.max(-4, Math.min(6.5, (targetY - o.position.y) * 1.3));
-      this.climbVy += (desiredVy - this.climbVy) * Math.min(1, dt * 3.5);
+      // Target height: ground plus cruise altitude, or well above the highest terrain ahead (higher clearance over a mountain).
+      const climbTarget = envelope > ground + 0.5 ? envelope + alt + 6 : ground + alt;
+      const rawTargetY = this.grounded ? ground + DRONE_LANDED_ROOT_HEIGHT_M : Math.max(ground + alt, climbTarget);
+      if (!Number.isFinite(this.smoothTargetY)) this.smoothTargetY = o.position.y;
+      // The target is low-passed (the terrain envelope jumps as the look-ahead samples change) and the drone follows it
+      // with a critically damped spring, so a height change never overshoots or oscillates.
+      this.smoothTargetY += (rawTargetY - this.smoothTargetY) * Math.min(1, dt * (this.grounded ? 2.5 : 1.1));
+      const k = 2.2;
+      const accel = k * (this.smoothTargetY - o.position.y) - 2 * Math.sqrt(k) * this.climbVy;
+      this.climbVy = Math.max(-4, Math.min(6, this.climbVy + accel * dt));
       o.position.y += this.climbVy * dt;
       o.position.y = Math.max(o.position.y, ground + (this.grounded ? DRONE_LANDED_ROOT_HEIGHT_M : 2.5));
       for (let i = 0; i < this.rotors.length; i++) {
