@@ -724,6 +724,7 @@ overlayLayer.setMapDrawer((ctx) => {
 const sceneDirector = new SceneDirector(rescue, {
   onStart: (scene) => {
     resetDemoEffects();
+    stormFloorTau = scene.stormTau ?? 0;
     if (scene.layer) store.setLayer(scene.layer);
     store.activeScenario = "rescue";
     store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
@@ -853,10 +854,17 @@ function endHelmetTour(): void {
   astronaut.pos.set(ASTRONAUT_START.x, terrain.heightAt(ASTRONAUT_START.x, ASTRONAUT_START.z), ASTRONAUT_START.z);
 }
 
+/** Dust opacity floor of the running scene (0 = none) and the scripted tau that grounds the aircraft. */
+let stormFloorTau = 0;
+let scenarioTau = 0;
+
 /** Applies the scripted rescue state to the fleet, crew, rescue robot and environment. */
 function applyRescueView(v: RescueView): void {
-  store.env.tau = v.tau;
-  store.env.wind_ms = v.windMs;
+  // A scene after the storm alert keeps a storm even when the scenario clock is before the onset. Aircraft grounding
+  // follows the scripted tau only, so the drones of those scenes still fly.
+  scenarioTau = v.tau;
+  store.env.tau = Math.max(v.tau, stormFloorTau);
+  store.env.wind_ms = Math.max(v.windMs, stormFloorTau > v.tau ? 5.2 + ((stormFloorTau - 0.48) / 5.52) * 21 : 0);
   store.env.sun_elev_deg = v.sunElevDeg;
   for (const id of ["rover-1", "rescue-1", "rescue-bot-1", "drone-1", "drone-2"] as const) {
     const u = v.units[id];
@@ -1120,7 +1128,7 @@ function stepSimulation(dt: number): void {
     store.fanDegraded,
   );
 
-  fleet.update(dt, store.env.tau);
+  fleet.update(dt, store.activeScenario === "rescue" && stormFloorTau > 0 ? scenarioTau : store.env.tau);
   store.fleet = fleet.snapshots();
   crew.syncPlayer(astronaut.pos.x, astronaut.pos.z, astronaut.yaw, astronaut.speed, store.povMode !== "1st");
   astronaut.group.visible = !crew.playerModelReady;

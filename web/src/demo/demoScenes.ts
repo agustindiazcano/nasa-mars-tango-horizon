@@ -1,4 +1,4 @@
-import type { SceneDef } from "../world/sceneDirector";
+import { STORM_TAU, STORM_TAU_FULL, type SceneDef } from "../world/sceneDirector";
 import type { OverlayItem } from "./overlays";
 
 /**
@@ -731,6 +731,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "Q1",
     nameKey: "scene.q1",
+    stormTau: STORM_TAU_FULL,
     startS: 0,
     durationS: 30,
     segments: [
@@ -774,6 +775,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "O1",
     nameKey: "scene.o1",
+    stormTau: STORM_TAU,
     startS: 48,
     durationS: 17,
     segments: [{ fromS: 0, kind: "orbit", target: ["base", "rescue-site"], radius: 900, height: 700, speed: 0.04 }],
@@ -782,6 +784,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "V1",
     nameKey: "scene.v1",
+    stormTau: STORM_TAU,
     startS: 55,
     durationS: 22,
     segments: [
@@ -794,6 +797,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "R1",
     nameKey: "scene.r1",
+    stormTau: STORM_TAU,
     startS: 64,
     durationS: 29,
     segments: [{ fromS: 0, kind: "orbit", target: ["base", "rescue-site"], radius: 900, height: 700, speed: 0.04 }],
@@ -802,6 +806,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "L0",
     nameKey: "scene.l0",
+    stormTau: STORM_TAU,
     startS: 72,
     durationS: 33,
     segments: [{ fromS: 0, kind: "orbit", target: "launcher-1", radius: 40, height: 14, speed: 0.08, lookAboveM: 3 }],
@@ -810,6 +815,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "L1",
     nameKey: "scene.l1",
+    stormTau: STORM_TAU,
     startS: 72,
     durationS: 26,
     segments: [
@@ -860,6 +866,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "ML1",
     nameKey: "scene.ml1",
+    stormTau: STORM_TAU_FULL,
     startS: 20,
     durationS: 33,
     layer: "hydration",
@@ -896,6 +903,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "E1",
     nameKey: "scene.e1",
+    stormTau: STORM_TAU_FULL,
     startS: 0,
     durationS: 15,
     segments: [{ fromS: 0, kind: "aerial", target: "launch-site", offset: { x: 150, y: 25, z: -190 }, lookAboveM: 110 }],

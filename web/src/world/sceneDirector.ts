@@ -59,7 +59,14 @@ export interface SceneDef {
   showHud?: boolean;
   /** First-person helmet view: the astronaut's own body is hidden and the camera sits at head height. */
   pov?: "1st";
+  /** Minimum dust opacity shown in the scene: once the storm has started, every later scene keeps a storm. */
+  stormTau?: number;
 }
+
+/** Dust opacity floor for the scenes that follow the storm alert: a clear storm look with the HUD in warning. */
+export const STORM_TAU = 3.2;
+/** Floor for the closing slides, where the storm is at full strength. */
+export const STORM_TAU_FULL = 4.2;
 
 const CORE_SCENES: readonly SceneDef[] = [
   {
@@ -118,6 +125,7 @@ const CORE_SCENES: readonly SceneDef[] = [
   {
     id: "S5",
     nameKey: "scene.s5",
+    stormTau: STORM_TAU,
     startS: 124,
     durationS: 22,
     segments: [
