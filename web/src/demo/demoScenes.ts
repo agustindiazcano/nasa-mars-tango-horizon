@@ -553,6 +553,7 @@ const LIFE_SUPPORT_FLOW: OverlayItem[] = [
 
 /** Rescue dialogue in the extraction scenes, so the conversation stays readable while the robot works. */
 export const RESCUE_DIALOGUE_S5: OverlayItem[] = [
+  { id: "s5-l1", kind: "lower", icon: "rescue", fromS: 0.5, toS: 7.5, title: "rescue-1 arrives at the pit", detail: "Parks at the safe distance from the rim and opens its rear ramp" },
   TOWING_IMAGE("s5-img", 8, 22),
   { id: "s5-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 6.5, toS: 16, text: "rescue-1 stopped at the keep-out distance from the pit rim. Ramp open." },
   { id: "s5-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 8.5, toS: 20, text: "Reversing out of the rear bay and driving to the pit rim." },
@@ -560,6 +561,7 @@ export const RESCUE_DIALOGUE_S5: OverlayItem[] = [
 ];
 
 export const RESCUE_DIALOGUE_S6: OverlayItem[] = [
+  { id: "s6-l1", kind: "lower", icon: "rescue", fromS: 0.3, toS: 10, title: "rescue-bot-1 at the casualty", detail: "The arm lowers to the harness straps; hook, winch, then drag" },
   TOWING_IMAGE("s6-img", 2, 30),
   { id: "s6-bot", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 3.5, toS: 12, text: "Reached the astronaut. Grabbing the suit harness." },
   { id: "s6-bot2", kind: "voice", who: "agent", speaker: "ROBOT.rescue-bot-1", fromS: 7, toS: 17, text: "Harness hooked. Arm raised for the drag." },
@@ -568,6 +570,9 @@ export const RESCUE_DIALOGUE_S6: OverlayItem[] = [
 ];
 
 export const RESCUE_DIALOGUE_S7: OverlayItem[] = [
+  { id: "s7-l1", kind: "lower", icon: "rescue", fromS: 0.5, toS: 7.5, title: "Ramp closes, both astronauts aboard", detail: "The casualty and the robot are inside the pressurized bay" },
+  { id: "s7-l2", kind: "lower", icon: "base", fromS: 8, toS: 13.5, title: "Convoy returns to base", detail: "Through the dust storm, 1.7 km, drones grounded" },
+  { id: "s7-health", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 2, toS: 8, text: "Both astronauts are aboard the pressurized rescue-1." },
   { id: "s7-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 8, toS: 14, text: "rescue-1 is leaving for the base through the storm." },
 ];
 
