@@ -40,9 +40,12 @@ import { CannonFx } from "./demo/lifeSupportFx";
 import { OverlayLayer } from "./demo/overlayLayer";
 import { NarrationFeeder, buildNarration, type NarrationCtx } from "./world/rescueNarration";
 import { models } from "./world/modelLibrary";
+import { buildChartModel, fetchStormForecast, stormVerdict, type StormForecastData } from "./hud/stormForecast";
+import { drawForecastAnimated } from "./demo/forecastChart";
 import { SceneDirector } from "./world/sceneDirector";
 import { U1_CREW4, U1_ORDERS, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_GOAL, U1_ROVER2_ORDER_S, U1_ROVER2_WAIT, U1_TYPE_CPS, u1Drone, u1Gaze, u1PickLane, u1TypeS, u1Walker, laneOffset } from "./world/uiTourScript";
-import { RescueLitter } from "./world/rescueLitter";
+import { VehicleDust } from "./world/vehicleDust";
+import { RescueLitter, litterTilt } from "./world/rescueLitter";
 import { PodBallistics } from "./world/podBallistics";
 import { RocksProc } from "./world/rocksProc";
 import { DecorRobots } from "./world/decorRobots";
@@ -207,11 +210,14 @@ function setWorldLabels(visible: boolean): void {
 
 function resetDemoEffects(): void {
   lifeSupportShot = false;
+  vehicleDust.reset();
   overlayLayer.clear();
   podBallistics.reset();
   cannonFx.reset();
 }
 
+const vehicleDust = new VehicleDust();
+scene.add(vehicleDust.group);
 const fleet = new FleetProc(scene, terrain, (ev, skill) => {
   if (ev === "core_acquired" || ev === "sample_acquired") {
     store.samples.push({
@@ -714,6 +720,19 @@ overlayLayer.setArcDrawer((ctx, w, h) => {
   ctx.fillText(`T+${prof.elapsedS.toFixed(0)} s of ${prof.flightTimeS.toFixed(0)} s   ·   altitude ${alt.toFixed(0)} m   ·   range ${dist(cur).toFixed(0)} m of ${range.toFixed(0)} m`, padL, 24);
 });
 
+let stormForecastData: StormForecastData | null = null;
+void fetchStormForecast().then((d) => {
+  stormForecastData = d;
+});
+overlayLayer.setForecastDrawer((ctx, w, h, t) => {
+  if (!stormForecastData) {
+    ctx.clearRect(0, 0, w, h);
+    return;
+  }
+  const verdict = stormVerdict(stormForecastData, store.env.tau).verdict;
+  drawForecastAnimated(ctx, w, h, buildChartModel(stormForecastData), verdict, t);
+});
+
 overlayLayer.setMapDrawer((ctx) => {
   const full = opsCanvas.getContext("2d");
   if (!full) return;
@@ -724,6 +743,7 @@ overlayLayer.setMapDrawer((ctx) => {
 const sceneDirector = new SceneDirector(rescue, {
   onStart: (scene) => {
     resetDemoEffects();
+    stormFloorTau = scene.stormTau ?? 0;
     if (scene.layer) store.setLayer(scene.layer);
     store.activeScenario = "rescue";
     store.env.storm_source = "Design dust storm (synthetic opacity curve, rescue scenario)";
@@ -853,10 +873,17 @@ function endHelmetTour(): void {
   astronaut.pos.set(ASTRONAUT_START.x, terrain.heightAt(ASTRONAUT_START.x, ASTRONAUT_START.z), ASTRONAUT_START.z);
 }
 
+/** Dust opacity floor of the running scene (0 = none) and the scripted tau that grounds the aircraft. */
+let stormFloorTau = 0;
+let scenarioTau = 0;
+
 /** Applies the scripted rescue state to the fleet, crew, rescue robot and environment. */
 function applyRescueView(v: RescueView): void {
-  store.env.tau = v.tau;
-  store.env.wind_ms = v.windMs;
+  // A scene after the storm alert keeps a storm even when the scenario clock is before the onset. Aircraft grounding
+  // follows the scripted tau only, so the drones of those scenes still fly.
+  scenarioTau = v.tau;
+  store.env.tau = Math.max(v.tau, stormFloorTau);
+  store.env.wind_ms = Math.max(v.windMs, stormFloorTau > v.tau ? 5.2 + ((stormFloorTau - 0.48) / 5.52) * 21 : 0);
   store.env.sun_elev_deg = v.sunElevDeg;
   for (const id of ["rover-1", "rescue-1", "rescue-bot-1", "drone-1", "drone-2"] as const) {
     const u = v.units[id];
@@ -871,12 +898,14 @@ function applyRescueView(v: RescueView): void {
   fleet.setRescueBotStowed(v.robot.stowed);
   fleet.setRescueRamp(v.rampOpen01);
   fleet.applyRescueBotPose(v.robot.pose);
+  // The litter and the casualty lying on it follow the slope while the casualty is dragged.
+  const c3 = v.crew["crew-3"];
+  const tilt = v.litter.active ? litterTilt((x, z) => terrain.heightAt(x, z), c3.x, c3.z, c3.yaw) : { pitch: 0, roll: 0 };
   for (const id of ["crew-2", "crew-3"] as const) {
     const c = v.crew[id];
-    crew.place(id, c.x, c.z, c.yaw, c.pose, { yOffset: c.yOffset, visible: c.visible });
+    crew.place(id, c.x, c.z, c.yaw, c.pose, { yOffset: c.yOffset, visible: c.visible, ...(id === "crew-3" ? tilt : {}) });
   }
-  const c3 = v.crew["crew-3"];
-  litter.update(v.litter.active, { x: c3.x, y: terrain.heightAt(c3.x, c3.z) + c3.yOffset, z: c3.z, yaw: c3.yaw }, fleet.towPointWorld());
+  litter.update(v.litter.active, { x: c3.x, y: terrain.heightAt(c3.x, c3.z) + c3.yOffset, z: c3.z, yaw: c3.yaw, ...tilt }, fleet.towPointWorld());
 }
 
 function startScenario(id: "storm" | "sep2017" | "leak" | "rescue"): void {
@@ -1120,7 +1149,7 @@ function stepSimulation(dt: number): void {
     store.fanDegraded,
   );
 
-  fleet.update(dt, store.env.tau);
+  fleet.update(dt, store.activeScenario === "rescue" && stormFloorTau > 0 ? scenarioTau : store.env.tau);
   store.fleet = fleet.snapshots();
   crew.syncPlayer(astronaut.pos.x, astronaut.pos.z, astronaut.yaw, astronaut.speed, store.povMode !== "1st");
   astronaut.group.visible = !crew.playerModelReady;
@@ -1191,6 +1220,7 @@ function animate(now: number): void {
   // The pod advances every rendered frame (not in the 10 Hz step) so the camera that follows it glides.
   podBallistics.update(realDt * store.simScale, store.podTelemetry);
   podBallistics.tick(realDt);
+  vehicleDust.update(realDt, [...fleet.units].map(([id, u]) => ({ id, flies: u.spec.flies, object: u.object })), (x, z) => terrain.heightAt(x, z));
   const shot = sceneDirector.update(realDt, {
     getPos: (id) => {
       if (id === "pod") return podBallistics.position() ?? rescue.getEntityPosition("pit");

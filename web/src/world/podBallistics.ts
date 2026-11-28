@@ -21,6 +21,9 @@ export class PodBallistics {
   private group = new THREE.Group();
   private trail = new ProjectileTrail();
   private chuteFadeS = -1;
+  /** Terrain height under the fallen canopy relative to the pod base (m). */
+  private chuteGroundDy = 0;
+  private lastDrift = { x: 0, z: 0 };
   /** Flight speed-up for short takes (1 = real time). */
   timeScale = 1;
   private podMesh: THREE.Group;
@@ -110,14 +113,9 @@ export class PodBallistics {
   tick(dt: number): void {
     this.trail.update(dt);
     if (this.chuteFadeS >= 0) {
-      this.chuteFadeS += dt;
-      const k = Math.min(1, this.chuteFadeS / 1.6);
-      this.chute.group.scale.setScalar(1 - k * 0.85);
-      if (k >= 1) {
-        this.chute.group.visible = false;
-        this.chute.group.scale.setScalar(1);
-        this.chuteFadeS = -1;
-      }
+      // After touchdown the canopy deflates and lies on the ground beside the pod; it stays until the next launch or reset.
+      this.chuteFadeS = Math.min(2.2, this.chuteFadeS + dt);
+      this.chute.collapse(this.chuteFadeS / 2.2, this.chuteGroundDy);
     }
   }
 
@@ -136,6 +134,7 @@ export class PodBallistics {
     this.lastPos = null;
     this.chuteFadeS = -1;
     this.chute.group.scale.setScalar(1);
+    this.chute.group.rotation.set(0, 0, 0);
     this.trail.reset();
   }
 
@@ -170,6 +169,7 @@ export class PodBallistics {
     this.podMesh.visible = true;
     this.podMesh.quaternion.identity();
     this.chute.group.visible = false;
+    this.chute.group.rotation.set(0, 0, 0);
 
     // The track is the pod itself: ember and smoke are emitted behind it as it flies (see `update`).
     this.trail.reset();
@@ -250,6 +250,7 @@ export class PodBallistics {
       this.activeDelivery.deployedAtS !== null && this.elapsedS >= this.activeDelivery.deployedAtS;
     // Nose along the flight path until the parachute opens, then upright under the canopy.
     const vel = this.podMesh.position.clone().sub(prev);
+    if (Math.hypot(vel.x, vel.z) > 1e-6) this.lastDrift = { x: vel.x, z: vel.z };
     if (!deployed && vel.lengthSq() > 1e-8) {
       const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vel.normalize());
       this.podMesh.quaternion.slerp(q, 0.25);
@@ -274,11 +275,27 @@ export class PodBallistics {
       this.lastPos = this.podMesh.position.clone();
       this.trail.dustBurst(new THREE.Vector3(gx, this.terrain.heightAt(gx, gz), gz));
       this.chuteFadeS = 0;
-      this.attachChute();
+      this.settleChute(gx, gz);
       const cb = this.onLanded;
       this.onLanded = undefined;
       cb?.();
     }
+  }
+
+  /** Lays the canopy origin at the pod base, turned so it falls downwind (along the last horizontal drift). */
+  private settleChute(gx: number, gz: number): void {
+    const g = this.terrain.heightAt(gx, gz);
+    this.chute.group.position.set(gx, g, gz);
+    let dx = this.lastDrift.x;
+    let dz = this.lastDrift.z;
+    if (Math.hypot(dx, dz) < 1e-6) {
+      dx = 1;
+      dz = 0;
+    }
+    this.chute.group.rotation.y = Math.atan2(-dz, dx);
+    const fx = gx + (dx / Math.hypot(dx, dz)) * 3.6;
+    const fz = gz + (dz / Math.hypot(dx, dz)) * 3.6;
+    this.chuteGroundDy = this.terrain.heightAt(fx, fz) - g;
   }
 
   /** Puts the canopy base on the nose of the pod (the top of the model, 0.95 m above its centre). */

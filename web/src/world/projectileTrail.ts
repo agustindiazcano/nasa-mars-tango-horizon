@@ -6,7 +6,7 @@ import * as THREE from "three";
  * the pod touches down. Particles live in a fixed pool; nothing is allocated per frame.
  */
 
-const MAX = 900;
+const DEFAULT_MAX = 900;
 
 const VERT = /* glsl */ `
   attribute float aAge;
@@ -55,19 +55,27 @@ const FRAG = /* glsl */ `
 
 export class ProjectileTrail {
   readonly group = new THREE.Group();
-  private pos = new Float32Array(MAX * 3);
-  private vel = new Float32Array(MAX * 3);
-  private age = new Float32Array(MAX);
-  private life = new Float32Array(MAX);
-  private size = new Float32Array(MAX);
-  private kind = new Float32Array(MAX);
+  private readonly max: number;
+  private pos: Float32Array;
+  private vel: Float32Array;
+  private age: Float32Array;
+  private life: Float32Array;
+  private size: Float32Array;
+  private kind: Float32Array;
   private geo = new THREE.BufferGeometry();
   private mat: THREE.ShaderMaterial;
   private next = 0;
   private last: THREE.Vector3 | null = null;
   private carry = 0;
 
-  constructor() {
+  constructor(maxParticles = DEFAULT_MAX) {
+    this.max = maxParticles;
+    this.pos = new Float32Array(maxParticles * 3);
+    this.vel = new Float32Array(maxParticles * 3);
+    this.age = new Float32Array(maxParticles);
+    this.life = new Float32Array(maxParticles);
+    this.size = new Float32Array(maxParticles);
+    this.kind = new Float32Array(maxParticles);
     this.group.name = "projectile-trail";
     this.geo.setAttribute("position", new THREE.BufferAttribute(this.pos, 3));
     this.geo.setAttribute("aAge", new THREE.BufferAttribute(this.age, 1));
@@ -129,9 +137,29 @@ export class ProjectileTrail {
     }
   }
 
+  /**
+   * One puff of dust kicked up by a wheel: it drifts backward and slightly up, grows and fades over a few seconds so a
+   * moving vehicle leaves a cloud that disperses behind it. `backX`/`backZ` is the unit vector pointing behind the vehicle.
+   */
+  dustPuff(x: number, y: number, z: number, backX: number, backZ: number, speed: number): void {
+    const j = () => Math.random() - 0.5;
+    const drift = Math.min(1.6, speed * 0.12);
+    this.spawn(
+      x + j() * 0.4,
+      y + 0.15,
+      z + j() * 0.4,
+      backX * drift + j() * 0.7,
+      0.25 + Math.random() * 0.55,
+      backZ * drift + j() * 0.7,
+      2,
+      3.5 + Math.random() * 2.2,
+      1.6 + Math.random() * 1.2,
+    );
+  }
+
   private spawn(x: number, y: number, z: number, vx: number, vy: number, vz: number, kind: number, life: number, size: number): void {
     const i = this.next;
-    this.next = (this.next + 1) % MAX;
+    this.next = (this.next + 1) % this.max;
     this.pos[i * 3] = x;
     this.pos[i * 3 + 1] = y;
     this.pos[i * 3 + 2] = z;
@@ -145,7 +173,7 @@ export class ProjectileTrail {
   }
 
   update(dt: number): void {
-    for (let i = 0; i < MAX; i++) {
+    for (let i = 0; i < this.max; i++) {
       if (this.life[i] <= 0) continue;
       this.age[i] += dt;
       if (this.age[i] >= this.life[i]) {

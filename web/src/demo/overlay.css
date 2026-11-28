@@ -365,6 +365,8 @@
 
 /* Side-view launch animation */
 .ov-arc { left: 2.5vw; top: 7vh; width: min(740px, 46vw); padding: 12px 14px 10px; background: rgba(8, 12, 16, 0.78) !important; border: 1px solid rgba(255, 179, 107, 0.55); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); backdrop-filter: blur(6px) !important; }
+.ov-forecast { left: 2.5vw; top: 7vh; width: min(760px, 48vw); padding: 12px 14px 10px; background: rgba(8, 12, 16, 0.78) !important; border: 1px solid rgba(255, 179, 107, 0.55); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); backdrop-filter: blur(6px) !important; }
+.ov-forecast-canvas { display: block; width: 100%; height: auto; }
 .ov-arc-canvas { display: block; width: 100%; height: auto; }
 
 /* Dialogue as subtitles: centred at the bottom, the last two lines only, above maps and diagrams */

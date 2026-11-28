@@ -1,4 +1,5 @@
 import type { SceneDef } from "../world/sceneDirector";
+import { STORM_TAU, STORM_TAU_FULL } from "../world/stormTau";
 import type { OverlayItem } from "./overlays";
 
 /**
@@ -578,6 +579,7 @@ const STORM_ALERT: OverlayItem[] = [
   { id: "t1-guard", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 6.2, toS: 14, text: "rescue-1 dispatch allowed. Slope and keep-out checked." },
   { id: "t1-drones", kind: "voice", who: "agent", speaker: "GUARDIAN", fromS: 10.2, toS: 16, text: "Drones launched for overwatch, 25 m or more from the crew." },
   { id: "t1-coords", kind: "coords", fromS: 3, toS: 15.5, ...DIAZ_CANO },
+  { id: "t1-forecast", kind: "forecast", fromS: 4.5, toS: 15.5, kicker: "STORM NOWCASTER", title: "Dust opacity forecast, next 3 sols", caption: "Median, 80 % band and the storm level; the verdict applies the EVA limits." },
 ];
 
 /** In the storm: the helmet view of the astronaut who walks to the rescue vehicle. */
@@ -731,6 +733,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "Q1",
     nameKey: "scene.q1",
+    stormTau: STORM_TAU_FULL,
     startS: 0,
     durationS: 30,
     segments: [
@@ -774,6 +777,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "O1",
     nameKey: "scene.o1",
+    stormTau: STORM_TAU,
     startS: 48,
     durationS: 17,
     segments: [{ fromS: 0, kind: "orbit", target: ["base", "rescue-site"], radius: 900, height: 700, speed: 0.04 }],
@@ -782,6 +786,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "V1",
     nameKey: "scene.v1",
+    stormTau: STORM_TAU,
     startS: 55,
     durationS: 22,
     segments: [
@@ -794,6 +799,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "R1",
     nameKey: "scene.r1",
+    stormTau: STORM_TAU,
     startS: 64,
     durationS: 29,
     segments: [{ fromS: 0, kind: "orbit", target: ["base", "rescue-site"], radius: 900, height: 700, speed: 0.04 }],
@@ -802,6 +808,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "L0",
     nameKey: "scene.l0",
+    stormTau: STORM_TAU,
     startS: 72,
     durationS: 33,
     segments: [{ fromS: 0, kind: "orbit", target: "launcher-1", radius: 40, height: 14, speed: 0.08, lookAboveM: 3 }],
@@ -810,6 +817,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "L1",
     nameKey: "scene.l1",
+    stormTau: STORM_TAU,
     startS: 72,
     durationS: 26,
     segments: [
@@ -860,6 +868,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "ML1",
     nameKey: "scene.ml1",
+    stormTau: STORM_TAU_FULL,
     startS: 20,
     durationS: 33,
     layer: "hydration",
@@ -884,7 +893,8 @@ export const DEMO_SCENES: readonly SceneDef[] = [
     id: "T2",
     nameKey: "scene.t2",
     pov: "1st",
-    startS: 146,
+    startS: 226,
+    stormTau: STORM_TAU_FULL,
     durationS: 18,
     segments: [
       // Helmet view looking at rescue-1, then a side view of the astronaut and the robot towing the casualty.
@@ -896,6 +906,7 @@ export const DEMO_SCENES: readonly SceneDef[] = [
   {
     id: "E1",
     nameKey: "scene.e1",
+    stormTau: STORM_TAU_FULL,
     startS: 0,
     durationS: 15,
     segments: [{ fromS: 0, kind: "aerial", target: "launch-site", offset: { x: 150, y: 25, z: -190 }, lookAboveM: 110 }],

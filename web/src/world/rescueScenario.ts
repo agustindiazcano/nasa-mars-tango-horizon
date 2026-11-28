@@ -28,7 +28,7 @@ import {
 
 /** Fixed simulation tick: the same elapsed time always produces the same state. */
 export const RESCUE_TICK_S = 1 / 30;
-export const RESCUE_DURATION_S = 180;
+export const RESCUE_DURATION_S = 260;
 
 /** Overwatch geometry (user requirement: near the crew, never on top of it). */
 export const DRONE_STANDOFF_M = 25;
@@ -99,25 +99,25 @@ const T_FALL_END = 57;
 const T_STORM = 60;
 const T_RESCUE_GO = 64;
 const T_DRONE_GO = 68;
-const T_DRONE_CLIMB_END = 72;
-const T_DRONE_STATION = 104;
-const T_RESCUE_ARRIVE = 130;
-const T_RAMP_OPEN = 130;
-const T_ROBOT_GO = 132; // robot reverses out of the rear bay
-const T_RIM = 137; // robot reaches the top of the pit ramp
-const T_DESCEND = 142; // robot stops next to the casualty; arm reaches for the harness straps
+const T_DRONE_CLIMB_END = 80;
+const T_DRONE_STATION = 184;
+const T_RESCUE_ARRIVE = 210;
+const T_RAMP_OPEN = 210;
+const T_ROBOT_GO = 212; // robot reverses out of the rear bay
+const T_RIM = 217; // robot reaches the top of the pit ramp
+const T_DESCEND = 222; // robot stops next to the casualty; arm reaches for the harness straps
 const T_SECURE = T_DESCEND + RESCUE_SKILL_DURATION_S.descend; // 145: hooks the harness
 const T_WINCH = T_SECURE + RESCUE_SKILL_DURATION_S.secure; // 149: raises the arm to the carry pose
 const T_DRAG = T_WINCH + RESCUE_SKILL_DURATION_S.winch; // 152: drags the casualty up the ramp to rescue-1
-const T_DRAG_END = 168; // casualty and robot are inside the bay
-const T_RAMP_CLOSE = 170;
-const T_DEPART = 174;
-const T_C2_WALK = 150; // SALERNO walks to rescue-1
-const T_C2_BOARD = 164;
+const T_DRAG_END = 248; // casualty and robot are inside the bay
+const T_RAMP_CLOSE = 250;
+const T_DEPART = 254;
+const T_C2_WALK = 230; // SALERNO walks to rescue-1
+const T_C2_BOARD = 244;
 
 const TAU_BASE = 0.48;
 const TAU_PEAK = 6;
-const T_TAU_RAMP_END = 160;
+const T_TAU_RAMP_END = 290;
 
 const clamp01 = (u: number) => Math.min(1, Math.max(0, u));
 const smooth = (u: number) => {
@@ -126,6 +126,8 @@ const smooth = (u: number) => {
 };
 const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
 const seg = (t: number, a: number, b: number) => clamp01((t - a) / (b - a));
+/** Travel profile with a gentle start and stop and a steady cruise (peak speed 1.15x the average, not 1.5x). */
+const travel = (u: number) => 0.7 * clamp01(u) + 0.3 * smooth(u);
 
 /** Dust opacity timeline: nominal until the storm onset, then a cubic rise to a design peak of 6. */
 export function rescueTauAt(tS: number): number {
@@ -234,7 +236,7 @@ function computeView(t: number): RescueView {
   if (t < T_RESCUE_GO) {
     rescue1 = { x: r1Start.x, z: r1Start.z, yaw: driveYaw };
   } else if (t < T_RESCUE_ARRIVE - 4) {
-    const u = smooth(seg(t, T_RESCUE_GO, T_RESCUE_ARRIVE - 4));
+    const u = travel(seg(t, T_RESCUE_GO, T_RESCUE_ARRIVE - 4));
     rescue1 = { x: lerp(r1Start.x, PARK.x, u), z: lerp(r1Start.z, PARK.z, u), yaw: driveYaw };
   } else if (t < T_DEPART) {
     const turn = smooth(seg(t, T_RESCUE_ARRIVE - 4, T_RESCUE_ARRIVE));
@@ -298,7 +300,7 @@ function computeView(t: number): RescueView {
       x = s.x;
       z = s.z;
     } else if (t < T_DRONE_STATION) {
-      const u = smooth(seg(t, T_DRONE_GO, T_DRONE_STATION));
+      const u = travel(seg(t, T_DRONE_GO, T_DRONE_STATION));
       x = lerp(s.x, entry.x, u);
       z = lerp(s.z, entry.z, u);
     } else {
@@ -460,7 +462,7 @@ export interface RescueScenarioDeps {
 }
 
 /**
- * Scripted crew rescue scenario (plan 22): 180 s, deterministic and seekable. Everything the scene shows is a pure
+ * Scripted crew rescue scenario (plan 22): 260 s, deterministic and seekable. Everything the scene shows is a pure
  * function of the elapsed time, advanced in fixed 1/30 s ticks, so `seekTo(t)` always reproduces the same state.
  */
 export class RescueScenario {

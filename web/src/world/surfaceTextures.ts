@@ -205,3 +205,20 @@ export function applySurface<T extends THREE.MeshStandardMaterial>(mat: T, maps:
   mat.needsUpdate = true;
   return mat;
 }
+
+/**
+ * Polished white metal for the rescue cart and the arm robot: near-white paint with a low roughness so the sun leaves
+ * clean highlights, and only faint panel seams (the map is almost uniform and the bump is weak).
+ */
+export function whiteMetal(seed = 5, repeat: [number, number] = [1, 1]): THREE.MeshStandardMaterial {
+  return applySurface(
+    new THREE.MeshStandardMaterial({ color: 0xf4f6f8, roughness: 0.2, metalness: 0.55 }),
+    panelMetal("#f4f6f8", seed, repeat),
+    0.25,
+  );
+}
+
+/** Bright chrome for hubs, axles and buckles. */
+export function chrome(): THREE.MeshStandardMaterial {
+  return new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.12, metalness: 0.8 });
+}
