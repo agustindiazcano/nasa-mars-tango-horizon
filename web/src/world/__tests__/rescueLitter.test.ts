@@ -4,10 +4,32 @@ import {
   cablePoints,
   CABLE_REST_LENGTH_M,
   litterPointToWorld,
+  litterTilt,
   LITTER,
   type V3,
 } from "../rescueLitter";
 import { RescueScenario } from "../rescueScenario";
+
+describe("litter tilt on a slope", () => {
+  it("is level on flat ground", () => {
+    const t = litterTilt(() => 5, 10, 10, 0.7);
+    expect(t.pitch).toBeCloseTo(0, 6);
+    expect(t.roll).toBeCloseTo(0, 6);
+  });
+
+  it("raises the head end when the ground rises ahead (nose up is a negative rotation about x)", () => {
+    // Heading +z (yaw 0) on a ground that rises 0.2 m per metre along +z
+    const t = litterTilt((_x, z) => 0.2 * z, 0, 0, 0);
+    expect(t.pitch).toBeCloseTo(-Math.atan(0.2), 3);
+    expect(Math.abs(t.roll)).toBeLessThan(1e-6);
+  });
+
+  it("rolls toward the side that is higher", () => {
+    // Yaw 0: the litter +x side is world +x; ground rises 0.1 m per metre along +x
+    const t = litterTilt((x) => 0.1 * x, 0, 0, 0);
+    expect(t.roll).toBeCloseTo(Math.atan(0.1), 3);
+  });
+});
 
 describe("litter attachment geometry", () => {
   it("maps litter-local points with front = +Z", () => {

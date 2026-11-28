@@ -44,7 +44,7 @@ import { buildChartModel, fetchStormForecast, stormVerdict, type StormForecastDa
 import { drawForecastAnimated } from "./demo/forecastChart";
 import { SceneDirector } from "./world/sceneDirector";
 import { U1_CREW4, U1_ORDERS, U1_ROCK_ID, U1_ROCK_ORDER_S, U1_ROVER2_GOAL, U1_ROVER2_ORDER_S, U1_ROVER2_WAIT, U1_TYPE_CPS, u1Drone, u1Gaze, u1PickLane, u1TypeS, u1Walker, laneOffset } from "./world/uiTourScript";
-import { RescueLitter } from "./world/rescueLitter";
+import { RescueLitter, litterTilt } from "./world/rescueLitter";
 import { PodBallistics } from "./world/podBallistics";
 import { RocksProc } from "./world/rocksProc";
 import { DecorRobots } from "./world/decorRobots";
@@ -894,12 +894,14 @@ function applyRescueView(v: RescueView): void {
   fleet.setRescueBotStowed(v.robot.stowed);
   fleet.setRescueRamp(v.rampOpen01);
   fleet.applyRescueBotPose(v.robot.pose);
+  // The litter and the casualty lying on it follow the slope while the casualty is dragged.
+  const c3 = v.crew["crew-3"];
+  const tilt = v.litter.active ? litterTilt((x, z) => terrain.heightAt(x, z), c3.x, c3.z, c3.yaw) : { pitch: 0, roll: 0 };
   for (const id of ["crew-2", "crew-3"] as const) {
     const c = v.crew[id];
-    crew.place(id, c.x, c.z, c.yaw, c.pose, { yOffset: c.yOffset, visible: c.visible });
+    crew.place(id, c.x, c.z, c.yaw, c.pose, { yOffset: c.yOffset, visible: c.visible, ...(id === "crew-3" ? tilt : {}) });
   }
-  const c3 = v.crew["crew-3"];
-  litter.update(v.litter.active, { x: c3.x, y: terrain.heightAt(c3.x, c3.z) + c3.yOffset, z: c3.z, yaw: c3.yaw }, fleet.towPointWorld());
+  litter.update(v.litter.active, { x: c3.x, y: terrain.heightAt(c3.x, c3.z) + c3.yOffset, z: c3.z, yaw: c3.yaw, ...tilt }, fleet.towPointWorld());
 }
 
 function startScenario(id: "storm" | "sep2017" | "leak" | "rescue"): void {

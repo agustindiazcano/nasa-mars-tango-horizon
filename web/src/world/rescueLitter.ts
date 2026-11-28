@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { applySurface, panelMetal, tireTread, wovenCanvas } from "./surfaceTextures";
+import { weatherObject } from "./weathering";
 
 /**
  * Rescue litter dragged by `rescue-bot-1`: a flat stretcher under the casualty with a bridle at its head end and a tow
@@ -43,12 +44,39 @@ export function cablePoints(a: V3, b: V3, segments = 14, restLengthM = CABLE_RES
   return pts;
 }
 
+/** Ground clearance under the litter origin on flat ground (m): the casualty origin sits this high on the terrain. */
+export const LITTER_GROUND_CLEARANCE_M = 0.12;
+/** Wheel radius (m): the axle sits at the bed height, so the tyre rests on the ground beside the bed. */
+export const WHEEL_RADIUS_M = 0.17;
+
+/**
+ * Pitch and roll (rad) that lay the litter on the terrain: sampled at the ends and sides of the bed (wide baselines,
+ * the DEM is noisy at 1 m). Pitch is about the litter x axis (positive lowers the head end), roll about its z axis
+ * (positive raises the +x side), as used by `RescueLitter.update`.
+ */
+export function litterTilt(heightAt: (x: number, z: number) => number, x: number, z: number, yaw: number): { pitch: number; roll: number } {
+  const fx = Math.sin(yaw);
+  const fz = Math.cos(yaw);
+  const rx = Math.cos(yaw);
+  const rz = -Math.sin(yaw);
+  const L = 1.4;
+  const W = 0.6;
+  const front = heightAt(x + fx * L, z + fz * L);
+  const back = heightAt(x - fx * L, z - fz * L);
+  const right = heightAt(x + rx * W, z + rz * W);
+  const left = heightAt(x - rx * W, z - rz * W);
+  return { pitch: -Math.atan2(front - back, 2 * L), roll: Math.atan2(right - left, 2 * W) };
+}
+
 export interface LitterPose {
   x: number;
   /** Casualty origin height (terrain plus scripted offset). */
   y: number;
   z: number;
   yaw: number;
+  /** Tilt that follows the terrain (see `litterTilt`); 0 when omitted. */
+  pitch?: number;
+  roll?: number;
 }
 
 export class RescueLitter {
@@ -57,6 +85,8 @@ export class RescueLitter {
   private readonly cable: THREE.Mesh;
   private readonly bridle: THREE.Mesh;
   private readonly hook = new THREE.Group();
+  private smoothPitch = 0;
+  private smoothRoll = 0;
   private readonly cableMat = new THREE.MeshStandardMaterial({ color: 0x2c2f33, roughness: 0.8, metalness: 0.4 });
 
   constructor(scene: THREE.Scene) {
@@ -91,29 +121,41 @@ export class RescueLitter {
       box(W + 0.04, 0.02, 0.09, strap, 0, bedY + 0.035, z);
       box(0.07, 0.03, 0.06, buckle, 0.08, bedY + 0.05, z);
     }
-    // A chassis under the bed and four wheels with tyres, hubs and axles turn the litter into a cart.
-    const R = 0.1;
-    const axleY = bedY - 0.06;
+    // Four large wheels beside the bed turn the litter into a cart: tyre with tread, light rim, hub cap, spokes and a
+    // stub axle to the rail. The axle sits at the bed height so the tyres rest on the ground (clearance 0.12 m).
+    const R = WHEEL_RADIUS_M;
+    const axleY = bedY;
+    const rim = new THREE.MeshStandardMaterial({ color: 0xe9ecef, roughness: 0.4, metalness: 0.7 });
     for (const z of [-0.62, 0.62]) {
-      const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, W + 0.16, 8), hubMat);
-      axle.rotation.z = Math.PI / 2;
-      axle.position.set(0, axleY, z);
-      this.litter.add(axle);
       for (const side of [-1, 1]) {
-        const x = (side * (W + 0.1)) / 2;
-        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 0.075, 18), tyre);
-        wheel.rotation.z = Math.PI / 2;
+        const x = side * (W / 2 + 0.11);
+        const wheel = new THREE.Group();
         wheel.position.set(x, axleY, z);
-        wheel.castShadow = true;
-        const hub = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.55, R * 0.55, 0.082, 12), hubMat);
-        hub.rotation.z = Math.PI / 2;
-        hub.position.set(x, axleY, z);
-        this.litter.add(wheel, hub);
+        const tyreMesh = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 0.11, 22), tyre);
+        tyreMesh.rotation.z = Math.PI / 2;
+        tyreMesh.castShadow = true;
+        const rimMesh = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.66, R * 0.66, 0.118, 18), rim);
+        rimMesh.rotation.z = Math.PI / 2;
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.22, R * 0.22, 0.14, 10), hubMat);
+        cap.rotation.z = Math.PI / 2;
+        wheel.add(tyreMesh, rimMesh, cap);
+        for (let k = 0; k < 5; k++) {
+          const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.124, R * 0.12, R * 1.15), hubMat);
+          spoke.rotation.x = (k / 5) * Math.PI;
+          wheel.add(spoke);
+        }
+        this.litter.add(wheel);
+        const stub = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.16, 8), hubMat);
+        stub.rotation.z = Math.PI / 2;
+        stub.position.set(side * (W / 2 + 0.04), axleY, z);
+        this.litter.add(stub);
       }
-      const bracket = new THREE.Mesh(new THREE.BoxGeometry(W - 0.06, 0.03, 0.05), frame);
-      bracket.position.set(0, bedY - 0.035, z);
+      const bracket = new THREE.Mesh(new THREE.BoxGeometry(W + 0.02, 0.03, 0.05), frame);
+      bracket.position.set(0, bedY - 0.03, z);
       this.litter.add(bracket);
     }
+    // Same dust and scratches as the optimized vehicle models.
+    weatherObject(this.litter, { dust: 0.6, scratches: 0.85, tileM: 0.9 });
     this.group.add(this.litter);
 
     this.bridle = new THREE.Mesh(new THREE.BufferGeometry(), this.cableMat);
@@ -136,16 +178,28 @@ export class RescueLitter {
     if (!this.group.visible || !towPoint) return;
     const origin: V3 = [pose.x, pose.y, pose.z];
     this.litter.position.set(...origin);
-    this.litter.rotation.y = pose.yaw;
-    const apex = litterPointToWorld(origin, pose.yaw, [...BRIDLE_APEX_LOCAL] as V3);
+    // The bed lies on the slope; the tilt is low-passed so the bumps of the DEM do not shake it.
+    const k = 0.25;
+    this.smoothPitch += ((pose.pitch ?? 0) - this.smoothPitch) * k;
+    this.smoothRoll += ((pose.roll ?? 0) - this.smoothRoll) * k;
+    this.litter.rotation.order = "YXZ";
+    this.litter.rotation.set(this.smoothPitch, pose.yaw, this.smoothRoll);
+    this.litter.updateMatrixWorld(true);
+    const apex = this.litterWorld([...BRIDLE_APEX_LOCAL] as V3);
     this.hook.position.set(...towPoint);
     this.hook.rotation.y = pose.yaw;
     this.setTube(this.cable, cablePoints(apex, towPoint), 0.022);
     // Bridle: two legs from the head-end rail corners to the apex
-    const legs = [-1, 1].map((side) => litterPointToWorld(origin, pose.yaw, [(side * LITTER.widthM) / 2, LITTER.bedY, LITTER.headZ + 0.12]));
+    const legs = [-1, 1].map((side) => this.litterWorld([(side * LITTER.widthM) / 2, LITTER.bedY, LITTER.headZ + 0.12]));
     const geos = legs.map((l) => this.tubeGeometry([l, apex], 0.014));
     this.bridle.geometry.dispose();
     this.bridle.geometry = mergeTubes(geos);
+  }
+
+  /** World position of a litter-local point with the current tilt. */
+  private litterWorld(local: V3): V3 {
+    const v = new THREE.Vector3(...local).applyMatrix4(this.litter.matrixWorld);
+    return [v.x, v.y, v.z];
   }
 
   private tubeGeometry(pts: V3[], radius: number): THREE.BufferGeometry {

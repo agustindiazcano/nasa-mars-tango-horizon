@@ -281,7 +281,7 @@ export class CrewProc {
     z: number,
     yaw: number,
     pose: CrewPose,
-    opts: { yOffset?: number; visible?: boolean } = {},
+    opts: { yOffset?: number; visible?: boolean; pitch?: number; roll?: number } = {},
   ): void {
     const m = this.members.get(id);
     if (!m) return;
@@ -292,7 +292,8 @@ export class CrewProc {
     m.yOffset = opts.yOffset ?? 0;
     m.group.visible = opts.visible !== false && pose !== "hidden";
     m.group.position.set(x, this.terrain.heightAt(x, z) + m.yOffset, z);
-    m.group.rotation.y = yaw;
+    m.group.rotation.order = "YXZ";
+    m.group.rotation.set(opts.pitch ?? 0, yaw, opts.roll ?? 0);
     if (m.anim) m.anim.request(pose === "hidden" ? "idle" : pose, { instant: !wasVisible });
     this.applyPose(m, 0);
   }
