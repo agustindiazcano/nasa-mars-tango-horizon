@@ -1,6 +1,6 @@
 import { STORM_TAU, STORM_TAU_FULL } from "./stormTau";
 import type { LayerId } from "@th/shared";
-import { DEMO_SCENES, DECK_ORDER, RESCUE_DIALOGUE_S5, RESCUE_DIALOGUE_S6, RESCUE_DIALOGUE_S7 } from "../demo/demoScenes";
+import { DEMO_SCENES, DECK_ORDER, INTRO_S1, INTRO_S2, INTRO_S3, INTRO_S4, RESCUE_DIALOGUE_S5, RESCUE_DIALOGUE_S6, RESCUE_DIALOGUE_S7 } from "../demo/demoScenes";
 import type { OverlayItem } from "../demo/overlays";
 import { clampAboveTerrain, type Vec3 } from "./cinematicCams";
 
@@ -86,6 +86,7 @@ const CORE_SCENES: readonly SceneDef[] = [
       // From the base apron toward the Starship on its pad, 1.1 km east-north-east.
       { fromS: 12, kind: "aerial", target: "launch-site", offset: { x: 720, y: 60, z: -580 }, lookAboveM: 95 },
     ],
+    overlay: INTRO_S1,
   },
   {
     id: "S2",
@@ -96,6 +97,7 @@ const CORE_SCENES: readonly SceneDef[] = [
       { fromS: 0, kind: "orbit", target: ["base", "rescue-site"], radius: 900, height: 700, speed: 0.04 },
       { fromS: 15, kind: "aerial", target: "rescue-site", offset: { x: 45, y: 40, z: 55 }, lookAboveM: 1 },
     ],
+    overlay: INTRO_S2,
   },
   {
     id: "S3",
@@ -107,6 +109,7 @@ const CORE_SCENES: readonly SceneDef[] = [
       { fromS: 8, kind: "follow", target: "rover-1", offset: { x: 11, y: 4.5, z: 12 }, lookAboveM: 1.5 },
       { fromS: 16, kind: "aerial", target: "pit", offset: { x: 7, y: 6, z: 7 }, lookAboveM: -1 },
     ],
+    overlay: INTRO_S3,
   },
   {
     id: "S4",
@@ -117,6 +120,7 @@ const CORE_SCENES: readonly SceneDef[] = [
       { fromS: 0, kind: "follow", target: "drone-1", offset: { x: 10, y: 5, z: 12 }, lookAboveM: 0 },
       { fromS: 12, kind: "follow", target: "rescue-1", offset: { x: -14, y: 6, z: 10 }, lookAboveM: 1.5 },
     ],
+    overlay: INTRO_S4,
   },
   {
     id: "S5",

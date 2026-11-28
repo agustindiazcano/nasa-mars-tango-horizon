@@ -571,6 +571,97 @@ export const RESCUE_DIALOGUE_S7: OverlayItem[] = [
   { id: "s7-base", kind: "voice", who: "agent", speaker: "BASE", fromS: 8, toS: 14, text: "rescue-1 is leaving for the base through the storm." },
 ];
 
+/** Base aerial: what the base is and what stands on it. */
+export const INTRO_S1: OverlayItem[] = [
+  {
+    id: "i1-card",
+    kind: "card",
+    side: "left",
+    fromS: 0.5,
+    toS: 11.5,
+    kicker: "MARS BASE ALPHA · GALE CRATER",
+    icon: "base",
+    title: "A base on real NASA terrain",
+    bulletIcons: ["base", "layers", "satellite"],
+    bullets: [
+      "Main habitat, solar array field and antenna farm",
+      "A 4 × 4 km model of the crater built from the 1 m per pixel HiRISE terrain",
+      "Every robot and astronaut you see is driven by the AI team",
+    ],
+    stats: [
+      { value: "4 × 4 km", label: "terrain", icon: "map" },
+      { value: "1 m/px", label: "HiRISE", icon: "satellite" },
+    ],
+  },
+  { id: "i1-l1", kind: "lower", icon: "rocket", fromS: 12.5, toS: 19.5, title: "Rocket launch site", detail: "The Starship stack on its pad, about 1.1 km from the base" },
+];
+
+/** Where everyone is: live map first, then who the people and robots are. */
+export const INTRO_S2: OverlayItem[] = [
+  {
+    id: "i2-map",
+    kind: "map",
+    fromS: 0.4,
+    toS: 14.5,
+    kicker: "THE ZONE",
+    title: "Where everyone is",
+    caption: "Base, science traverse site, rovers, drones and the four astronauts, live on the NASA and USGS style map",
+  },
+  {
+    id: "i2-crew",
+    kind: "grid",
+    cols: 4,
+    fromS: 15,
+    toS: 29.5,
+    kicker: "THE CREW AND THE FLEET",
+    title: "Four astronauts and a team of robots",
+    chips: [
+      { icon: "astronaut", label: "Two at base control", detail: "They monitor the mission from the habitat" },
+      { icon: "astronaut", label: "Driver and geologist", detail: "On a science traverse 1.7 km away, in a pressurized rover" },
+      { icon: "roverArm", label: "Rovers and arm robot", detail: "Drive, drill, sample and pick up rocks" },
+      { icon: "drone", label: "Two drones", detail: "Overwatch from the air, grounded in dust storms" },
+      { icon: "rescue", label: "Rescue vehicle and robot", detail: "A rear bay and a tracked robot with a harness arm" },
+      { icon: "pod", label: "Life-support cannon", detail: "Fires an 8 kg pod with oxygen, a CO2 scrubber and a battery" },
+      { icon: "brain", label: "One AI planner each", detail: "Every robot has its own agent, all under BASE" },
+      { icon: "shield", label: "GUARDIAN", detail: "Checks every action before anything moves" },
+    ],
+  },
+];
+
+/** Accident close-up: the fall and the first vitals. */
+export const INTRO_S3: OverlayItem[] = [
+  { id: "i3-l1", kind: "lower", icon: "astronaut", fromS: 0.5, toS: 9, title: "Science traverse", detail: "Two astronauts collecting samples near a pit 4 m deep" },
+  { id: "i3-alert", kind: "lower", icon: "alert", level: "alert", fromS: 10, toS: 24.5, title: "FALL DETECTED", detail: "Astronaut in the pit, suit breached: pressure falling" },
+  { id: "i3-coords", kind: "coords", fromS: 11, toS: 24.5, ...DIAZ_CANO },
+  {
+    id: "i3-vitals",
+    kind: "vitals",
+    fromS: 11,
+    toS: 24.5,
+    title: "ASTRONAUT · SUIT BREACH",
+    keys: [
+      { atS: 11, o2Pct: 96, pao2Kpa: 13.1, co2Pa: 150, batteryWh: 800 },
+      { atS: 17, o2Pct: 88, pao2Kpa: 12.4, co2Pa: 200, batteryWh: 798 },
+      { atS: 24, o2Pct: 76, pao2Kpa: 11.6, co2Pa: 260, batteryWh: 796 },
+    ],
+    events: [
+      { atS: 12, text: "Fall detected by the suit sensors" },
+      { atS: 15, text: "Suit pressure dropping" },
+      { atS: 20, text: "SUIT.HEALTH computing time to hypoxia" },
+    ],
+  },
+  { id: "i3-agent", kind: "voice", who: "agent", speaker: "SUIT.HEALTH", fromS: 12.5, toS: 23, text: "Fall detected. Suit pressure is dropping. Computing the time to hypoxia." },
+];
+
+/** Convoy and drone launch: the dispatch seen from the air. */
+export const INTRO_S4: OverlayItem[] = [
+  { id: "i4-l1", kind: "lower", icon: "drone", fromS: 0.5, toS: 10, title: "Drones climb and fly ahead", detail: "drone-1 and drone-2 head for the pit at 22 m and 28 m" },
+  { id: "i4-d1", kind: "voice", who: "agent", speaker: "ROBOT.drone-1", fromS: 1.5, toS: 11, text: "Climbing to 22 m. Heading to the pit, 25 m standoff." },
+  { id: "i4-l2", kind: "lower", icon: "rescue", fromS: 12, toS: 29.5, title: "rescue-1 drives to the pit", detail: "1.7 km of terrain with the rescue robot in the rear bay; the wheels raise dust" },
+  { id: "i4-r1", kind: "voice", who: "agent", speaker: "ROBOT.rescue-1", fromS: 13, toS: 24, text: "Driving to the pit. Slope under the 25 degree limit, 15 m keep-out respected." },
+  { id: "i4-g", kind: "voice", who: "guardian", speaker: "GUARDIAN", fromS: 19, toS: 28, text: "Convoy route approved. Drones on overwatch." },
+];
+
 /** Satellite alert: what the base sees when the storm front is reported. */
 const STORM_ALERT: OverlayItem[] = [
   { id: "t1-alert", kind: "lower", icon: "storm", level: "alert", fromS: 0.5, toS: 15.5, title: "DUST STORM ALERT", detail: "Opacity rising: walking back to the base is NO-GO" },
